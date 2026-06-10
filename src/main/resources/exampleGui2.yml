@@ -1,0 +1,90 @@
+# =====================================================
+#  NewBedwars — Example Upgrade GUI
+#
+#  This file is copied to plugins/NewBedwars/guis/ on first start.
+#  Edit the copy there; changes here only apply to fresh installs.
+#
+#  Slot values:
+#    upg:<upgrade>  — upgrade item (e.g. upg:protection, upg:sharpness)
+#    cat:<id>       — category button (e.g. cat:traps)
+#    fill           — decorative filler item
+#    empty          — leave the slot empty
+#
+#  Available upgrades: protection, sharpness, haste, forge, healpool,
+#                      dragonbuff, alarmtrap, blindtrap, miningfatiguetrap
+# =====================================================
+
+GuiId: exampleUpgrade
+GuiClass: ShopGUI
+GuiName: "Example Upgrade"
+Size: 54
+CloseOnTransaction: true
+
+Fill: ci:fill
+Empty: empty
+HeaderSize: 18
+FooterSize: 9
+
+Slots:
+  1: fill
+  2: fill
+  3: fill
+  4: fill
+  5: fill
+  6: fill
+  7: fill
+  8: fill
+  9: fill
+  10: empty
+  11: empty
+  12: empty
+  13: empty
+  14: empty
+  15: empty
+  16: empty
+  17: empty
+  18: empty
+  19: empty
+  20: empty
+  21: empty
+  22: upg:protection
+  23: upg:sharpness
+  24: upg:haste
+  25: empty
+  26: empty
+  27: empty
+  28: empty
+  29: empty
+  30: empty
+  31: upg:forge
+  32: upg:healpool
+  33: upg:dragonbuff
+  34: empty
+  35: empty
+  36: empty
+  37: empty
+  38: empty
+  39: empty
+  40: empty
+  41: cat:traps
+  42: empty
+  43: empty
+  44: empty
+  45: empty
+  46: fill
+  47: fill
+  48: fill
+  49: fill
+  50: fill
+  51: fill
+  52: fill
+  53: fill
+  54: fill
+
+Categories:
+  - ID: traps
+    Icon: traps
+    Items:
+      - upg:alarmtrap
+      - upg:blindtrap
+      - upg:miningfatiguetrap

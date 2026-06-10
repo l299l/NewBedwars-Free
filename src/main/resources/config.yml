@@ -1,0 +1,177 @@
+# =====================================================
+#  NewBedwars — Main Configuration
+#  Plugin version: 1.0.0-beta
+# =====================================================
+
+ServerName: "&6&lExample&f&lServer.com"
+
+# ----- Default Arena Settings ---------------------
+DefaultMinPlayers: 4
+DefaultMaxTeams: 4
+DefaultMaxInTeam: 4
+DefaultWaitingTime: 20
+DefaultTeamShopGui: exampleShop
+DefaultTeamUpgradeGui: exampleUpgrade
+DefaultGeneratorConfig: DefaultGenerators
+DefaultGamePhase: Default
+DefaultRespawnTime: 5
+
+# ----- Default Gamerules --------------------------
+# These apply to all arenas unless overridden per-arena.
+DefaultGamerules:
+  RandomTeams: true
+  AllowParties: true
+  AllowSpectators: true
+  AllowTeamChat: true
+  AllowGlobalChat: true
+  AllowPrivateChat: true
+  AllowTeamDamage: false
+  MakeSwordsPermanent: false
+
+# ----- Language -----------------------------------
+# Supported: en (English), pl_PL (Polish)
+# You can add your own language file to the language folder.
+DefaultLanguage: en
+
+# ----- Storage ------------------------------------
+# Only JSON is supported in this version.
+# MySQL support is planned for a future release.
+
+# ----- Chat / Tab Settings ------------------------
+# When false, players inside arenas cannot send any chat messages.
+# The per-arena gamerules AllowTeamChat and AllowGlobalChat are also respected.
+# Use ! prefix to send a team-only message (e.g. !hello team).
+ArenaChatEnabled: true
+
+# When true, each arena has its own isolated tab list.
+# Players in an arena only see teammates and arena opponents in the tab; lobby players are hidden.
+# Lobby players do not see arena players in their tab either.
+TablistIsolationEnabled: true
+
+# ----- Permission Settings ------------------------
+# If true, players must explicitly have the listed permission to use the command.
+# Ops always bypass these checks.
+RequireJoinPermission: false
+RequireLobbyPermission: false
+
+# ----- Game Settings ------------------------------
+RejoinTimeLimitEnabled: true
+# How long (minutes) a player has to rejoin after disconnecting
+RejoinTime: 5
+
+# Starting sword every player receives (use CustomItem ID from the shop)
+BasicSword: WoodenSword
+
+# Give players a full set of team-colored armor at game start
+FullArmor: false
+
+# Bed-leave confirmation: click bed to start countdown, click again to cancel
+BedLeaveConfirmEnabled: true
+BedLeaveConfirmDelay: 3
+
+# Seconds players can spectate after the game ends before the arena resets
+AfterGameWatchTime: 20
+
+# Show red particles above players carrying TNT
+TntParticlesEnabled: true
+
+# Height above team spawn where Ender Dragons are summoned during the dragon phase
+DragonSpawnHeight: 10
+
+# Blocks the Ender Dragon cannot destroy (Bukkit Material names)
+DragonIndestructibleBlocks:
+  - OBSIDIAN
+  - BEDROCK
+  - BARRIER
+  - END_PORTAL_FRAME
+  - IRON_BARS
+
+# ----- Upgrade Prices -----------------------------
+# Cost to unlock each level (index 0 = level 1→2, index 1 = level 2→3, etc.)
+# PriceType: IRON | GOLD | DIAMOND | EMERALD
+UpgradePrices:
+  PriceType: DIAMOND
+  PROTECTION:        [2, 4, 8, 12, 16]
+  SHARPNESS:         [2, 4, 8, 16]
+  HASTE:             [2, 4]
+  FORGE:             [2, 3, 5, 7, 9, 11, 14, 18]
+  HEALPOOL:          [4]
+  ALARMTRAP:         [1, 2]
+  BLINDTRAP:         [2, 3]
+  MININGFATIGUETRAP: [2, 3]
+  DRAGONBUFF:        [2, 4]
+
+# ----- Game Phases --------------------------------
+# Each phase runs for Duration seconds, then executes its Actions.
+#
+# Available Actions:
+#   DIAMOND_GENERATOR:<level>  — upgrade all diamond generators
+#   EMERALD_GENERATOR:<level>  — upgrade all emerald generators
+#   BED_DESTRUCTION            — destroy all remaining beds
+#   DISABLE_REGENERATION       — turn off natural health regen
+#   ENDER_DRAGON_START         — spawn Ender Dragons
+#   ENDER_DRAGON_END           — despawn Ender Dragons
+#   GAME_END:DRAW              — end the game as a draw
+#   GAME_END:MOST_KILLS        — end the game; winner = team with most kills
+GamePhases:
+  - ID: Default
+    Phases:
+      - Name: "Starting phase"
+        Duration: 300
+        Actions: []
+      - Name: "Diamonds II"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+      - Name: "Emeralds II"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:2"
+      - Name: "Diamonds III"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+      - Name: "Emeralds III"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 300
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Sudden death"
+        Duration: 300
+        Actions:
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "ENDER_DRAGON_END"
+          - "GAME_END:DRAW"
+  - ID: Rush
+    Phases:
+      - Name: "Starting phase"
+        Duration: 200
+        Actions: []
+      - Name: "Upgrade I"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+          - "EMERALD_GENERATOR:2"
+      - Name: "Upgrade II"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:3"
+          - "DIAMOND_GENERATOR:3"
+      - Name: "Sudden death"
+        Duration: 300
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "GAME_END:MOST_KILLS"
+          - "ENDER_DRAGON_END"

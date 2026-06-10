@@ -1,0 +1,56 @@
+# =====================================================
+#  NewBedwars — Boss Bar Configuration
+#
+#  Each boss bar cycles through its Texts, Colors,
+#  Styles, and Effects at the given interval (Time, seconds).
+#
+#  Colors:  BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+#  Styles:  SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+#  Effects: NONE, RAINBOW, PULSING, RAINBOW_PULSING
+#  Actions: NONE, END_GAME
+# =====================================================
+
+BossBars:
+  WaitingBeforeStart:
+    Enabled: true
+    Time: 5
+    Texts:
+      - "&aPlaying Bedwars on &e/server_name/&7!"
+      - "&aWaiting for players..."
+    Colors:  ["GREEN", "YELLOW"]
+    Styles:  ["SOLID", "SEGMENTED_6"]
+    Effects: ["NONE", "NONE"]
+    Action: "NONE"
+
+  GameInProgress:
+    Enabled: true
+    Time: 5
+    Texts:
+      - "&aPhase: &f/phase/ &8| &7Arena: &e/arena_name/"
+      - "&ePlayers: &f/players/&7/&f/max_players/ &8| &7Phase: &f/phase/"
+    Colors:  ["GREEN", "YELLOW"]
+    Styles:  ["SOLID", "SOLID"]
+    Effects: ["NONE", "NONE"]
+    Action: "NONE"
+
+  GameEnding:
+    Enabled: true
+    Time: 0
+    Texts:
+      - "&cEND GAME"
+    Colors:  ["PURPLE"]
+    Styles:  ["SOLID"]
+    Effects: ["NONE"]
+    Action: "END_GAME"
+
+  Lobby:
+    Enabled: true
+    Time: 5
+    Texts:
+      - "&aPlaying on &e/server_name/&7!"
+      - "Join &e/server_name/&7!"
+      - "Players: &e/players/&7/&e/max_players/&7!"
+    Colors:  ["GREEN", "YELLOW", "RED"]
+    Styles:  ["SOLID", "SEGMENTED_6", "SEGMENTED_10"]
+    Effects: ["RAINBOW", "PULSING", "RAINBOW_PULSING"]
+    Action: "NONE"

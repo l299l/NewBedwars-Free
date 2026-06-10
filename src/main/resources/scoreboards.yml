@@ -1,0 +1,68 @@
+# =====================================================
+#  NewBedwars — Scoreboard Configuration
+#
+#  Placeholders:
+#    /datetime/                 — current date & time
+#    /map/                      — arena name
+#    /players/                  — player count
+#    /maxplayers/               — max players
+#    /status/                   — arena status
+#    /servername/               — server name (from config.yml)
+#    /phase/                    — current game phase name
+#    /phaseTime/                — time remaining in phase
+#    /teams/                    — team list (in-game)
+#    /bed/                      — bed status icon
+#    /yourteam/                 — player's own team indicator
+#    /player.stats.kills/       — player kill count
+#    /player.stats.final_kills/ — player final kill count
+#    /player.stats.beds_broken/ — player beds broken count
+#
+#  TitleEffect: NONE | RAINBOW
+# =====================================================
+
+Scoreboards:
+  WaitingScoreboard:
+    Enabled: true
+    Title: '&6&lBedWars'
+    TitleEffect: 'RAINBOW'
+    Lines:
+      - '&7/datetime/'
+      - ''
+      - '&6&lMap: &e/map/'
+      - '&6&lPlayers: &e/players///maxplayers/'
+      - ''
+      - '&6&l/status/'
+      - ''
+      - '&6/servername/'
+
+  InGameScoreboard:
+    Enabled: true
+    Title: '&6&lBedWars'
+    TitleEffect: 'RAINBOW'
+    Lines:
+      - '&7/datetime/'
+      - ''
+      - '/phase/ in &e/phaseTime/'
+      - ''
+      - '/teams/: /bed/ /yourteam/'
+      - ''
+      - 'Kills: &e/player.stats.kills/'
+      - 'Final Kills: &e/player.stats.final_kills/'
+      - 'Beds Broken: &e/player.stats.beds_broken/'
+      - ''
+      - '&6/servername/'
+
+  EndingScoreboard:
+    Enabled: true
+    Title: '&6&lBedWars'
+    TitleEffect: 'RAINBOW'
+    Lines:
+      - '&7/datetime/'
+      - ''
+      - '&6&lMap: &e/map/'
+      - ''
+      - 'Kills: &e/player.stats.kills/'
+      - 'Final Kills: &e/player.stats.final_kills/'
+      - 'Beds Broken: &e/player.stats.beds_broken/'
+      - ''
+      - '&6/servername/'

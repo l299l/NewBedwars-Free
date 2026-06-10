@@ -1,0 +1,141 @@
+# =====================================================
+#  NewBedwars — Example Shop GUI
+#
+#  This file is copied to plugins/NewBedwars/guis/ on first start.
+#  Edit the copy there; changes here only apply to fresh installs.
+#
+#  GuiId       — unique identifier used in DefaultTeamShopGui
+#  GuiClass    — must be ShopGUI for shop/upgrade menus
+#  GuiName     — display name shown at the top of the inventory
+#  Size        — inventory size (must be a multiple of 9, max 54)
+#  HeaderSize  — number of slots reserved as the category/header row area
+#  FooterSize  — number of slots reserved as the footer row area
+#
+#  Slot values:
+#    ci:<id>        — custom item (defined in en.yml CustomItemsNames)
+#    category:<id>  — category button (opens that category's item list)
+#    fill           — decorative filler item (defined by Fill key)
+#    empty          — leave the slot empty
+# =====================================================
+
+GuiId: exampleShop
+GuiClass: ShopGUI
+GuiName: "Example Shop"
+Size: 54
+CloseOnTransaction: true
+
+Fill: ci:fill
+Empty: empty
+HeaderSize: 18
+FooterSize: 9
+
+Slots:
+  1: empty
+  2: category:blocks
+  3: category:tools
+  4: category:weapons
+  5: category:armor
+  6: category:bow
+  7: category:potions
+  8: category:misc
+  9: empty
+  10: fill
+  11: fill
+  12: fill
+  13: fill
+  14: fill
+  15: fill
+  16: fill
+  17: fill
+  18: fill
+  19: empty
+  20: ci:ironsword
+  21: ci:ironaxe
+  22: ci:chainmailarmor
+  23: ci:wool
+  24: ci:speed
+  25: ci:tnt
+  26: ci:bow
+  27: empty
+  28: empty
+  29: ci:diamondsword
+  30: ci:diamondaxe
+  31: ci:ironarmor
+  32: ci:EndStone
+  33: ci:jump
+  34: ci:fireball
+  35: ci:arrow
+  36: empty
+  37: empty
+  38: empty
+  39: empty
+  40: empty
+  41: empty
+  42: empty
+  43: empty
+  44: empty
+  45: empty
+  46: empty
+  47: empty
+  48: empty
+  49: empty
+  50: empty
+  51: empty
+  52: empty
+  53: empty
+  54: empty
+
+Categories:
+  - ID: blocks
+    Icon: wool
+    Items:
+      - wool
+      - EndStone
+      - Obsidian
+      - Sandstone
+      - Glass
+      - BlastProtGlass
+      - Terracotta
+  - ID: tools
+    Icon: ironpickaxe
+    Items:
+      - stonepickaxe
+      - goldpickaxe
+      - ironpickaxe
+      - diamondpickaxe
+      - shears
+  - ID: weapons
+    Icon: ironsword
+    Items:
+      - stonesword
+      - goldsword
+      - ironsword
+      - diamondsword
+  - ID: bow
+    Icon: bow
+    Items:
+      - bow
+      - arrow
+  - ID: armor
+    Icon: ironarmor
+    Items:
+      - chainmailarmor
+      - goldarmor
+      - ironarmor
+      - diamondarmor
+  - ID: potions
+    Icon: jump
+    Items:
+      - jump
+      - speed
+      - inviscibility
+  - ID: misc
+    Icon: tnt
+    Items:
+      - tnt
+      - fireball
+      - enderpearl
+      - waterbucket
+      - lavabucket
+      - bridgeegg
+      - goldenapple

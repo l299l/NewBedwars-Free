@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="180" viewBox="0 0 900 180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0a0d14"/>
+      <stop offset="50%" stop-color="#141920"/>
+      <stop offset="100%" stop-color="#0a0d14"/>
+    </linearGradient>
+    <linearGradient id="c1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff5533"/><stop offset="100%" stop-color="#ff9900"/>
+    </linearGradient>
+    <linearGradient id="c2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0077ff"/><stop offset="100%" stop-color="#00ccff"/>
+    </linearGradient>
+    <linearGradient id="c3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00bb44"/><stop offset="100%" stop-color="#66ff44"/>
+    </linearGradient>
+    <linearGradient id="c4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9933ff"/><stop offset="100%" stop-color="#cc66ff"/>
+    </linearGradient>
+    <linearGradient id="c5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff3388"/><stop offset="100%" stop-color="#ff88cc"/>
+    </linearGradient>
+    <filter id="g1"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ff5533" flood-opacity="0.65"/></filter>
+    <filter id="g2"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#0077ff" flood-opacity="0.65"/></filter>
+    <filter id="g3"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#00bb44" flood-opacity="0.65"/></filter>
+    <filter id="g4"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#9933ff" flood-opacity="0.65"/></filter>
+    <filter id="g5"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ff3388" flood-opacity="0.65"/></filter>
+    <linearGradient id="topLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff5533" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#ff5533"/>
+      <stop offset="50%" stop-color="#0077ff"/>
+      <stop offset="80%" stop-color="#ff3388"/>
+      <stop offset="100%" stop-color="#ff3388" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="180" fill="url(#bg)"/>
+  <line x1="0" y1="1.5" x2="900" y2="1.5" stroke="url(#topLine)" stroke-width="2"/>
+  <line x1="0" y1="178.5" x2="900" y2="178.5" stroke="url(#topLine)" stroke-width="2"/>
+
+  <line x1="180" y1="15" x2="180" y2="165" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+  <line x1="360" y1="15" x2="360" y2="165" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+  <line x1="540" y1="15" x2="540" y2="165" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+  <line x1="720" y1="15" x2="720" y2="165" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+
+  <!-- Multi-Arena: 3 stacked layers, visual center at x=90 -->
+  <g transform="translate(56, 30)" filter="url(#g1)">
+    <rect x="0" y="22" width="54" height="30" rx="5" fill="none" stroke="url(#c1)" stroke-width="2.5"/>
+    <rect x="7" y="12" width="54" height="30" rx="5" fill="none" stroke="#ff9900" stroke-width="2" opacity="0.55"/>
+    <rect x="14" y="2" width="54" height="30" rx="5" fill="none" stroke="#ffbb00" stroke-width="1.5" opacity="0.28"/>
+  </g>
+  <text x="90" y="115" font-family="'Segoe UI', Arial, sans-serif" font-size="12.5" font-weight="700" fill="url(#c1)" text-anchor="middle">Multi-Arena</text>
+
+  <!-- Shop &amp; Upgrades: chest + arrow -->
+  <g transform="translate(239, 30)" filter="url(#g2)">
+    <rect x="0" y="12" width="44" height="30" rx="4" fill="none" stroke="url(#c2)" stroke-width="2.5"/>
+    <rect x="0" y="4" width="44" height="14" rx="4" fill="none" stroke="url(#c2)" stroke-width="2.5"/>
+    <rect x="17" y="15" width="10" height="9" rx="2" fill="#00ccff" opacity="0.9"/>
+    <polygon points="53,8 63,19 57,19 57,32 47,32 47,19 41,19" fill="url(#c2)" opacity="0.85"/>
+  </g>
+  <text x="270" y="115" font-family="'Segoe UI', Arial, sans-serif" font-size="12.5" font-weight="700" fill="url(#c2)" text-anchor="middle">Shop &amp; Upgrades</text>
+
+  <!-- Multi-Language: globe -->
+  <g transform="translate(427, 30)" filter="url(#g3)">
+    <circle cx="23" cy="24" r="22" fill="none" stroke="url(#c3)" stroke-width="2.5"/>
+    <ellipse cx="23" cy="24" rx="11" ry="22" fill="none" stroke="url(#c3)" stroke-width="1.5" opacity="0.55"/>
+    <line x1="1" y1="24" x2="45" y2="24" stroke="url(#c3)" stroke-width="1.5" opacity="0.55"/>
+    <line x1="4" y1="14" x2="42" y2="14" stroke="url(#c3)" stroke-width="1" opacity="0.35"/>
+    <line x1="4" y1="34" x2="42" y2="34" stroke="url(#c3)" stroke-width="1" opacity="0.35"/>
+  </g>
+  <text x="450" y="115" font-family="'Segoe UI', Arial, sans-serif" font-size="12.5" font-weight="700" fill="url(#c3)" text-anchor="middle">Multi-Language</text>
+
+  <!-- Lobby Config: house icon -->
+  <g transform="translate(610, 28)" filter="url(#g4)">
+    <polygon points="20,0 40,16 36,16 36,46 4,46 4,16 0,16" fill="none" stroke="url(#c4)" stroke-width="2.5"/>
+    <rect x="13" y="30" width="14" height="16" rx="2" fill="url(#c4)" opacity="0.7"/>
+    <rect x="8" y="18" width="9" height="9" rx="1.5" fill="url(#c4)" opacity="0.5"/>
+    <rect x="23" y="18" width="9" height="9" rx="1.5" fill="url(#c4)" opacity="0.5"/>
+  </g>
+  <text x="630" y="115" font-family="'Segoe UI', Arial, sans-serif" font-size="12.5" font-weight="700" fill="url(#c4)" text-anchor="middle">Lobby Config</text>
+
+  <!-- Scoreboards &amp; Bossbars: bar chart + boss bar -->
+  <g transform="translate(788, 30)" filter="url(#g5)">
+    <rect x="0" y="0" width="44" height="4" rx="2" fill="#2a1a22"/>
+    <rect x="0" y="0" width="28" height="4" rx="2" fill="url(#c5)" opacity="0.9"/>
+    <rect x="0" y="12" width="12" height="34" rx="2" fill="url(#c5)" opacity="0.7"/>
+    <rect x="16" y="22" width="12" height="24" rx="2" fill="url(#c5)" opacity="0.85"/>
+    <rect x="32" y="30" width="12" height="16" rx="2" fill="url(#c5)" opacity="0.9"/>
+  </g>
+  <text x="810" y="109" font-family="'Segoe UI', Arial, sans-serif" font-size="12.5" font-weight="700" fill="url(#c5)" text-anchor="middle">Scoreboards</text>
+  <text x="810" y="125" font-family="'Segoe UI', Arial, sans-serif" font-size="11" font-weight="600" fill="url(#c5)" text-anchor="middle" opacity="0.8">&amp; Bossbars</text>
+
+  <text x="450" y="163" font-family="'Segoe UI', Arial, sans-serif" font-size="9.5" fill="#22222a" text-anchor="middle" letter-spacing="5">KEY FEATURES</text>
+</svg>

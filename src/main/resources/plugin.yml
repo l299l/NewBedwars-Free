@@ -1,0 +1,99 @@
+name: NewBedwars
+version: '${project.version}'
+main: com.l299l.newbedwars.NewBedwars
+api-version: '1.17'
+load: STARTUP
+authors: [l299l]
+description: Advanced and modern bedwars plugin!
+commands:
+  bw:
+    description: Main bedwars command!
+    usage: /<command>
+  lobby:
+    description: Teleport to the lobby!
+    usage: /<command>
+  lang:
+    description: Change your language!
+    usage: /<command> <en|pl>
+
+permissions:
+  # ---- Admin ----------------------------------------
+  newbedwars.bw.admin:
+    description: Full access to all admin commands.
+    default: op
+    children:
+      newbedwars.bw.arena: true
+      newbedwars.bw.setlobby: true
+      newbedwars.bw.setupguis: true
+      newbedwars.bw.managegame: true
+
+  newbedwars.bw.arena:
+    description: Manage arenas (create, delete, enable, disable, setup).
+    default: op
+    children:
+      newbedwars.bw.arena.create: true
+      newbedwars.bw.arena.delete: true
+      newbedwars.bw.arena.enable: true
+      newbedwars.bw.arena.disable: true
+      newbedwars.bw.arena.setup: true
+
+  newbedwars.bw.arena.create:
+    description: Create arenas.
+    default: op
+  newbedwars.bw.arena.delete:
+    description: Delete arenas.
+    default: op
+  newbedwars.bw.arena.enable:
+    description: Enable arenas.
+    default: op
+  newbedwars.bw.arena.disable:
+    description: Disable arenas.
+    default: op
+  newbedwars.bw.arena.setup:
+    description: Enter arena setup mode.
+    default: op
+
+  newbedwars.bw.setlobby:
+    description: Set the lobby location.
+    default: op
+  newbedwars.bw.setupguis:
+    description: Open the GUI editor.
+    default: op
+  newbedwars.bw.managegame:
+    description: Manage ongoing games.
+    default: op
+
+  newbedwars.bw.bypass:
+    description: Bypass restrictions (e.g. teleport to admins in setup worlds).
+    default: op
+
+  # ---- Player ---------------------------------------
+  newbedwars.bw.player:
+    description: Default player permissions bundle.
+    default: true
+    children:
+      newbedwars.bw.join: true
+      newbedwars.bw.lobby: true
+      newbedwars.bw.rejoin: true
+      newbedwars.bw.spectate: true
+      newbedwars.bw.lang: true
+      newbedwars.bw.help: true
+
+  newbedwars.bw.join:
+    description: Join arenas.
+    default: true
+  newbedwars.bw.lobby:
+    description: Teleport to the lobby.
+    default: true
+  newbedwars.bw.rejoin:
+    description: Rejoin a game after disconnecting.
+    default: true
+  newbedwars.bw.spectate:
+    description: Spectate arenas.
+    default: true
+  newbedwars.bw.lang:
+    description: Change language.
+    default: true
+  newbedwars.bw.help:
+    description: View the help menu.
+    default: true

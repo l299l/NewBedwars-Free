@@ -1,0 +1,66 @@
+# =====================================================
+#  NewBedwars — Generator Configuration
+#
+#  ConfigurationId must match DefaultGeneratorConfig in config.yml.
+#  Create additional files in the generators/ folder with
+#  different IDs to define alternative generator presets.
+#
+#  SpawnRate: probability (%) for each resource at each generator level.
+#  MaxAmount: max items per spawn tick at each level.
+#  SpawnDelay: seconds between spawn ticks at each level.
+# =====================================================
+
+ConfigurationId: DefaultGenerators
+
+# ----- Team (Basic) Generator ---------------------
+TeamGenerator:
+  MaxLevel: 8
+  ShowNextSpawnTime: false
+  Iron:
+    SpawnRate: [75.0, 60.0, 55.0, 50.5, 50.0, 50.0, 50.0, 45.0]
+    MaxAmount: [1, 2, 2, 2, 3, 4, 5, 6]
+  Gold:
+    SpawnRate: [25.0, 40.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0]
+    MaxAmount: [1, 1, 2, 2, 3, 4, 5, 6]
+  Emerald:
+    SpawnRate: [0.0, 0.0, 0.0, 4.5, 5.0, 5.0, 5.0, 5.0]
+    MaxAmount: [0, 0, 0, 1, 1, 2, 3, 3]
+  Diamond:
+    SpawnRate: [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0]
+    MaxAmount: [0, 0, 0, 0, 1, 1, 2, 2]
+  SpawnDelay: [2, 2, 1, 1, 1, 1, 0.75, 0.70]
+
+# ----- Diamond Generator --------------------------
+DiamondGenerator:
+  MaxLevel: 3
+  ShowNextSpawnTime: true
+  Diamond:
+    SpawnRate: [100.0]
+    MaxAmount: [1]
+  SpawnDelay: [60, 30, 15]
+
+# ----- Emerald Generator --------------------------
+EmeraldGenerator:
+  MaxLevel: 3
+  ShowNextSpawnTime: true
+  Emerald:
+    SpawnRate: [100.0]
+    MaxAmount: [1]
+  SpawnDelay: [60, 30, 15]
+
+# ----- Custom Generators --------------------------
+# Set Enabled: true and define your generators below.
+OtherGenerators:
+  Enabled: false
+  Generators:
+    - ID: RedstoneGenerator
+      MaxLevel: 1
+      ShowNextSpawnTime: true
+      SpawnDelay: [60]
+      Resources:
+        - ITEM: REDSTONE_DUST
+          SpawnRate: [99.0]
+          MaxAmount: [1]
+        - ITEM: REDSTONE_BLOCK
+          SpawnRate: [1.0]
+          MaxAmount: [1]

@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+  <defs>
+    <!-- Dark background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#161b22;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+    <!-- Accent glow gradient -->
+    <radialGradient id="glowCenter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff4444;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:0" />
+    </radialGradient>
+    <!-- Title gradient -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b6b" />
+      <stop offset="40%" style="stop-color:#ffffff" />
+      <stop offset="100%" style="stop-color:#ffd93d" />
+    </linearGradient>
+    <!-- Beta badge gradient -->
+    <linearGradient id="betaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4444" />
+      <stop offset="100%" style="stop-color:#cc0000" />
+    </linearGradient>
+    <!-- Grid pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.3" opacity="0.05"/>
+    </pattern>
+    <!-- Drop shadow filter -->
+    <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ff4444" flood-opacity="0.6"/>
+    </filter>
+    <filter id="subtitleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+    <filter id="iconGlow">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ff4444" flood-opacity="0.8"/>
+    </filter>
+    <filter id="diamondGlow">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#00d4ff" flood-opacity="0.9"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="300" fill="url(#bgGrad)"/>
+  <rect width="1200" height="300" fill="url(#grid)"/>
+  <rect width="1200" height="300" fill="url(#glowCenter)"/>
+
+  <!-- Decorative left side — team color columns -->
+  <rect x="0" y="0" width="6" height="300" fill="#ff4444" opacity="0.9"/>
+  <rect x="8" y="0" width="3" height="300" fill="#ff4444" opacity="0.4"/>
+
+  <!-- Decorative right side -->
+  <rect x="1194" y="0" width="6" height="300" fill="#ffd93d" opacity="0.9"/>
+  <rect x="1189" y="0" width="3" height="300" fill="#ffd93d" opacity="0.4"/>
+
+  <!-- Top border line with gradient -->
+  <line x1="0" y1="0" x2="1200" y2="0" stroke="url(#titleGrad)" stroke-width="2" opacity="0.6"/>
+  <line x1="0" y1="299" x2="1200" y2="299" stroke="url(#titleGrad)" stroke-width="2" opacity="0.6"/>
+
+  <!-- ===================== LEFT SECTION: Bed icons ===================== -->
+  <!-- Red bed (top-left area) -->
+  <g transform="translate(40, 60)" opacity="0.75" filter="url(#iconGlow)">
+    <!-- Bed frame -->
+    <rect x="0" y="18" width="52" height="28" rx="3" fill="#8B0000"/>
+    <rect x="0" y="8" width="52" height="14" rx="2" fill="#cc3333"/>
+    <!-- Pillow -->
+    <rect x="4" y="10" width="16" height="10" rx="2" fill="#ffdddd" opacity="0.9"/>
+    <!-- Blanket -->
+    <rect x="2" y="20" width="48" height="22" rx="2" fill="#ff4444"/>
+    <rect x="2" y="20" width="48" height="8" rx="2" fill="#ff6666"/>
+    <!-- Legs -->
+    <rect x="2" y="42" width="6" height="8" fill="#8B4513"/>
+    <rect x="44" y="42" width="6" height="8" fill="#8B4513"/>
+  </g>
+
+  <!-- Blue bed (below red) -->
+  <g transform="translate(40, 155)" opacity="0.7" filter="url(#iconGlow)">
+    <rect x="0" y="18" width="52" height="28" rx="3" fill="#00008B"/>
+    <rect x="0" y="8" width="52" height="14" rx="2" fill="#3333cc"/>
+    <rect x="4" y="10" width="16" height="10" rx="2" fill="#ddddff" opacity="0.9"/>
+    <rect x="2" y="20" width="48" height="22" rx="2" fill="#4444ff"/>
+    <rect x="2" y="20" width="48" height="8" rx="2" fill="#6666ff"/>
+    <rect x="2" y="42" width="6" height="8" fill="#8B4513"/>
+    <rect x="44" y="42" width="6" height="8" fill="#8B4513"/>
+  </g>
+
+  <!-- ===================== RIGHT SECTION: Diamond & Generator ===================== -->
+  <!-- Diamond icon (right side) -->
+  <g transform="translate(1090, 90)" filter="url(#diamondGlow)">
+    <!-- Diamond shape -->
+    <polygon points="30,0 60,25 30,55 0,25" fill="#00d4ff" opacity="0.85"/>
+    <polygon points="30,0 60,25 30,30" fill="#66e8ff" opacity="0.7"/>
+    <polygon points="30,0 0,25 30,30" fill="#00b8d9" opacity="0.8"/>
+    <polygon points="0,25 30,55 30,30" fill="#0099bb" opacity="0.7"/>
+    <polygon points="60,25 30,55 30,30" fill="#00c4e8" opacity="0.7"/>
+  </g>
+
+  <!-- Emerald icon -->
+  <g transform="translate(1070, 185)" opacity="0.8">
+    <polygon points="20,0 40,10 40,30 20,40 0,30 0,10" fill="#00d44a"/>
+    <polygon points="20,0 40,10 20,20" fill="#66ff99" opacity="0.7"/>
+    <polygon points="0,10 20,20 0,30" fill="#009933" opacity="0.8"/>
+  </g>
+
+  <!-- ===================== CENTER: Main Text ===================== -->
+  <!-- Subtitle above -->
+  <text x="600" y="88" font-family="'Segoe UI', Arial, sans-serif" font-size="15"
+        font-weight="400" fill="#aaaaaa" text-anchor="middle"
+        filter="url(#subtitleShadow)" letter-spacing="6">
+    PAPER MINECRAFT PLUGIN
+  </text>
+
+  <!-- Main title: NEW -->
+  <text x="348" y="178" font-family="'Segoe UI Black', 'Arial Black', Arial, sans-serif"
+        font-size="96" font-weight="900" fill="url(#titleGrad)"
+        filter="url(#textShadow)" text-anchor="middle" letter-spacing="-2">
+    NEW
+  </text>
+
+  <!-- Main title: BEDWARS -->
+  <text x="750" y="178" font-family="'Segoe UI Black', 'Arial Black', Arial, sans-serif"
+        font-size="96" font-weight="900" fill="#ffffff"
+        filter="url(#subtitleShadow)" text-anchor="middle" letter-spacing="-2">
+    BEDWARS
+  </text>
+
+  <!-- Divider dot between NEW and BEDWARS -->
+  <circle cx="520" cy="148" r="7" fill="url(#titleGrad)" opacity="0.9"/>
+
+  <!-- Tagline -->
+  <text x="600" y="218" font-family="'Segoe UI', Arial, sans-serif" font-size="17"
+        font-weight="300" fill="#cccccc" text-anchor="middle"
+        filter="url(#subtitleShadow)" letter-spacing="2">
+    Modern · Configurable · Feature-Rich
+  </text>
+
+  <!-- Beta badge -->
+  <g transform="translate(820, 105)">
+    <rect x="0" y="0" width="90" height="28" rx="14" fill="url(#betaGrad)"/>
+    <rect x="1" y="1" width="88" height="26" rx="13" fill="none" stroke="#ff8888" stroke-width="1" opacity="0.5"/>
+    <text x="45" y="19" font-family="'Segoe UI', Arial, sans-serif" font-size="13"
+          font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="2">
+      v1.0-BETA
+    </text>
+  </g>
+
+  <!-- Team color dots at bottom -->
+  <circle cx="530" cy="257" r="7" fill="#ff4444" opacity="0.9"/>
+  <circle cx="554" cy="257" r="7" fill="#4444ff" opacity="0.9"/>
+  <circle cx="578" cy="257" r="7" fill="#44ff44" opacity="0.9"/>
+  <circle cx="602" cy="257" r="7" fill="#ffff44" opacity="0.9"/>
+  <circle cx="626" cy="257" r="7" fill="#ff44ff" opacity="0.9"/>
+  <circle cx="650" cy="257" r="7" fill="#44ffff" opacity="0.9"/>
+  <circle cx="674" cy="257" r="7" fill="#ff8844" opacity="0.9"/>
+
+  <!-- Bottom label -->
+  <text x="600" y="284" font-family="'Segoe UI', Arial, sans-serif" font-size="12"
+        fill="#666666" text-anchor="middle" letter-spacing="3">
+    PAPER 1.17 – 26.1.2  ·  JAVA 16+  ·  FREE
+  </text>
+</svg>
