@@ -1,0 +1,330 @@
+[CENTER]
+[IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.png[/IMG]
+[/CENTER]
+
+[CENTER]
+[SIZE=1][COLOR=#666666]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]OVERVIEW[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[COLOR=#CCCCCC]
+[B]NewBedwars[/B] is a modern, fully configurable Bedwars plugin built from the ground up for [COLOR=#50fa7b][B]Paper 1.17+[/B][/COLOR]. It delivers the classic Bedwars experience with a powerful in-game setup system, YAML-driven GUIs, multi-arena support, and deep gamerule control — all without requiring any additional plugin dependencies.
+
+Whether you're running a small survival server looking to add a Bedwars minigame, or building a dedicated Bedwars network, NewBedwars gives you the tools to create polished, production-ready arenas with minimal configuration effort.
+[/COLOR]
+
+[CENTER]
+[COLOR=#ffd93d][B]⚠ This is a beta release.[/B][/COLOR] [COLOR=#CCCCCC]Core gameplay is stable and feature-complete. Please report any issues via the GitHub issue tracker.[/COLOR]
+[/CENTER]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]KEY FEATURES[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[COLOR=#FFFFFF][B]⚔ Gameplay[/B][/COLOR]
+[LIST]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Multi-Arena[/B] — run unlimited simultaneous arenas, each with its own world[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Team System[/B] — configurable team count, colors, and player limits[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Quick Void[/B] — instant death below a configurable Y level[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Build Protection[/B] — per-team zones where players cannot place blocks[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Rejoin System[/B] — players can reconnect within a configurable time window[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Traps[/B] — trigger team traps when enemies enter your base area[/COLOR]
+[/LIST]
+
+[COLOR=#FFFFFF][B]💬 Chat & Visibility[/B][/COLOR]
+[LIST]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Arena Chat Isolation[/B] — each arena has its own chat; lobby players and other arenas are completely isolated[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Team Chat[/B] — type [B]!message[/B] to send a team-only message, controlled per arena via gamerule[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Global Arena Chat[/B] — optional arena-wide chat channel, toggle per arena via gamerule[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Tab List Isolation[/B] — each arena gets its own tab list; lobby players are hidden from arena players and vice versa[/COLOR]
+[/LIST]
+
+[COLOR=#FFFFFF][B]🛒 Shop & Economy[/B][/COLOR]
+[LIST]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]YAML Shop GUIs[/B] — fully configurable item shops, no code changes needed[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Team Upgrades[/B] — Forge, Traps, Heal Pool, Dragon Buff, and more[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Bridge Egg[/B] — creates a wool bridge along its flight path[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Fireball[/B] — custom fireball item with arena-safe explosion[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Potions[/B] — Speed, Jump, and Invisibility custom potions[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Resource Generators[/B] — Iron, Gold, Diamond, Emerald with phase-based leveling[/COLOR]
+[/LIST]
+
+[COLOR=#FFFFFF][B]🐉 Game Phases[/B][/COLOR]
+[LIST]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Configurable Phases[/B] — define phase names, durations, and action triggers in config.yml[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Generator Upgrades[/B] — automatically upgrade Diamond/Emerald generators at phase transitions[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Bed Destruction[/B] — trigger global bed destruction at a configured phase[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Ender Dragon[/B] — spawn per-team dragons that fire fireballs at enemies; level based on Dragon Buff upgrade[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Regen Disable[/B] — remove natural health regeneration in late game[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Forge Disable[/B] — remove team iron/gold generators in the final phase[/COLOR]
+[/LIST]
+
+[COLOR=#FFFFFF][B]🎭 Display & HUD[/B][/COLOR]
+[LIST]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Bossbar[/B] — YAML templates for waiting, playing, and ending states[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Scoreboard[/B] — per-player scoreboards with full placeholder support[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Spectator Mode[/B] — fly around the arena; compass teleports to live players[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Multi-Language[/B] — English and Polish included, fully translatable YAML[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]TNT Particles[/B] — red dust particles above players holding TNT[/COLOR]
+[/LIST]
+
+[COLOR=#FFFFFF][B]⚙ Administration[/B][/COLOR]
+[LIST]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]In-Game Setup[/B] — configure everything without editing files[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Arena Info Command[/B] — visual checklist of configured and missing fields[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]JSON Persistence[/B] — arenas saved automatically and survive restarts[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Per-Arena Gamerules[/B] — random teams, spectators, team/global chat, team damage, permanent swords, and more[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Manage Game Command[/B] — admins can easily forcestart, advance to the next phase, or stop a game[/COLOR]
+[/LIST]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]COMMANDS[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[SPOILER=Player Commands]
+[CODE]
+/bw join [arena]      — Open arena selector or join a specific arena
+/bw rejoin            — Rejoin your previous arena
+/bw lobby             — Leave the arena and return to the main lobby
+/bw spectate [arena]  — Join a running arena as spectator
+/bw lang <en|pl>      — Change your display language
+/bw help              — Show all available commands
+/lobby                — Shortcut: teleport to lobby
+/lang <en|pl>         — Shortcut: change language
+[/CODE]
+[/SPOILER]
+
+[SPOILER=Admin Commands]
+[CODE]
+/bw arena create <name>         — Create a new arena
+/bw arena delete <name>         — Permanently delete an arena
+/bw arena enable <name>         — Enable a fully configured arena
+/bw arena disable <name>        — Disable a running arena
+/bw arena setup <name>          — Enter setup mode for an arena
+/bw setLobby                    — Set the global lobby spawn point
+/bw setupGuis                   — Open the GUI configuration tool
+/bw manageGame                  — In-game admin management panel (phase skip, etc.)
+[/CODE]
+[/SPOILER]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]PERMISSIONS[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[SPOILER=Admin Permissions]
+[CODE]
+newbedwars.bw.admin          — Full admin access; grants all sub-permissions (default: op)
+newbedwars.bw.arena          — Manage arenas: create/delete/enable/disable/setup (default: op)
+newbedwars.bw.arena.create   — Create arenas (default: op)
+newbedwars.bw.arena.delete   — Delete arenas (default: op)
+newbedwars.bw.arena.enable   — Enable arenas (default: op)
+newbedwars.bw.arena.disable  — Disable arenas (default: op)
+newbedwars.bw.arena.setup    — Enter arena setup mode (default: op)
+newbedwars.bw.setlobby       — Set the lobby location (default: op)
+newbedwars.bw.setupguis      — Open the GUI editor (default: op)
+newbedwars.bw.managegame     — Manage running games (default: op)
+newbedwars.bw.bypass         — Bypass setup-mode restrictions (default: op)
+[/CODE]
+[/SPOILER]
+
+[SPOILER=Player Permissions]
+[CODE]
+newbedwars.bw.player   — Bundle; grants all player permissions below (default: true)
+newbedwars.bw.join     — Join arenas (default: true)
+newbedwars.bw.lobby    — Teleport to lobby (default: true)
+newbedwars.bw.rejoin   — Rejoin after disconnect (default: true)
+newbedwars.bw.spectate — Spectate arenas (default: true)
+newbedwars.bw.lang     — Change language (default: true)
+newbedwars.bw.help     — View help menu (default: true)
+[/CODE]
+[COLOR=#888888][I]Set RequireJoinPermission or RequireLobbyPermission to true in config.yml to restrict /bw join and /bw lobby to players with the explicit permission. Both default to false (open to everyone).[/I][/COLOR]
+[/SPOILER]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]REQUIREMENTS[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[LIST]
+[*][COLOR=#50fa7b]●[/COLOR] [COLOR=#CCCCCC][B]Server:[/B] Paper 1.17 – 26.1.2 [COLOR=#888888](Spigot likely compatible but untested — Paper recommended)[/COLOR][/COLOR]
+[*][COLOR=#50fa7b]●[/COLOR] [COLOR=#CCCCCC][B]Java:[/B] 16 or higher[/COLOR]
+[*][COLOR=#50fa7b]●[/COLOR] [COLOR=#CCCCCC][B]No external plugins required[/B][/COLOR]
+[/LIST]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]INSTALLATION[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[LIST=1]
+[*][COLOR=#CCCCCC]Download [B]NewBedwars-1.0.0-beta.jar[/B][/COLOR]
+[*][COLOR=#CCCCCC]Drop it into your server's [B]/plugins/[/B] folder[/COLOR]
+[*][COLOR=#CCCCCC]Start the server — config files generate automatically[/COLOR]
+[*][COLOR=#CCCCCC]Set your lobby spawn: [B]/bw setLobby[/B][/COLOR]
+[*][COLOR=#CCCCCC]Create your first arena: [B]/bw arena create myArena[/B][/COLOR]
+[*][COLOR=#CCCCCC]Follow the checklist shown by [B]/bw arena[/B][/COLOR]
+[*][COLOR=#CCCCCC]Save the arena: [B]/bw save[/B][/COLOR]
+[*][COLOR=#CCCCCC]Enable when ready: [B]/bw arena enable myArena[/B][/COLOR]
+[/LIST]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]FUTURE PLANS[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[LIST]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Party support[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]PlaceholderAPI support[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]WorldEdit support[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Arena statistics and leaderboards[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]More languages (DE, ES, FR, RU)[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Schematic-based arena import/export[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Per-arena resource pack forcing[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Network / BungeeCord / Velocity mode[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Custom death animations and kill effects[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]In-game map voting system[/COLOR]
+[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Player profiles with their own GUI configurations and stats[/COLOR]
+[/LIST]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]SUPPORT & BUG REPORTS[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[CENTER]
+[COLOR=#CCCCCC]Found a bug or have a suggestion? Please open an issue on [B]GitHub[/B] or use the platform's discussion section.[/COLOR]
+
+[COLOR=#888888][I]Most problems can be resolved quickly with a bug report.[/I][/COLOR]
+[/CENTER]
+
+[CENTER]
+[SIZE=1][COLOR=#333333]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[/CENTER]
+
+[CENTER]
+[SIZE=5][B][COLOR=#FF4444]◆[/COLOR] [COLOR=#FFFFFF]SCREENSHOTS[/COLOR] [COLOR=#FF4444]◆[/COLOR][/B][/SIZE]
+[/CENTER]
+
+[SPOILER=Joining & Waiting]
+[TABLE]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110222.png[/IMG]
+[COLOR=#888888][I]Arena selector GUI[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110543.png[/IMG]
+[COLOR=#888888][I]Waiting lobby with bossbar & scoreboard[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[/TABLE]
+[/SPOILER]
+
+[SPOILER=In-Game HUD & Events]
+[TABLE]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114731.png[/IMG]
+[COLOR=#888888][I]In-game HUD — scoreboard, phase info, NPC labels[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121249.png[/IMG]
+[COLOR=#888888][I]Respawn countdown[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120913.png[/IMG]
+[COLOR=#888888][I]Bed destroyed announcement[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_1205111.png[/IMG]
+[COLOR=#888888][I]Trap alarm[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121425.png[/IMG]
+[COLOR=#888888][I]End game — spectator view with bossbar[/I][/COLOR][/CENTER][/TD]
+[TD][/TD]
+[/TR]
+[/TABLE]
+[/SPOILER]
+
+[SPOILER=Shop & Upgrades]
+[TABLE]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114843.png[/IMG]
+[COLOR=#888888][I]Shop GUI[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114904.png[/IMG]
+[COLOR=#888888][I]Bridge Egg — shop tooltip (cost: 4 Gold)[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114919.png[/IMG]
+[COLOR=#888888][I]Team Upgrades shop[/I][/COLOR][/CENTER][/TD]
+[TD][/TD]
+[/TR]
+[/TABLE]
+[/SPOILER]
+
+[SPOILER=Resource Generators]
+[TABLE]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_115559.png[/IMG]
+[COLOR=#888888][I]Emerald Generator — Tier 2 hologram[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120327.png[/IMG]
+[COLOR=#888888][I]Diamond Generator — Tier 3 hologram[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[/TABLE]
+[/SPOILER]
+
+[SPOILER=Arena Setup]
+[TABLE]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121511.png[/IMG]
+[COLOR=#888888][I]Help command output[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121720.png[/IMG]
+[COLOR=#888888][I]Arena setup checklist (NORMAL_SETUP)[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121727.png[/IMG]
+[COLOR=#888888][I]Team configuration checklist — missing fields highlighted[/I][/COLOR][/CENTER][/TD]
+[TD][/TD]
+[/TR]
+[/TABLE]
+[/SPOILER]
+
+[SPOILER=Map & Environment]
+[TABLE]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122307.png[/IMG]
+[COLOR=#888888][I]Arena map — aerial overview[/I][/COLOR][/CENTER][/TD]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123438.png[/IMG]
+[COLOR=#888888][I]Live gameplay — combat near a bed[/I][/COLOR][/CENTER][/TD]
+[/TR]
+[TR]
+[TD][CENTER][IMG]https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123625.png[/IMG]
+[COLOR=#888888][I]Island close-up[/I][/COLOR][/CENTER][/TD]
+[TD][/TD]
+[/TR]
+[/TABLE]
+[/SPOILER]
+
+[CENTER]
+[SIZE=1][COLOR=#666666]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
+[COLOR=#555555][I]NewBedwars v1.0.0-beta — Made with ❤ by l299l — Paper 1.17 – 26.1.2[/I][/COLOR]
+[/CENTER]
