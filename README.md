@@ -260,14 +260,6 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
   </tr>
 </table>
 
-### Bridge Egg
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png" width="100%"/><br><sub>Bridge Egg — wool blocks placed along arc trajectory</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122528.png" width="100%"/><br><sub>Bridge Egg — completed bridge between islands</sub></td>
-  </tr>
-</table>
-
 ### Arena Setup
 <table>
   <tr>
@@ -285,6 +277,10 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122307.png" width="100%"/><br><sub>Arena map — aerial overview</sub></td>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123438.png" width="100%"/><br><sub>Live gameplay — combat near a bed</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png" width="100%"/><br><sub>Bridge Egg — wool blocks placed along arc trajectory</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122528.png" width="100%"/><br><sub>Bridge Egg — completed bridge between islands</sub></td>
   </tr>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123625.png" width="100%"/><br><sub>Island close-up</sub></td>
