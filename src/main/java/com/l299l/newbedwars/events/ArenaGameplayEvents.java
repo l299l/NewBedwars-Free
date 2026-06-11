@@ -50,6 +50,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -77,6 +78,28 @@ public class ArenaGameplayEvents implements Listener {
         this.plugin = plugin;
     }
     @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        Player p = e.getPlayer();
+        if (Arena.arenaByWorld.get(p.getWorld()) == null) return;
+        // Player reconnected while inside an arena world — send them to lobby next tick
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!p.isOnline()) return;
+            p.teleport(NewBedwars.plugin.getLobbyLocation());
+            p.setGameMode(org.bukkit.GameMode.SURVIVAL);
+            p.setHealth(20);
+            p.setFoodLevel(20);
+            p.getInventory().clear();
+            p.getInventory().setArmorContents(null);
+            p.setExp(0);
+            p.setLevel(0);
+            p.setFireTicks(0);
+            p.setFlying(false);
+            p.setAllowFlight(false);
+            p.getActivePotionEffects().forEach(ef -> p.removePotionEffect(ef.getType()));
+        });
+    }
+
+    @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         Player p = e.getPlayer();
         BukkitTask pending = pendingLeave.remove(p.getUniqueId());
@@ -94,7 +117,7 @@ public class ArenaGameplayEvents implements Listener {
                     arena.cancelStart();
                     arena.leave(p);
                 } else if (arena.status() == GameStatus.waiting || arena.status() == GameStatus.playing
-                        || arena.status() == GameStatus.ending) {
+                        || arena.status() == GameStatus.ending || arena.status() == GameStatus.restarting) {
                     arena.leave(p);
                 }
             } else if (arena.getSpectators().contains(p)) {
@@ -243,13 +266,13 @@ public class ArenaGameplayEvents implements Listener {
                 List<TeamUpgrades> teamUpgrades = arena.getTeamUpgrades();
                 Team team = arena.getTeam(p);
                 for (TeamShop shop : teamShops) {
-                    if (e.getRightClicked().getUniqueId().equals(shop.getNpc().getUniqueId())) {
+                    if (shop.getNpc() != null && e.getRightClicked().getUniqueId().equals(shop.getNpc().getUniqueId())) {
                         team.getTeamShop().open(p);
                         return;
                     }
                 }
                 for (TeamUpgrades upgrade : teamUpgrades) {
-                    if (e.getRightClicked().getUniqueId().equals(upgrade.getNpc().getUniqueId())) {
+                    if (upgrade.getNpc() != null && e.getRightClicked().getUniqueId().equals(upgrade.getNpc().getUniqueId())) {
                         team.getTeamUpgrades().open(p);
                         return;
                     }

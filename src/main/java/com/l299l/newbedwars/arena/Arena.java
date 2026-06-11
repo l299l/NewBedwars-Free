@@ -148,6 +148,12 @@ public class Arena implements IArena {
         updateScoreboards();
         gamePhases.start(this);
         startTntParticleTask();
+        for (Team team : new ArrayList<>(teams.values())) {
+            if (team.getPlayers().isEmpty()) {
+                team.stop();
+            }
+        }
+        checkWin();
     }
 
     private void clearWaitingArea() {
@@ -339,6 +345,9 @@ public class Arena implements IArena {
 
     @Override
     public boolean rejoin(Player player) {
+        if (gameStatus != GameStatus.playing) {
+            return false;
+        }
         if (!players.containsKey(player.getUniqueId())) {
             return false;
         }
@@ -753,13 +762,6 @@ public class Arena implements IArena {
         if (players.containsKey(player.getUniqueId())) return false;
         addSpectatorInternal(player, true);
         updateTablist(player);
-        // Cross-world teleport resets flight state — re-apply on the next tick
-        Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> {
-            if (spectatorsList.contains(player) && player.isOnline()) {
-                player.setAllowFlight(true);
-                player.setFlying(true);
-            }
-        }, 1L);
         if (arenaBossBar != null) {
             arenaBossBar.addPlayer(player);
         }
@@ -1272,10 +1274,17 @@ public class Arena implements IArena {
         player.setFireTicks(0);
         player.setFallDistance(0f);
         player.setVelocity(new Vector(0, 0, 0));
-        player.setAllowFlight(true);
-        player.setFlying(true);
         player.setInvulnerable(true);
         player.teleport(waitingSpawn);
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        // Teleport resets flight state (especially cross-world) — re-apply on the next tick
+        Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> {
+            if (spectatorsList.contains(player) && player.isOnline()) {
+                player.setAllowFlight(true);
+                player.setFlying(true);
+            }
+        }, 1L);
         if (canExit) {
             player.getInventory().setItem(8, NewBedwars.plugin.getGuiManager().getLeaveItem(player));
         }
@@ -1391,7 +1400,9 @@ public class Arena implements IArena {
         }
         for (UUID uuid : new ArrayList<>(players.keySet())) {
             Player p = Bukkit.getPlayer(uuid);
-            if (p != null && !spectatorsList.contains(p)) {
+            if (p == null) {
+                players.remove(uuid);
+            } else if (!spectatorsList.contains(p)) {
                 addSpectatorInternal(p, true);
             }
         }

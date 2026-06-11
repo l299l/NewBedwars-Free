@@ -42,7 +42,7 @@ public class ShopGUI extends BasicGUI {
         for (int i = 0; i < headerSize; i++) {
             Object item = guiSave.getItem(i);
             if (item instanceof CustomItem customItem) {
-                inv.setItem(i, customItem.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(getPlayer().getName()).language()));
+                inv.setItem(i, customItem.getIcon(getPlayer()));
                 items.set(i, customItem);
             } else if (item instanceof GuiCategory category) {
                 inv.setItem(i, category.getIcon(getPlayer()));
@@ -54,7 +54,7 @@ public class ShopGUI extends BasicGUI {
             for (int i = headerSize; i < guiSave.getItems().size(); i++) {
                 Object item = guiSave.getItem(i);
                 if (item instanceof CustomItem customItem) {
-                    inv.setItem(i, customItem.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(getPlayer().getName()).language()));
+                    inv.setItem(i, customItem.getIcon(getPlayer()));
                     items.set(i, customItem);
                 } else if (item instanceof GuiCategory category) {
                     inv.setItem(i, category.getIcon(getPlayer()));
@@ -89,7 +89,7 @@ public class ShopGUI extends BasicGUI {
                         inv.setItem(i, guiUpgrade.getIcon(getPlayer()));
                         items.set(i, guiUpgrade);
                     } else if (itemO instanceof CustomItem customItem) {
-                        inv.setItem(i, customItem.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(getPlayer().getName()).language()));
+                        inv.setItem(i, customItem.getIcon(getPlayer()));
                         items.set(i, customItem);
                     }
                     i++;
@@ -108,7 +108,7 @@ public class ShopGUI extends BasicGUI {
             for (; i < guiSave.getItems().size(); i++) {
                 Object item = guiSave.getItem(i);
                 if (item instanceof CustomItem customItem) {
-                    inv.setItem(i, customItem.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(getPlayer().getName()).language()));
+                    inv.setItem(i, customItem.getIcon(getPlayer()));
                     items.set(i, customItem);
                 } else if (item instanceof GuiCategory category) {
                     inv.setItem(i, category.getIcon(getPlayer()));

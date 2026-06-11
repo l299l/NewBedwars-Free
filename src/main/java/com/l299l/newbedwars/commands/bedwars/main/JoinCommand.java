@@ -8,7 +8,6 @@ import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.gui.configuration.game.guis.ArenaSelectGUI;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -47,10 +46,17 @@ public class JoinCommand extends SubCommand {
             msg.send(p, "NoPermissions");
             return;
         }
+        // Detect pending-rejoin slots (player still in players map but not physically in the arena world)
+        IArena pendingArena = null;
         for (IArena existing : Arena.arenaByName.values()) {
             if (existing.isPlayerInArena(p)) {
-                msg.send(p, "ArenaJoinError");
-                return;
+                if (Arena.arenaByWorld.get(p.getWorld()) == existing) {
+                    // physically inside an arena — block all join attempts
+                    msg.send(p, "ArenaJoinError");
+                    return;
+                }
+                pendingArena = existing;
+                break;
             }
         }
 
@@ -60,13 +66,26 @@ public class JoinCommand extends SubCommand {
                 msg.send(p, "ArenaNotExists");
                 return;
             }
-            GameStatus status = arena.status();
             if (!arena.isEnabled()) {
                 msg.send(p, "ArenaNotEnabled", new HashMap<>() {{
                     put("/arenaname/", arena.getArenaName());
                 }});
                 return;
             }
+            // Player has a pending rejoin slot — handle before normal join logic
+            if (pendingArena != null) {
+                if (pendingArena != arena) {
+                    msg.send(p, "ArenaJoinError");
+                    return;
+                }
+                if (arena.rejoin(p)) {
+                    msg.send(p, "Rejoined");
+                } else {
+                    msg.send(p, "RejoinFailed");
+                }
+                return;
+            }
+            GameStatus status = arena.status();
             if (status == GameStatus.waiting || status == GameStatus.starting) {
                 if (!arena.join(p)) {
                     msg.send(p, "ArenaIsFullError");

@@ -6,7 +6,7 @@
 
     <groupId>com.l299l</groupId>
     <artifactId>NewBedwars</artifactId>
-    <version>1.0.0-beta</version>
+    <version>1.0.1-beta</version>
     <packaging>jar</packaging>
 
     <name>NewBedwars</name>

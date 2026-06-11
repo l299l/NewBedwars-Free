@@ -2,6 +2,7 @@ package com.l299l.newbedwars.arena.shops.customitems;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.player.inventory.ArmorType;
 import com.l299l.newbedwars.arena.shops.Upgrade;
@@ -79,13 +80,12 @@ public class CustomItem {
 
     public ItemStack getItem(Player player) {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
+        Material resolvedMaterial = material;
         if (material == Material.WHITE_WOOL) {
             Team team = Arena.arenaByWorld.get(player.getWorld()).getTeam(player);
-            ChatColor color = team.getColor();
-            material = getWool(color);
-
+            resolvedMaterial = getWool(team.getColor());
         }
-        ItemStack item = new ItemStack(material, amount);
+        ItemStack item = new ItemStack(resolvedMaterial, amount);
         ItemMeta meta = item.getItemMeta();
         assert meta != null;
         String displayName = msg.getMsg(language, name + "-name");
@@ -249,6 +249,23 @@ public class CustomItem {
     }
 
     public ItemStack getIcon(Language language) {
+        return buildIcon(language, material);
+    }
+
+    public ItemStack getIcon(Player player) {
+        Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
+        Material iconMaterial = material;
+        if (material == Material.WHITE_WOOL) {
+            IArena arena = Arena.arenaByWorld.get(player.getWorld());
+            if (arena != null) {
+                Team team = arena.getTeam(player);
+                if (team != null) iconMaterial = getWool(team.getColor());
+            }
+        }
+        return buildIcon(language, iconMaterial);
+    }
+
+    private ItemStack buildIcon(Language language, Material iconMaterial) {
         // Try per-item description first, fall back to the shared template
         String desc = msg.getMsg(language, name + "-icon-description");
         if (desc == null || desc.isEmpty()) {
@@ -260,7 +277,7 @@ public class CustomItem {
         String displayName = msg.getMsg(language, name + "-name");
         if (displayName == null) displayName = name;
         desc = desc.replace("/name/", displayName);
-        return guiManager.createIcon(material.name(), displayName, desc, (enchantments != null && !enchantments.isEmpty()));
+        return guiManager.createIcon(iconMaterial.name(), displayName, desc, (enchantments != null && !enchantments.isEmpty()));
     }
 
     public void setIconDesc(String iconDesc) {
