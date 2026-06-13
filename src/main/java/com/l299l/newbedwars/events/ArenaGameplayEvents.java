@@ -5,6 +5,8 @@ import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.TeamShop;
+import com.l299l.newbedwars.parties.Party;
+import com.l299l.newbedwars.parties.PartyManager;
 import com.l299l.newbedwars.gui.configuration.game.guis.ArenaSelectGUI;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
@@ -81,7 +83,6 @@ public class ArenaGameplayEvents implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         if (Arena.arenaByWorld.get(p.getWorld()) == null) return;
-        // Player reconnected while inside an arena world — send them to lobby next tick
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!p.isOnline()) return;
             p.teleport(NewBedwars.plugin.getLobbyLocation());
@@ -236,13 +237,37 @@ public class ArenaGameplayEvents implements Listener {
             IArena target = gui.getArena(e.getRawSlot());
             if (target == null) return;
             p.closeInventory();
+
+            PartyManager pm = NewBedwars.plugin.getPartyManager();
+            Party party = pm.getParty(p);
+            if (party != null && !party.isAdmin(p.getUniqueId())) {
+                Player admin = Bukkit.getPlayer(party.getAdmin());
+                String adminName = admin != null ? admin.getName() : "?";
+                plugin.getMessages().send(p, "PartyOnlyAdminCanJoin", new HashMap<>() {{ put("/player/", adminName); }});
+                return;
+            }
+
             GameStatus status = target.status();
             if (status != GameStatus.waiting && status != GameStatus.starting) {
                 plugin.getMessages().send(p, "ArenaRunningError");
                 return;
             }
-            if (!target.join(p)) {
-                plugin.getMessages().send(p, "ArenaIsFullError");
+
+            if (party != null && target.getGamerules().AllowParties) {
+                List<Player> members = pm.getOnlineMembers(party);
+                if (members.size() > target.getMaxInTeam()) {
+                    plugin.getMessages().send(p, "PartyTooBig", new HashMap<>() {{ put("/maxteam/", String.valueOf(target.getMaxInTeam())); }});
+                    return;
+                }
+                if (!target.joinParty(members)) {
+                    plugin.getMessages().send(p, "ArenaIsFullError");
+                }
+            } else if (party != null && !target.getGamerules().AllowParties) {
+                plugin.getMessages().send(p, "PartyNotAllowedInArena");
+            } else {
+                if (!target.join(p)) {
+                    plugin.getMessages().send(p, "ArenaIsFullError");
+                }
             }
             return;
         }

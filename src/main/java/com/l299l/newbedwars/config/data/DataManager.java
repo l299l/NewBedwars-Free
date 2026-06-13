@@ -42,10 +42,10 @@ public class DataManager {
 
     public void load() {
         if (storageType == StorageType.JSON) {
-            assert playerDataJson != null;
+            if (playerDataJson == null) throw new IllegalStateException("playerDataJson is null in JSON storage mode");
             playerDataJson.load();
         } else if (storageType == StorageType.MYSQL) {
-            assert langDataMySQL != null;
+            if (langDataMySQL == null) throw new IllegalStateException("langDataMySQL is null in MYSQL storage mode");
             langDataMySQL.load();
         }
         itemsDataManager.load();
@@ -65,13 +65,7 @@ public class DataManager {
     }
 
     public void save() {
-        if (storageType == StorageType.JSON) {
-            assert playerDataJson != null;
-            playerDataJson.save();
-        } else if (storageType == StorageType.MYSQL) {
-            assert langDataMySQL != null;
-            langDataMySQL.save();
-        }
+        savePlayerData();
         arenaDataManager.save();
         unloadArenas();
         itemsDataManager.save();
@@ -80,10 +74,10 @@ public class DataManager {
 
     public void savePlayerData() {
         if (storageType == StorageType.JSON) {
-            assert playerDataJson != null;
+            if (playerDataJson == null) throw new IllegalStateException("playerDataJson is null in JSON storage mode");
             playerDataJson.save();
         } else if (storageType == StorageType.MYSQL) {
-            assert langDataMySQL != null;
+            if (langDataMySQL == null) throw new IllegalStateException("langDataMySQL is null in MYSQL storage mode");
             langDataMySQL.save();
         }
     }

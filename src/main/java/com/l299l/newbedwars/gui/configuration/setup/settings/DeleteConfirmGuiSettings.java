@@ -80,7 +80,7 @@ public class DeleteConfirmGuiSettings implements Listener {
         Bukkit.unloadWorld(arenaWorld, false);
 
         deleteFolder(worldFolder);
-        new File("plugins/NewBedwars/data/arenas/" + arenaName + ".json").delete();
+        new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + arenaName + ".json").delete();
 
         msg.send(player, "ArenaDeleted", new HashMap<>() {{
             put("/arenaname/", arenaName);

@@ -15,6 +15,13 @@ commands:
   lang:
     description: Change your language!
     usage: /<command> <en|pl>
+  party:
+    description: Party management!
+    usage: /<command> [invite|accept|deny|leave|list|kick|admin]
+    aliases: [p]
+  p:
+    description: Party management (alias for /party)!
+    usage: /<command> [invite|accept|deny|leave|list|kick|admin]
 
 permissions:
   # ---- Admin ----------------------------------------

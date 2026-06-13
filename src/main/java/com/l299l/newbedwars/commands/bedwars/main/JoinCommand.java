@@ -8,6 +8,8 @@ import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.gui.configuration.game.guis.ArenaSelectGUI;
+import com.l299l.newbedwars.parties.Party;
+import com.l299l.newbedwars.parties.PartyManager;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -46,12 +48,23 @@ public class JoinCommand extends SubCommand {
             msg.send(p, "NoPermissions");
             return;
         }
+
+        PartyManager pm = NewBedwars.plugin.getPartyManager();
+        Party party = pm.getParty(p);
+
+        // Regular party members cannot initiate joins — only the admin can
+        if (party != null && !party.isAdmin(p.getUniqueId())) {
+            Player admin = org.bukkit.Bukkit.getPlayer(party.getAdmin());
+            String adminName = admin != null ? admin.getName() : "?";
+            msg.send(p, "PartyOnlyAdminCanJoin", new HashMap<>() {{ put("/player/", adminName); }});
+            return;
+        }
+
         // Detect pending-rejoin slots (player still in players map but not physically in the arena world)
         IArena pendingArena = null;
         for (IArena existing : Arena.arenaByName.values()) {
             if (existing.isPlayerInArena(p)) {
                 if (Arena.arenaByWorld.get(p.getWorld()) == existing) {
-                    // physically inside an arena — block all join attempts
                     msg.send(p, "ArenaJoinError");
                     return;
                 }
@@ -72,7 +85,6 @@ public class JoinCommand extends SubCommand {
                 }});
                 return;
             }
-            // Player has a pending rejoin slot — handle before normal join logic
             if (pendingArena != null) {
                 if (pendingArena != arena) {
                     msg.send(p, "ArenaJoinError");
@@ -87,8 +99,24 @@ public class JoinCommand extends SubCommand {
             }
             GameStatus status = arena.status();
             if (status == GameStatus.waiting || status == GameStatus.starting) {
-                if (!arena.join(p)) {
-                    msg.send(p, "ArenaIsFullError");
+                if (party != null && arena.getGamerules().AllowParties) {
+                    // Party join — check size vs maxInTeam
+                    List<Player> members = pm.getOnlineMembers(party);
+                    if (members.size() > arena.getMaxInTeam()) {
+                        msg.send(p, "PartyTooBig", new HashMap<>() {{
+                            put("/maxteam/", String.valueOf(arena.getMaxInTeam()));
+                        }});
+                        return;
+                    }
+                    if (!arena.joinParty(members)) {
+                        msg.send(p, "ArenaIsFullError");
+                    }
+                } else if (party != null && !arena.getGamerules().AllowParties) {
+                    msg.send(p, "PartyNotAllowedInArena");
+                } else {
+                    if (!arena.join(p)) {
+                        msg.send(p, "ArenaIsFullError");
+                    }
                 }
             } else if (status == GameStatus.playing) {
                 msg.send(p, "ArenaRunningError");

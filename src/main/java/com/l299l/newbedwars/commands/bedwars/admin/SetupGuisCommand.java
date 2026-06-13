@@ -42,7 +42,7 @@ public class SetupGuisCommand extends SubCommand {
             msg.send(player, "NoPermissions");
             return;
         }
-        player.sendMessage(ChatColor.GOLD + "[NewBedwars] " + ChatColor.YELLOW + "Edit GUIs via YAML files in " + ChatColor.WHITE + "plugins/NewBedwars/guis/" + ChatColor.YELLOW + " for now.");
+        player.sendMessage(ChatColor.GOLD + "[NewBedwars] " + ChatColor.YELLOW + "Edit GUIs via YAML files in " + ChatColor.WHITE + "plugins/NewBedwars/data/guis/" + ChatColor.YELLOW + " for now.");
     }
 
     @Override

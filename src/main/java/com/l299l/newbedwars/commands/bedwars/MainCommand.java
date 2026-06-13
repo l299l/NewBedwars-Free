@@ -7,6 +7,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.commands.bedwars.admin.ArenaCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.ManageGameCommand;
+import com.l299l.newbedwars.commands.bedwars.admin.ReloadCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.SetLobbyCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.SetupGuisCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.advenced.AddSpecialGamerulesCommand;
@@ -212,6 +213,7 @@ public class MainCommand implements TabExecutor {
         subCommandsLobbyAdmin.add(new SetupGuisCommand());
         subCommandsLobbyAdmin.add(new SetLobbyCommand());
         subCommandsLobbyAdmin.add(new ArenaCommand());
+        subCommandsLobbyAdmin.add(new ReloadCommand());
 
         subCommandsGameAdmin.add(new ManageGameCommand());
 

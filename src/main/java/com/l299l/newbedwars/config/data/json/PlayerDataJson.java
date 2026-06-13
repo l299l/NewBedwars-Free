@@ -13,7 +13,7 @@ import java.util.UUID;
 public class PlayerDataJson {
 
     public void load(){
-        File playerFile = new File("plugins/NewBedwars/data/playersData.json");
+        File playerFile = new File(NewBedwars.plugin.getDataFolder(), "data/playersData.json");
         if (playerFile.exists()) {
             Gson gson = new Gson();
             try (FileReader reader = new FileReader(playerFile)) {
@@ -32,14 +32,14 @@ public class PlayerDataJson {
 
     public void save(){
         Gson json = new Gson();
-        File dataDir = new File("plugins/NewBedwars/data/");
+        File dataDir = new File(NewBedwars.plugin.getDataFolder(), "data");
         if (!dataDir.exists()) {
-            boolean correct = dataDir.mkdir();
+            boolean correct = dataDir.mkdirs();
             if (!correct) {
                 System.out.println("[NewBedwars]: Could not create data folder!");
             }
         }
-        try (FileWriter file = new FileWriter("plugins/NewBedwars/data/playersData.json")) {
+        try (FileWriter file = new FileWriter(new File(dataDir, "playersData.json"))) {
             json.toJson(NewBedwars.plugin.getPlayerManager().getPlayers(), file);
         } catch (IOException e) {
             e.printStackTrace();

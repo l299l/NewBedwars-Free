@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ItemsDataManager {
-    private final String ItemsDataPath = "plugins/NewBedwars/items.yml";
+    private final String ItemsDataPath = new File(NewBedwars.plugin.getDataFolder(), "data/items.yml").getPath();
     private final CustomItemManager customItemManager;
 
     public ItemsDataManager() {

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.config.data.json.arenas;
 
+import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Files;
@@ -13,7 +14,7 @@ public class ArenaDataManager {
     }
 
     public void load() {
-        File arenasDir = new File("plugins/NewBedwars/data/arenas/");
+        File arenasDir = new File(NewBedwars.plugin.getDataFolder(), "data/arenas");
         if (arenasDir.exists()) {
             File[] arenas = arenasDir.listFiles();
             if (arenas != null) {

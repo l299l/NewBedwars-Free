@@ -163,14 +163,14 @@ public class ArenaDataJson {
     }
 
     public void save(){
-        File dataDir = new File("plugins/NewBedwars/data/arenas/");
+        File dataDir = new File(NewBedwars.plugin.getDataFolder(), "data/arenas");
         if (!dataDir.exists()) {
-            boolean correct = dataDir.mkdir();
+            boolean correct = dataDir.mkdirs();
             if (!correct) {
                 System.out.println("[NewBedwars]: Could not create arenas data folder!");
             }
         }
-        try (FileWriter file = new FileWriter("plugins/NewBedwars/data/arenas/" + arena.getArenaName() + ".json")) {
+        try (FileWriter file = new FileWriter(new File(dataDir, arena.getArenaName() + ".json"))) {
             file.write(JsonUtils.beautifyJson(arena.toJson()));
         } catch (IOException e) {
             e.printStackTrace();

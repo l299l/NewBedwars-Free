@@ -25,6 +25,7 @@ public interface IArena {
     Integer getGameTime();
     void upgradeGenerators(GeneratorType type, Integer level);
     boolean join(Player player);
+    boolean joinParty(List<Player> partyMembers);
     boolean rejoin(Player player);
     void leave(Player player);
     Boolean isPlayerInArena(Player player);

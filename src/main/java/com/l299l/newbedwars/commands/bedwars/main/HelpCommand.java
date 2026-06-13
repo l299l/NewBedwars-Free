@@ -60,6 +60,7 @@ public class HelpCommand extends SubCommand {
                 }
             }
         }
+        player.sendMessage(ChatColor.DARK_AQUA + "Party: " + ChatColor.YELLOW + "/party help " + ChatColor.GRAY + "- Manage your party (/p is an alias)");
         player.sendMessage(ChatColor.AQUA + "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     }
 

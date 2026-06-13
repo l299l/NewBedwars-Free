@@ -2,6 +2,7 @@ package com.l299l.newbedwars.arena;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
+import com.l299l.newbedwars.parties.Party;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.generators.GeneratorType;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
@@ -301,18 +302,7 @@ public class Arena implements IArena {
         }
     }
 
-    @Override
-    public boolean join(Player player) {
-        if (players.containsKey(player.getUniqueId())) return false;
-        if (players.size() > teams.size() * maxInTeam) {
-            return false;
-        }else if (players.size() + 1 >= minPlayers && gameStatus == GameStatus.waiting) {
-            starting();
-        }
-        Team team = joinPlayerToTeam(player);
-        if (team == null) {
-            return false;
-        }
+    private void applyJoinSetup(Player player, Team team) {
         player.teleport(waitingSpawn);
         player.setGameMode(GameMode.ADVENTURE);
         player.setHealth(20);
@@ -335,11 +325,69 @@ public class Arena implements IArena {
         }
         players.put(player.getUniqueId(), new GamePlayer(player, team));
         updateTablist(player);
+    }
+
+    @Override
+    public boolean join(Player player) {
+        if (players.containsKey(player.getUniqueId())) return false;
+        if (players.size() > teams.size() * maxInTeam) {
+            return false;
+        } else if (players.size() + 1 >= minPlayers && gameStatus == GameStatus.waiting) {
+            starting();
+        }
+        Team team = joinPlayerToTeam(player);
+        if (team == null) {
+            return false;
+        }
+        applyJoinSetup(player, team);
         broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
             put("/player/", player.getName());
             put("/players/", Integer.toString(players.size()));
             put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
         }});
+        return true;
+    }
+
+    @Override
+    public boolean joinParty(List<Player> partyMembers) {
+        if (partyMembers.isEmpty()) return false;
+        int newTotal = players.size() + partyMembers.size();
+        if (newTotal > teams.size() * maxInTeam) return false;
+
+        // Find a team with enough consecutive free slots for all party members
+        Team targetTeam = null;
+        for (Team team : teams.values()) {
+            int freeSlots = maxInTeam - team.getPlayers().size();
+            if (freeSlots >= partyMembers.size()) {
+                targetTeam = team;
+                break;
+            }
+        }
+        if (targetTeam == null) return false;
+
+        if (players.size() + partyMembers.size() >= minPlayers && gameStatus == GameStatus.waiting) {
+            starting();
+        }
+
+        final Team finalTeam = targetTeam;
+        List<Player> joined = new ArrayList<>();
+        for (Player member : partyMembers) {
+            if (players.containsKey(member.getUniqueId())) continue;
+            finalTeam.addPlayer(member);
+            applyJoinSetup(member, finalTeam);
+            joined.add(member);
+        }
+
+        int currentSize = players.size();
+        int maxSize = teams.size() * maxInTeam;
+        for (Player member : joined) {
+            final String name = member.getName();
+            broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
+                put("/player/", name);
+                put("/players/", Integer.toString(currentSize));
+                put("/maxplayers/", Integer.toString(maxSize));
+            }});
+        }
         return true;
     }
 
@@ -1206,8 +1254,34 @@ public class Arena implements IArena {
                     }
                 }
             }
-        }else if(gamerules.AllowParties && NewBedwars.plugin.getPartyManager().isPlayerInParty(player)) {
-        }else {
+        } else if (gamerules.AllowParties && NewBedwars.plugin.getPartyManager().isPlayerInParty(player)) {
+            // Try to join the same team as existing party members already in the arena
+            Party party = NewBedwars.plugin.getPartyManager().getParty(player);
+            if (party != null) {
+                for (UUID memberId : party.getMembers()) {
+                    if (players.containsKey(memberId)) {
+                        Team memberTeam = players.get(memberId).getTeam();
+                        if (memberTeam.getPlayers().size() < maxInTeam) {
+                            memberTeam.addPlayer(player);
+                            return memberTeam;
+                        }
+                    }
+                }
+            }
+            // No party members in arena yet — use standard assignment
+            if (!emptyTeams.isEmpty()) {
+                Team team = emptyTeams.get(0);
+                team.addPlayer(player);
+                return team;
+            }
+            for (String teamName : teamNames) {
+                Team team = teams.get(teamName);
+                if (team.getPlayers().size() < maxInTeam) {
+                    team.addPlayer(player);
+                    return team;
+                }
+            }
+        } else {
             if (!emptyTeams.isEmpty()) {
                 Team team = emptyTeams.get(0);
                 team.addPlayer(player);

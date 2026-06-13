@@ -21,7 +21,7 @@ public class GuiDataManager {
         guiSaves = new ArrayList<>();
     }
     public void load() {
-        Path guiDir = new File("plugins/NewBedwars/guis/").toPath();
+        Path guiDir = new File(NewBedwars.plugin.getDataFolder(), "data/guis").toPath();
         if (guiDir.toFile().exists()) {
             File[] guis = guiDir.toFile().listFiles();
             if (guis != null) {
@@ -55,7 +55,7 @@ public class GuiDataManager {
                 String rest = s.substring(1).toLowerCase();
                 name.append(firstLetter).append(rest);
             }
-            File guiFile = new File("plugins/NewBedwars/guis/" + name + ".yml");
+            File guiFile = new File(NewBedwars.plugin.getDataFolder(), "data/guis/" + name + ".yml");
             try {
                 if (!guiFile.exists()) {
                     guiFile.createNewFile();
@@ -121,8 +121,8 @@ public class GuiDataManager {
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("exampleGui.yml");
             InputStream inputStream2 = getClass().getClassLoader().getResourceAsStream("exampleGui2.yml");
-            File file = new File("plugins/NewBedwars/guis/exampleShop.yml");
-            File file2 = new File("plugins/NewBedwars/guis/exampleUpgrade.yml");
+            File file = new File(NewBedwars.plugin.getDataFolder(), "data/guis/exampleShop.yml");
+            File file2 = new File(NewBedwars.plugin.getDataFolder(), "data/guis/exampleUpgrade.yml");
             assert inputStream != null;
             assert inputStream2 != null;
             FileUtils.copyInputStreamToFile(inputStream, file);

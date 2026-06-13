@@ -22,12 +22,12 @@ public class Updater extends Files {
     private FileConfiguration scoreboardsConf = null;
     private final List<FileConfiguration> generatorsConfigurations = new ArrayList<>();
     private final ClassLoader classLoader;
-    private final File plPLFile = new File("plugins/NewBedwars/language/pl_PL.yml");
-    private final File enFile = new File("plugins/NewBedwars/language/en.yml");
-    private final File bossBarsFile = new File("plugins/NewBedwars/bossBars.yml");
-    private final File scoreboardFile = new File("plugins/NewBedwars/scoreboards.yml");
-    private final File generatorsFolder = new File("plugins/NewBedwars/generators");
-    private final File generatorsFile = new File("plugins/NewBedwars/generators/defaultGenerators.yml");
+    private final File plPLFile = new File(NewBedwars.plugin.getDataFolder(), "language/pl_PL.yml");
+    private final File enFile = new File(NewBedwars.plugin.getDataFolder(), "language/en.yml");
+    private final File bossBarsFile = new File(NewBedwars.plugin.getDataFolder(), "bossBars.yml");
+    private final File scoreboardFile = new File(NewBedwars.plugin.getDataFolder(), "scoreboards.yml");
+    private final File generatorsFolder = new File(NewBedwars.plugin.getDataFolder(), "generators");
+    private final File generatorsFile = new File(NewBedwars.plugin.getDataFolder(), "generators/defaultGenerators.yml");
     private final String error = ChatColor.RED + "[NewBedwars]: " + ChatColor.DARK_RED + "The language file could not be saved!";
 
     public void updateConf() {
@@ -46,18 +46,23 @@ public class Updater extends Files {
         reloadplPL();
         saveplPL();
         try {
-            ConfigUpdater.update(NewBedwars.plugin, "pl_PL.yml",plPLFile, Collections.singletonList("CustomItemsNames"));
-        }catch (IOException e) {
+            List<String> ignored = plPLConf.contains("CustomItemsNames")
+                    ? Collections.singletonList("CustomItemsNames") : Collections.emptyList();
+            ConfigUpdater.update(NewBedwars.plugin, "pl_PL.yml", plPLFile, ignored);
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        reloadplPL(); }
+        reloadplPL();
+    }
 
     public void reloadEnglish() {
         reloaEn();
         saveEn();
         try {
-            ConfigUpdater.update(NewBedwars.plugin, "en.yml",enFile, Collections.singletonList("CustomItemsNames"));
-        }catch (IOException e) {
+            List<String> ignored = enConf.contains("CustomItemsNames")
+                    ? Collections.singletonList("CustomItemsNames") : Collections.emptyList();
+            ConfigUpdater.update(NewBedwars.plugin, "en.yml", enFile, ignored);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         reloaEn();

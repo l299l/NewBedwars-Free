@@ -1,14 +1,17 @@
 package com.l299l.newbedwars;
 
+import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.bossbar.BossBarManager;
 import com.l299l.newbedwars.commands.LangStandaloneCommand;
 import com.l299l.newbedwars.commands.LobbyStandaloneCommand;
 import com.l299l.newbedwars.commands.bedwars.MainCommand;
+import com.l299l.newbedwars.commands.party.PartyCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.config.Updater;
 import com.l299l.newbedwars.config.data.DataManager;
+import com.l299l.newbedwars.config.data.LobbyData;
 import com.l299l.newbedwars.config.properties.LangMessages;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.events.ArenaGameplayEvents;
@@ -22,16 +25,11 @@ import com.l299l.newbedwars.scoreboard.ScoreboardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
-
-import org.bukkit.configuration.file.YamlConfiguration;
 
 public final class NewBedwars extends JavaPlugin {
     public static NewBedwars plugin;
@@ -66,19 +64,26 @@ public final class NewBedwars extends JavaPlugin {
         LangStandaloneCommand langCmd = new LangStandaloneCommand();
         Objects.requireNonNull(getCommand("lang")).setExecutor(langCmd);
         Objects.requireNonNull(getCommand("lang")).setTabCompleter(langCmd);
-        getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "[NewBedwars]: NewBedwars v1.0.0-beta is " + ChatColor.DARK_GREEN + "Enabled");
+        PartyCommand partyCmd = new PartyCommand();
+        Objects.requireNonNull(getCommand("party")).setExecutor(partyCmd);
+        Objects.requireNonNull(getCommand("party")).setTabCompleter(partyCmd);
+        Objects.requireNonNull(getCommand("p")).setExecutor(partyCmd);
+        Objects.requireNonNull(getCommand("p")).setTabCompleter(partyCmd);
+        getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_GREEN + "Enabled");
     }
 
     @Override
     public void onDisable() {
-        saveLobbyToFile();
-        dataManager.save();
-        getServer().getConsoleSender().sendMessage(ChatColor.RED + "[NewBedwars]: NewBedwars v1.0.0-beta is " + ChatColor.DARK_RED + "Disabled");
+        LobbyData.save(lobbyLocation);
+        if (dataManager != null) dataManager.save();
+        getServer().getConsoleSender().sendMessage(ChatColor.RED + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_RED + "Disabled");
     }
 
 
 
     public void reloadAll() {
+        Arena.arenaByName.clear();
+        Arena.arenaByWorld.clear();
         updater.reloadEnglish();
         updater.reloadPolish();
         updater.reloadBossBars();
@@ -98,7 +103,7 @@ public final class NewBedwars extends JavaPlugin {
         scoreboardManager.loadScoreboards();
         reloadGenerators();
         reloadEvents();
-        lobbyLocation = loadLobbyFromFile();
+        lobbyLocation = LobbyData.load();
     }
 
     public Properties getProperties() {
@@ -140,42 +145,8 @@ public final class NewBedwars extends JavaPlugin {
 
     public void setLobbyLocation(Location location) {
         this.lobbyLocation = location;
-        saveLobbyToFile();
+        LobbyData.save(location);
     }
-
-    private void saveLobbyToFile() {
-        if (lobbyLocation == null) return;
-        File lobbyFile = new File(getDataFolder(), "lobby.yml");
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("world", lobbyLocation.getWorld().getName());
-        yaml.set("x", lobbyLocation.getX());
-        yaml.set("y", lobbyLocation.getY());
-        yaml.set("z", lobbyLocation.getZ());
-        yaml.set("yaw", (double) lobbyLocation.getYaw());
-        yaml.set("pitch", (double) lobbyLocation.getPitch());
-        try {
-            yaml.save(lobbyFile);
-        } catch (IOException e) {
-            getLogger().severe("Could not save lobby location to lobby.yml: " + e.getMessage());
-        }
-    }
-
-    private Location loadLobbyFromFile() {
-        File lobbyFile = new File(getDataFolder(), "lobby.yml");
-        if (!lobbyFile.exists()) return null;
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(lobbyFile);
-        String worldName = yaml.getString("world");
-        if (worldName == null || worldName.isEmpty()) return null;
-        World world = Bukkit.getWorld(worldName);
-        if (world == null) return null;
-        return new Location(world,
-                yaml.getDouble("x"),
-                yaml.getDouble("y"),
-                yaml.getDouble("z"),
-                (float) yaml.getDouble("yaw"),
-                (float) yaml.getDouble("pitch"));
-    }
-
 
     public HashMap<String, GeneratorLeveling> getGeneratorLeveling() {
         return generatorLeveling;
