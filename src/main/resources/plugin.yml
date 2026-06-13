@@ -85,6 +85,7 @@ permissions:
       newbedwars.bw.spectate: true
       newbedwars.bw.lang: true
       newbedwars.bw.help: true
+      newbedwars.party: true
 
   newbedwars.bw.join:
     description: Join arenas.
@@ -103,4 +104,9 @@ permissions:
     default: true
   newbedwars.bw.help:
     description: View the help menu.
+    default: true
+
+  # ---- Party ----------------------------------------
+  newbedwars.party:
+    description: Use all /party commands.
     default: true

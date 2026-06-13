@@ -24,6 +24,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Build Protection** | Per-team zones where players cannot place blocks |
 | **Rejoin System** | Players can reconnect within a configurable time window |
 | **Traps** | Trigger team traps when enemies enter your base area |
+| **Party System** | Group up with friends via `/party`; invite with clickable chat buttons; party admin leads the whole group into an arena together |
 
 ### 💬 Chat & Visibility
 | Feature | Description |
@@ -85,6 +86,18 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 /bw help              — Show all available commands
 /lobby                — Shortcut: teleport to lobby
 /lang <en|pl>         — Shortcut: change language
+```
+
+### Party Commands
+```
+/party invite <player>  — Invite a player to your party
+/party accept           — Accept a pending invite (clickable in chat)
+/party deny             — Deny a pending invite (clickable in chat)
+/party leave            — Leave your current party
+/party list             — List all party members
+/party kick <player>    — Kick a member from your party (admin only)
+/party admin <player>   — Transfer the admin role (admin only)
+/p                      — Alias for /party
 ```
 
 ### Admin Commands
@@ -164,6 +177,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | `newbedwars.bw.spectate` | true | Spectate arenas |
 | `newbedwars.bw.lang` | true | Change language |
 | `newbedwars.bw.help` | true | View help menu |
+| `newbedwars.party` | true | Use all `/party` commands |
 
 > **Config:** Set `RequireJoinPermission: true` or `RequireLobbyPermission: true` in `config.yml` to restrict `/bw join` and `/bw lobby` to players with the explicit permission. Both default to `false` (open to everyone).
 
@@ -179,7 +193,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ## 🚀 Installation
 
-1. Download **NewBedwars-1.0.1-beta.jar**
+1. Download **NewBedwars-1.0.2-beta.jar**
 2. Drop it into your server's `/plugins/` folder
 3. Start the server — config files generate automatically
 4. Set your lobby spawn: `/bw setLobby`
@@ -192,7 +206,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ## 🗺️ Future Plans
 
-- [ ] Party support
+- [x] Party support
 - [ ] PlaceholderAPI support
 - [ ] WordEdit support
 - [ ] Arena statistics and leaderboards
@@ -292,6 +306,6 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
 
 <div align="center">
 
-**NewBedwars v1.0.1-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
+**NewBedwars v1.0.2-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
 
 </div>

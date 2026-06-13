@@ -96,7 +96,7 @@ public final class NewBedwars extends JavaPlugin {
         properties = new Properties();
         dataManager = new DataManager();
         dataManager.load();
-        partyManager = new PartyManager();
+        partyManager = new PartyManager(this, messages);
         bossBarManager = new BossBarManager(updater.getBossBarsConf());
         bossBarManager.loadBossBars();
         scoreboardManager = new ScoreboardManager(updater.getScoreboardsConf());

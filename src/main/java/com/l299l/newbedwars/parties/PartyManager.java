@@ -1,8 +1,9 @@
 package com.l299l.newbedwars.parties;
 
-import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.config.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
@@ -14,8 +15,15 @@ import java.util.UUID;
 public class PartyManager {
     private static final int INVITE_EXPIRY_SECONDS = 60;
 
+    private final Plugin plugin;
+    private final Messages messages;
     private final Map<UUID, Party> playerToParty = new HashMap<>();
     private final Map<UUID, Party> pendingInvites = new HashMap<>();
+
+    public PartyManager(Plugin plugin, Messages messages) {
+        this.plugin = plugin;
+        this.messages = messages;
+    }
 
     public boolean isPlayerInParty(Player p) {
         return playerToParty.containsKey(p.getUniqueId());
@@ -46,6 +54,10 @@ public class PartyManager {
 
     public void sendInvite(Player inviter, Player invitee, Party party) {
         pendingInvites.put(invitee.getUniqueId(), party);
+        scheduleInviteExpiry(inviter, invitee, party);
+    }
+
+    protected void scheduleInviteExpiry(Player inviter, Player invitee, Party party) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -53,12 +65,12 @@ public class PartyManager {
                 if (stored == party) {
                     pendingInvites.remove(invitee.getUniqueId());
                     if (invitee.isOnline()) {
-                        NewBedwars.plugin.getMessages().send(invitee, "PartyInviteExpired",
+                        messages.send(invitee, "PartyInviteExpired",
                                 new HashMap<>() {{ put("/player/", inviter.getName()); }});
                     }
                 }
             }
-        }.runTaskLater(NewBedwars.plugin, 20L * INVITE_EXPIRY_SECONDS);
+        }.runTaskLater(plugin, 20L * INVITE_EXPIRY_SECONDS);
     }
 
     public boolean acceptInvite(Player player) {
@@ -83,7 +95,7 @@ public class PartyManager {
             party.setAdmin(newAdmin);
             Player newAdminPlayer = Bukkit.getPlayer(newAdmin);
             if (newAdminPlayer != null) {
-                NewBedwars.plugin.getMessages().send(newAdminPlayer, "PartyYouAreAdmin");
+                messages.send(newAdminPlayer, "PartyYouAreAdmin");
             }
         }
     }

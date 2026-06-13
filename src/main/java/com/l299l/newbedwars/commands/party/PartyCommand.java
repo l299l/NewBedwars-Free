@@ -38,6 +38,11 @@ public class PartyCommand implements TabExecutor {
             return true;
         }
 
+        if (!p.hasPermission("newbedwars.party")) {
+            msg.send(p, "NoPermissions");
+            return true;
+        }
+
         if (args.length == 0) {
             sendHelp(p);
             return true;

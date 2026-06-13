@@ -36,6 +36,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 [*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Build Protection[/B] — per-team zones where players cannot place blocks[/COLOR]
 [*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Rejoin System[/B] — players can reconnect within a configurable time window[/COLOR]
 [*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Traps[/B] — trigger team traps when enemies enter your base area[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC][B]Party System[/B] — group up with friends via [B]/party[/B]; invite with clickable chat [COLOR=#50fa7b][Accept][/COLOR][COLOR=#ff5555] [Deny][/COLOR] buttons; party admin leads the whole group into an arena together[/COLOR]
 [/LIST]
 
 [COLOR=#FFFFFF][B]💬 Chat & Visibility[/B][/COLOR]
@@ -105,6 +106,19 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 [/CODE]
 [/SPOILER]
 
+[SPOILER=Party Commands]
+[CODE]
+/party invite <player>  — Invite a player to your party
+/party accept           — Accept a pending invite (clickable in chat)
+/party deny             — Deny a pending invite (clickable in chat)
+/party leave            — Leave your current party
+/party list             — List all party members
+/party kick <player>    — Kick a member from your party (admin only)
+/party admin <player>   — Transfer the admin role (admin only)
+/p                      — Alias for /party
+[/CODE]
+[/SPOILER]
+
 [SPOILER=Admin Commands]
 [CODE]
 /bw arena create <name>         — Create a new arena
@@ -151,6 +165,7 @@ newbedwars.bw.rejoin   — Rejoin after disconnect (default: true)
 newbedwars.bw.spectate — Spectate arenas (default: true)
 newbedwars.bw.lang     — Change language (default: true)
 newbedwars.bw.help     — View help menu (default: true)
+newbedwars.party       — Use all /party commands (default: true)
 [/CODE]
 [COLOR=#888888][I]Set RequireJoinPermission or RequireLobbyPermission to true in config.yml to restrict /bw join and /bw lobby to players with the explicit permission. Both default to false (open to everyone).[/I][/COLOR]
 [/SPOILER]
@@ -178,7 +193,7 @@ newbedwars.bw.help     — View help menu (default: true)
 [/CENTER]
 
 [LIST=1]
-[*][COLOR=#CCCCCC]Download [B]NewBedwars-1.0.0-beta.jar[/B][/COLOR]
+[*][COLOR=#CCCCCC]Download [B]NewBedwars-1.0.2-beta.jar[/B][/COLOR]
 [*][COLOR=#CCCCCC]Drop it into your server's [B]/plugins/[/B] folder[/COLOR]
 [*][COLOR=#CCCCCC]Start the server — config files generate automatically[/COLOR]
 [*][COLOR=#CCCCCC]Set your lobby spawn: [B]/bw setLobby[/B][/COLOR]
@@ -197,7 +212,7 @@ newbedwars.bw.help     — View help menu (default: true)
 [/CENTER]
 
 [LIST]
-[*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Party support[/COLOR]
+[*][COLOR=#50fa7b]✔[/COLOR] [COLOR=#CCCCCC]Party support[/COLOR]
 [*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]PlaceholderAPI support[/COLOR]
 [*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]WorldEdit support[/COLOR]
 [*][COLOR=#ffd93d]▶[/COLOR] [COLOR=#CCCCCC]Arena statistics and leaderboards[/COLOR]
@@ -326,5 +341,5 @@ newbedwars.bw.help     — View help menu (default: true)
 
 [CENTER]
 [SIZE=1][COLOR=#666666]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/COLOR][/SIZE]
-[COLOR=#555555][I]NewBedwars v1.0.0-beta — Made with ❤ by l299l — Paper 1.17 – 26.1.2[/I][/COLOR]
+[COLOR=#555555][I]NewBedwars v1.0.2-beta — Made with ❤ by l299l — Paper 1.17 – 26.1.2[/I][/COLOR]
 [/CENTER]
