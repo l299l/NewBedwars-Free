@@ -46,10 +46,10 @@ public class Updater extends Files {
         reloadplPL();
         saveplPL();
         try {
-            List<String> ignored = plPLConf.contains("CustomItemsNames")
+            List<String> ignored = plPLConf != null && plPLConf.contains("CustomItemsNames")
                     ? Collections.singletonList("CustomItemsNames") : Collections.emptyList();
             ConfigUpdater.update(NewBedwars.plugin, "pl_PL.yml", plPLFile, ignored);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         reloadplPL();
@@ -59,10 +59,10 @@ public class Updater extends Files {
         reloaEn();
         saveEn();
         try {
-            List<String> ignored = enConf.contains("CustomItemsNames")
+            List<String> ignored = enConf != null && enConf.contains("CustomItemsNames")
                     ? Collections.singletonList("CustomItemsNames") : Collections.emptyList();
             ConfigUpdater.update(NewBedwars.plugin, "en.yml", enFile, ignored);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         reloaEn();
@@ -72,8 +72,8 @@ public class Updater extends Files {
         reloaBossBars();
         saveBossBars();
         try {
-            ConfigUpdater.update(NewBedwars.plugin, "bossBars.yml",bossBarsFile, Collections.emptyList());
-        }catch (IOException e) {
+            ConfigUpdater.update(NewBedwars.plugin, "bossBars.yml", bossBarsFile, Collections.emptyList());
+        } catch (Exception e) {
             e.printStackTrace();
         }
         reloaBossBars();
@@ -84,7 +84,7 @@ public class Updater extends Files {
         saveScoreboards();
         try {
             ConfigUpdater.update(NewBedwars.plugin, "scoreboards.yml", scoreboardFile, Collections.emptyList());
-        }catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         reloaScoreboards();
@@ -95,7 +95,7 @@ public class Updater extends Files {
         saveGenerators();
         try {
             ConfigUpdater.update(NewBedwars.plugin, "defaultGenerators.yml", generatorsFile, Collections.emptyList());
-        }catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         reloadGenerators();
@@ -211,6 +211,7 @@ public class Updater extends Files {
     }
 
     private void reloadGenerators() {
+        generatorsConfigurations.clear();
         if (!generatorsFolder.exists()) {
             generatorsFolder.mkdirs();
         }

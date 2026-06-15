@@ -30,6 +30,8 @@ public final class VersionCompat {
     public static final PotionEffectType HASTE;          // was FAST_DIGGING
     public static final PotionEffectType MINING_FATIGUE; // was SLOW_DIGGING
     public static final PotionEffectType JUMP_BOOST;     // was JUMP
+    public static final PotionEffectType SPEED;          // SWIFTNESS in 1.20.5+
+    public static final PotionEffectType INVISIBILITY;   // unchanged across versions
 
     // ── PotionTypes (name changed in 1.20.5) ──────────────────────────────────
     public static final PotionType POTION_SPEED;       // was SPEED  → SWIFTNESS
@@ -49,6 +51,8 @@ public final class VersionCompat {
         HASTE          = potionEffect("HASTE",          "FAST_DIGGING");
         MINING_FATIGUE = potionEffect("MINING_FATIGUE", "SLOW_DIGGING");
         JUMP_BOOST     = potionEffect("JUMP_BOOST",     "JUMP");
+        SPEED          = potionEffect("SWIFTNESS",      "SPEED");
+        INVISIBILITY   = potionEffect("INVISIBILITY",   "INVISIBILITY");
 
         POTION_SPEED       = potionType("SWIFTNESS",   "SPEED");
         POTION_JUMP        = potionType("LEAPING",     "JUMP");

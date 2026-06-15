@@ -201,7 +201,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ## 🚀 Installation
 
-1. Download **NewBedwars-1.0.2-beta.jar**
+1. Download **NewBedwars-1.0.3-beta.jar**
 2. Drop it into your server's `/plugins/` folder
 3. Start the server — config files generate automatically
 4. Set your lobby spawn: `/bw setLobby`
@@ -314,6 +314,6 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
 
 <div align="center">
 
-**NewBedwars v1.0.2-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
+**NewBedwars v1.0.3-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
 
 </div>

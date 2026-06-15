@@ -42,6 +42,9 @@ public class GuiDataYaml {
             HashMap<String, GuiCategory> guiCategories = new HashMap<>();
             for (Map<String, Object> category: categories) {
                 String catId = category.get("ID").toString();
+                String catName = category.containsKey("Name")
+                        ? category.get("Name").toString()
+                        : catId.substring(0, 1).toUpperCase() + catId.substring(1).toLowerCase();
                 CustomItem catIcon = NewBedwars.plugin.getCustomItemManager().getCustomItem(category.get("Icon").toString());
                 List<String> catItemsNames = (List<String>) category.get("Items");
                 List<Object> catItems = new ArrayList<>();
@@ -62,7 +65,8 @@ public class GuiDataYaml {
                     CustomItem catItem = NewBedwars.plugin.getCustomItemManager().getCustomItem(catItemName);
                     catItems.add(catItem);
                 }
-                GuiCategory guiCategory = new GuiCategory(catId, catIcon, catItems);
+                String catDescription = category.containsKey("Description") ? category.get("Description").toString() : "";
+                GuiCategory guiCategory = new GuiCategory(catId, catName, catIcon, catItems, catDescription);
                 guiCategories.put(catId, guiCategory);
             }
             guiSave.setGuiData("Categories", guiCategories);

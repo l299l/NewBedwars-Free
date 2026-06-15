@@ -130,8 +130,15 @@ public class CustomItem {
         if (onBuyEvent == OnBuyEvent.CANCEL) {
             return false;
         }
-        if (permission != null && !permission.isEmpty() && !player.hasPermission(permission)) {
+        if (permission != null && !permission.isEmpty() && !permission.equalsIgnoreCase("default") && !player.hasPermission(permission)) {
             return false;
+        }
+        if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
+            ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
+            ArmorType newType = ArmorType.getArmorType(material);
+            if (newType != ArmorType.OTHER && armorContents.getArmor().ordinal() >= newType.ordinal()) {
+                return false;
+            }
         }
         if (priceType == PriceType.EMERALD) {
             if (player.getInventory().contains(Material.EMERALD, price)) {

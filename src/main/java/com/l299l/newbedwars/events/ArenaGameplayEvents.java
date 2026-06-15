@@ -43,6 +43,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.entity.Projectile;
+import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -62,6 +63,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -283,6 +285,7 @@ public class ArenaGameplayEvents implements Listener {
 
     @EventHandler
     public void playerNpcInteract(PlayerInteractEntityEvent e) {
+        if (e.getHand() != EquipmentSlot.HAND) return;
         Player p = e.getPlayer();
         if (Arena.arenaByWorld.get(p.getWorld()) != null) {
             IArena arena = Arena.arenaByWorld.get(p.getWorld());
@@ -474,12 +477,12 @@ public class ArenaGameplayEvents implements Listener {
         if (attackerId != null) {
             Player attacker = Bukkit.getPlayer(attackerId);
             if (attacker != null && attacker.isOnline() && arena.isPlayerInArena(attacker)) {
-                p.damage(p.getHealth() + 1, attacker);
+                p.damage(p.getMaxHealth() * 1000, attacker);
                 return;
             }
         }
         quickVoidDeaths.add(p.getUniqueId());
-        p.damage(p.getHealth() + 1);
+        p.damage(p.getMaxHealth() * 1000);
     }
 
     @EventHandler
@@ -534,6 +537,18 @@ public class ArenaGameplayEvents implements Listener {
                     e.setCancelled(true);
                 } else {
                     arena.removeBlastProtBlock(e.getBlock().getLocation());
+                    if (e.getBlock().getType().name().endsWith("_WOOL")) {
+                        e.setDropItems(false);
+                        CustomItem woolItem = plugin.getCustomItemManager().getCustomItem("Wool");
+                        if (woolItem != null) {
+                            ItemStack singleWool = woolItem.getItem(p);
+                            singleWool.setAmount(1);
+                            Map<Integer, ItemStack> leftover = p.getInventory().addItem(singleWool);
+                            for (ItemStack drop : leftover.values()) {
+                                p.getWorld().dropItem(p.getLocation(), drop);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -568,6 +583,7 @@ public class ArenaGameplayEvents implements Listener {
     @EventHandler
     public void onCustomItemInteract(PlayerInteractEvent e) {
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getHand() != EquipmentSlot.HAND) return;
         Player p = e.getPlayer();
         IArena arena = Arena.arenaByWorld.get(p.getWorld());
         if (arena == null || arena.status() != GameStatus.playing) return;
@@ -609,6 +625,13 @@ public class ArenaGameplayEvents implements Listener {
 
         Material woolType = BridgeEggLogic.getWoolFromColor(team.getColor());
         BridgeEggLogic.startTracking(egg.getUniqueId(), woolType, arena, egg);
+    }
+
+    @EventHandler
+    public void onBridgeEggThrow(PlayerEggThrowEvent e) {
+        if (BridgeEggLogic.pendingBridgeEggs.containsKey(e.getEgg().getUniqueId())) {
+            e.setHatching(false);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -659,6 +682,11 @@ public class ArenaGameplayEvents implements Listener {
         CustomItem customItem = findCustomItem(e.getItem());
         if (customItem != null && customItem.getEvent().getType() == LogicType.POTION) {
             e.setCancelled(true);
+            PotionEffect effect = getPotionEffect(customItem.getName());
+            if (effect != null) {
+                p.addPotionEffect(effect);
+            }
+            consumeOneItem(p);
             return;
         }
         if (e.getItem().getType() == Material.POTION) {
@@ -674,9 +702,9 @@ public class ArenaGameplayEvents implements Listener {
 
     private PotionEffect getPotionEffect(String itemName) {
         return switch (itemName.toLowerCase()) {
-            case "speed"        -> new PotionEffect(PotionEffectType.SPEED,        200, 1, true, true);
-            case "jump"         -> new PotionEffect(VersionCompat.JUMP_BOOST,      200, 1, true, true);
-            case "inviscibility"-> new PotionEffect(PotionEffectType.INVISIBILITY, 600, 0, true, true);
+            case "speed"        -> VersionCompat.SPEED        != null ? new PotionEffect(VersionCompat.SPEED,        200, 1, true, true) : null;
+            case "jump"         -> VersionCompat.JUMP_BOOST   != null ? new PotionEffect(VersionCompat.JUMP_BOOST,   200, 1, true, true) : null;
+            case "inviscibility"-> VersionCompat.INVISIBILITY != null ? new PotionEffect(VersionCompat.INVISIBILITY, 600, 0, true, true) : null;
             default -> null;
         };
     }

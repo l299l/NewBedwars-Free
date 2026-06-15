@@ -87,6 +87,7 @@ public class GuiDataManager {
                 HashMap<String, GuiCategory> guiCategories = (HashMap<String, GuiCategory>) guiSave.getGuiData("Categories");
                 for (GuiCategory guiCategory: guiCategories.values()) {
                     fileWriter.write("  - ID: " + guiCategory.id() + "\n");
+                    fileWriter.write("    Name: " + guiCategory.name() + "\n");
                     fileWriter.write("    Icon: " + guiCategory.icon().getName() + "\n");
                     fileWriter.write("    Items:\n");
                     for (Object catObj: guiCategory.items()) {

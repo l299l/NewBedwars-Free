@@ -212,6 +212,13 @@ public class TeamUpgrades {
         }
     }
 
+    public void applyPlayerUpgrades(Player player) {
+        int sharpnessLevel = getUpgradeLevel(Upgrade.SHARPNESS);
+        if (sharpnessLevel > 0) applyUpgradeEffect(player, Upgrade.SHARPNESS, sharpnessLevel);
+        int hasteLevel = getUpgradeLevel(Upgrade.HASTE);
+        if (hasteLevel > 0) applyUpgradeEffect(player, Upgrade.HASTE, hasteLevel);
+    }
+
     public void open(Player player) {
         IArena arena = Arena.arenaByWorld.get(player.getWorld());
         ShopGUI gui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, arena.getPlayer(player.getUniqueId()).getPlayerUpgradesGui(), null);

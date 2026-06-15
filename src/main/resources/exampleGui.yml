@@ -87,7 +87,9 @@ Slots:
 
 Categories:
   - ID: blocks
+    Name: "&aBlocks"
     Icon: wool
+    Description: "&7Browse building blocks"
     Items:
       - wool
       - EndStone
@@ -97,7 +99,9 @@ Categories:
       - BlastProtGlass
       - Terracotta
   - ID: tools
+    Name: "&eTools"
     Icon: ironpickaxe
+    Description: "&7Browse tools"
     Items:
       - stonepickaxe
       - goldpickaxe
@@ -105,32 +109,42 @@ Categories:
       - diamondpickaxe
       - shears
   - ID: weapons
+    Name: "&cWeapons"
     Icon: ironsword
+    Description: "&7Browse weapons"
     Items:
       - stonesword
       - goldsword
       - ironsword
       - diamondsword
   - ID: bow
+    Name: "&6Ranged"
     Icon: bow
+    Description: "&7Browse ranged weapons"
     Items:
       - bow
       - arrow
   - ID: armor
+    Name: "&fArmor"
     Icon: ironarmor
+    Description: "&7Browse armor"
     Items:
       - chainmailarmor
       - goldarmor
       - ironarmor
       - diamondarmor
   - ID: potions
+    Name: "&bPotions"
     Icon: jump
+    Description: "&7Browse potions"
     Items:
       - jump
       - speed
       - inviscibility
   - ID: misc
+    Name: "&dMisc"
     Icon: tnt
+    Description: "&7Browse miscellaneous items"
     Items:
       - tnt
       - fireball

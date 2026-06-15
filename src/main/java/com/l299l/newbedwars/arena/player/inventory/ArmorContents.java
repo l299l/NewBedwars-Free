@@ -51,6 +51,10 @@ public class ArmorContents {
         }
     }
 
+    public ArmorType getArmor() {
+        return armor;
+    }
+
     public void setArmor(ArmorType armor) {
         this.armor = armor;
     }

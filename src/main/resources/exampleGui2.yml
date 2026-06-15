@@ -83,7 +83,9 @@ Slots:
 
 Categories:
   - ID: traps
+    Name: "&cTraps"
     Icon: traps
+    Description: "&7Browse available traps"
     Items:
       - upg:alarmtrap
       - upg:blindtrap

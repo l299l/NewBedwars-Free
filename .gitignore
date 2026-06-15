@@ -51,6 +51,7 @@ CLAUDE.md
 latest.log
 .claude/
 plan.md
+graphify-out/
 
 # Icon must end with two \r
 Icon

@@ -1405,6 +1405,7 @@ public class Arena implements IArena {
         player.setInvulnerable(false);
         player.setGameMode(GameMode.SURVIVAL);
         player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
+        team.getTeamUpgrades().applyPlayerUpgrades(player);
         for (UUID p : players.keySet()) {
             Player pl = Bukkit.getServer().getPlayer(p);
             if (pl == null) {

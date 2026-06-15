@@ -26,6 +26,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
@@ -82,6 +83,7 @@ public final class NewBedwars extends JavaPlugin {
 
 
     public void reloadAll() {
+        HandlerList.unregisterAll(this);
         Arena.arenaByName.clear();
         Arena.arenaByWorld.clear();
         updater.reloadEnglish();

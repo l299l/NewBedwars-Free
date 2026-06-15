@@ -93,24 +93,24 @@ public class CustomItemManager {
     }};
     List<ItemFlag> itemFlags = new ArrayList<>(){{add(ItemFlag.HIDE_ENCHANTS);}};
         createCustomItem(name, "default", material, -1, PriceType.DIAMOND, 1, "default",
-                "default", new NoneLogic(), OnBuyEvent.UPGRADE, true, enchantments, itemFlags);
+                "", new NoneLogic(), OnBuyEvent.UPGRADE, true, enchantments, itemFlags);
     }
 
     public void createCustomItem(String name, Material material, int price, PriceType priceType, int amount, CustomLogic event, OnBuyEvent onBuyEvent) {
         createCustomItem(name, "default", material, price, priceType, amount, "default",
-                "default", event, onBuyEvent, false);
+                "", event, onBuyEvent, false);
     }
 
     public void createCustomItem(String name, Material material, int price, PriceType priceType, int amount, CustomLogic event, OnBuyEvent onBuyEvent,
                                  HashMap<Enchantment, Integer> enchantments) {
         createCustomItem(name, "default", material, price, priceType, amount, "default",
-                "default", event, onBuyEvent, false, enchantments, new ArrayList<>());
+                "", event, onBuyEvent, false, enchantments, new ArrayList<>());
     }
 
     public void createCustomItem(String name, Material material, int price, PriceType priceType, int amount, CustomLogic event, OnBuyEvent onBuyEvent,
                                  HashMap<Enchantment, Integer> enchantments, List<ItemFlag> itemFlags) {
         createCustomItem(name, "default", material, price, priceType, amount, "default",
-                "default", event, onBuyEvent, false, enchantments, itemFlags);
+                "", event, onBuyEvent, false, enchantments, itemFlags);
     }
 
     public void createCustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
