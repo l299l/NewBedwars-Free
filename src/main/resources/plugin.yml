@@ -4,6 +4,7 @@ main: com.l299l.newbedwars.NewBedwars
 api-version: '1.17'
 load: STARTUP
 authors: [l299l]
+softdepend: [PlaceholderAPI]
 description: Advanced and modern bedwars plugin!
 commands:
   bw:

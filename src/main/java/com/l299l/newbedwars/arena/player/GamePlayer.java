@@ -3,8 +3,10 @@ package com.l299l.newbedwars.arena.player;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.team.Team;
+import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.gui.GuiManager;
 import com.l299l.newbedwars.gui.GuiSave;
+import com.l299l.newbedwars.player.PlayerIns;
 import com.l299l.newbedwars.player.PlayerManager;
 import org.bukkit.entity.Player;
 
@@ -24,8 +26,11 @@ public class GamePlayer {
         this.inventory = new ArmorContents(player, team);
         PlayerManager playerManager = NewBedwars.plugin.getPlayerManager();
         GuiManager guiManager = NewBedwars.plugin.getGuiManager();
-        playerShopGui = guiManager.getGui(playerManager.getPlayer(player.getName()).shopGui());
-        playerUpgradesGui = guiManager.getGui(playerManager.getPlayer(player.getName()).upgradeGui());
+        PlayerIns playerIns = playerManager.getPlayer(player.getName());
+        String shopGuiId = playerIns != null ? playerIns.shopGui() : Properties.DefaultTeamShopGui;
+        String upgradesGuiId = playerIns != null ? playerIns.upgradeGui() : Properties.DefaultUpgradeShopGui;
+        playerShopGui = guiManager.getGui(shopGuiId);
+        playerUpgradesGui = guiManager.getGui(upgradesGuiId);
     }
 
     public Player getPlayer() {

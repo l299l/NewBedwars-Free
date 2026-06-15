@@ -8,11 +8,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class NScoreboard {
@@ -75,9 +75,10 @@ public class NScoreboard {
                                 newText.append(color).append(rawTitle.charAt(j));
                             }
                         }
-                        try {
-                            scoreboard.getObjective(id).setDisplayName(ChatColor.translateAlternateColorCodes('&', newText.toString()));
-                        } catch (Exception ignored) {}
+                        Objective obj = scoreboard.getObjective(id);
+                        if (obj != null) {
+                            obj.setDisplayName(ChatColor.translateAlternateColorCodes('&', newText.toString()));
+                        }
                         i++;
                         if (i >= rawTitle.length()) i = 0;
                     }
@@ -105,9 +106,10 @@ public class NScoreboard {
                                 newText.append(color).append(rawTitle.charAt(j));
                             }
                         }
-                        try {
-                            scoreboard.getObjective(id).setDisplayName(ChatColor.translateAlternateColorCodes('&', newText.toString()));
-                        } catch (Exception ignored) {}
+                        Objective obj = scoreboard.getObjective(id);
+                        if (obj != null) {
+                            obj.setDisplayName(ChatColor.translateAlternateColorCodes('&', newText.toString()));
+                        }
                         i++;
                         if (i >= rawTitle.length()) i = 0;
                     }
@@ -125,13 +127,14 @@ public class NScoreboard {
                     boolean up = true;
                     @Override
                     public void run() {
-                        try {
+                        Objective obj = scoreboard.getObjective(id);
+                        if (obj != null) {
                             if (up) {
-                                scoreboard.getObjective(id).setDisplayName(secondColor + ChatColor.translateAlternateColorCodes('&', rawTitle).replaceAll("[&§]" + finalColor.getChar(), ""));
+                                obj.setDisplayName(secondColor + ChatColor.translateAlternateColorCodes('&', rawTitle).replaceAll("[&§]" + finalColor.getChar(), ""));
                             } else {
-                                scoreboard.getObjective(id).setDisplayName(ChatColor.translateAlternateColorCodes('&', rawTitle));
+                                obj.setDisplayName(ChatColor.translateAlternateColorCodes('&', rawTitle));
                             }
-                        } catch (Exception ignored) {}
+                        }
                         up = !up;
                     }
                 }.runTaskTimer(NewBedwars.plugin, 0, 15);
@@ -140,9 +143,10 @@ public class NScoreboard {
                 return new BukkitRunnable() {
                     @Override
                     public void run() {
-                        try {
-                            scoreboard.getObjective(id).setDisplayName(getRandomColor() + ChatColor.translateAlternateColorCodes('&', rawTitle));
-                        } catch (Exception ignored) {}
+                        Objective obj = scoreboard.getObjective(id);
+                        if (obj != null) {
+                            obj.setDisplayName(getRandomColor() + ChatColor.translateAlternateColorCodes('&', rawTitle));
+                        }
                     }
                 }.runTaskTimer(NewBedwars.plugin, 0, 5);
             }
@@ -153,9 +157,10 @@ public class NScoreboard {
     public void kill() {
         task.cancel();
         if (effectTask != null) effectTask.cancel();
-        try {
-            Objects.requireNonNull(scoreboard.getObjective(id)).unregister();
-        } catch (Exception ignored) {}
+        Objective obj = scoreboard.getObjective(id);
+        if (obj != null) {
+            obj.unregister();
+        }
         player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
     }
 

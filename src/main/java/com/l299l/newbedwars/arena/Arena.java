@@ -38,6 +38,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Arena implements IArena {
     public static HashMap<String, IArena> arenaByName = new HashMap<>();
@@ -255,7 +256,9 @@ public class Arena implements IArena {
             for (Chunk chunk : world.getLoadedChunks()) {
                 chunk.unload(true);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            NewBedwars.plugin.getLogger().warning("Failed to unload chunks for arena " + arenaName + ": " + e.getMessage());
+        }
         arenaByWorld.remove(world);
         boolean correct = Bukkit.getServer().unloadWorld(world, false);
         if (!correct) {
@@ -840,6 +843,7 @@ public class Arena implements IArena {
 
     public Team getTeamByBed(Location bed) {
         for (Team team : teams.values()) {
+            if (team.getTeamBed() == null) continue;
             Location bedLocation = team.getTeamBed().getLocation();
             if (bedLocation.getBlockX() - bed.getBlockX() <= 2 && bedLocation.getBlockX() - bed.getBlockX() >= -2 &&
                     bedLocation.getBlockY() - bed.getBlockY() <= 2 && bedLocation.getBlockY() - bed.getBlockY() >= -2 &&
@@ -1234,12 +1238,12 @@ public class Arena implements IArena {
         }
         if (gamerules.RandomTeams) {
             if (!emptyTeams.isEmpty()) {
-                int random = (int) (Math.random() * emptyTeams.size());
+                int random = ThreadLocalRandom.current().nextInt(emptyTeams.size());
                 Team team = emptyTeams.get(random);
                 team.addPlayer(player);
                 return team;
             }else {
-                int random = (int) (Math.random() * teamNames.size());
+                int random = ThreadLocalRandom.current().nextInt(teamNames.size());
                 Team team = teams.get(teamNames.get(random));
                 if (team.getPlayers().size() < maxInTeam) {
                     team.addPlayer(player);
@@ -1260,7 +1264,9 @@ public class Arena implements IArena {
             if (party != null) {
                 for (UUID memberId : party.getMembers()) {
                     if (players.containsKey(memberId)) {
-                        Team memberTeam = players.get(memberId).getTeam();
+                        GamePlayer gp = players.get(memberId);
+                        if (gp == null) continue;
+                        Team memberTeam = gp.getTeam();
                         if (memberTeam.getPlayers().size() < maxInTeam) {
                             memberTeam.addPlayer(player);
                             return memberTeam;

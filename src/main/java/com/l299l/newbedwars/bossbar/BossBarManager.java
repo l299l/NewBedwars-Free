@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BossBarManager {
     private final HashMap<String, BossBarSave> bossBars;
@@ -240,7 +241,7 @@ public class BossBarManager {
     @Deprecated
     private ChatColor getRandomColor() {
         List<ChatColor> colors = Arrays.asList(ChatColor.values());
-        ChatColor color = colors.get((int) (Math.random() * colors.size()));
+        ChatColor color = colors.get(ThreadLocalRandom.current().nextInt(colors.size()));
         if (color == ChatColor.MAGIC || color == ChatColor.BOLD || color == ChatColor.STRIKETHROUGH || color == ChatColor.UNDERLINE || color == ChatColor.ITALIC
         || color == ChatColor.RESET) {
             return getRandomColor();

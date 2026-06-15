@@ -41,6 +41,7 @@ public class GamePhases {
     }
 
     public void nextPhase(IArena arena) {
+        if (isLastPhase()) return;
         currentPhase++;
         phases.get(currentPhase).start(arena);
     }

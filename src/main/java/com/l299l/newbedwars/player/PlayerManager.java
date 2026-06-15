@@ -61,12 +61,14 @@ public class PlayerManager {
 
     public void updatePlayerShopGui(String name, String shopGui) {
         PlayerIns player = players.get(name);
+        if (player == null) return;
         player = new PlayerIns(player.id(), player.name(), player.language(), shopGui, player.upgradeGui());
         players.put(name, player);
     }
 
     public void updatePlayerUpgradeGui(String name, String upgradeGui) {
         PlayerIns player = players.get(name);
+        if (player == null) return;
         player = new PlayerIns(player.id(), player.name(), player.language(), player.shopGui(), upgradeGui);
         players.put(name, player);
     }

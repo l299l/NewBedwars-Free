@@ -2,6 +2,7 @@ package com.l299l.newbedwars;
 
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
+import com.l299l.newbedwars.placeholder.NewBedwarsExpansion;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.bossbar.BossBarManager;
 import com.l299l.newbedwars.commands.LangStandaloneCommand;
@@ -70,6 +71,9 @@ public final class NewBedwars extends JavaPlugin {
         Objects.requireNonNull(getCommand("party")).setTabCompleter(partyCmd);
         Objects.requireNonNull(getCommand("p")).setExecutor(partyCmd);
         Objects.requireNonNull(getCommand("p")).setTabCompleter(partyCmd);
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new NewBedwarsExpansion(this).register();
+        }
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_GREEN + "Enabled");
     }
 
