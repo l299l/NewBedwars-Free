@@ -82,31 +82,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ---
 
-## 🆓 Free vs Premium
-
-Everything listed above is **free** and open-source. A **Premium** version is in development with advanced analytics, cosmetics, and network features. Here is the planned split:
-
-| Feature | Free | Premium |
-|---------|:----:|:-------:|
-| All current gameplay features | ✅ | ✅ |
-| Party system | ✅ | ✅ |
-| Spectator mode | ✅ | ✅ |
-| BossBar & scoreboard system | ✅ | ✅ |
-| Multi-language (EN, PL; DE, ES, FR, RU planned) | ✅ | ✅ |
-| PlaceholderAPI support *(planned)* | ✅ | ✅ |
-| WorldEdit support & schematic import/export *(planned)* | ✅ | ✅ |
-| Per-arena resource pack *(planned)* | ✅ | ✅ |
-| More custom items *(Iron Golem, Silverfish, etc.)* | ❌ | ✅ |
-| Arena statistics & leaderboards | ❌ | ✅ |
-| In-game map voting | ❌ | ✅ |
-| Custom death animations & kill effects | ❌ | ✅ |
-| Player profile GUI with stats history | ❌ | ✅ |
-| BungeeCord / Velocity network mode | ❌ | ✅ |
-
-> The free version is and will remain a complete, fully functional Bedwars plugin. Premium adds power-user and network features on top.
-
----
-
 ## 💻 Commands
 
 ### Player Commands
