@@ -5,6 +5,7 @@ import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.world.MainWorldCreator;
 import com.l299l.newbedwars.world.WorldCreator;
+import com.l299l.newbedwars.world.schematic.SchematicManager;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.gui.configuration.setup.guis.BasicConfigurationGUI;
@@ -48,78 +49,94 @@ public class CreateCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena old) {
-        if (args.length > 2) {
-            String startmessage =  msg.getMsg(player, "StartArena");
-            player.sendMessage(startmessage.replaceAll("/arenaname/", args[2]));
-            if (Arena.arenaByName.get(args[2]) != null) {
-                msg.send(player, "AlreadyCreated");
-                return;
-            }
+        if (args.length < 3) {
+            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            return;
+        }
+        String arenaName = args[2];
+        player.sendMessage(msg.getMsg(player, "StartArena").replaceAll("/arenaname/", arenaName));
+        if (Arena.arenaByName.get(arenaName) != null) {
+            msg.send(player, "AlreadyCreated");
+            return;
+        }
 
-            if ((args.length == 5 || args.length == 6) && (args[3].equalsIgnoreCase("-sche") || args[4].equalsIgnoreCase("-sche"))) {
-                try {
-                } catch (Exception e) {
-                    msg.send(player, "LoadingSchematicError");
-                }
-            } else if (createArena(args[2], null)) {
-                try {
-                    String message = msg.getMsg(player, "ArenaCreated");
-                    player.sendMessage(message.replaceAll("/arenaname/", args[2]));
-                    if((args.length == 4 || args.length == 6) && (args[3].equalsIgnoreCase("-n") || args[5].equalsIgnoreCase("-n"))) {
-                        return;
-                    }
-                    IArena arena = Arena.arenaByName.get(args[2]);
-                    Location loc = new Location(arena.getArenaWorld(), 0, 100, 0);
-                    player.setGameMode(GameMode.CREATIVE);
-                    player.teleport(loc);
-                    arena.getPlayersOnSetup().add(player.getUniqueId());
-                    player.openInventory(new BasicConfigurationGUI(NewBedwars.plugin.getGuiManager(), player).getInventory());
-                } catch (Exception e) {
-                    msg.send(player, "ErrorOnCreate");
-                }
-            } else {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+        String schematic = findFlag(args, "-sche");
+        boolean noTeleport = hasFlag(args, "-n");
+
+        if (schematic != null && !SchematicManager.isWorldEditPresent()) {
+            msg.send(player, "WorldEditNotFound");
+            return;
+        }
+
+        if (createArena(arenaName, schematic)) {
+            player.sendMessage(msg.getMsg(player, "ArenaCreated").replaceAll("/arenaname/", arenaName));
+            if (noTeleport) return;
+            try {
+                IArena arena = Arena.arenaByName.get(arenaName);
+                player.setGameMode(GameMode.CREATIVE);
+                player.teleport(new Location(arena.getArenaWorld(), 0, 100, 0));
+                arena.getPlayersOnSetup().add(player.getUniqueId());
+                player.openInventory(new BasicConfigurationGUI(NewBedwars.plugin.getGuiManager(), player).getInventory());
+            } catch (Exception e) {
+                msg.send(player, "ErrorOnCreate");
             }
         } else {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            if (schematic != null) {
+                player.sendMessage(msg.getMsg(player, "SchematicNotFound").replaceAll("/name/", schematic));
+            } else {
+                msg.send(player, "ErrorOnCreate");
+            }
         }
+    }
+
+    private String findFlag(String[] args, String flag) {
+        for (int i = 3; i < args.length - 1; i++) {
+            if (args[i].equalsIgnoreCase(flag)) return args[i + 1];
+        }
+        return null;
+    }
+
+    private boolean hasFlag(String[] args, String flag) {
+        for (int i = 3; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase(flag)) return true;
+        }
+        return false;
     }
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 4) {
-            ArrayList<String> arguments = new ArrayList<>();
-            arguments.add("-sche");
-            arguments.add("-n");
-            return arguments;
-        } else if (args.length == 5) {
-            if(args[2].equalsIgnoreCase("-sche")) {
-                return null; //return list of schemat
-            }else {
-                return Collections.singletonList("-sche");
-            }
-        } else if (args.length == 6) {
-            if(args[3].equalsIgnoreCase("-sche")) {
-                return null; //return list of schemat
-            }else {
-                return Collections.singletonList("-n");
-            }
+            ArrayList<String> opts = new ArrayList<>();
+            opts.add("-sche");
+            opts.add("-n");
+            return opts;
+        }
+        // After "-sche", suggest available schematic names
+        if (args.length == 5 && args[3].equalsIgnoreCase("-sche")) {
+            return SchematicManager.listSchematics();
+        }
+        // After "-sche <name>", offer "-n"
+        if (args.length == 6 && args[3].equalsIgnoreCase("-sche")) {
+            return Collections.singletonList("-n");
+        }
+        // After "-n", offer "-sche"
+        if (args.length == 5 && args[3].equalsIgnoreCase("-n")) {
+            return Collections.singletonList("-sche");
+        }
+        if (args.length == 6 && args[3].equalsIgnoreCase("-n") && args[4].equalsIgnoreCase("-sche")) {
+            return SchematicManager.listSchematics();
         }
         return null;
     }
 
     private boolean createArena(String arenaName, String schematic) {
-        boolean a;
         try {
-            if (schematic != null) {
-                a = worldCreator.createWorldFromSchematic(arenaName, schematic);
-                new Arena(arenaName, Objects.requireNonNull(Bukkit.getWorld(arenaName)));
-                return a;
-            } else {
-                a = worldCreator.createWorld(arenaName);
-                new Arena(arenaName, Objects.requireNonNull(Bukkit.getWorld(arenaName)));
-                return a;
-            }
+            boolean ok = schematic != null
+                    ? worldCreator.createWorldFromSchematic(arenaName, schematic)
+                    : worldCreator.createWorld(arenaName);
+            if (!ok) return false;
+            new Arena(arenaName, Objects.requireNonNull(Bukkit.getWorld(arenaName)));
+            return true;
         } catch (Exception e) {
             return false;
         }

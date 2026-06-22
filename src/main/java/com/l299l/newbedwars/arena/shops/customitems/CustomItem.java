@@ -186,7 +186,8 @@ public class CustomItem {
                 return true;
             }
             case GIVE_TOOL -> {
-                ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
+                Team toolTeam = Arena.arenaByWorld.get(player.getWorld()).getTeam(player);
+                ArmorContents armorContents = toolTeam.getArmorContents(player);
                 boolean isSword = material.name().endsWith("_SWORD");
                 if (isSword && armorContents.hasBoughtSword()) {
                     // Player already owns a non-default sword — add this one as an extra item
@@ -196,6 +197,10 @@ public class CustomItem {
                     // First sword purchase or non-sword tool — replace the current slot immediately
                     armorContents.setTool(this);
                     armorContents.loadPlayerArmorContents(player);
+                }
+                // Apply team upgrades (sharpness, haste) to the newly placed sword
+                if (isSword) {
+                    toolTeam.getTeamUpgrades().applyPlayerUpgrades(player);
                 }
                 return true;
             }

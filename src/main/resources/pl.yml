@@ -1,5 +1,5 @@
 # =====================================================
-#  NewBedwars — Language File (Polish / pl_PL)
+#  NewBedwars — Language File (Polish / pl)
 #  Use & for color codes. Use ; for line breaks in lore.
 #  Placeholders: /arenaname/, /player/, /team/, /admin/, etc.
 # =====================================================
@@ -59,6 +59,11 @@ ArenaEnabled: "&b[NewBedwars] &8&l> &r&aArena &e/arenaname/ &awłączona!"
 ArenaDisabled: "&b[NewBedwars] &8&l> &r&aArena &e/arenaname/ &awyłączona!"
 ArenaDeleted: "&b[NewBedwars] &8&l> &aArena &e/arenaname/ &azostała trwale usunięta!"
 ArenaCannotBeDeleted: "&4&lBłąd: &r&cNie można usunąć areny &e/arenaname/ &cpodczas trwania gry!"
+ArenaListHeader: "&b[NewBedwars] &8&l> &fLista Aren &8(&e/count/ &fareny&8):"
+ArenaListEntry: "&8 - &e/arenaname/ &8» /status/"
+ArenaListEnabled: "&aWłączona"
+ArenaListDisabled: "&cWyłączona"
+ArenaListEmpty: "&b[NewBedwars] &8&l> &cNie znaleziono aren!"
 
 
 #Użyj /admin/ aby uzyskać nazwę administratora
@@ -146,7 +151,7 @@ ArenaChatFormat: "&7[&fARENA&7] /player/ &8» &f/message/"
 
 #Lobby
 LanguageChanged: "&b[NewBedwars] &8&l> &aJęzyk zmieniony na &e/lang/&a!"
-LanguageInvalid: "&b[NewBedwars] &8&l> &cNieprawidłowy język! Dostępne: &een&c, &epl&c."
+LanguageInvalid: "&b[NewBedwars] &8&l> &cNieprawidłowy język! Dostępne: &een&c, &epl&c, &ede&c, &ees&c, &efr&c, &eru&c."
 LobbySet: "&b[NewBedwars] &8&l> &aLokacja lobby została ustawiona!"
 TeleportedToLobby: "&b[NewBedwars] &8&l> &fZostałeś przeteleportowany do lobby!"
 NoPermission: "&b[NewBedwars] &8&l> &cNie masz uprawnień do wykonania tej komendy!"
@@ -310,3 +315,14 @@ PartyOnlyAdminCanJoin: "&b[NewBedwars] &8&l> &cTylko administrator drużyny moż
 PartyTooBig: "&b[NewBedwars] &8&l> &cTwoja drużyna jest za duża dla tej areny! Maks. wielkość drużyny: &e/maxteam/"
 PartyNotAllowedInArena: "&b[NewBedwars] &8&l> &cDrużyny nie są dozwolone na tej arenie!"
 ReloadSuccess: "&b[NewBedwars] &8&l> &aPlugin pomyślnie przeładowany!"
+GameruleSet: "&b[NewBedwars] &8&l> &fReguła gry &e/gamerule/ &fustawiona na &e/value/&f!"
+GameruleInvalid: "&4&lBłąd: &r&cNieprawidłowa reguła gry! Dostępne: RandomTeams, AllowParties, AllowSpectators, AllowTeamChat, AllowGlobalChat, AllowPrivateChat, AllowTeamDamage, MakeSwordsPermanent"
+ResourcePackSet: "&b[NewBedwars] &8&l> &aRzeczowy pack ustawiony dla tej areny!"
+ResourcePackCleared: "&b[NewBedwars] &8&l> &aRzeczowy pack usunięty dla tej areny!"
+ResourcePackHashInvalid: "&4&lBłąd: &r&cNieprawidłowy hash SHA-1! Musi zawierać dokładnie 40 znaków hex."
+WorldEditNotFound: "&4&lBłąd: &r&cWorldEdit nie jest zainstalowany!"
+WorldEditNoSelection: "&4&lBłąd: &r&cWykonaj zaznaczenie WorldEdit (//pos1 i //pos2)!"
+SchematicSaved: "&b[NewBedwars] &8&l> &aSchematyk zapisany jako &e/name/&a!"
+SchematicLoaded: "&b[NewBedwars] &8&l> &aSchematyk &e/name/ &azaładowany pomyślnie!"
+SchematicNotFound: "&4&lBłąd: &r&cSchematyk &e/name/ &cnie istnieje!"
+SchematicError: "&4&lBłąd: &r&cWystąpił błąd podczas przetwarzania schematyka!"

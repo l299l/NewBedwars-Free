@@ -96,6 +96,8 @@ public class Arena implements IArena {
     private final HashMap<Team, BukkitTask> dragonTasks = new HashMap<>();
     private final HashSet<String> placedBlocks;
     private final HashSet<String> blastProtBlocks;
+    private String resourcePackUrl;
+    private String resourcePackHash;
     private BukkitTask tntParticleTask;
     private Integer quickVoidY;
 
@@ -239,6 +241,32 @@ public class Arena implements IArena {
         gameStatus = GameStatus.waiting;
     }
 
+    // Called during server shutdown: same as stop() but skips world rollback (unsafe while the JVM is stopping)
+    public void forceShutdown() {
+        gameStatus = GameStatus.restarting;
+        if (tntParticleTask != null) { tntParticleTask.cancel(); tntParticleTask = null; }
+        if (endingTimer != null) { endingTimer.cancel(); endingTimer = null; }
+        if (countdownTimer != null) { countdownTimer.cancel(); countdownTimer = null; }
+        if (gamePhases != null) gamePhases.stop();
+        for (UUID id : new ArrayList<>(players.keySet())) {
+            Player p = Bukkit.getPlayer(id);
+            if (p != null) leave(p);
+        }
+        players.clear();
+        for (Player spectator : new ArrayList<>(spectatorsList)) leave(spectator);
+        spectatorsList.clear();
+        nextPhaseTime = 0;
+        for (Generator generator : generators) generator.stop();
+        for (Team team : teams.values()) team.stop();
+        if (arenaBossBar != null) { arenaBossBar.removeAll(); arenaBossBar.setVisible(false); }
+        for (NScoreboard sb : scoreboards.values()) sb.kill();
+        scoreboards.clear();
+        for (BukkitTask task : new ArrayList<>(dragonTasks.values())) if (!task.isCancelled()) task.cancel();
+        dragonTasks.clear();
+        for (EnderDragon dragon : new ArrayList<>(teamDragons.values())) if (dragon != null && dragon.isValid()) dragon.remove();
+        teamDragons.clear();
+    }
+
     @Override
     public boolean rollback() {
         clearPlacedBlocks();
@@ -328,6 +356,7 @@ public class Arena implements IArena {
         }
         players.put(player.getUniqueId(), new GamePlayer(player, team));
         updateTablist(player);
+        sendResourcePack(player);
     }
 
     @Override
@@ -873,6 +902,18 @@ public class Arena implements IArena {
         return arenaName;
     }
 
+    @Override
+    public String getResourcePackUrl() { return resourcePackUrl; }
+
+    @Override
+    public void setResourcePackUrl(String url) { this.resourcePackUrl = url; }
+
+    @Override
+    public String getResourcePackHash() { return resourcePackHash; }
+
+    @Override
+    public void setResourcePackHash(String hash) { this.resourcePackHash = hash; }
+
 
     public void setWaitingPos1(Location waitingPos1) {
         this.waitingPos1 = waitingPos1;
@@ -1142,6 +1183,15 @@ public class Arena implements IArena {
         blastProtBlocks.remove(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
     }
 
+    private void sendResourcePack(Player player) {
+        if (resourcePackUrl == null || resourcePackUrl.isEmpty()) return;
+        if (resourcePackHash != null && !resourcePackHash.isEmpty()) {
+            player.setResourcePack(resourcePackUrl, resourcePackHash);
+        } else {
+            player.setResourcePack(resourcePackUrl);
+        }
+    }
+
     private void startTntParticleTask() {
         if (!Properties.TntParticlesEnabled) return;
         tntParticleTask = new BukkitRunnable() {
@@ -1208,7 +1258,9 @@ public class Arena implements IArena {
             }
             i++;
         }
-        sb.append("]");
+        sb.append("],");
+        sb.append("\"resourcePackUrl\": ").append(resourcePackUrl == null ? "null" : "\"" + resourcePackUrl + "\"").append(",");
+        sb.append("\"resourcePackHash\": ").append(resourcePackHash == null ? "null" : "\"" + resourcePackHash + "\"");
         sb.append("}");
         return sb.toString();
     }
@@ -1370,6 +1422,7 @@ public class Arena implements IArena {
         }
         player.getInventory().setItem(0, NewBedwars.plugin.getGuiManager().getSpectatorItem(player));
         player.getInventory().setItem(4, NewBedwars.plugin.getGuiManager().getSpectatorEffectsItem(player));
+        sendResourcePack(player);
         for (UUID p : players.keySet()) {
             Player pl = Bukkit.getServer().getPlayer(p);
             if (pl == null) {

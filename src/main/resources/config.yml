@@ -29,7 +29,7 @@ DefaultGamerules:
   MakeSwordsPermanent: false
 
 # ----- Language -----------------------------------
-# Supported: en (English), pl_PL (Polish)
+# Supported: en (English), pl (Polish), de (German), es (Spanish), fr (French), ru (Russian)
 # You can add your own language file to the language folder.
 DefaultLanguage: en
 

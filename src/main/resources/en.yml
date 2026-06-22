@@ -59,6 +59,13 @@ ArenaEnabled: "&b[NewBedwars] &8&l> &r&aArena &e/arenaname/ &aenabled!"
 ArenaDisabled: "&b[NewBedwars] &8&l> &r&aArena &e/arenaname/ &adisabled!"
 ArenaDeleted: "&b[NewBedwars] &8&l> &aArena &e/arenaname/ &ahas been permanently deleted!"
 ArenaCannotBeDeleted: "&4&lError: &r&cCannot delete arena &e/arenaname/ &cwhile a game is in progress!"
+#Use /count/ to get number of arenas
+ArenaListHeader: "&b[NewBedwars] &8&l> &fArena List &8(&e/count/ &farenas&8):"
+#Use /arenaname/ and /status/
+ArenaListEntry: "&8 - &e/arenaname/ &8» /status/"
+ArenaListEnabled: "&aEnabled"
+ArenaListDisabled: "&cDisabled"
+ArenaListEmpty: "&b[NewBedwars] &8&l> &cNo arenas found!"
 
 
 #Use /admin/ to get name of admin
@@ -146,7 +153,7 @@ ArenaChatFormat: "&7[&fARENA&7] /player/ &8» &f/message/"
 
 #Lobby
 LanguageChanged: "&b[NewBedwars] &8&l> &aLanguage changed to &e/lang/&a!"
-LanguageInvalid: "&b[NewBedwars] &8&l> &cInvalid language! Available: &een&c, &epl&c."
+LanguageInvalid: "&b[NewBedwars] &8&l> &cInvalid language! Available: &een&c, &epl&c, &ede&c, &ees&c, &efr&c, &eru&c."
 LobbySet: "&b[NewBedwars] &8&l> &aLobby location has been set!"
 TeleportedToLobby: "&b[NewBedwars] &8&l> &fYou have been teleported to the lobby!"
 NoPermission: "&b[NewBedwars] &8&l> &cYou don't have permission to do that!"
@@ -311,3 +318,14 @@ PartyOnlyAdminCanJoin: "&b[NewBedwars] &8&l> &cOnly the party admin can join are
 PartyTooBig: "&b[NewBedwars] &8&l> &cYour party is too big for this arena! Max team size: &e/maxteam/"
 PartyNotAllowedInArena: "&b[NewBedwars] &8&l> &cParties are not allowed in this arena!"
 ReloadSuccess: "&b[NewBedwars] &8&l> &aPlugin reloaded successfully!"
+GameruleSet: "&b[NewBedwars] &8&l> &fGamerule &e/gamerule/ &fset to &e/value/&f!"
+GameruleInvalid: "&4&lError: &r&cInvalid gamerule! Available: RandomTeams, AllowParties, AllowSpectators, AllowTeamChat, AllowGlobalChat, AllowPrivateChat, AllowTeamDamage, MakeSwordsPermanent"
+ResourcePackSet: "&b[NewBedwars] &8&l> &aResource pack set for this arena!"
+ResourcePackCleared: "&b[NewBedwars] &8&l> &aResource pack cleared for this arena!"
+ResourcePackHashInvalid: "&4&lError: &r&cInvalid SHA-1 hash! Must be exactly 40 hex characters."
+WorldEditNotFound: "&4&lError: &r&cWorldEdit is not installed!"
+WorldEditNoSelection: "&4&lError: &r&cMake a WorldEdit selection first (//pos1 and //pos2)!"
+SchematicSaved: "&b[NewBedwars] &8&l> &aSchematic saved as &e/name/&a!"
+SchematicLoaded: "&b[NewBedwars] &8&l> &aSchematic &e/name/ &aloaded successfully!"
+SchematicNotFound: "&4&lError: &r&cSchematic &e/name/ &cnot found!"
+SchematicError: "&4&lError: &r&cAn error occurred while processing the schematic!"

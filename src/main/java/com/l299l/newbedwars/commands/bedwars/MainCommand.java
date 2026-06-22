@@ -245,6 +245,8 @@ public class MainCommand implements TabExecutor {
         setupSubNormalCommands.add(new SetWaitingPos2Command());
         setupSubNormalCommands.add(new SetWaitingSpawnCommand());
         setupSubNormalCommands.add(new SetWaitingTimeCommand());
+        setupSubNormalCommands.add(new GameruleCommand());
+        setupSubNormalCommands.add(new SetResourcePackCommand());
 
         setupSubAdvencedCommands.add(new AddSpecialGamerulesCommand());
         setupSubAdvencedCommands.add(new SetTeamsAccessoriesCommand());

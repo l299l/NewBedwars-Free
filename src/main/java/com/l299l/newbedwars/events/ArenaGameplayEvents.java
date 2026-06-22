@@ -76,6 +76,8 @@ public class ArenaGameplayEvents implements Listener {
     private final HashMap<UUID, BukkitTask> lastAttackerClearTasks = new HashMap<>();
     private final HashSet<UUID> quickVoidDeaths = new HashSet<>();
     private final HashSet<UUID> pendingBridgeEggThrow = new HashSet<>();
+    // Tracks players whose potion was handled by PlayerInteractEvent so PlayerItemConsumeEvent won't re-apply
+    private final HashSet<UUID> potionHandledByInteract = new HashSet<>();
     private final HashMap<UUID, Set<String>> playersInBases = new HashMap<>();
 
     public ArenaGameplayEvents(NewBedwars plugin) {
@@ -209,10 +211,16 @@ public class ArenaGameplayEvents implements Listener {
     @EventHandler
     public void playerDropItem(PlayerDropItemEvent e) {
         Player p = e.getPlayer();
-        if (Arena.arenaByWorld.get(p.getWorld()) != null) {
-            IArena arena = Arena.arenaByWorld.get(p.getWorld());
-            if (arena.getSpectators().contains(p) ||
-                    (arena.isPlayerInArena(p) && (arena.status() == GameStatus.waiting || arena.status() == GameStatus.starting))) {
+        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        if (arena == null) return;
+        if (arena.getSpectators().contains(p) ||
+                (arena.isPlayerInArena(p) && (arena.status() == GameStatus.waiting || arena.status() == GameStatus.starting))) {
+            e.setCancelled(true);
+            return;
+        }
+        // Prevent players from dropping their sword during a game (chest deposit is still allowed)
+        if (arena.isPlayerInArena(p) && arena.status() == GameStatus.playing) {
+            if (e.getItemDrop().getItemStack().getType().name().endsWith("_SWORD")) {
                 e.setCancelled(true);
             }
         }
@@ -576,20 +584,26 @@ public class ArenaGameplayEvents implements Listener {
         if (e.getEntity() instanceof org.bukkit.entity.DragonFireball) return;
         IArena arena = Arena.arenaByWorld.get(e.getEntity().getWorld());
         if (arena == null || arena.status() != GameStatus.playing) return;
-        e.blockList().removeIf(block ->
-                !arena.isPlacedBlock(block.getLocation()) || arena.isBlastProtBlock(block.getLocation()));
+        e.blockList().removeIf(block -> {
+            org.bukkit.Location loc = block.getLocation();
+            if (!arena.isPlacedBlock(loc)) return true;
+            if (arena.isBlastProtBlock(loc)) return true;
+            // Also protect blocks directly below blast-proof glass
+            return arena.isBlastProtBlock(loc.clone().add(0, 1, 0));
+        });
     }
 
     @EventHandler
     public void onCustomItemInteract(PlayerInteractEvent e) {
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (e.getHand() != EquipmentSlot.HAND) return;
+        if (e.getHand() == EquipmentSlot.OFF_HAND) return;
         Player p = e.getPlayer();
         IArena arena = Arena.arenaByWorld.get(p.getWorld());
         if (arena == null || arena.status() != GameStatus.playing) return;
         if (!arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) return;
 
-        ItemStack item = p.getInventory().getItemInMainHand();
+        // Use event item: on some 1.20.x builds vanilla clears the hand before this event fires
+        ItemStack item = e.getItem() != null ? e.getItem() : p.getInventory().getItemInMainHand();
         CustomItem customItem = findCustomItem(item);
         if (customItem == null || customItem.getEvent() instanceof NoneLogic) return;
 
@@ -605,9 +619,15 @@ public class ArenaGameplayEvents implements Listener {
             }
             case POTION -> {
                 e.setCancelled(true);
-                PotionEffect effect = getPotionEffect(customItem.getName());
-                if (effect != null) p.addPotionEffect(effect);
                 consumeOneItem(p);
+                // Apply on next tick so our effect runs after any vanilla processing on older builds
+                final String potionName = customItem.getName();
+                potionHandledByInteract.add(p.getUniqueId());
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    potionHandledByInteract.remove(p.getUniqueId());
+                    PotionEffect effect = getPotionEffect(potionName);
+                    if (effect != null) p.addPotionEffect(effect);
+                });
             }
         }
     }
@@ -682,11 +702,15 @@ public class ArenaGameplayEvents implements Listener {
         CustomItem customItem = findCustomItem(e.getItem());
         if (customItem != null && customItem.getEvent().getType() == LogicType.POTION) {
             e.setCancelled(true);
-            PotionEffect effect = getPotionEffect(customItem.getName());
-            if (effect != null) {
-                p.addPotionEffect(effect);
+            if (!potionHandledByInteract.remove(p.getUniqueId())) {
+                // PlayerInteractEvent did not handle it (e.g. older Paper where cancel didn't stop animation)
+                consumeOneItem(p);
+                final String potionName = customItem.getName();
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    PotionEffect effect = getPotionEffect(potionName);
+                    if (effect != null) p.addPotionEffect(effect);
+                });
             }
-            consumeOneItem(p);
             return;
         }
         if (e.getItem().getType() == Material.POTION) {

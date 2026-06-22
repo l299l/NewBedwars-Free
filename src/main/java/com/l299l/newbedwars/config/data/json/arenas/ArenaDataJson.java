@@ -156,6 +156,12 @@ public class ArenaDataJson {
             }
             arena.setGamePhases(gamePhases);
             arena.setGeneratorsLeveling(generatorLeveling);
+            if (jsonObject.has("resourcePackUrl") && !jsonObject.get("resourcePackUrl").isJsonNull()) {
+                arena.setResourcePackUrl(jsonObject.get("resourcePackUrl").getAsString());
+            }
+            if (jsonObject.has("resourcePackHash") && !jsonObject.get("resourcePackHash").isJsonNull()) {
+                arena.setResourcePackHash(jsonObject.get("resourcePackHash").getAsString());
+            }
             this.arena = arena;
         } catch (Exception e) {
             e.printStackTrace();

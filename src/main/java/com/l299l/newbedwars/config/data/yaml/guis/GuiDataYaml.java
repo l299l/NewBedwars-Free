@@ -42,7 +42,7 @@ public class GuiDataYaml {
             HashMap<String, GuiCategory> guiCategories = new HashMap<>();
             for (Map<String, Object> category: categories) {
                 String catId = category.get("ID").toString();
-                String catName = category.containsKey("Name")
+                String catName = (category.get("Name") != null)
                         ? category.get("Name").toString()
                         : catId.substring(0, 1).toUpperCase() + catId.substring(1).toLowerCase();
                 CustomItem catIcon = NewBedwars.plugin.getCustomItemManager().getCustomItem(category.get("Icon").toString());

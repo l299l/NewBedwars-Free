@@ -1,45 +1,77 @@
 package com.l299l.newbedwars.config.data.mysql.repos;
 
-import  com.l299l.newbedwars.config.Language;
+import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.config.data.mysql.MySQLManager;
 import com.l299l.newbedwars.config.data.mysql.models.PlayerModel;
-import jakarta.persistence.EntityManager;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlayersRepo {
-    private final EntityManager em;
+    private final Connection connection;
 
     public PlayersRepo(MySQLManager mySQLManager) {
-        this.em = mySQLManager.getSessionFactory().createEntityManager();
+        this.connection = mySQLManager.getConnection();
     }
 
     public void updatePlayerLanguage(String name, Language lang) {
-        em.getTransaction().begin();
-        em.createNativeQuery("INSERT INTO Players (name, lang) VALUES ('" + name + "', '" + lang.toString() + "') ON DUPLICATE KEY UPDATE lang='" + lang + "';").executeUpdate();
-        em.getTransaction().commit();
+        String sql = "INSERT INTO Players (name, lang) VALUES (?, ?) ON DUPLICATE KEY UPDATE lang=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setString(2, lang.name());
+            stmt.setString(3, lang.name());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update player language", e);
+        }
     }
 
     public void updatePlayerShopGui(String name, String shopGui) {
-        em.getTransaction().begin();
-        em.createNativeQuery("INSERT INTO Players (name, shopGui) VALUES ('" + name + "', '" + shopGui + "') ON DUPLICATE KEY UPDATE shopGui='" + shopGui + "';").executeUpdate();
-        em.getTransaction().commit();
+        String sql = "INSERT INTO Players (name, shopGui) VALUES (?, ?) ON DUPLICATE KEY UPDATE shopGui=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setString(2, shopGui);
+            stmt.setString(3, shopGui);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update player shopGui", e);
+        }
     }
 
     public void updatePlayerUpgrades(String name, String upgradeGui) {
-        em.getTransaction().begin();
-        em.createNativeQuery("INSERT INTO Players (name, upgradeGui) VALUES ('" + name + "', '" + upgradeGui + "') ON DUPLICATE KEY UPDATE upgradeGui='" + upgradeGui + "';").executeUpdate();
-        em.getTransaction().commit();
+        String sql = "INSERT INTO Players (name, upgradeGui) VALUES (?, ?) ON DUPLICATE KEY UPDATE upgradeGui=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setString(2, upgradeGui);
+            stmt.setString(3, upgradeGui);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update player upgradeGui", e);
+        }
     }
 
     public List<PlayerModel> findAll() {
-        em.getTransaction().begin();
-        List<PlayerModel> players = em.createQuery("SELECT p FROM PlayerModel p", PlayerModel.class).getResultList();
-        em.getTransaction().commit();
+        List<PlayerModel> players = new ArrayList<>();
+        String sql = "SELECT name, lang, shopGui, upgradeGui FROM Players";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                players.add(new PlayerModel(
+                        rs.getString("name"),
+                        Language.valueOf(rs.getString("lang")),
+                        rs.getString("shopGui"),
+                        rs.getString("upgradeGui")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load players", e);
+        }
         return players;
     }
 
-    public void close() {
-        em.close();
-    }
+    public void close() {}
 }

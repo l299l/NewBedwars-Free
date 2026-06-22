@@ -100,4 +100,8 @@ public interface IArena {
     boolean isBlastProtBlock(Location loc);
     void removeBlastProtBlock(Location loc);
     String toJson();
+    String getResourcePackUrl();
+    void setResourcePackUrl(String url);
+    String getResourcePackHash();
+    void setResourcePackHash(String hash);
 }

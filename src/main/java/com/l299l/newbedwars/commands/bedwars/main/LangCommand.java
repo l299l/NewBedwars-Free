@@ -19,7 +19,7 @@ public class LangCommand extends SubCommand {
 
     @Override public String getName() { return "lang"; }
     @Override public String getDescription() { return "Change your language."; }
-    @Override public String getSyntax() { return "/bw lang <en|pl>"; }
+    @Override public String getSyntax() { return "/bw lang <en|pl|de|es|fr|ru>"; }
     @Override public String getExample() { return "/bw lang en"; }
 
     @Override
@@ -29,8 +29,12 @@ public class LangCommand extends SubCommand {
             return;
         }
         Language lang = switch (args[1].toLowerCase()) {
-            case "en", "english" -> Language.English;
-            case "pl", "polish", "pl_pl" -> Language.Polish;
+            case "en", "english"                -> Language.English;
+            case "pl", "polish", "pl_pl"        -> Language.Polish;
+            case "de", "german", "deutsch"      -> Language.German;
+            case "es", "spanish", "español"     -> Language.Spanish;
+            case "fr", "french", "français"     -> Language.French;
+            case "ru", "russian", "русский"     -> Language.Russian;
             default -> null;
         };
         if (lang == null) {
@@ -46,7 +50,7 @@ public class LangCommand extends SubCommand {
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        if (args.length == 2) return List.of("en", "pl");
+        if (args.length == 2) return List.of("en", "pl", "de", "es", "fr", "ru");
         return null;
     }
 }

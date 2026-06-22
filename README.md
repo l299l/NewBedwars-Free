@@ -68,8 +68,15 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Bossbar** | YAML templates for waiting, playing, and ending states |
 | **Scoreboard** | Per-player scoreboards with full placeholder support |
 | **Spectator Mode** | Fly around the arena; compass teleports to live players |
-| **Multi-Language** | English and Polish included, fully translatable YAML |
+| **Multi-Language** | English, Polish, German, Spanish, French, and Russian — missing keys fall back to English automatically |
 | **TNT Particles** | Red dust particles above players holding TNT |
+| **Per-Arena Resource Pack** | Force a custom resource pack for each arena; automatically sent on join and cleared on leave |
+
+### 🔌 Integrations
+| Feature | Description |
+|---------|-------------|
+| **PlaceholderAPI** | 14 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and external plugins *(soft dependency — plugin loads without it)* |
+| **WorldEdit / FAWE** | Create arenas directly from `.schem` / `.schematic` files saved in the WorldEdit schematics folder *(soft dependency — manual setup still works without it)* |
 
 ### ⚙️ Administration
 | Feature                 | Description                                                                         |
@@ -78,7 +85,8 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Arena Info Command**  | Visual checklist of configured and missing fields                                   |
 | **JSON Persistence**    | Arenas saved automatically and survive restarts                                     |
 | **Per-Arena Gamerules** | Random teams, spectators, team/global chat, team damage, permanent swords, and more |
-| **Manage game command** | Admins can easily forcestart, advance to next phase or stop game                    |
+| **Gamerule Command**    | Set any gamerule live from setup mode via `/bw gamerule <name> <true\|false>`       |
+| **Manage Game Command** | Admins can easily force-start, advance to next phase, or stop a running game        |
 
 ---
 
@@ -90,10 +98,10 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 /bw rejoin            — Rejoin your previous arena
 /bw lobby             — Leave the arena and return to the main lobby
 /bw spectate [arena]  — Join a running arena as spectator
-/bw lang <en|pl>      — Change your display language
+/bw lang <en|pl|de|es|fr|ru>  — Change your display language
 /bw help              — Show all available commands
 /lobby                — Shortcut: teleport to lobby
-/lang <en|pl>         — Shortcut: change language
+/lang <en|pl|de|es|fr|ru>     — Shortcut: change language
 ```
 
 ### Party Commands
@@ -110,52 +118,23 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ### Admin Commands
 ```
-/bw arena create <name>         — Create a new arena
+/bw arena create <name> [-sche <schematic>] [-n]  — Create a new arena (optionally from a WorldEdit schematic)
+/bw arena list                  — List all arenas and their current status
 /bw arena delete <name>         — Permanently delete an arena
 /bw arena enable <name>         — Enable a fully configured arena
 /bw arena disable <name>        — Disable a running arena
 /bw arena setup <name>          — Enter setup mode for an arena
 /bw setLobby                    — Set the global lobby spawn point
 /bw setupGuis                   — Open the GUI configuration tool
-/bw manageGame                  — In-game admin management panel (phase skip, etc.)
+/bw manageGame                  — In-game admin management panel (phase skip, force-start, stop)
 /bw reload                      — Save arenas, kick all players, and reload the configuration
 ```
 
-[//]: # (#### Inside Setup Mode)
-
-[//]: # (```)
-
-[//]: # (/bw arena                       — Show full arena status and missing fields)
-
-[//]: # (/bw createTeam <name> <color>   — Create a team)
-
-[//]: # (/bw setSpawn <team>             — Set team spawn point)
-
-[//]: # (/bw setBed <team>               — Set team bed location)
-
-[//]: # (/bw setShop <team>              — Set team shop NPC location)
-
-[//]: # (/bw setUpgrades <team>          — Set team upgrades NPC location)
-
-[//]: # (/bw setGenerator [team]         — Set iron/gold &#40;team&#41; or diamond/emerald &#40;global&#41; generator)
-
-[//]: # (/bw setBuildProtPos1/2 <team>   — Define build-protection zone)
-
-[//]: # (/bw setBasePos1/2 <team>        — Define team base zone &#40;for traps & heal pool&#41;)
-
-[//]: # (/bw setQuickVoidY <y>           — Set the quick-void Y threshold)
-
-[//]: # (/bw setWaitingPos1/2            — Define waiting lobby zone)
-
-[//]: # (/bw setWaitingSpawn             — Set waiting area spawn)
-
-[//]: # (/bw setWaitingTime <seconds>    — Set pre-game countdown)
-
-[//]: # (/bw save                        — Save all arena settings to disk)
-
-[//]: # (/bw leave                       — Exit setup mode)
-
-[//]: # (```)
+### Setup Mode Commands
+```
+/bw gamerule <name> <true|false>             — Set an arena gamerule (tab-completes names and values)
+/bw setResourcePack <url|clear> [sha1hash]   — Set or clear a per-arena resource pack URL
+```
 
 ---
 
@@ -196,13 +175,18 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 - **Server:** Paper 1.17 – 26.1.2 *(Spigot likely compatible but untested — Paper recommended)*
 - **Java:** 16 or higher
-- **No external plugins required**
+
+### Soft Dependencies *(optional)*
+| Plugin | Purpose |
+|--------|---------|
+| **PlaceholderAPI** | Enables `%newbedwars_*%` placeholders for scoreboards, chat formatters, etc. |
+| **WorldEdit** or **FastAsyncWorldEdit** | Required only for schematic-based arena creation (`-sche` flag) |
 
 ---
 
 ## 🚀 Installation
 
-1. Download **NewBedwars-1.0.3-beta.jar**
+1. Download **NewBedwars-2.0-beta.jar**
 2. Drop it into your server's `/plugins/` folder
 3. Start the server — config files generate automatically
 4. Set your lobby spawn: `/bw setLobby`
@@ -211,26 +195,44 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 7. Save arena by `/bw save`
 8. Enable when ready: `/bw arena enable myArena`
 
+### Creating an arena from a schematic
+1. Save your map as a `.schem` file in WorldEdit's schematics folder (`plugins/WorldEdit/schematics/` or `plugins/FastAsyncWorldEdit/schematics/`)
+2. Run: `/bw arena create myArena -sche myMap`
+3. The map is pasted automatically at world origin; continue with normal setup
+
+### PlaceholderAPI placeholders
+| Placeholder | Returns |
+|-------------|---------|
+| `%newbedwars_arena%` | Arena name the player is in |
+| `%newbedwars_status%` | Arena status (waiting / starting / playing / ending) |
+| `%newbedwars_team%` | Player's team name |
+| `%newbedwars_kills%` | Player's kill count this game |
+| `%newbedwars_final_kills%` | Player's final kill count this game |
+| `%newbedwars_beds_broken%` | Beds the player has broken this game |
+| `%newbedwars_players%` | Current player count in the arena |
+| `%newbedwars_max_players%` | Maximum players for the arena |
+| `%newbedwars_is_spectator%` | `true` / `false` |
+| `%newbedwars_phase%` | Current game phase name |
+| `%newbedwars_arena_<name>_status%` | Status of a specific arena by name |
+| `%newbedwars_arena_<name>_players%` | Player count of a specific arena |
+| `%newbedwars_arena_<name>_max_players%` | Max players of a specific arena |
+| `%newbedwars_arena_<name>_phase%` | Phase of a specific arena |
+
 ---
 
 ## 🗺️ Future Plans
 
 > **Beta exit:** NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.1.2).
 
-### Free
 - [x] Party support
-- [ ] PlaceholderAPI support
-- [ ] WorldEdit support
-- [ ] Schematic-based arena import/export
-- [ ] Per-arena resource pack forcing
-- [ ] More languages (DE, ES, FR, RU)
-
-### Premium
+- [x] PlaceholderAPI support
+- [x] WorldEdit / FAWE schematic-based arena creation
+- [x] Per-arena resource pack forcing
+- [x] More languages (DE, ES, FR, RU)
 - [ ] More custom items (Iron Golem, Silverfish, etc.)
 - [ ] Arena statistics and leaderboards
 - [ ] In-game map voting system
-- [ ] Custom death animations and kill effects
-- [ ] Player profiles with their own GUI configurations and stats
+- [ ] Player profile GUI with stats history
 - [ ] Network / BungeeCord / Velocity mode
 
 ---
@@ -321,6 +323,6 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
 
 <div align="center">
 
-**NewBedwars v1.0.3-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
+**NewBedwars v2.0-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
 
 </div>

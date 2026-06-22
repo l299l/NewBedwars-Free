@@ -1,14 +1,10 @@
 package com.l299l.newbedwars.config.data.mysql;
 
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.config.data.mysql.models.PlayerModel;
 import com.l299l.newbedwars.config.data.mysql.repos.PlayersRepo;
 import com.l299l.newbedwars.player.PlayerIns;
 import com.l299l.newbedwars.player.PlayerManager;
-import jakarta.persistence.EntityManager;
-
-import java.util.HashMap;
 
 public class LangDataMySQL {
     private final MySQLManager mySQLManager;

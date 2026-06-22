@@ -1,6 +1,7 @@
 package com.l299l.newbedwars;
 
 import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
 import com.l299l.newbedwars.placeholder.NewBedwarsExpansion;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
@@ -30,6 +31,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -79,6 +81,16 @@ public final class NewBedwars extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        int active = 0;
+        for (IArena arena : Arena.arenaByName.values()) {
+            if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
+        }
+        if (active > 0) {
+            getServer().getConsoleSender().sendMessage(ChatColor.YELLOW + "[NewBedwars]: " + active + " arena(s) still active — forcing shutdown...");
+        }
+        for (IArena arena : new ArrayList<>(Arena.arenaByName.values())) {
+            ((Arena) arena).forceShutdown();
+        }
         LobbyData.save(lobbyLocation);
         if (dataManager != null) dataManager.save();
         getServer().getConsoleSender().sendMessage(ChatColor.RED + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_RED + "Disabled");
@@ -88,14 +100,18 @@ public final class NewBedwars extends JavaPlugin {
 
     public void reloadAll() {
         HandlerList.unregisterAll(this);
+        for (IArena arena : new ArrayList<>(Arena.arenaByName.values())) {
+            if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) {
+                arena.stop();
+            }
+        }
         Arena.arenaByName.clear();
         Arena.arenaByWorld.clear();
-        updater.reloadEnglish();
-        updater.reloadPolish();
+        updater.reloadLanguages();
         updater.reloadBossBars();
         updater.reloadScoreboards();
         updater.reloadGeneratorsConfigurations();
-        langMessages = new LangMessages(updater.getPlPLConf(), updater.getEnConf());
+        langMessages = new LangMessages(updater.getLangConfs());
         langMessages.reloadMessages();
         messages = new Messages(this, updater);
         updater.updateConf();

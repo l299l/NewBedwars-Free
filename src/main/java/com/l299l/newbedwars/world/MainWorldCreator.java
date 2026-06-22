@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.world;
 
 import com.l299l.newbedwars.world.chunkgenerators.VoidGenerator;
+import com.l299l.newbedwars.world.schematic.SchematicManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
@@ -36,7 +37,16 @@ public class MainWorldCreator implements WorldCreator {
 
     @Override
     public boolean createWorldFromSchematic(String worldName, String schematicName) {
-        return false;
+        try {
+            if (!createWorld(worldName)) return false;
+            World w = Bukkit.getWorld(worldName);
+            if (w == null) return false;
+            SchematicManager.pasteIntoWorld(w, schematicName);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
 

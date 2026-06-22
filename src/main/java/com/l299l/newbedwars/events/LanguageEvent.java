@@ -18,20 +18,13 @@ public class LanguageEvent implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Language language;
         try {
-           language = plugin.getPlayerManager().getPlayer(event.getPlayer().getName()).language();
-        }catch (Exception e) {
+            language = plugin.getPlayerManager().getPlayer(event.getPlayer().getName()).language();
+        } catch (Exception e) {
             language = null;
         }
-        if(!event.getPlayer().hasPlayedBefore() || language == null) {
-            String defaultLang = Properties.DefaultLanguage;
-            Language lang;
-            if(defaultLang.equalsIgnoreCase("pl_PL")) {
-                lang = Language.Polish;
-            }else if(defaultLang.equalsIgnoreCase("en")) {
-                lang = Language.English;
-            }else {
-                lang = Language.English;
-            }
+        if (!event.getPlayer().hasPlayedBefore() || language == null) {
+            Language lang = Language.fromCode(Properties.DefaultLanguage);
+            if (lang == null) lang = Language.English;
             plugin.getPlayerManager().addPlayer(event.getPlayer(), lang);
         }
     }

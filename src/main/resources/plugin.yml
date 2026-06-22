@@ -4,7 +4,7 @@ main: com.l299l.newbedwars.NewBedwars
 api-version: '1.17'
 load: STARTUP
 authors: [l299l]
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, WorldEdit, FastAsyncWorldEdit]
 description: Advanced and modern bedwars plugin!
 commands:
   bw:
@@ -15,7 +15,7 @@ commands:
     usage: /<command>
   lang:
     description: Change your language!
-    usage: /<command> <en|pl>
+    usage: /<command> <en|pl|de|es|fr|ru>
   party:
     description: Party management!
     usage: /<command> [invite|accept|deny|leave|list|kick|admin]
@@ -36,7 +36,7 @@ permissions:
       newbedwars.bw.managegame: true
 
   newbedwars.bw.arena:
-    description: Manage arenas (create, delete, enable, disable, setup).
+    description: Manage arenas (create, delete, enable, disable, setup, list).
     default: op
     children:
       newbedwars.bw.arena.create: true
@@ -44,6 +44,7 @@ permissions:
       newbedwars.bw.arena.enable: true
       newbedwars.bw.arena.disable: true
       newbedwars.bw.arena.setup: true
+      newbedwars.bw.arena.list: true
 
   newbedwars.bw.arena.create:
     description: Create arenas.
@@ -59,6 +60,9 @@ permissions:
     default: op
   newbedwars.bw.arena.setup:
     description: Enter arena setup mode.
+    default: op
+  newbedwars.bw.arena.list:
+    description: List all arenas and their status.
     default: op
 
   newbedwars.bw.setlobby:
