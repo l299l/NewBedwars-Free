@@ -173,7 +173,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ## 📦 Requirements
 
-- **Server:** Paper 1.17 – 26.1.2 *(Spigot likely compatible but untested — Paper recommended)*
+- **Server:** Paper 1.17 – 26.2 *(Spigot likely compatible but untested — Paper recommended)*
 - **Java:** 16 or higher
 
 ### Soft Dependencies *(optional)*
@@ -323,6 +323,6 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
 
 <div align="center">
 
-**NewBedwars v2.0-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
+**NewBedwars v2.0-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.2
 
 </div>
