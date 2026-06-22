@@ -1,6 +1,14 @@
 <!-- Replace the URL below with your actual uploaded banner image URL -->
 ![NewBedwars Banner](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
 
+<div align="center">
+
+[![SpigotMC](https://img.shields.io/badge/SpigotMC-Download-ED8106?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==)](https://www.spigotmc.org/resources/new-bedwars.136050/)
+[![Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars)
+[![Hangar](https://img.shields.io/badge/Hangar-Download-0EA5E9?style=for-the-badge)](https://hangar.papermc.io/l299l/New-Bedwars)
+
+</div>
+
 ---
 
 ## 📖 Overview
@@ -60,8 +68,15 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Bossbar** | YAML templates for waiting, playing, and ending states |
 | **Scoreboard** | Per-player scoreboards with full placeholder support |
 | **Spectator Mode** | Fly around the arena; compass teleports to live players |
-| **Multi-Language** | English and Polish included, fully translatable YAML |
+| **Multi-Language** | English, Polish, German, Spanish, French, and Russian — missing keys fall back to English automatically |
 | **TNT Particles** | Red dust particles above players holding TNT |
+| **Per-Arena Resource Pack** | Force a custom resource pack for each arena; automatically sent on join and cleared on leave |
+
+### 🔌 Integrations
+| Feature | Description |
+|---------|-------------|
+| **PlaceholderAPI** | 14 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and external plugins *(soft dependency — plugin loads without it)* |
+| **WorldEdit / FAWE** | Create arenas directly from `.schem` / `.schematic` files saved in the WorldEdit schematics folder *(soft dependency — manual setup still works without it)* |
 
 ### ⚙️ Administration
 | Feature                 | Description                                                                         |
@@ -70,32 +85,8 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Arena Info Command**  | Visual checklist of configured and missing fields                                   |
 | **JSON Persistence**    | Arenas saved automatically and survive restarts                                     |
 | **Per-Arena Gamerules** | Random teams, spectators, team/global chat, team damage, permanent swords, and more |
-| **Manage game command** | Admins can easily forcestart, advance to next phase or stop game                    |
-
----
-
-## 🆓 Free vs Premium
-
-Everything listed above is **free** and open-source. A **Premium** version is in development with advanced analytics, cosmetics, and network features. Here is the planned split:
-
-| Feature | Free | Premium |
-|---------|:----:|:-------:|
-| All current gameplay features | ✅ | ✅ |
-| Party system | ✅ | ✅ |
-| Spectator mode | ✅ | ✅ |
-| BossBar & scoreboard system | ✅ | ✅ |
-| Multi-language (EN, PL; DE, ES, FR, RU planned) | ✅ | ✅ |
-| PlaceholderAPI support *(planned)* | ✅ | ✅ |
-| WorldEdit support & schematic import/export *(planned)* | ✅ | ✅ |
-| Per-arena resource pack *(planned)* | ✅ | ✅ |
-| More custom items *(Iron Golem, Silverfish, etc.)* | ❌ | ✅ |
-| Arena statistics & leaderboards | ❌ | ✅ |
-| In-game map voting | ❌ | ✅ |
-| Custom death animations & kill effects | ❌ | ✅ |
-| Player profile GUI with stats history | ❌ | ✅ |
-| BungeeCord / Velocity network mode | ❌ | ✅ |
-
-> The free version is and will remain a complete, fully functional Bedwars plugin. Premium adds power-user and network features on top.
+| **Gamerule Command**    | Set any gamerule live from setup mode via `/bw gamerule <name> <true\|false>`       |
+| **Manage Game Command** | Admins can easily force-start, advance to next phase, or stop a running game        |
 
 ---
 
@@ -107,10 +98,10 @@ Everything listed above is **free** and open-source. A **Premium** version is in
 /bw rejoin            — Rejoin your previous arena
 /bw lobby             — Leave the arena and return to the main lobby
 /bw spectate [arena]  — Join a running arena as spectator
-/bw lang <en|pl>      — Change your display language
+/bw lang <en|pl|de|es|fr|ru>  — Change your display language
 /bw help              — Show all available commands
 /lobby                — Shortcut: teleport to lobby
-/lang <en|pl>         — Shortcut: change language
+/lang <en|pl|de|es|fr|ru>     — Shortcut: change language
 ```
 
 ### Party Commands
@@ -127,52 +118,23 @@ Everything listed above is **free** and open-source. A **Premium** version is in
 
 ### Admin Commands
 ```
-/bw arena create <name>         — Create a new arena
+/bw arena create <name> [-sche <schematic>] [-n]  — Create a new arena (optionally from a WorldEdit schematic)
+/bw arena list                  — List all arenas and their current status
 /bw arena delete <name>         — Permanently delete an arena
 /bw arena enable <name>         — Enable a fully configured arena
 /bw arena disable <name>        — Disable a running arena
 /bw arena setup <name>          — Enter setup mode for an arena
 /bw setLobby                    — Set the global lobby spawn point
 /bw setupGuis                   — Open the GUI configuration tool
-/bw manageGame                  — In-game admin management panel (phase skip, etc.)
+/bw manageGame                  — In-game admin management panel (phase skip, force-start, stop)
 /bw reload                      — Save arenas, kick all players, and reload the configuration
 ```
 
-[//]: # (#### Inside Setup Mode)
-
-[//]: # (```)
-
-[//]: # (/bw arena                       — Show full arena status and missing fields)
-
-[//]: # (/bw createTeam <name> <color>   — Create a team)
-
-[//]: # (/bw setSpawn <team>             — Set team spawn point)
-
-[//]: # (/bw setBed <team>               — Set team bed location)
-
-[//]: # (/bw setShop <team>              — Set team shop NPC location)
-
-[//]: # (/bw setUpgrades <team>          — Set team upgrades NPC location)
-
-[//]: # (/bw setGenerator [team]         — Set iron/gold &#40;team&#41; or diamond/emerald &#40;global&#41; generator)
-
-[//]: # (/bw setBuildProtPos1/2 <team>   — Define build-protection zone)
-
-[//]: # (/bw setBasePos1/2 <team>        — Define team base zone &#40;for traps & heal pool&#41;)
-
-[//]: # (/bw setQuickVoidY <y>           — Set the quick-void Y threshold)
-
-[//]: # (/bw setWaitingPos1/2            — Define waiting lobby zone)
-
-[//]: # (/bw setWaitingSpawn             — Set waiting area spawn)
-
-[//]: # (/bw setWaitingTime <seconds>    — Set pre-game countdown)
-
-[//]: # (/bw save                        — Save all arena settings to disk)
-
-[//]: # (/bw leave                       — Exit setup mode)
-
-[//]: # (```)
+### Setup Mode Commands
+```
+/bw gamerule <name> <true|false>             — Set an arena gamerule (tab-completes names and values)
+/bw setResourcePack <url|clear> [sha1hash]   — Set or clear a per-arena resource pack URL
+```
 
 ---
 
@@ -211,15 +173,20 @@ Everything listed above is **free** and open-source. A **Premium** version is in
 
 ## 📦 Requirements
 
-- **Server:** Paper 1.17 – 26.1.2 *(Spigot likely compatible but untested — Paper recommended)*
+- **Server:** Paper 1.17 – 26.2 *(Spigot likely compatible but untested — Paper recommended)*
 - **Java:** 16 or higher
-- **No external plugins required**
+
+### Soft Dependencies *(optional)*
+| Plugin | Purpose |
+|--------|---------|
+| **PlaceholderAPI** | Enables `%newbedwars_*%` placeholders for scoreboards, chat formatters, etc. |
+| **WorldEdit** or **FastAsyncWorldEdit** | Required only for schematic-based arena creation (`-sche` flag) |
 
 ---
 
 ## 🚀 Installation
 
-1. Download **NewBedwars-1.0.2-beta.jar**
+1. Download **NewBedwars-2.0-beta.jar**
 2. Drop it into your server's `/plugins/` folder
 3. Start the server — config files generate automatically
 4. Set your lobby spawn: `/bw setLobby`
@@ -228,26 +195,44 @@ Everything listed above is **free** and open-source. A **Premium** version is in
 7. Save arena by `/bw save`
 8. Enable when ready: `/bw arena enable myArena`
 
+### Creating an arena from a schematic
+1. Save your map as a `.schem` file in WorldEdit's schematics folder (`plugins/WorldEdit/schematics/` or `plugins/FastAsyncWorldEdit/schematics/`)
+2. Run: `/bw arena create myArena -sche myMap`
+3. The map is pasted automatically at world origin; continue with normal setup
+
+### PlaceholderAPI placeholders
+| Placeholder | Returns |
+|-------------|---------|
+| `%newbedwars_arena%` | Arena name the player is in |
+| `%newbedwars_status%` | Arena status (waiting / starting / playing / ending) |
+| `%newbedwars_team%` | Player's team name |
+| `%newbedwars_kills%` | Player's kill count this game |
+| `%newbedwars_final_kills%` | Player's final kill count this game |
+| `%newbedwars_beds_broken%` | Beds the player has broken this game |
+| `%newbedwars_players%` | Current player count in the arena |
+| `%newbedwars_max_players%` | Maximum players for the arena |
+| `%newbedwars_is_spectator%` | `true` / `false` |
+| `%newbedwars_phase%` | Current game phase name |
+| `%newbedwars_arena_<name>_status%` | Status of a specific arena by name |
+| `%newbedwars_arena_<name>_players%` | Player count of a specific arena |
+| `%newbedwars_arena_<name>_max_players%` | Max players of a specific arena |
+| `%newbedwars_arena_<name>_phase%` | Phase of a specific arena |
+
 ---
 
 ## 🗺️ Future Plans
 
 > **Beta exit:** NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.1.2).
 
-### Free
 - [x] Party support
-- [ ] PlaceholderAPI support
-- [ ] WorldEdit support
-- [ ] Schematic-based arena import/export
-- [ ] Per-arena resource pack forcing
-- [ ] More languages (DE, ES, FR, RU)
-
-### Premium
+- [x] PlaceholderAPI support
+- [x] WorldEdit / FAWE schematic-based arena creation
+- [x] Per-arena resource pack forcing
+- [x] More languages (DE, ES, FR, RU)
 - [ ] More custom items (Iron Golem, Silverfish, etc.)
 - [ ] Arena statistics and leaderboards
 - [ ] In-game map voting system
-- [ ] Custom death animations and kill effects
-- [ ] Player profiles with their own GUI configurations and stats
+- [ ] Player profile GUI with stats history
 - [ ] Network / BungeeCord / Velocity mode
 
 ---
@@ -262,82 +247,12 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
 
 ## 📸 Screenshots
 
-### Joining & Waiting
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110222.png" width="100%"/><br><sub>Arena selector GUI</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110543.png" width="100%"/><br><sub>Waiting lobby with bossbar & scoreboard</sub></td>
-  </tr>
-</table>
-
-### In-Game HUD & Events
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114731.png" width="100%"/><br><sub>In-game HUD — scoreboard, phase info, NPC labels</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121249.png" width="100%"/><br><sub>Respawn countdown</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120913.png" width="100%"/><br><sub>Bed destroyed announcement</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_1205111.png" width="100%"/><br><sub>Trap alarm</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121425.png" width="100%"/><br><sub>End game — spectator view with bossbar</sub></td>
-    <td></td>
-  </tr>
-</table>
-
-### Shop & Upgrades
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114843.png" width="100%"/><br><sub>Shop GUI</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114904.png" width="100%"/><br><sub>Bridge Egg — shop tooltip (cost: 4 Gold)</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114919.png" width="100%"/><br><sub>Team Upgrades shop</sub></td>
-    <td></td>
-  </tr>
-</table>
-
-### Resource Generators
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_115559.png" width="100%"/><br><sub>Emerald Generator — hologram</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120327.png" width="100%"/><br><sub>Diamond Generator — hologram</sub></td>
-  </tr>
-</table>
-
-### Arena Setup
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121511.png" width="100%"/><br><sub>Help command output</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121720.png" width="100%"/><br><sub>Arena setup checklist (NORMAL_SETUP)</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121727.png" width="100%"/><br><sub>Team configuration checklist — missing fields highlighted</sub></td>
-    <td></td>
-  </tr>
-</table>
-
-### Map & Environment
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122307.png" width="100%"/><br><sub>Arena map — aerial overview</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123438.png" width="100%"/><br><sub>Live gameplay — combat near a bed 1</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png" width="100%"/><br><sub></sub>Live gameplay — bed protection</td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122528.png" width="100%"/><br><sub>Live gameplay — building bridge</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123625.png" width="100%"/><br><sub>Live gameplay — combat near a bed 2</sub></td>
-    <td></td>
-  </tr>
-</table>
+See gallery tab!
 
 ---
 
 <div align="center">
 
-**NewBedwars v1.0.2-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.1.2
+**NewBedwars v2.0-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.2
 
 </div>
