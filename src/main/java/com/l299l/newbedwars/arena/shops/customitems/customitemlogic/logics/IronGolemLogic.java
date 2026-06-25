@@ -33,7 +33,6 @@ public class IronGolemLogic implements CustomLogic {
     private static final long DESPAWN_SECONDS = 180;
     private static final long TARGET_INTERVAL = 40L; // 2 s
 
-    // golem UUID string → targeting BukkitTask
     private static final Map<String, BukkitTask> golemTasks = new HashMap<>();
 
     @Override
@@ -54,7 +53,6 @@ public class IronGolemLogic implements CustomLogic {
 
         golem.setCustomName(golemName(team, DESPAWN_SECONDS));
 
-        // Countdown display — every second
         new BukkitRunnable() {
             long remaining = DESPAWN_SECONDS;
             @Override
@@ -65,7 +63,6 @@ public class IronGolemLogic implements CustomLogic {
             }
         }.runTaskTimer(NewBedwars.plugin, 20L, 20L);
 
-        // Proactive targeting — every 2 s
         BukkitTask targetTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -85,7 +82,6 @@ public class IronGolemLogic implements CustomLogic {
         }.runTaskTimer(NewBedwars.plugin, TARGET_INTERVAL, TARGET_INTERVAL);
         golemTasks.put(golemUuid, targetTask);
 
-        // Hard despawn after 180 s
         new BukkitRunnable() {
             @Override public void run() { cleanupGolem(golemUuid); }
         }.runTaskLater(NewBedwars.plugin, DESPAWN_SECONDS * 20L);
@@ -100,7 +96,6 @@ public class IronGolemLogic implements CustomLogic {
                 + ChatColor.DARK_GRAY + "[" + timeColor + seconds + "s" + ChatColor.DARK_GRAY + "]";
     }
 
-    /** Cancels the targeting task and removes the golem entity. Key is the golem UUID string. */
     public static void cleanupGolem(String golemUuid) {
         BukkitTask t = golemTasks.remove(golemUuid);
         if (t != null && !t.isCancelled()) t.cancel();
@@ -110,7 +105,6 @@ public class IronGolemLogic implements CustomLogic {
         } catch (IllegalArgumentException ignored) {}
     }
 
-    /** Removes all golems belonging to the given arena. */
     public static void cleanupAllForArena(String arenaName) {
         String prefix = arenaName + ":";
         new ArrayList<>(golemTasks.keySet()).forEach(uuid -> {

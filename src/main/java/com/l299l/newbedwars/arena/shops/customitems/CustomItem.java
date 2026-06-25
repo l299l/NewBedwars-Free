@@ -190,15 +190,12 @@ public class CustomItem {
                 ArmorContents armorContents = toolTeam.getArmorContents(player);
                 boolean isSword = material.name().endsWith("_SWORD");
                 if (isSword && armorContents.hasBoughtSword()) {
-                    // Player already owns a non-default sword — add this one as an extra item
                     armorContents.setTool(this);
                     player.getInventory().addItem(getItem(player));
                 } else {
-                    // First sword purchase or non-sword tool — replace the current slot immediately
                     armorContents.setTool(this);
                     armorContents.loadPlayerArmorContents(player);
                 }
-                // Apply team upgrades (sharpness, haste) to the newly placed sword
                 if (isSword) {
                     toolTeam.getTeamUpgrades().applyPlayerUpgrades(player);
                 }
@@ -278,7 +275,6 @@ public class CustomItem {
     }
 
     private ItemStack buildIcon(Language language, Material iconMaterial) {
-        // Try per-item description first, fall back to the shared template
         String desc = msg.getMsg(language, name + "-icon-description");
         if (desc == null || desc.isEmpty()) {
             desc = msg.getMsg(language, iconDesc);

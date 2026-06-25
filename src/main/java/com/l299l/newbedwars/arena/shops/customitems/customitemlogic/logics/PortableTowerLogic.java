@@ -24,7 +24,6 @@ public class PortableTowerLogic implements CustomLogic {
         Material wool = BridgeEggLogic.getWoolFromColor(team.getColor());
         org.bukkit.World world = arena.getArenaWorld();
 
-        // Build at the block the player is targeting (up to 6 blocks away).
         Block target = player.getTargetBlock(null, 6);
         int cx, floorY, cz;
         if (target == null || target.getType().isAir()) {
@@ -37,7 +36,6 @@ public class PortableTowerLogic implements CustomLogic {
             cz = target.getZ();
         }
 
-        // Guard: reject if any tower block would land in a protected area
         if (arena instanceof Arena arenaImpl) {
             for (int dx = -2; dx <= 2; dx++) {
                 for (int dz = -2; dz <= 2; dz++) {
@@ -52,7 +50,6 @@ public class PortableTowerLogic implements CustomLogic {
             }
         }
 
-        // Build succeeded — consume the item before placing blocks
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand.getAmount() > 1) {
             hand.setAmount(hand.getAmount() - 1);
@@ -60,15 +57,10 @@ public class PortableTowerLogic implements CustomLogic {
             player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
         }
 
-        // Layer 0 — floor: 3×3 solid wool
         for (int dx = -1; dx <= 1; dx++)
             for (int dz = -1; dz <= 1; dz++)
                 setTracked(arena, wool, world, cx + dx, floorY, cz + dz);
 
-        // Layers 1–4 — hollow 3×3 walls:
-        //   center (dx=0, dz=0)        → ladder (FACING=SOUTH, attached to north wall)
-        //   south face (dx=0,dz=1) dy≤2 → open doorway (2 blocks tall for entry)
-        //   all other perimeter positions → wool
         for (int dy = 1; dy <= 4; dy++) {
             int y = floorY + dy;
             for (int dx = -1; dx <= 1; dx++) {
@@ -90,7 +82,6 @@ public class PortableTowerLogic implements CustomLogic {
             }
         }
 
-        // Layer 5 — 5×5 roof (one block wider on all sides), center hatch open
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
                 if (dx == 0 && dz == 0) continue; // roof hatch directly above ladder
@@ -98,13 +89,6 @@ public class PortableTowerLogic implements CustomLogic {
             }
         }
 
-        // Layer 6 — battlements: alternating merlons on the 5×5 perimeter
-        //   M . M . M
-        //   . . . . .
-        //   M . . . M
-        //   . . . . .
-        //   M . M . M
-        // Rule: on outer edge (|dx|==2 or |dz|==2) AND both dx and dz are even
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
                 boolean onEdge = Math.abs(dx) == 2 || Math.abs(dz) == 2;
@@ -119,7 +103,6 @@ public class PortableTowerLogic implements CustomLogic {
     private void setTracked(IArena arena, Material mat, org.bukkit.World world, int x, int y, int z) {
         Location loc = new Location(world, x, y, z);
         Block b = loc.getBlock();
-        // Never overwrite naturally-placed map blocks (beds, terrain, etc.)
         if (!b.getType().isAir() && !arena.isPlacedBlock(loc)) return;
         b.setType(mat, false);
         arena.addPlacedBlock(loc);

@@ -19,12 +19,11 @@ import java.util.UUID;
 public class SilverfishLogic implements CustomLogic {
 
     private static final int SWARM_SIZE = 5;
-    private static final int DESPAWN_TICKS = 30 * 20; // 30 seconds
+    private static final int DESPAWN_TICKS = 30 * 20;
 
     public static final NamespacedKey SILVERFISH_KEY = new NamespacedKey(NewBedwars.plugin, "sf_team");
     public static final NamespacedKey SF_OWNER_KEY = new NamespacedKey(NewBedwars.plugin, "sf_owner");
 
-    // Tracks all active silverfish UUIDs for cleanup on arena end
     public static final Set<UUID> activeSilverfish = new HashSet<>();
 
     @Override

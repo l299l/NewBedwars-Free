@@ -254,7 +254,6 @@ public class Arena implements IArena {
         gameStatus = GameStatus.waiting;
     }
 
-    // Called during server shutdown: same as stop() but skips world rollback (unsafe while the JVM is stopping)
     public void forceShutdown() {
         gameStatus = GameStatus.restarting;
         if (tntParticleTask != null) { tntParticleTask.cancel(); tntParticleTask = null; }
@@ -1125,7 +1124,6 @@ public class Arena implements IArena {
                         return;
                     }
 
-                    // STRAFING phase causes Paper log spam — redirect to CHARGE_PLAYER.
                     if (d.getPhase() == EnderDragon.Phase.STRAFING) {
                         d.setPhase(EnderDragon.Phase.CHARGE_PLAYER);
                     }
@@ -1357,7 +1355,6 @@ public class Arena implements IArena {
                     }
                 }
             }
-            // No party members in arena yet — use standard assignment
             if (!emptyTeams.isEmpty()) {
                 Team team = emptyTeams.get(0);
                 team.addPlayer(player);
@@ -1441,7 +1438,6 @@ public class Arena implements IArena {
         player.teleport(waitingSpawn);
         player.setAllowFlight(true);
         player.setFlying(true);
-        // Teleport resets flight state (especially cross-world) — re-apply on the next tick
         Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> {
             if (spectatorsList.contains(player) && player.isOnline()) {
                 player.setAllowFlight(true);

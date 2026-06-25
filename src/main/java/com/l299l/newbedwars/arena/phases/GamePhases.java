@@ -14,7 +14,6 @@ public class GamePhases {
         this.phases = phases;
     }
 
-    /** Creates an independent copy so each arena has its own phase state. */
     public GamePhases(GamePhases source) {
         this.ID = source.ID;
         this.phases = source.phases;
