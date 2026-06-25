@@ -265,6 +265,13 @@ CustomItemsNames:
   Jump-icon-description: "&aGrants Jump Boost for a short time.; ; &7Cost: &e/price/"
   Inviscibility-name: "&7Invisibility Potion"
   Inviscibility-icon-description: "&7Grants Invisibility for a short time.; ; &7Cost: &e/price/"
+  #--- New custom items ---
+  IronGolem-name: "&fIron Golem"
+  IronGolem-icon-description: "&fSummons an iron golem that follows; &fand protects your team.; &c(One active golem per team); ; &7Cost: &e/price/"
+  Silverfish-name: "&7Silverfish"
+  Silverfish-icon-description: "&7Releases a swarm of silverfish; &7from your feet to attack enemies.; &7(Despawn after 30 seconds); ; &7Cost: &e/price/"
+  PortableTower-name: "&6Portable Tower"
+  PortableTower-icon-description: "&6Instantly builds a 3x3x5 defensive; &6wool tower with a ladder inside.; ; &7Cost: &e/price/"
   #--- Upgrades ---
   Sharpness-name: "&cSharpness"
   Sharpness-icon-description: "&cIncreases sword damage; &cfor your entire team."

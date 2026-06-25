@@ -14,6 +14,8 @@ import com.l299l.newbedwars.arena.gamerules.SpecialGamerule;
 import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.shops.Upgrade;
+import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.IronGolemLogic;
+import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.SilverfishLogic;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.utils.CountdownTimer;
@@ -100,6 +102,9 @@ public class Arena implements IArena {
     private String resourcePackHash;
     private BukkitTask tntParticleTask;
     private Integer quickVoidY;
+    private long gameStartMillis = 0;
+    private String shopGuiId;
+    private String upgradeGuiId;
 
     public Arena(String arenaName, World world) {
         this.arenaName = arenaName;
@@ -129,6 +134,8 @@ public class Arena implements IArena {
         scoreboards = new HashMap<>();
         placedBlocks = new HashSet<>();
         blastProtBlocks = new HashSet<>();
+        shopGuiId = Properties.DefaultTeamShopGui;
+        upgradeGuiId = Properties.DefaultUpgradeShopGui;
         arenaByName.put(arenaName, this);
         arenaByWorld.put(world, this);
     }
@@ -140,6 +147,7 @@ public class Arena implements IArena {
         }
         DecoUtils.removeAllArmorStands(this);
         gameStatus = GameStatus.playing;
+        gameStartMillis = System.currentTimeMillis();
         broadcast("GameStarted");
         clearWaitingArea();
         for (Team team : teams.values()) {
@@ -203,6 +211,8 @@ public class Arena implements IArena {
         }
 
         for (UUID playerId : new ArrayList<>(players.keySet())) {
+            GamePlayer gp = players.get(playerId);
+            if (gp != null) gp.cancelRespawnTask();
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
                 leave(player);
@@ -233,6 +243,9 @@ public class Arena implements IArena {
         }
         scoreboards.clear();
 
+        IronGolemLogic.cleanupAllForArena(arenaName);
+        SilverfishLogic.cleanupAllForArena(this);
+
         boolean correctRollback = rollback();
         if (!correctRollback) {
             Bukkit.getServer().getLogger().severe("Could not rollback arena " + arenaName);
@@ -249,6 +262,8 @@ public class Arena implements IArena {
         if (countdownTimer != null) { countdownTimer.cancel(); countdownTimer = null; }
         if (gamePhases != null) gamePhases.stop();
         for (UUID id : new ArrayList<>(players.keySet())) {
+            GamePlayer gp = players.get(id);
+            if (gp != null) gp.cancelRespawnTask();
             Player p = Bukkit.getPlayer(id);
             if (p != null) leave(p);
         }
@@ -265,6 +280,8 @@ public class Arena implements IArena {
         dragonTasks.clear();
         for (EnderDragon dragon : new ArrayList<>(teamDragons.values())) if (dragon != null && dragon.isValid()) dragon.remove();
         teamDragons.clear();
+        IronGolemLogic.cleanupAllForArena(arenaName);
+        SilverfishLogic.cleanupAllForArena(this);
     }
 
     @Override
@@ -321,7 +338,8 @@ public class Arena implements IArena {
 
     @Override
     public Integer getGameTime() {
-        return 0;
+        if (gameStatus != GameStatus.playing || gameStartMillis == 0) return 0;
+        return (int) ((System.currentTimeMillis() - gameStartMillis) / 1000);
     }
 
     @Override
@@ -505,6 +523,8 @@ public class Arena implements IArena {
                         put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
                     }});
                 }
+            }else {
+                leave(player);
             }
         } else {
             leavingPlayer.getTeam().removePlayer(player);
@@ -533,11 +553,11 @@ public class Arena implements IArena {
             addSpectator(player, true);
             team.removePlayer(player);
             players.remove(player.getUniqueId());
-            if (checkWin()) {
-            }
-        }else {
+            checkWin();
+        } else {
             addSpectator(player, false);
-            new BukkitRunnable() {
+            GamePlayer gp = players.get(player.getUniqueId());
+            BukkitTask task = new BukkitRunnable() {
                 int time = respawnTime;
                 @Override
                 public void run() {
@@ -549,11 +569,12 @@ public class Arena implements IArena {
                             respawnPlayer(player);
                             cancel();
                         }
-                    }else {
+                    } else {
                         cancel();
                     }
                 }
             }.runTaskTimer(NewBedwars.plugin, 0, 20);
+            if (gp != null) gp.setRespawnTask(task);
         }
 
 
@@ -576,7 +597,7 @@ public class Arena implements IArena {
 
     @Override
     public void cancelStart() {
-        countdownTimer.cancel();
+        if (countdownTimer != null) countdownTimer.cancel();
         gameStatus = GameStatus.waiting;
         broadcast("StartCanceled");
         broadcast("NotEnoughPlayers", new HashMap<String, String>() {{
@@ -914,6 +935,14 @@ public class Arena implements IArena {
     @Override
     public void setResourcePackHash(String hash) { this.resourcePackHash = hash; }
 
+    @Override
+    public String getShopGuiId() { return shopGuiId; }
+    @Override
+    public void setShopGuiId(String id) { this.shopGuiId = id; }
+    @Override
+    public String getUpgradeGuiId() { return upgradeGuiId; }
+    @Override
+    public void setUpgradeGuiId(String id) { this.upgradeGuiId = id; }
 
     public void setWaitingPos1(Location waitingPos1) {
         this.waitingPos1 = waitingPos1;
@@ -1260,7 +1289,9 @@ public class Arena implements IArena {
         }
         sb.append("],");
         sb.append("\"resourcePackUrl\": ").append(resourcePackUrl == null ? "null" : "\"" + resourcePackUrl + "\"").append(",");
-        sb.append("\"resourcePackHash\": ").append(resourcePackHash == null ? "null" : "\"" + resourcePackHash + "\"");
+        sb.append("\"resourcePackHash\": ").append(resourcePackHash == null ? "null" : "\"" + resourcePackHash + "\"").append(",");
+        sb.append("\"shopGuiId\": \"").append(shopGuiId == null ? Properties.DefaultTeamShopGui : shopGuiId).append("\",");
+        sb.append("\"upgradeGuiId\": \"").append(upgradeGuiId == null ? Properties.DefaultUpgradeShopGui : upgradeGuiId).append("\"");
         sb.append("}");
         return sb.toString();
     }
@@ -1464,7 +1495,7 @@ public class Arena implements IArena {
         player.setInvulnerable(false);
         player.setGameMode(GameMode.SURVIVAL);
         player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
-        team.getTeamUpgrades().applyPlayerUpgrades(player);
+        if (team.getTeamUpgrades() != null) team.getTeamUpgrades().applyPlayerUpgrades(player);
         for (UUID p : players.keySet()) {
             Player pl = Bukkit.getServer().getPlayer(p);
             if (pl == null) {
@@ -1519,7 +1550,19 @@ public class Arena implements IArena {
         }
     }
 
+    private void persistStats(Team winner) {
+        com.l299l.newbedwars.player.PlayerManager pm = NewBedwars.plugin.getPlayerManager();
+        for (Map.Entry<UUID, GamePlayer> entry : players.entrySet()) {
+            GamePlayer gp = entry.getValue();
+            boolean won = winner != null && winner.getPlayers().contains(gp.getPlayer());
+            pm.addGameResult(gp.getPlayer().getName(), gp, won);
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin,
+                () -> NewBedwars.plugin.getDataManager().savePlayerStats());
+    }
+
     private void startEnding(Team winner) {
+        persistStats(winner);
         gameStatus = GameStatus.ending;
         if (gamePhases != null && gamePhases.getCurrentPhase() != null) {
             gamePhases.getCurrentPhase().cancel();

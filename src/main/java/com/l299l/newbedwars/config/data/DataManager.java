@@ -3,6 +3,7 @@ package com.l299l.newbedwars.config.data;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.config.StorageType;
 import com.l299l.newbedwars.config.data.json.PlayerDataJson;
+import com.l299l.newbedwars.config.data.json.PlayerStatsDataJson;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataManager;
 import com.l299l.newbedwars.config.data.mysql.LangDataMySQL;
 import com.l299l.newbedwars.config.data.mysql.MySQLManager;
@@ -18,6 +19,7 @@ import java.util.List;
 public class DataManager {
     private final StorageType storageType;
     private final PlayerDataJson playerDataJson;
+    private final PlayerStatsDataJson playerStatsDataJson;
     private final LangDataMySQL langDataMySQL;
     private final ArenaDataManager arenaDataManager;
     private final ItemsDataManager itemsDataManager;
@@ -28,6 +30,7 @@ public class DataManager {
         arenaDataManager = new ArenaDataManager();
         itemsDataManager = new ItemsDataManager();
         guiDataManager = new GuiDataManager();
+        playerStatsDataJson = new PlayerStatsDataJson();
         mySQLManager = null;
         this.storageType = Properties.StorageType;
         if (storageType == StorageType.JSON) {
@@ -48,6 +51,7 @@ public class DataManager {
             if (langDataMySQL == null) throw new IllegalStateException("langDataMySQL is null in MYSQL storage mode");
             langDataMySQL.load();
         }
+        playerStatsDataJson.load();
         itemsDataManager.load();
         guiDataManager.load();
     }
@@ -66,6 +70,7 @@ public class DataManager {
 
     public void save() {
         savePlayerData();
+        savePlayerStats();
         arenaDataManager.save();
         unloadArenas();
         itemsDataManager.save();
@@ -80,6 +85,10 @@ public class DataManager {
             if (langDataMySQL == null) throw new IllegalStateException("langDataMySQL is null in MYSQL storage mode");
             langDataMySQL.save();
         }
+    }
+
+    public void savePlayerStats() {
+        playerStatsDataJson.save();
     }
 
     public List<GuiSave> getGuiData() {

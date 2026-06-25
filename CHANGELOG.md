@@ -4,6 +4,37 @@ All notable changes to NewBedwars are documented here.
 
 ---
 
+## [2.1-beta] — 2026-06-24
+
+### Added
+- **Arena statistics & leaderboards** — wins, losses, kills, deaths, final kills, beds broken, and games played are now persisted to `data/playerStats.json` (or the `Players` MySQL table) and updated at the end of every game; `/bw leaderboard [wins|kills|beds|fk]` shows the top 10 in chat
+- **Player profile GUI** — `/bw stats [player]`/`/bw profile [player]` opens a profile GUI showing all lifetime stats; K/D and W/L ratios are displayed alongside raw counts
+- **Fast-buy slot customization** — players can rearrange the home-page fast-buy slots in the shop via the "Customize Fast-Buy" button in their profile GUI; preferences are saved per-player and persist across sessions
+- **Iron Golem custom item** — spawns a iron golem that  attacks enemies
+- **Silverfish custom item** — releases a swarm of 5 silverfish from the buyer's feet that automatically despawn after 30 seconds
+- **Portable Tower custom item** —  instantly constructs a team-colored wool tower with a ladder
+- **Expanded PlaceholderAPI support** — new placeholders: `%newbedwars_deaths%`, `%newbedwars_team_color%`, `%newbedwars_game_time%`; full lifetime stats via `%newbedwars_stat_wins%`, `stat_losses`, `stat_kills`, `stat_deaths`, `stat_final_kills`, `stat_beds`, `stat_games`, `stat_kd`, `stat_wl`
+
+### Fixed
+- **`cancelStart()` NPE** — `countdownTimer` is now null-checked before cancellation
+- **`GamePhases` out-of-bounds** — `getCurrentPhase()` and `start()` now guard against `currentPhase >= phases.size()`
+- **Respawn upgrade not applied** — `respawnPlayer()` now null-checks `getTeamUpgrades()` before calling `applyPlayerUpgrades()`
+- **Win check silently discarded** — the empty `if (checkWin()) {}` block in `killPlayer()` was replaced with a direct `checkWin()` call so game endings trigger correctly
+- **`getGameTime()` always returned 0** — game-start timestamp is now recorded in `start()` and elapsed seconds are computed correctly
+- **Respawn task leaked on arena shutdown** — the `BukkitRunnable` for player respawn is now stored in `GamePlayer` and cancelled in both `stop()` and `forceShutdown()`
+- **`arena_<name>_max_players` placeholder broken** — the per-arena placeholder parser now matches known multi-word suffixes (longest first) instead of using `lastIndexOf('_')`, which was splitting `max_players` incorrectly
+
+### Changed
+- **Shop prices rebalanced** 
+- **Team-generator rebalanced**
+
+### TODO
+- **Fix portable tower direction**
+- **Add fast-buy slot reset**
+- **Add language support for newest features**
+- **Add missing permissions**
+---
+
 ## [2.0-beta] — 2026-06-22
 
 ### Added

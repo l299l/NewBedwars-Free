@@ -48,6 +48,7 @@ public class GuiDataYaml {
                 CustomItem catIcon = NewBedwars.plugin.getCustomItemManager().getCustomItem(category.get("Icon").toString());
                 List<String> catItemsNames = (List<String>) category.get("Items");
                 List<Object> catItems = new ArrayList<>();
+                if (catItemsNames == null) catItemsNames = new ArrayList<>();
                 for (String catItemObj: catItemsNames) {
                     String[] catItemData = catItemObj.split(":");
                     if (catItemData.length == 1) {

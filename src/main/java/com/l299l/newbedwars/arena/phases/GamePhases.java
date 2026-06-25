@@ -22,7 +22,7 @@ public class GamePhases {
     }
 
     public void start(IArena arena) {
-        phases.get(currentPhase).start(arena);
+        if (currentPhase < phases.size()) phases.get(currentPhase).start(arena);
     }
 
     public void stop() {
@@ -37,6 +37,7 @@ public class GamePhases {
     }
 
     public Phase getCurrentPhase() {
+        if (currentPhase >= phases.size()) return null;
         return phases.get(currentPhase);
     }
 

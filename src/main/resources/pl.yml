@@ -262,6 +262,13 @@ CustomItemsNames:
   Jump-icon-description: "&aNadaje Wzmocnienie Skoku na krótki czas.; ; &7Koszt: &e/price/"
   Inviscibility-name: "&7Mikstura Niewidzialności"
   Inviscibility-icon-description: "&7Nadaje Niewidzialność na krótki czas.; ; &7Koszt: &e/price/"
+  #--- Nowe przedmioty niestandardowe ---
+  IronGolem-name: "&fŻelazny Golem"
+  IronGolem-icon-description: "&fPrzywołuje żelaznego golema, który; &fśledzi i chroni Twoją drużynę.; &c(Jeden aktywny golem na drużynę); ; &7Koszt: &e/price/"
+  Silverfish-name: "&7Rybeńka"
+  Silverfish-icon-description: "&7Uwalnia rój rybienek; &7atakujących wrogów.; &7(Znikają po 30 sekundach); ; &7Koszt: &e/price/"
+  PortableTower-name: "&6Przenośna Wieża"
+  PortableTower-icon-description: "&6Natychmiast buduje wieżę 3x3x5; &6z wełny z drabiną w środku.; ; &7Koszt: &e/price/"
   #--- Ulepszenia ---
   Sharpness-name: "&cOstrość"
   Sharpness-icon-description: "&cZwiększa obrażenia od miecza; &cdla całej Twojej drużyny."

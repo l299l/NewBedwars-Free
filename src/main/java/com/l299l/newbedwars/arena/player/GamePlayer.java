@@ -6,9 +6,9 @@ import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.gui.GuiManager;
 import com.l299l.newbedwars.gui.GuiSave;
-import com.l299l.newbedwars.player.PlayerIns;
-import com.l299l.newbedwars.player.PlayerManager;
+import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 public class GamePlayer {
     private final Player player;
@@ -19,16 +19,17 @@ public class GamePlayer {
     private int kills;
     private int finalKills;
     private int bedsBroken;
+    private int deaths;
+    private BukkitTask respawnTask;
 
     public GamePlayer(Player player, Team team) {
         this.player = player;
         this.team = team;
         this.inventory = new ArmorContents(player, team);
-        PlayerManager playerManager = NewBedwars.plugin.getPlayerManager();
         GuiManager guiManager = NewBedwars.plugin.getGuiManager();
-        PlayerIns playerIns = playerManager.getPlayer(player.getName());
-        String shopGuiId = playerIns != null ? playerIns.shopGui() : Properties.DefaultTeamShopGui;
-        String upgradesGuiId = playerIns != null ? playerIns.upgradeGui() : Properties.DefaultUpgradeShopGui;
+        IArena arena = com.l299l.newbedwars.arena.Arena.arenaByWorld.get(player.getWorld());
+        String shopGuiId = arena != null ? arena.getShopGuiId() : Properties.DefaultTeamShopGui;
+        String upgradesGuiId = arena != null ? arena.getUpgradeGuiId() : Properties.DefaultUpgradeShopGui;
         playerShopGui = guiManager.getGui(shopGuiId);
         playerUpgradesGui = guiManager.getGui(upgradesGuiId);
     }
@@ -75,5 +76,24 @@ public class GamePlayer {
 
     public void addBedBroken() {
         this.bedsBroken++;
+    }
+
+    public int getDeaths() {
+        return deaths;
+    }
+
+    public void addDeath() {
+        this.deaths++;
+    }
+
+    public void setRespawnTask(BukkitTask task) {
+        this.respawnTask = task;
+    }
+
+    public void cancelRespawnTask() {
+        if (respawnTask != null && !respawnTask.isCancelled()) {
+            respawnTask.cancel();
+            respawnTask = null;
+        }
     }
 }

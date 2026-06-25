@@ -13,7 +13,7 @@
 
 ## 📖 Overview
 
-**NewBedwars** is a modern, fully configurable Bedwars plugin built from the ground up for **Paper 1.17+**. It delivers the classic Bedwars experience with a powerful in-game setup system, YAML-driven GUIs, multi-arena support, and deep gamerule control — all without requiring any additional plugin dependencies.
+**NewBedwars** is a modern, fully configurable Bedwars plugin built from the ground up for **Paper 1.17+**. It delivers the classic Bedwars experience with a powerful in-game setup system, YAML-driven GUIs, multi-arena support, and deep gamerule control - all without requiring any additional plugin dependencies.
 
 Whether you're running a small survival server looking to add a Bedwars minigame, or building a dedicated Bedwars network, NewBedwars gives you the tools to create polished, production-ready arenas with minimal configuration effort.
 
@@ -31,7 +31,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Quick Void** | Instant death below a configurable Y level |
 | **Build Protection** | Per-team zones where players cannot place blocks |
 | **Rejoin System** | Players can reconnect within a configurable time window |
-| **Traps** | Trigger team traps when enemies enter your base area |
 | **Party System** | Group up with friends via `/party`; invite with clickable chat buttons; party admin leads the whole group into an arena together |
 
 ### 💬 Chat & Visibility
@@ -42,26 +41,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Global Arena Chat** | Optional arena-wide chat channel, toggle per arena via gamerule |
 | **Tab List Isolation** | Each arena gets its own tab list — lobby players are hidden from arena players and vice versa |
 
-### 🛒 Shop & Economy
-| Feature | Description |
-|---------|-------------|
-| **YAML Shop GUIs** | Fully configurable item shops — no code changes needed |
-| **Team Upgrades** | Forge, Traps, Heal Pool, Dragon Buff, and more |
-| **Bridge Egg** | Creates a wool bridge along its flight path |
-| **Fireball** | Custom fireball item with arena-safe explosion |
-| **Potions** | Speed, Jump, and Invisibility custom potions |
-| **Resource Generators** | Iron, Gold, Diamond, Emerald with phase-based leveling |
-
-### 🐉 Game Phases
-| Feature | Description |
-|---------|-------------|
-| **Configurable Phases** | Define phase names, durations, and action triggers in `config.yml` |
-| **Generator Upgrades** | Automatically upgrade Diamond/Emerald generators at phase transitions |
-| **Bed Destruction** | Trigger global bed destruction at a configured phase |
-| **Ender Dragon** | Spawn per-team dragons that fire fireballs at enemies; level based on Dragon Buff upgrade |
-| **Regen Disable** | Remove natural health regeneration in late game |
-| **Forge Disable** | Remove team iron/gold generators in final phase |
-
 ### 🎭 Display & HUD
 | Feature | Description |
 |---------|-------------|
@@ -69,7 +48,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | **Scoreboard** | Per-player scoreboards with full placeholder support |
 | **Spectator Mode** | Fly around the arena; compass teleports to live players |
 | **Multi-Language** | English, Polish, German, Spanish, French, and Russian — missing keys fall back to English automatically |
-| **TNT Particles** | Red dust particles above players holding TNT |
 | **Per-Arena Resource Pack** | Force a custom resource pack for each arena; automatically sent on join and cleared on leave |
 
 ### 🔌 Integrations
@@ -77,16 +55,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 |---------|-------------|
 | **PlaceholderAPI** | 14 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and external plugins *(soft dependency — plugin loads without it)* |
 | **WorldEdit / FAWE** | Create arenas directly from `.schem` / `.schematic` files saved in the WorldEdit schematics folder *(soft dependency — manual setup still works without it)* |
-
-### ⚙️ Administration
-| Feature                 | Description                                                                         |
-|-------------------------|-------------------------------------------------------------------------------------|
-| **In-Game Setup**       | Configure everything without editing files                                          |
-| **Arena Info Command**  | Visual checklist of configured and missing fields                                   |
-| **JSON Persistence**    | Arenas saved automatically and survive restarts                                     |
-| **Per-Arena Gamerules** | Random teams, spectators, team/global chat, team damage, permanent swords, and more |
-| **Gamerule Command**    | Set any gamerule live from setup mode via `/bw gamerule <name> <true\|false>`       |
-| **Manage Game Command** | Admins can easily force-start, advance to next phase, or stop a running game        |
 
 ---
 
@@ -100,6 +68,9 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 /bw spectate [arena]  — Join a running arena as spectator
 /bw lang <en|pl|de|es|fr|ru>  — Change your display language
 /bw help              — Show all available commands
+/bw stats [player]    - Show players stats
+/bw profile [player]    - Show players stats
+/bw leaderboard [wins|kills|beds|fk] - Show top 10 players by a stat.
 /lobby                — Shortcut: teleport to lobby
 /lang <en|pl|de|es|fr|ru>     — Shortcut: change language
 ```
@@ -130,12 +101,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 /bw reload                      — Save arenas, kick all players, and reload the configuration
 ```
 
-### Setup Mode Commands
-```
-/bw gamerule <name> <true|false>             — Set an arena gamerule (tab-completes names and values)
-/bw setResourcePack <url|clear> [sha1hash]   — Set or clear a per-arena resource pack URL
-```
-
 ---
 
 ## 🔑 Permissions
@@ -156,16 +121,16 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions |
 
 ### Player Permissions
-| Permission | Default | Description |
-|------------|---------|-------------|
-| `newbedwars.bw.player` | true | Bundle — grants all player permissions below |
-| `newbedwars.bw.join` | true | Join arenas |
-| `newbedwars.bw.lobby` | true | Teleport to the lobby |
-| `newbedwars.bw.rejoin` | true | Rejoin after disconnect |
+| Permission               | Default | Description |
+|--------------------------|---------|-------------|
+| `newbedwars.bw.player`   | true | Bundle — grants all player permissions below |
+| `newbedwars.bw.join`     | true | Join arenas |
+| `newbedwars.bw.lobby`    | true | Teleport to the lobby |
+| `newbedwars.bw.rejoin`   | true | Rejoin after disconnect |
 | `newbedwars.bw.spectate` | true | Spectate arenas |
-| `newbedwars.bw.lang` | true | Change language |
-| `newbedwars.bw.help` | true | View help menu |
-| `newbedwars.party` | true | Use all `/party` commands |
+| `newbedwars.bw.lang`     | true | Change language |
+| `newbedwars.bw.help`     | true | View help menu |
+| `newbedwars.party`       | true | Use all `/party` commands |
 
 > **Config:** Set `RequireJoinPermission: true` or `RequireLobbyPermission: true` in `config.yml` to restrict `/bw join` and `/bw lobby` to players with the explicit permission. Both default to `false` (open to everyone).
 
@@ -186,7 +151,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 
 ## 🚀 Installation
 
-1. Download **NewBedwars-2.0-beta.jar**
+1. Download **NewBedwars-2.1-beta.jar**
 2. Drop it into your server's `/plugins/` folder
 3. Start the server — config files generate automatically
 4. Set your lobby spawn: `/bw setLobby`
@@ -200,41 +165,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 2. Run: `/bw arena create myArena -sche myMap`
 3. The map is pasted automatically at world origin; continue with normal setup
 
-### PlaceholderAPI placeholders
-| Placeholder | Returns |
-|-------------|---------|
-| `%newbedwars_arena%` | Arena name the player is in |
-| `%newbedwars_status%` | Arena status (waiting / starting / playing / ending) |
-| `%newbedwars_team%` | Player's team name |
-| `%newbedwars_kills%` | Player's kill count this game |
-| `%newbedwars_final_kills%` | Player's final kill count this game |
-| `%newbedwars_beds_broken%` | Beds the player has broken this game |
-| `%newbedwars_players%` | Current player count in the arena |
-| `%newbedwars_max_players%` | Maximum players for the arena |
-| `%newbedwars_is_spectator%` | `true` / `false` |
-| `%newbedwars_phase%` | Current game phase name |
-| `%newbedwars_arena_<name>_status%` | Status of a specific arena by name |
-| `%newbedwars_arena_<name>_players%` | Player count of a specific arena |
-| `%newbedwars_arena_<name>_max_players%` | Max players of a specific arena |
-| `%newbedwars_arena_<name>_phase%` | Phase of a specific arena |
-
----
-
-## 🗺️ Future Plans
-
-> **Beta exit:** NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.1.2).
-
-- [x] Party support
-- [x] PlaceholderAPI support
-- [x] WorldEdit / FAWE schematic-based arena creation
-- [x] Per-arena resource pack forcing
-- [x] More languages (DE, ES, FR, RU)
-- [ ] More custom items (Iron Golem, Silverfish, etc.)
-- [ ] Arena statistics and leaderboards
-- [ ] In-game map voting system
-- [ ] Player profile GUI with stats history
-- [ ] Network / BungeeCord / Velocity mode
-
 ---
 
 ## 🐛 Support & Bug Reports
@@ -242,6 +172,70 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 Found a bug or have a suggestion? Please open an issue on **[GitHub](https://github.com/l299l/NewBedwars-Free/issues)** or use the platform's discussion section.
 
 > Most problems can be resolved quickly with a bug report.
+
+---
+
+### PlaceholderAPI Placeholders
+
+All placeholders use the prefix `%newbedwars_<placeholder>%`.
+
+#### In-Game (per-player)
+
+| Placeholder | Description |
+|-------------|-------------|
+| `%newbedwars_arena%` | Arena name the player is in, or `""` |
+| `%newbedwars_status%` | Game status: `waiting` / `starting` / `playing` / `ending` / `restarting`, or `lobby` |
+| `%newbedwars_team%` | Team name, or `""` |
+| `%newbedwars_team_color%` | Team ChatColor code, or `""` |
+| `%newbedwars_kills%` | Kills in the current game |
+| `%newbedwars_deaths%` | Deaths in the current game |
+| `%newbedwars_final_kills%` | Final kills in the current game |
+| `%newbedwars_beds_broken%` | Beds broken in the current game |
+| `%newbedwars_players%` | Current player count in the arena |
+| `%newbedwars_max_players%` | Max players in the arena |
+| `%newbedwars_is_spectator%` | `true` / `false` |
+| `%newbedwars_phase%` | Current phase name, or `""` |
+| `%newbedwars_game_time%` | Seconds elapsed since game start, or `0` |
+
+#### Lifetime Stats (per-player)
+
+| Placeholder | Description |
+|-------------|-------------|
+| `%newbedwars_stat_wins%` | Total wins |
+| `%newbedwars_stat_losses%` | Total losses |
+| `%newbedwars_stat_kills%` | Total kills |
+| `%newbedwars_stat_deaths%` | Total deaths |
+| `%newbedwars_stat_final_kills%` | Total final kills |
+| `%newbedwars_stat_beds%` | Total beds broken |
+| `%newbedwars_stat_games%` | Total games played |
+| `%newbedwars_stat_kd%` | Kill/death ratio (1 decimal, e.g. `2.3`) |
+| `%newbedwars_stat_wl%` | Win/loss ratio (1 decimal) |
+
+#### Per-Arena
+
+| Placeholder | Description |
+|-------------|-------------|
+| `%newbedwars_arena_<name>_status%` | Game status of the named arena |
+| `%newbedwars_arena_<name>_players%` | Current player count |
+| `%newbedwars_arena_<name>_max_players%` | Max players |
+| `%newbedwars_arena_<name>_phase%` | Current phase name |
+
+---
+
+## 🗺️ Roadmap
+
+> **Beta exit:** NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.1.2).
+
+- [x] Party support
+- [x] PlaceholderAPI support
+- [x] WorldEdit / FAWE schematic-based arena creation
+- [x] Per-arena resource pack forcing
+- [x] More languages (DE, ES, FR, RU) (partial support)
+- [x] More custom items (Iron Golem, Silverfish, etc.)
+- [x] Arena statistics and leaderboards
+- [x] Player profile GUI with stats history
+- [ ] In-game map voting system
+- [ ] Network / BungeeCord / Velocity mode
 
 ---
 
@@ -323,6 +317,6 @@ Found a bug or have a suggestion? Please open an issue on **[GitHub](https://git
 
 <div align="center">
 
-**NewBedwars v2.0-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.2
+**NewBedwars v2.1-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.2
 
 </div>

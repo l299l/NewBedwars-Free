@@ -12,7 +12,10 @@ import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.LogicType;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.BridgeEggLogic;
+import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.IronGolemLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.NoneLogic;
+import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.SilverfishLogic;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import com.l299l.newbedwars.arena.player.GamePlayer;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
@@ -39,6 +42,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -151,8 +155,6 @@ public class ArenaGameplayEvents implements Listener {
 
         if ((arena.status() == GameStatus.playing || arena.status() == GameStatus.ending)
                 && arena.getSpectators().contains(p)) {
-            // Cancel ALL spectator interactions to prevent default item behaviour;
-            // only open GUIs on right-click.
             e.setCancelled(true);
             if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
             if (held == Material.RED_BED) {
@@ -218,7 +220,6 @@ public class ArenaGameplayEvents implements Listener {
             e.setCancelled(true);
             return;
         }
-        // Prevent players from dropping their sword during a game (chest deposit is still allowed)
         if (arena.isPlayerInArena(p) && arena.status() == GameStatus.playing) {
             if (e.getItemDrop().getItemStack().getType().name().endsWith("_SWORD")) {
                 e.setCancelled(true);
@@ -349,6 +350,8 @@ public class ArenaGameplayEvents implements Listener {
                         }
                     }
                 }
+                GamePlayer dyingGp = arena.getPlayer(p.getUniqueId());
+                if (dyingGp != null) dyingGp.addDeath();
                 arena.killPlayer(p);
                 if (killer != null && arena.isPlayerInArena(killer)) {
                     final String killerName = killer.getName();
@@ -397,6 +400,21 @@ public class ArenaGameplayEvents implements Listener {
             attacker = p;
         } else if (e.getDamager() instanceof Projectile proj && proj.getShooter() instanceof Player p) {
             attacker = p;
+        } else {
+            // Attribute kills from plugin-spawned mobs to their owner
+            String ownerUuid = null;
+            if (e.getDamager() instanceof org.bukkit.entity.IronGolem ig
+                    && IronGolemLogic.getGolemKey(ig) != null) {
+                ownerUuid = ig.getPersistentDataContainer().get(
+                        IronGolemLogic.GOLEM_OWNER_KEY, PersistentDataType.STRING);
+            } else if (e.getDamager() instanceof org.bukkit.entity.Silverfish sf
+                    && SilverfishLogic.activeSilverfish.contains(sf.getUniqueId())) {
+                ownerUuid = SilverfishLogic.getSfOwner(sf);
+            }
+            if (ownerUuid != null) {
+                try { attacker = Bukkit.getPlayer(java.util.UUID.fromString(ownerUuid)); }
+                catch (IllegalArgumentException ignored) {}
+            }
         }
         if (attacker != null && arena.getSpectators().contains(attacker)) {
             e.setCancelled(true);
@@ -410,6 +428,86 @@ public class ArenaGameplayEvents implements Listener {
             return;
         }
         recordAttacker(victim.getUniqueId(), attacker.getUniqueId());
+    }
+
+    @EventHandler
+    public void onGolemFriendlyFire(EntityDamageByEntityEvent e) {
+        if (!(e.getDamager() instanceof org.bukkit.entity.IronGolem golem)) return;
+        String golemKey = IronGolemLogic.getGolemKey(golem);
+        if (golemKey == null) return;
+        // golemKey is arenaName:teamName — find the arena and check victim team
+        int colon = golemKey.indexOf(':');
+        if (colon < 0) return;
+        String arenaName = golemKey.substring(0, colon);
+        String teamName = golemKey.substring(colon + 1);
+        IArena arena = Arena.arenaByName.get(arenaName);
+        if (arena == null) return;
+        Team golemTeam = arena.getTeam(teamName);
+        if (golemTeam == null) return;
+        if (e.getEntity() instanceof Player victim) {
+            Team victimTeam = arena.getTeam(victim);
+            if (golemTeam.equals(victimTeam)) {
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onGolemDeath(EntityDeathEvent e) {
+        if (!(e.getEntity() instanceof org.bukkit.entity.IronGolem golem)) return;
+        if (IronGolemLogic.getGolemKey(golem) == null) return;
+        e.getDrops().clear();
+        e.setDroppedExp(0);
+        IronGolemLogic.cleanupGolem(golem.getUniqueId().toString());
+    }
+
+    @EventHandler
+    public void onGolemTarget(EntityTargetLivingEntityEvent e) {
+        if (!(e.getEntity() instanceof org.bukkit.entity.IronGolem)) return;
+        String golemKey = IronGolemLogic.getGolemKey(e.getEntity());
+        if (golemKey == null) return;
+        int colon = golemKey.indexOf(':');
+        if (colon < 0) return;
+        String arenaName = golemKey.substring(0, colon);
+        String teamName = golemKey.substring(colon + 1);
+        IArena arena = Arena.arenaByName.get(arenaName);
+        if (arena == null) { e.setCancelled(true); return; }
+        if (e.getTarget() instanceof Player target) {
+            Team golemTeam = arena.getTeam(teamName);
+            Team targetTeam = arena.getTeam(target);
+            if (golemTeam != null && golemTeam.equals(targetTeam)) {
+                e.setCancelled(true);
+                return;
+            }
+            if (!arena.isPlayerInArena(target)) {
+                e.setCancelled(true);
+            }
+        } else {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onSilverfishTarget(EntityTargetLivingEntityEvent e) {
+        if (!(e.getEntity() instanceof org.bukkit.entity.Silverfish)) return;
+        if (!SilverfishLogic.activeSilverfish.contains(e.getEntity().getUniqueId())) return;
+        String key = SilverfishLogic.getSilverfishKey(e.getEntity());
+        if (key == null) { e.setCancelled(true); return; }
+        int colon = key.indexOf(':');
+        if (colon < 0) { e.setCancelled(true); return; }
+        String arenaName = key.substring(0, colon);
+        String teamName = key.substring(colon + 1);
+        IArena arena = Arena.arenaByName.get(arenaName);
+        if (arena == null) { e.setCancelled(true); return; }
+        if (!(e.getTarget() instanceof Player target)) {
+            e.setCancelled(true);
+            return;
+        }
+        Team sfTeam = arena.getTeam(teamName);
+        Team targetTeam = arena.getTeam(target);
+        if (sfTeam == null || targetTeam == null || sfTeam.equals(targetTeam)) {
+            e.setCancelled(true);
+        }
     }
 
     private void recordAttacker(UUID victimId, UUID attackerId) {
@@ -628,6 +726,16 @@ public class ArenaGameplayEvents implements Listener {
                     PotionEffect effect = getPotionEffect(potionName);
                     if (effect != null) p.addPotionEffect(effect);
                 });
+            }
+            case IRON_GOLEM, SILVERFISH -> {
+                e.setCancelled(true);
+                customItem.getEvent().perform(p, arena);
+                consumeOneItem(p);
+            }
+            case PORTABLE_TOWER -> {
+                e.setCancelled(true);
+                // Consumption handled inside PortableTowerLogic.perform() — skipped on protected-area rejection
+                customItem.getEvent().perform(p, arena);
             }
         }
     }

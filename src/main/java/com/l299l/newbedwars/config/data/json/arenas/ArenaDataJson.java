@@ -17,7 +17,6 @@ import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.gui.GuiSave;
 import com.l299l.newbedwars.utils.JsonUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -50,8 +49,14 @@ public class ArenaDataJson {
             List<LinkedTreeMap> teams = gson.fromJson(jsonObject.get("teams"), List.class);
             List<LinkedTreeMap> generators = gson.fromJson(jsonObject.get("generators"), List.class);
             HashMap<String, Boolean> specialGamerules = gson.fromJson(jsonObject.get("specialGamerules"), HashMap.class);
-            GuiSave shopGui = gson.fromJson(jsonObject.get("shopGui"), Object.class) == null ? null : NewBedwars.plugin.getGuiManager().getGui(jsonObject.get("shopGui").getAsString());
-            GuiSave upgradesGui = gson.fromJson(jsonObject.get("upgradeGui"), Object.class) == null ? null : NewBedwars.plugin.getGuiManager().getGui(jsonObject.get("upgradeGui").getAsString());
+            String shopGuiId = jsonObject.has("shopGuiId") && !jsonObject.get("shopGuiId").isJsonNull()
+                    ? jsonObject.get("shopGuiId").getAsString()
+                    : (jsonObject.has("shopGui") && !jsonObject.get("shopGui").isJsonNull()
+                            ? jsonObject.get("shopGui").getAsString() : null);
+            String upgradeGuiId = jsonObject.has("upgradeGuiId") && !jsonObject.get("upgradeGuiId").isJsonNull()
+                    ? jsonObject.get("upgradeGuiId").getAsString()
+                    : (jsonObject.has("upgradeGui") && !jsonObject.get("upgradeGui").isJsonNull()
+                            ? jsonObject.get("upgradeGui").getAsString() : null);
             GamePhases gamePhases = gson.fromJson(jsonObject.get("gamePhasesId"), Object.class) == null ? null : Properties.GamePhases.get(jsonObject.get("gamePhasesId").getAsString());
             GeneratorLeveling generatorLeveling = gson.fromJson(jsonObject.get("generatorsLeveling"), Object.class) == null ? null : NewBedwars.plugin.getGeneratorLeveling().get(jsonObject.get("generatorsLeveling").getAsString());
             HashMap<String, Boolean> gamerules = gson.fromJson(jsonObject.get("gamerules"), HashMap.class);
@@ -156,6 +161,8 @@ public class ArenaDataJson {
             }
             arena.setGamePhases(gamePhases);
             arena.setGeneratorsLeveling(generatorLeveling);
+            if (shopGuiId != null) arena.setShopGuiId(shopGuiId);
+            if (upgradeGuiId != null) arena.setUpgradeGuiId(upgradeGuiId);
             if (jsonObject.has("resourcePackUrl") && !jsonObject.get("resourcePackUrl").isJsonNull()) {
                 arena.setResourcePackUrl(jsonObject.get("resourcePackUrl").getAsString());
             }

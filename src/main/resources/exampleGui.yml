@@ -30,7 +30,7 @@ HeaderSize: 18
 FooterSize: 9
 
 Slots:
-  1: empty
+  1: category:home
   2: category:blocks
   3: category:tools
   4: category:weapons
@@ -86,6 +86,11 @@ Slots:
   54: empty
 
 Categories:
+  - ID: home
+    Name: "&eHome"
+    Icon: wood
+    Description: "&7Return to the home page"
+    Items: []
   - ID: blocks
     Name: "&aBlocks"
     Icon: wool
@@ -153,3 +158,6 @@ Categories:
       - lavabucket
       - bridgeegg
       - goldenapple
+      - irongolem
+      - silverfish
+      - portabletower

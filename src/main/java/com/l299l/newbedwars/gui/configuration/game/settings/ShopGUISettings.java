@@ -64,7 +64,9 @@ public class ShopGUISettings implements Listener {
             });
         } else if (item instanceof GuiCategory cat) {
             player.closeInventory();
-            ShopGUI newGui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, gui.getGuiSave(), cat);
+            // "home" category → navigate back to the home page (null category)
+            GuiCategory target = cat.id().equalsIgnoreCase("home") ? null : cat;
+            ShopGUI newGui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, gui.getGuiSave(), target);
             player.openInventory(newGui.getInventory());
         } else if (item instanceof GuiUpgrade guiUpgrade) {
             Arena arena = (Arena) Arena.arenaByWorld.get(player.getWorld());

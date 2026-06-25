@@ -18,9 +18,12 @@ import com.l299l.newbedwars.commands.bedwars.admin.setup.normal.*;
 import com.l299l.newbedwars.commands.bedwars.main.HelpCommand;
 import com.l299l.newbedwars.commands.bedwars.main.JoinCommand;
 import com.l299l.newbedwars.commands.bedwars.main.LangCommand;
+import com.l299l.newbedwars.commands.bedwars.main.LeaderboardCommand;
 import com.l299l.newbedwars.commands.bedwars.main.LobbyCommand;
+import com.l299l.newbedwars.commands.bedwars.main.ProfileCommand;
 import com.l299l.newbedwars.commands.bedwars.main.RejoinCommand;
 import com.l299l.newbedwars.commands.bedwars.main.SpectateCommand;
+import com.l299l.newbedwars.commands.bedwars.main.StatsCommand;
 import com.l299l.newbedwars.config.Messages;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -206,6 +209,9 @@ public class MainCommand implements TabExecutor {
         subCommandsLobbyPublic.add(lobbyCmd);
         subCommandsLobbyPublic.add(langCmd);
         subCommandsLobbyPublic.add(spectateCmd);
+        subCommandsLobbyPublic.add(new StatsCommand());
+        subCommandsLobbyPublic.add(new ProfileCommand());
+        subCommandsLobbyPublic.add(new LeaderboardCommand());
 
         subCommandsGamePublic.add(lobbyCmd);
         subCommandsGamePublic.add(langCmd);
@@ -247,6 +253,7 @@ public class MainCommand implements TabExecutor {
         setupSubNormalCommands.add(new SetWaitingTimeCommand());
         setupSubNormalCommands.add(new GameruleCommand());
         setupSubNormalCommands.add(new SetResourcePackCommand());
+        setupSubNormalCommands.add(new SetArenaGuiCommand());
 
         setupSubAdvencedCommands.add(new AddSpecialGamerulesCommand());
         setupSubAdvencedCommands.add(new SetTeamsAccessoriesCommand());

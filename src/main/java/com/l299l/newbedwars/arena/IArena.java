@@ -104,4 +104,8 @@ public interface IArena {
     void setResourcePackUrl(String url);
     String getResourcePackHash();
     void setResourcePackHash(String hash);
+    String getShopGuiId();
+    void setShopGuiId(String id);
+    String getUpgradeGuiId();
+    void setUpgradeGuiId(String id);
 }

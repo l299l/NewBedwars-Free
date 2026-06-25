@@ -7,7 +7,10 @@ import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.player.PlayerIns;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class PlayerDataJson {
@@ -48,11 +51,27 @@ public class PlayerDataJson {
 
     private HashMap<String, PlayerIns> castToHashMap(HashMap<String, LinkedTreeMap> hashMap) {
         HashMap<String, PlayerIns> newHashMap = new HashMap<>();
-        for (String key: hashMap.keySet()) {
+        for (String key : hashMap.keySet()) {
             LinkedTreeMap<String, Object> player = hashMap.get(key);
-            newHashMap.put(key, new PlayerIns(UUID.fromString((String) player.get("id")), (String) player.get("name"), Language.valueOf((String) player.get("language")), (String) player.get("shopGui"), (String) player.get("upgradeGui")));
+            Map<String, List<String>> fastBuyPerCat = new java.util.HashMap<>();
+            Object rawFastBuy = player.get("fastBuyPerCategory");
+            if (rawFastBuy instanceof com.google.gson.internal.LinkedTreeMap<?, ?> catMap) {
+                for (Map.Entry<?, ?> entry : catMap.entrySet()) {
+                    if (!(entry.getKey() instanceof String catId)) continue;
+                    List<String> items = new java.util.ArrayList<>();
+                    if (entry.getValue() instanceof List<?> list) {
+                        for (Object o : list) { if (o instanceof String s) items.add(s); }
+                    }
+                    fastBuyPerCat.put(catId, items);
+                }
+            }
+            newHashMap.put(key, new PlayerIns(
+                    UUID.fromString((String) player.get("id")),
+                    (String) player.get("name"),
+                    Language.valueOf((String) player.get("language")),
+                    fastBuyPerCat
+            ));
         }
         return newHashMap;
-
     }
 }

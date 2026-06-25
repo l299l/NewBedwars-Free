@@ -2,6 +2,9 @@ package com.l299l.newbedwars.gui;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.gui.configuration.game.settings.FastBuyCustomizerGUISettings;
+import com.l299l.newbedwars.gui.configuration.game.settings.ItemPickerGUISettings;
+import com.l299l.newbedwars.gui.configuration.game.settings.ProfileGUISettings;
 import com.l299l.newbedwars.gui.configuration.game.settings.ShopGUISettings;
 import com.l299l.newbedwars.gui.configuration.game.settings.SpectatorGUISettings;
 import com.l299l.newbedwars.gui.configuration.setup.settings.BasicConfigurationGuiSettings;
@@ -34,6 +37,9 @@ public class GuiManager {
         plugin.getServer().getPluginManager().registerEvents(new SetupPickerGuiSettings(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ShopGUISettings(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new SpectatorGUISettings(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ProfileGUISettings(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new FastBuyCustomizerGUISettings(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ItemPickerGUISettings(), plugin);
         guis.clear();
         List<GuiSave> guiSaves = plugin.getDataManager().getGuiData();
         for (GuiSave guiSave : guiSaves) {
@@ -43,6 +49,10 @@ public class GuiManager {
 
     public GuiSave getGui(String id) {
         return guis.get(id);
+    }
+
+    public HashMap<String, GuiSave> getGuis() {
+        return guis;
     }
 
     public ItemStack createIcon(String icon, String name, String lore, Boolean enchanted) {

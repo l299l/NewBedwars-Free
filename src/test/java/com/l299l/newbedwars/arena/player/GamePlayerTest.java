@@ -3,16 +3,14 @@ package com.l299l.newbedwars.arena.player;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.gui.GuiManager;
-import com.l299l.newbedwars.player.PlayerIns;
 import com.l299l.newbedwars.player.PlayerManager;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,12 +35,11 @@ class GamePlayerTest {
         when(mockPlugin.getGuiManager()).thenReturn(mockGm);
         when(mockPlugin.getCustomItemManager()).thenReturn(mockCim);
 
-        PlayerIns ins = new PlayerIns(UUID.randomUUID(), "Alice", Language.English, "shopGui1", "upgradeGui1");
-        when(mockPm.getPlayer("Alice")).thenReturn(ins);
         when(mockGm.getGui(any())).thenReturn(null);
 
         player = mock(Player.class);
         when(player.getName()).thenReturn("Alice");
+        when(player.getWorld()).thenReturn(mock(World.class)); // arena lookup returns null → falls back to defaults
 
         team = mock(Team.class);
     }
