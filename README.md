@@ -1,4 +1,3 @@
-<!-- Replace the URL below with your actual uploaded banner image URL -->
 ![NewBedwars Banner](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
 
 <div align="center">
