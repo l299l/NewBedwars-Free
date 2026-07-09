@@ -24,6 +24,7 @@ import com.l299l.newbedwars.gui.configuration.game.guis.spectator.SpectatorEffec
 import com.l299l.newbedwars.gui.configuration.game.guis.spectator.SpectatorPlayersGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -44,6 +45,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.entity.Projectile;
@@ -66,6 +68,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.HashSet;
@@ -80,9 +83,9 @@ public class ArenaGameplayEvents implements Listener {
     private final HashMap<UUID, BukkitTask> lastAttackerClearTasks = new HashMap<>();
     private final HashSet<UUID> quickVoidDeaths = new HashSet<>();
     private final HashSet<UUID> pendingBridgeEggThrow = new HashSet<>();
-    // Tracks players whose potion was handled by PlayerInteractEvent so PlayerItemConsumeEvent won't re-apply
     private final HashSet<UUID> potionHandledByInteract = new HashSet<>();
     private final HashMap<UUID, Set<String>> playersInBases = new HashMap<>();
+    private final HashMap<UUID, Location> lastGroundLocation = new HashMap<>();
 
     public ArenaGameplayEvents(NewBedwars plugin) {
         this.plugin = plugin;
@@ -119,6 +122,7 @@ public class ArenaGameplayEvents implements Listener {
         quickVoidDeaths.remove(p.getUniqueId());
         pendingBridgeEggThrow.remove(p.getUniqueId());
         playersInBases.remove(p.getUniqueId());
+        lastGroundLocation.remove(p.getUniqueId());
         if(Arena.arenaByWorld.get(p.getWorld()) != null) {
             IArena arena = Arena.arenaByWorld.get(p.getWorld());
             if(arena.isPlayerInArena(p)) {
@@ -331,6 +335,16 @@ public class ArenaGameplayEvents implements Listener {
                     UUID attackerId = lastAttacker.get(p.getUniqueId());
                     if (attackerId != null) killer = Bukkit.getPlayer(attackerId);
                 }
+                List<ItemStack> resources = new ArrayList<>();
+                for (ItemStack stack : p.getInventory().getContents()) {
+                    if (stack == null) continue;
+                    Material m = stack.getType();
+                    if (m == Material.IRON_INGOT || m == Material.GOLD_INGOT
+                            || m == Material.DIAMOND || m == Material.EMERALD) {
+                        resources.add(stack.clone());
+                    }
+                }
+                Location lastGround = lastGroundLocation.remove(p.getUniqueId());
                 if (killer != null && arena.isPlayerInArena(killer)) {
                     GamePlayer killerGp = arena.getPlayer(killer.getUniqueId());
                     if (killerGp != null) {
@@ -341,13 +355,8 @@ public class ArenaGameplayEvents implements Listener {
                         }
                     }
                     final Player finalKiller = killer;
-                    for (ItemStack stack : p.getInventory().getContents()) {
-                        if (stack == null) continue;
-                        Material m = stack.getType();
-                        if (m == Material.IRON_INGOT || m == Material.GOLD_INGOT
-                                || m == Material.DIAMOND || m == Material.EMERALD) {
-                            finalKiller.getInventory().addItem(stack.clone());
-                        }
+                    for (ItemStack stack : resources) {
+                        finalKiller.getInventory().addItem(stack);
                     }
                 }
                 GamePlayer dyingGp = arena.getPlayer(p.getUniqueId());
@@ -366,6 +375,11 @@ public class ArenaGameplayEvents implements Listener {
                         isVoid = lastDmg != null && lastDmg.getCause() == EntityDamageEvent.DamageCause.VOID;
                     }
                     if (isVoid) {
+                        if (lastGround != null && !resources.isEmpty() && lastGround.getWorld() != null) {
+                            for (ItemStack stack : resources) {
+                                lastGround.getWorld().dropItemNaturally(lastGround, stack);
+                            }
+                        }
                         arena.broadcast("PlayerDeathByVoid", new HashMap<>() {{
                             put("/player/", p.getName());
                         }});
@@ -401,7 +415,6 @@ public class ArenaGameplayEvents implements Listener {
         } else if (e.getDamager() instanceof Projectile proj && proj.getShooter() instanceof Player p) {
             attacker = p;
         } else {
-            // Attribute kills from plugin-spawned mobs to their owner
             String ownerUuid = null;
             if (e.getDamager() instanceof org.bukkit.entity.IronGolem ig
                     && IronGolemLogic.getGolemKey(ig) != null) {
@@ -435,7 +448,6 @@ public class ArenaGameplayEvents implements Listener {
         if (!(e.getDamager() instanceof org.bukkit.entity.IronGolem golem)) return;
         String golemKey = IronGolemLogic.getGolemKey(golem);
         if (golemKey == null) return;
-        // golemKey is arenaName:teamName — find the arena and check victim team
         int colon = golemKey.indexOf(':');
         if (colon < 0) return;
         String arenaName = golemKey.substring(0, colon);
@@ -553,6 +565,14 @@ public class ArenaGameplayEvents implements Listener {
     }
 
     @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent e) {
+        if (!(e.getEntity() instanceof Player p)) return;
+        if (Arena.arenaByWorld.get(p.getWorld()) != null) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {
         Player p = e.getPlayer();
         IArena arena = Arena.arenaByWorld.get(p.getWorld());
@@ -564,6 +584,16 @@ public class ArenaGameplayEvents implements Listener {
                 || arenaImpl.isNearDiamondOrEmeraldGenerator(target.getLocation())) {
             e.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onPlayerMoveTrackGround(PlayerMoveEvent e) {
+        if (e.getTo() == null || !e.getPlayer().isOnGround()) return;
+        Player p = e.getPlayer();
+        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        if (arena == null || arena.status() != GameStatus.playing) return;
+        if (!arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) return;
+        lastGroundLocation.put(p.getUniqueId(), e.getTo().clone());
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -686,7 +716,6 @@ public class ArenaGameplayEvents implements Listener {
             org.bukkit.Location loc = block.getLocation();
             if (!arena.isPlacedBlock(loc)) return true;
             if (arena.isBlastProtBlock(loc)) return true;
-            // Also protect blocks directly below blast-proof glass
             return arena.isBlastProtBlock(loc.clone().add(0, 1, 0));
         });
     }
@@ -700,7 +729,6 @@ public class ArenaGameplayEvents implements Listener {
         if (arena == null || arena.status() != GameStatus.playing) return;
         if (!arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) return;
 
-        // Use event item: on some 1.20.x builds vanilla clears the hand before this event fires
         ItemStack item = e.getItem() != null ? e.getItem() : p.getInventory().getItemInMainHand();
         CustomItem customItem = findCustomItem(item);
         if (customItem == null || customItem.getEvent() instanceof NoneLogic) return;
@@ -718,7 +746,6 @@ public class ArenaGameplayEvents implements Listener {
             case POTION -> {
                 e.setCancelled(true);
                 consumeOneItem(p);
-                // Apply on next tick so our effect runs after any vanilla processing on older builds
                 final String potionName = customItem.getName();
                 potionHandledByInteract.add(p.getUniqueId());
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -734,7 +761,6 @@ public class ArenaGameplayEvents implements Listener {
             }
             case PORTABLE_TOWER -> {
                 e.setCancelled(true);
-                // Consumption handled inside PortableTowerLogic.perform() — skipped on protected-area rejection
                 customItem.getEvent().perform(p, arena);
             }
         }
@@ -811,7 +837,6 @@ public class ArenaGameplayEvents implements Listener {
         if (customItem != null && customItem.getEvent().getType() == LogicType.POTION) {
             e.setCancelled(true);
             if (!potionHandledByInteract.remove(p.getUniqueId())) {
-                // PlayerInteractEvent did not handle it (e.g. older Paper where cancel didn't stop animation)
                 consumeOneItem(p);
                 final String potionName = customItem.getName();
                 Bukkit.getScheduler().runTask(plugin, () -> {

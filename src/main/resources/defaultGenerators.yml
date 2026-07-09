@@ -47,20 +47,3 @@ EmeraldGenerator:
     SpawnRate: [100.0]
     MaxAmount: [1]
   SpawnDelay: [60, 30, 15]
-
-# ----- Custom Generators --------------------------
-# Set Enabled: true and define your generators below.
-OtherGenerators:
-  Enabled: false
-  Generators:
-    - ID: RedstoneGenerator
-      MaxLevel: 1
-      ShowNextSpawnTime: true
-      SpawnDelay: [60]
-      Resources:
-        - ITEM: REDSTONE_DUST
-          SpawnRate: [99.0]
-          MaxAmount: [1]
-        - ITEM: REDSTONE_BLOCK
-          SpawnRate: [1.0]
-          MaxAmount: [1]

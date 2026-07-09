@@ -324,6 +324,8 @@ PartyNotAllowedInArena: "&b[NewBedwars] &8&l> &cDrużyny nie są dozwolone na te
 ReloadSuccess: "&b[NewBedwars] &8&l> &aPlugin pomyślnie przeładowany!"
 GameruleSet: "&b[NewBedwars] &8&l> &fReguła gry &e/gamerule/ &fustawiona na &e/value/&f!"
 GameruleInvalid: "&4&lBłąd: &r&cNieprawidłowa reguła gry! Dostępne: RandomTeams, AllowParties, AllowSpectators, AllowTeamChat, AllowGlobalChat, AllowPrivateChat, AllowTeamDamage, MakeSwordsPermanent"
+GeneratorLevelingSet: "&b[NewBedwars] &8&l> &fKonfiguracja poziomowania generatorów ustawiona na &e/configId/&f!"
+GeneratorLevelingInvalid: "&4&lBłąd: &r&cKonfiguracja poziomowania generatorów &e/configId/ &cnie znaleziona! Dostępne: &e/available/"
 ResourcePackSet: "&b[NewBedwars] &8&l> &aRzeczowy pack ustawiony dla tej areny!"
 ResourcePackCleared: "&b[NewBedwars] &8&l> &aRzeczowy pack usunięty dla tej areny!"
 ResourcePackHashInvalid: "&4&lBłąd: &r&cNieprawidłowy hash SHA-1! Musi zawierać dokładnie 40 znaków hex."
@@ -333,3 +335,32 @@ SchematicSaved: "&b[NewBedwars] &8&l> &aSchematyk zapisany jako &e/name/&a!"
 SchematicLoaded: "&b[NewBedwars] &8&l> &aSchematyk &e/name/ &azaładowany pomyślnie!"
 SchematicNotFound: "&4&lBłąd: &r&cSchematyk &e/name/ &cnie istnieje!"
 SchematicError: "&4&lBłąd: &r&cWystąpił błąd podczas przetwarzania schematyka!"
+
+#--- Przenośna Wieża ---
+PortableTowerProtectedArea: "&b[NewBedwars] &8&l> &cNie można postawić wieży w tym miejscu — chroniony obszar!"
+
+#--- Kreator szybkich zakupów ---
+FastBuySaved: "&b[NewBedwars] &8&l> &aSzybkie zakupy zapisane!"
+FastBuyReset: "&b[NewBedwars] &8&l> &eSloty szybkich zakupów zresetowane — kliknij Zapisz i zamknij, aby potwierdzić."
+
+#--- Ranking ---
+LeaderboardHeader: "&6--- Top 10 wg /category/ ---"
+LeaderboardEmpty: "&7Brak danych."
+LeaderboardEntry: "&e/rank/. &f/player/ &7- &b/value/"
+LeaderboardCategoryWins: "Wygranych"
+LeaderboardCategoryKills: "Zabójstw"
+LeaderboardCategoryBeds: "Zniszczonych łóżek"
+LeaderboardCategoryFinalKills: "Ostatecznych zabójstw"
+
+#--- Statystyki / Profil ---
+StatsDivider: "&8------------------------------"
+StatsHeader: "&6&lStatystyki /player/"
+StatsOffline: "&c/player/ jest offline; wyświetlanie zapisanych danych."
+StatsLanguage: "&bJęzyk: &f/language/"
+StatsWinsLosses: "&aWygrane: &f/wins/  &cPrzegrane: &f/losses/"
+StatsWL: "&eW/L: &f/wl/"
+StatsKillsDeaths: "&eZabójstwa: &f/kills/  &7Śmierci: &f/deaths/"
+StatsKD: "&eK/D: &f/kd/"
+StatsFinalKills: "&bOstateczne zabójstwa: &f/finalkills/"
+StatsBedsBroken: "&6Zniszczone łóżka: &f/beds/"
+StatsGamesPlayed: "&dRozegrane gry: &f/games/"

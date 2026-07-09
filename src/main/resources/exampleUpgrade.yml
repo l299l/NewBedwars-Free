@@ -1,17 +1,23 @@
 # =====================================================
 #  NewBedwars — Example Upgrade GUI
 #
-#  This file is copied to plugins/NewBedwars/guis/ on first start.
+#  This file is copied to plugins/NewBedwars/data/guis/exampleUpgrade.yml on first start.
 #  Edit the copy there; changes here only apply to fresh installs.
 #
 #  Slot values:
 #    upg:<upgrade>  — upgrade item (e.g. upg:protection, upg:sharpness)
-#    cat:<id>       — category button (e.g. cat:traps)
+#    cat:<id>       — category button (e.g. cat:traps, cat:home)
 #    fill           — decorative filler item
 #    empty          — leave the slot empty
 #
 #  Available upgrades: protection, sharpness, haste, forge, healpool,
 #                      dragonbuff, alarmtrap, blindtrap, miningfatiguetrap
+#
+#  Layout: row 0 (slots 2-3) has quick-access buttons for Home and Traps — always
+#  visible, on every page, since the header renders unchanged everywhere. Row 1 is a
+#  plain border. The two content rows hold the 6 direct-buy upgrades, centered and
+#  bordered; the third content row is a plain divider. The footer repeats the Home
+#  button centered, so there's always a way back out of the Traps category page.
 # =====================================================
 
 GuiId: exampleUpgrade
@@ -26,8 +32,8 @@ HeaderSize: 18
 FooterSize: 9
 
 Slots:
-  1: fill
-  2: fill
+  1: cat:home
+  2: cat:traps
   3: fill
   4: fill
   5: fill
@@ -35,53 +41,58 @@ Slots:
   7: fill
   8: fill
   9: fill
-  10: empty
-  11: empty
-  12: empty
-  13: empty
-  14: empty
-  15: empty
-  16: empty
-  17: empty
-  18: empty
-  19: empty
-  20: empty
-  21: empty
+  10: fill
+  11: fill
+  12: fill
+  13: fill
+  14: fill
+  15: fill
+  16: fill
+  17: fill
+  18: fill
+  19: fill
+  20: fill
+  21: fill
   22: upg:protection
   23: upg:sharpness
   24: upg:haste
-  25: empty
-  26: empty
-  27: empty
-  28: empty
-  29: empty
-  30: empty
+  25: fill
+  26: fill
+  27: fill
+  28: fill
+  29: fill
+  30: fill
   31: upg:forge
   32: upg:healpool
   33: upg:dragonbuff
-  34: empty
-  35: empty
-  36: empty
-  37: empty
-  38: empty
-  39: empty
-  40: empty
-  41: cat:traps
-  42: empty
-  43: empty
-  44: empty
-  45: empty
+  34: fill
+  35: fill
+  36: fill
+  37: fill
+  38: fill
+  39: fill
+  40: fill
+  41: fill
+  42: fill
+  43: fill
+  44: fill
+  45: fill
   46: fill
   47: fill
   48: fill
   49: fill
-  50: fill
+  50: cat:home
   51: fill
   52: fill
   53: fill
   54: fill
 
 Categories:
+  - ID: home
+    Name: "&eHome"
+    Icon: wood
+    Description: "&7Return to the upgrades page"
+    Items: []
   - ID: traps
     Name: "&cTraps"
     Icon: traps

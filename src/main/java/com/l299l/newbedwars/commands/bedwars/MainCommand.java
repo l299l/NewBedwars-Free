@@ -9,7 +9,6 @@ import com.l299l.newbedwars.commands.bedwars.admin.ArenaCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.ManageGameCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.ReloadCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.SetLobbyCommand;
-import com.l299l.newbedwars.commands.bedwars.admin.SetupGuisCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.advenced.AddSpecialGamerulesCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.advenced.SetTeamsAccessoriesCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.automatic.StartAutomaticSetupCommand;
@@ -130,8 +129,7 @@ public class MainCommand implements TabExecutor {
     private boolean hasAnyLobbyAdminPermission(Player p) {
         return isAdmin(p)
                 || p.hasPermission("newbedwars.bw.arena")
-                || p.hasPermission("newbedwars.bw.setlobby")
-                || p.hasPermission("newbedwars.bw.setupguis");
+                || p.hasPermission("newbedwars.bw.setlobby");
     }
 
     @Override
@@ -216,7 +214,6 @@ public class MainCommand implements TabExecutor {
         subCommandsGamePublic.add(lobbyCmd);
         subCommandsGamePublic.add(langCmd);
 
-        subCommandsLobbyAdmin.add(new SetupGuisCommand());
         subCommandsLobbyAdmin.add(new SetLobbyCommand());
         subCommandsLobbyAdmin.add(new ArenaCommand());
         subCommandsLobbyAdmin.add(new ReloadCommand());
@@ -254,6 +251,7 @@ public class MainCommand implements TabExecutor {
         setupSubNormalCommands.add(new GameruleCommand());
         setupSubNormalCommands.add(new SetResourcePackCommand());
         setupSubNormalCommands.add(new SetArenaGuiCommand());
+        setupSubNormalCommands.add(new SetGeneratorLevelingCommand());
 
         setupSubAdvencedCommands.add(new AddSpecialGamerulesCommand());
         setupSubAdvencedCommands.add(new SetTeamsAccessoriesCommand());

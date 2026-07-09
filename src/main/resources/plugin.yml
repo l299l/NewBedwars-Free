@@ -32,7 +32,6 @@ permissions:
     children:
       newbedwars.bw.arena: true
       newbedwars.bw.setlobby: true
-      newbedwars.bw.setupguis: true
       newbedwars.bw.managegame: true
 
   newbedwars.bw.arena:
@@ -68,9 +67,6 @@ permissions:
   newbedwars.bw.setlobby:
     description: Set the lobby location.
     default: op
-  newbedwars.bw.setupguis:
-    description: Open the GUI editor.
-    default: op
   newbedwars.bw.managegame:
     description: Manage ongoing games.
     default: op
@@ -90,6 +86,9 @@ permissions:
       newbedwars.bw.spectate: true
       newbedwars.bw.lang: true
       newbedwars.bw.help: true
+      newbedwars.bw.stats: true
+      newbedwars.bw.profile: true
+      newbedwars.bw.leaderboard: true
       newbedwars.party: true
 
   newbedwars.bw.join:
@@ -109,6 +108,15 @@ permissions:
     default: true
   newbedwars.bw.help:
     description: View the help menu.
+    default: true
+  newbedwars.bw.stats:
+    description: View your or another player's stats and profile GUI.
+    default: true
+  newbedwars.bw.profile:
+    description: View your or another player's profile GUI, including fast-buy customization.
+    default: true
+  newbedwars.bw.leaderboard:
+    description: View the top-10 leaderboards.
     default: true
 
   # ---- Party ----------------------------------------

@@ -4,7 +4,33 @@ All notable changes to NewBedwars are documented here.
 
 ---
 
-## [2.1-beta] — 2026-06-24
+## [2.2-beta] — 2026-07-09
+
+### Added
+- **Void deaths drop resources** — dying to the void without a player attacker now drops your iron/gold/diamond/emerald at your last standing position instead of losing them
+- **Hunger disabled in arenas**
+- **Locator Bar disabled in arenas** — the new XP-bar player tracker (26.x+) is turned off on arena worlds
+- **`/bw setGeneratorLeveling <configId>`** — pick which `generators/*.yml` config an arena uses, from setup mode
+
+### Fixed
+- **Portable Tower direction** — the ladder/entrance now face back towards the player instead of a hardcoded direction
+- **Fast-buy reset** — added a "Reset All" button to the Fast-Buy Customizer GUI, and fixed it (and plain Save) falling back to the YAML defaults correctly
+- **Fast-buy default grid misaligned** — `exampleShop.yml`'s default fast-buy items are now under the correct category columns
+- **Missing translations** — portable tower, fast-buy, and leaderboard/stats/profile messages are now localized
+- **Missing permissions** — added `newbedwars.bw.stats`, `.profile`, and `.leaderboard`
+- **Lobby location reverting on restart** — was being read before worlds finished loading at `STARTUP`; now loaded lazily
+
+### Changed
+- **Renamed `exampleGui.yml`/`exampleGui2.yml`** to `exampleShop.yml`/`exampleUpgrade.yml`
+- **Redesigned the default upgrade GUI** — bordered layout, quick-access Home/Traps buttons in the header, and a Home button in the footer so there's a way back out of the Traps page
+
+### Removed
+- **`/bw setupGuis` command** — never did anything useful
+- **`OtherGenerators` config section** — was never actually wired up, so it did nothing
+
+---
+
+## [2.1-beta] — 2026-06-25
 
 ### Added
 - **Arena statistics & leaderboards** — wins, losses, kills, deaths, final kills, beds broken, and games played are now persisted to `data/playerStats.json` (or the `Players` MySQL table) and updated at the end of every game; `/bw leaderboard [wins|kills|beds|fk]` shows the top 10 in chat

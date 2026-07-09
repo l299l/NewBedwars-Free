@@ -101,7 +101,7 @@ public class GuiDataManager {
                     }
                 }
                 fileWriter.close();
-                ConfigUpdater.update(NewBedwars.plugin, "exampleGui.yml", guiFile, Collections.singletonList("Slots"));
+                ConfigUpdater.update(NewBedwars.plugin, "exampleShop.yml", guiFile, Collections.singletonList("Slots"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -120,8 +120,8 @@ public class GuiDataManager {
     private List<File> createExampleGuis() {
         List<File> files = new ArrayList<>();
         try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("exampleGui.yml");
-            InputStream inputStream2 = getClass().getClassLoader().getResourceAsStream("exampleGui2.yml");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("exampleShop.yml");
+            InputStream inputStream2 = getClass().getClassLoader().getResourceAsStream("exampleUpgrade.yml");
             File file = new File(NewBedwars.plugin.getDataFolder(), "data/guis/exampleShop.yml");
             File file2 = new File(NewBedwars.plugin.getDataFolder(), "data/guis/exampleUpgrade.yml");
             assert inputStream != null;

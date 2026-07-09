@@ -204,9 +204,15 @@ public class FastBuyCustomizerGUI extends BasicGUI {
             }
         }
 
-        // Row 5 (slots 45-52): separator pane; slot 53: Save
+        // Row 5 (slots 45-52): separator pane; slot 49: Reset All; slot 53: Save
         ItemStack rowSep = pane(Material.GRAY_STAINED_GLASS_PANE, "");
         for (int i = 45; i < 53; i++) inv.setItem(i, rowSep);
+
+        ItemStack reset = pane(Material.RED_STAINED_GLASS_PANE,
+                ChatColor.RED + "" + ChatColor.BOLD + "Reset All",
+                ChatColor.GRAY + "Clears every fast-buy slot.",
+                ChatColor.GRAY + "Remember to Save & Close after.");
+        inv.setItem(resetSlot(), reset);
 
         ItemStack save = pane(Material.LIME_STAINED_GLASS_PANE,
                 ChatColor.GREEN + "" + ChatColor.BOLD + "Save & Close",
@@ -251,10 +257,38 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
     }
 
+    /**
+     * Clears all per-category overrides so the home page falls back to the YAML default
+     * fast-buy grid (an empty map, not a map of empty lists — see {@link com.l299l.newbedwars.player.PlayerIns}).
+     * Does not persist — caller must still Save & Close.
+     */
+    public void resetAll() {
+        selection.clear();
+        redraw();
+    }
+
     /** Returns slot 53. */
     public static int saveSlot() { return 53; }
 
-    public Map<String, List<String>> getSelection() { return selection; }
+    /** Returns slot 49. */
+    public static int resetSlot() { return 49; }
+
+    /**
+     * Returns the current selection for persistence, omitting categories with no picks.
+     * A category present with an empty list and a category absent from the map render
+     * identically (blank column) in {@code ShopGUI.renderCustomFastBuy}, but only a truly
+     * empty map trips the "no override, use the YAML default" fallback — so a player who
+     * opens the customizer and Saves without picking anything (or who Resets All) must not
+     * come back as a map full of empty lists, or their home page would render as blank
+     * instead of falling back to the YAML defaults.
+     */
+    public Map<String, List<String>> getSelection() {
+        Map<String, List<String>> persisted = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : selection.entrySet()) {
+            if (!entry.getValue().isEmpty()) persisted.put(entry.getKey(), entry.getValue());
+        }
+        return persisted;
+    }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 

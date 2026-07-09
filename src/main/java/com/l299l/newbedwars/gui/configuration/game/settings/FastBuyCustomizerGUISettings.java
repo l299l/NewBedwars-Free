@@ -3,7 +3,6 @@ package com.l299l.newbedwars.gui.configuration.game.settings;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.gui.configuration.game.guis.FastBuyCustomizerGUI;
 import com.l299l.newbedwars.gui.configuration.game.guis.ItemPickerGUI;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,7 +22,14 @@ public class FastBuyCustomizerGUISettings implements Listener {
         if (slot == FastBuyCustomizerGUI.saveSlot()) {
             NewBedwars.plugin.getPlayerManager().updateFastBuy(player.getName(), gui.getSelection());
             player.closeInventory();
-            player.sendMessage(ChatColor.GREEN + "[NewBedwars] Fast-buy saved!");
+            NewBedwars.plugin.getMessages().send(player, "FastBuySaved");
+            return;
+        }
+
+        // Reset All (slot 49)
+        if (slot == FastBuyCustomizerGUI.resetSlot()) {
+            gui.resetAll();
+            NewBedwars.plugin.getMessages().send(player, "FastBuyReset");
             return;
         }
 

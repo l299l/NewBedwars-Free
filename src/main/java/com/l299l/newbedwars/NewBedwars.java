@@ -125,7 +125,7 @@ public final class NewBedwars extends JavaPlugin {
         scoreboardManager.loadScoreboards();
         reloadGenerators();
         reloadEvents();
-        lobbyLocation = LobbyData.load();
+        lobbyLocation = null;
     }
 
     public Properties getProperties() {
@@ -162,6 +162,9 @@ public final class NewBedwars extends JavaPlugin {
     }
 
     public Location getLobbyLocation() {
+        if (lobbyLocation == null) {
+            lobbyLocation = LobbyData.load();
+        }
         return lobbyLocation != null ? lobbyLocation : Bukkit.getWorlds().get(0).getSpawnLocation();
     }
 

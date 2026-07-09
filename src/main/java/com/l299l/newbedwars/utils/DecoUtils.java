@@ -30,11 +30,7 @@ public class DecoUtils {
         return armorStand;
     }
 
-    /**
-     * Removes all tracked setup armor stands within ±1 block (X/Z) and ±2 blocks (Y) of
-     * the given location. Call this before calling summonSetupArmorStand for the same slot
-     * to avoid leaving a ghost stand behind when a position is overridden.
-     */
+
     public static void removeArmorStandAt(Location location) {
         armorStands.removeIf(as -> {
             if (as.getLocation().getWorld() != location.getWorld()) return false;

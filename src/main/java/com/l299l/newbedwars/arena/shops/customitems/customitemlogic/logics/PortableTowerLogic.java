@@ -1,11 +1,11 @@
 package com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics;
 
+import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.LogicType;
 import com.l299l.newbedwars.arena.team.Team;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -42,7 +42,7 @@ public class PortableTowerLogic implements CustomLogic {
                     for (int dy = 0; dy <= 6; dy++) {
                         Location check = new Location(world, cx + dx, floorY + dy, cz + dz);
                         if (arenaImpl.isInTeamBase(check) || arenaImpl.isNearDiamondOrEmeraldGenerator(check)) {
-                            player.sendMessage(ChatColor.RED + "Cannot place tower here — protected area!");
+                            NewBedwars.plugin.getMessages().send(player, "PortableTowerProtectedArea");
                             return; // item NOT consumed — caller skips consumeOneItem for PORTABLE_TOWER
                         }
                     }
@@ -57,6 +57,12 @@ public class PortableTowerLogic implements CustomLogic {
             player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
         }
 
+        // Entrance faces back towards where the player was standing when they placed the
+        // tower (the opposite of their look direction), not away from them.
+        BlockFace facing = getCardinalDirection(player.getLocation().getYaw()).getOppositeFace();
+        int doorDx = facing.getModX();
+        int doorDz = facing.getModZ();
+
         for (int dx = -1; dx <= 1; dx++)
             for (int dz = -1; dz <= 1; dz++)
                 setTracked(arena, wool, world, cx + dx, floorY, cz + dz);
@@ -70,11 +76,11 @@ public class PortableTowerLogic implements CustomLogic {
                         if (!lb.getType().isAir() && !arena.isPlacedBlock(lb.getLocation())) continue;
                         lb.setType(Material.LADDER, false);
                         Ladder ld = (Ladder) lb.getBlockData();
-                        ld.setFacing(BlockFace.SOUTH);
+                        ld.setFacing(facing);
                         lb.setBlockData(ld, false);
                         arena.addPlacedBlock(lb.getLocation());
-                    } else if (dx == 0 && dz == 1 && dy <= 2) {
-                        // South doorway — air for entry/exit
+                    } else if (dx == doorDx && dz == doorDz && dy <= 2) {
+                        // Doorway facing the player's direction on placement — air for entry/exit
                     } else {
                         setTracked(arena, wool, world, cx + dx, y, cz + dz);
                     }
@@ -98,6 +104,15 @@ public class PortableTowerLogic implements CustomLogic {
                 }
             }
         }
+    }
+
+    private BlockFace getCardinalDirection(float yaw) {
+        yaw = yaw % 360;
+        if (yaw < 0) yaw += 360;
+        if (yaw >= 315 || yaw < 45) return BlockFace.SOUTH;
+        if (yaw < 135) return BlockFace.WEST;
+        if (yaw < 225) return BlockFace.NORTH;
+        return BlockFace.EAST;
     }
 
     private void setTracked(IArena arena, Material mat, org.bukkit.World world, int x, int y, int z) {

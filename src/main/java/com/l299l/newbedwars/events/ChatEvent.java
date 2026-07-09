@@ -30,12 +30,10 @@ public class ChatEvent implements Listener {
         IArena arena = Arena.arenaByWorld.get(sender.getWorld());
 
         if (arena == null) {
-            // Sender is in the lobby — remove arena players from recipients
             event.getRecipients().removeIf(p -> Arena.arenaByWorld.get(p.getWorld()) != null);
             return;
         }
 
-        // Sender is in an arena — take full control of routing
         event.setCancelled(true);
 
         if (!Properties.ArenaChatEnabled) {

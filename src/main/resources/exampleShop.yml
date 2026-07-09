@@ -1,7 +1,7 @@
 # =====================================================
 #  NewBedwars — Example Shop GUI
 #
-#  This file is copied to plugins/NewBedwars/guis/ on first start.
+#  This file is copied to plugins/NewBedwars/data/guis/exampleShop.yml on first start.
 #  Edit the copy there; changes here only apply to fresh installs.
 #
 #  GuiId       — unique identifier used in DefaultTeamShopGui
@@ -29,6 +29,13 @@ Empty: empty
 HeaderSize: 18
 FooterSize: 9
 
+# Slots 20-26 and 29-35 below are the DEFAULT home-page fast-buy grid (used until a
+# player customizes their own fast-buy via the profile GUI / "Reset All"). Each column
+# lines up with the category buttons in slots 2-8 (blocks, tools, weapons, armor, bow,
+# potions, misc, in that order) — keep items in the column matching their category if
+# you edit this, or the home page will show e.g. swords under the "tools" icon.
+# NOTE: these YAML keys are 1-indexed but map to 0-indexed inventory slots (key N ->
+# slot N-1, see GuiDataYaml#L92-93)
 Slots:
   1: category:home
   2: category:blocks
@@ -49,22 +56,22 @@ Slots:
   17: fill
   18: fill
   19: empty
-  20: ci:ironsword
+  20: ci:wool
   21: ci:ironaxe
-  22: ci:chainmailarmor
-  23: ci:wool
-  24: ci:speed
-  25: ci:tnt
-  26: ci:bow
+  22: ci:ironsword
+  23: ci:chainmailarmor
+  24: ci:bow
+  25: ci:speed
+  26: ci:tnt
   27: empty
   28: empty
-  29: ci:diamondsword
+  29: ci:EndStone
   30: ci:diamondaxe
-  31: ci:ironarmor
-  32: ci:EndStone
-  33: ci:jump
-  34: ci:fireball
-  35: ci:arrow
+  31: ci:diamondsword
+  32: ci:ironarmor
+  33: ci:arrow
+  34: ci:jump
+  35: ci:fireball
   36: empty
   37: empty
   38: empty

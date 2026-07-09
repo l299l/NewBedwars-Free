@@ -3,16 +3,22 @@ package com.l299l.newbedwars.commands.bedwars.main;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
+import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.gui.configuration.game.guis.ProfileGUI;
 import com.l299l.newbedwars.player.PlayerIns;
 import com.l299l.newbedwars.player.PlayerStats;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class StatsCommand extends SubCommand {
+    private final Messages msg;
+
+    public StatsCommand() {
+        msg = NewBedwars.plugin.getMessages();
+    }
 
     @Override public String getName() { return "stats"; }
     @Override public String getDescription() { return "View your or another player's stats."; }
@@ -21,6 +27,10 @@ public class StatsCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena arena) {
+        if (!player.hasPermission("newbedwars.bw.stats") && !player.isOp()) {
+            msg.send(player, "NoPermissions");
+            return;
+        }
         if (args.length < 2) {
             player.openInventory(new ProfileGUI(NewBedwars.plugin.getGuiManager(), player, player).getInventory());
             return;
@@ -35,25 +45,28 @@ public class StatsCommand extends SubCommand {
     }
 
     public static void sendStatsChat(Player receiver, String targetName, PlayerStats stats, String language) {
-        String prefix = ChatColor.GOLD + "[NewBedwars] " + ChatColor.RESET;
-        String line = prefix + ChatColor.GRAY + "------------------------------";
-        receiver.sendMessage(line);
-        receiver.sendMessage(prefix + ChatColor.GOLD + "" + ChatColor.BOLD + targetName + "'s Stats");
+        Messages msg = NewBedwars.plugin.getMessages();
+        msg.send(receiver, "StatsDivider");
+        msg.send(receiver, "StatsHeader", new HashMap<>() {{ put("/player/", targetName); }});
         if (language != null) {
-            receiver.sendMessage(prefix + ChatColor.AQUA + "Language: " + ChatColor.WHITE + language);
+            msg.send(receiver, "StatsLanguage", new HashMap<>() {{ put("/language/", language); }});
         }
-        receiver.sendMessage(prefix + ChatColor.GREEN + "Wins: " + ChatColor.WHITE + stats.wins()
-                + "  " + ChatColor.RED + "Losses: " + ChatColor.WHITE + stats.losses());
+        msg.send(receiver, "StatsWinsLosses", new HashMap<>() {{
+            put("/wins/", String.valueOf(stats.wins()));
+            put("/losses/", String.valueOf(stats.losses()));
+        }});
         double wl = stats.losses() == 0 ? stats.wins() : (double) stats.wins() / stats.losses();
-        receiver.sendMessage(prefix + ChatColor.YELLOW + "W/L: " + ChatColor.WHITE + String.format("%.2f", wl));
-        receiver.sendMessage(prefix + ChatColor.YELLOW + "Kills: " + ChatColor.WHITE + stats.kills()
-                + "  " + ChatColor.GRAY + "Deaths: " + ChatColor.WHITE + stats.deaths());
+        msg.send(receiver, "StatsWL", new HashMap<>() {{ put("/wl/", String.format("%.2f", wl)); }});
+        msg.send(receiver, "StatsKillsDeaths", new HashMap<>() {{
+            put("/kills/", String.valueOf(stats.kills()));
+            put("/deaths/", String.valueOf(stats.deaths()));
+        }});
         double kd = stats.deaths() == 0 ? stats.kills() : (double) stats.kills() / stats.deaths();
-        receiver.sendMessage(prefix + ChatColor.YELLOW + "K/D: " + ChatColor.WHITE + String.format("%.2f", kd));
-        receiver.sendMessage(prefix + ChatColor.AQUA + "Final Kills: " + ChatColor.WHITE + stats.finalKills());
-        receiver.sendMessage(prefix + ChatColor.GOLD + "Beds Broken: " + ChatColor.WHITE + stats.bedsBroken());
-        receiver.sendMessage(prefix + ChatColor.LIGHT_PURPLE + "Games Played: " + ChatColor.WHITE + stats.gamesPlayed());
-        receiver.sendMessage(line);
+        msg.send(receiver, "StatsKD", new HashMap<>() {{ put("/kd/", String.format("%.2f", kd)); }});
+        msg.send(receiver, "StatsFinalKills", new HashMap<>() {{ put("/finalkills/", String.valueOf(stats.finalKills())); }});
+        msg.send(receiver, "StatsBedsBroken", new HashMap<>() {{ put("/beds/", String.valueOf(stats.bedsBroken())); }});
+        msg.send(receiver, "StatsGamesPlayed", new HashMap<>() {{ put("/games/", String.valueOf(stats.gamesPlayed())); }});
+        msg.send(receiver, "StatsDivider");
     }
 
     @Override

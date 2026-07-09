@@ -29,7 +29,7 @@ public class SetArenaGuiCommand extends SubCommand {
 
     @Override
     public String getExample() {
-        return "/bw setGui shop exampleGui";
+        return "/bw setGui shop exampleShop";
     }
 
     @Override

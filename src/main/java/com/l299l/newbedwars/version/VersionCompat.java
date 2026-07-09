@@ -1,8 +1,10 @@
 package com.l299l.newbedwars.version;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -10,6 +12,8 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+
+import java.lang.reflect.Field;
 
 /** Cross-version compatibility layer for 1.17 – 26.1.2. Reflection handles PotionData/setBasePotionType API gap in 1.20.5. */
 public final class VersionCompat {
@@ -151,5 +155,26 @@ public final class VersionCompat {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    /**
+     * Disables the "Locator Bar" gamerule (the XP-bar player tracker added in 26.x) on servers
+     * that have it. {@code GameRule.LOCATOR_BAR} does not exist in the 1.17.1 API we compile
+     * against, so it can't be referenced directly — but the *running* server's own copy of
+     * {@code org.bukkit.GameRule} (not our compile-time stub) does have the field on 26.x, so a
+     * plain reflective field lookup finds it there. On any version without this gamerule,
+     * getField() throws NoSuchFieldException and this is a silent no-op.
+     */
+    @SuppressWarnings("unchecked")
+    public static void disableLocatorBar(World world) {
+        try {
+            Field field = GameRule.class.getField("LOCATOR_BAR");
+            GameRule<Boolean> rule = (GameRule<Boolean>) field.get(null);
+            if (rule != null) {
+                world.setGameRule(rule, false);
+            }
+        } catch (ReflectiveOperationException | ClassCastException ignored) {
+            // No Locator Bar gamerule on this server version — nothing to disable.
+        }
     }
 }

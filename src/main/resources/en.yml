@@ -327,6 +327,8 @@ PartyNotAllowedInArena: "&b[NewBedwars] &8&l> &cParties are not allowed in this 
 ReloadSuccess: "&b[NewBedwars] &8&l> &aPlugin reloaded successfully!"
 GameruleSet: "&b[NewBedwars] &8&l> &fGamerule &e/gamerule/ &fset to &e/value/&f!"
 GameruleInvalid: "&4&lError: &r&cInvalid gamerule! Available: RandomTeams, AllowParties, AllowSpectators, AllowTeamChat, AllowGlobalChat, AllowPrivateChat, AllowTeamDamage, MakeSwordsPermanent"
+GeneratorLevelingSet: "&b[NewBedwars] &8&l> &fGenerator leveling config set to &e/configId/&f!"
+GeneratorLevelingInvalid: "&4&lError: &r&cGenerator leveling config &e/configId/ &cnot found! Available: &e/available/"
 ResourcePackSet: "&b[NewBedwars] &8&l> &aResource pack set for this arena!"
 ResourcePackCleared: "&b[NewBedwars] &8&l> &aResource pack cleared for this arena!"
 ResourcePackHashInvalid: "&4&lError: &r&cInvalid SHA-1 hash! Must be exactly 40 hex characters."
@@ -336,3 +338,32 @@ SchematicSaved: "&b[NewBedwars] &8&l> &aSchematic saved as &e/name/&a!"
 SchematicLoaded: "&b[NewBedwars] &8&l> &aSchematic &e/name/ &aloaded successfully!"
 SchematicNotFound: "&4&lError: &r&cSchematic &e/name/ &cnot found!"
 SchematicError: "&4&lError: &r&cAn error occurred while processing the schematic!"
+
+#--- Portable Tower ---
+PortableTowerProtectedArea: "&b[NewBedwars] &8&l> &cCannot place a tower here — protected area!"
+
+#--- Fast-Buy customizer ---
+FastBuySaved: "&b[NewBedwars] &8&l> &aFast-buy saved!"
+FastBuyReset: "&b[NewBedwars] &8&l> &eFast-buy slots reset — click Save & Close to confirm."
+
+#--- Leaderboard ---
+LeaderboardHeader: "&6--- Top 10 by /category/ ---"
+LeaderboardEmpty: "&7No data yet."
+LeaderboardEntry: "&e/rank/. &f/player/ &7- &b/value/"
+LeaderboardCategoryWins: "Wins"
+LeaderboardCategoryKills: "Kills"
+LeaderboardCategoryBeds: "Beds Broken"
+LeaderboardCategoryFinalKills: "Final Kills"
+
+#--- Stats / Profile ---
+StatsDivider: "&8------------------------------"
+StatsHeader: "&6&l/player/'s Stats"
+StatsOffline: "&c/player/ is offline; showing cached data."
+StatsLanguage: "&bLanguage: &f/language/"
+StatsWinsLosses: "&aWins: &f/wins/  &cLosses: &f/losses/"
+StatsWL: "&eW/L: &f/wl/"
+StatsKillsDeaths: "&eKills: &f/kills/  &7Deaths: &f/deaths/"
+StatsKD: "&eK/D: &f/kd/"
+StatsFinalKills: "&bFinal Kills: &f/finalkills/"
+StatsBedsBroken: "&6Beds Broken: &f/beds/"
+StatsGamesPlayed: "&dGames Played: &f/games/"

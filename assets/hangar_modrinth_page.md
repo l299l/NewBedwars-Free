@@ -125,7 +125,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 /bw arena disable <name>        — Disable a running arena
 /bw arena setup <name>          — Enter setup mode for an arena
 /bw setLobby                    — Set the global lobby spawn point
-/bw setupGuis                   — Open the GUI configuration tool
 /bw manageGame                  — In-game admin management panel (phase skip, force-start, stop)
 /bw reload                      — Save arenas, kick all players, and reload the configuration
 ```
@@ -134,6 +133,7 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 ```
 /bw gamerule <name> <true|false>             — Set an arena gamerule (tab-completes names and values)
 /bw setResourcePack <url|clear> [sha1hash]   — Set or clear a per-arena resource pack URL
+/bw setGeneratorLeveling <configId>          — Choose which generators/*.yml config this arena uses
 ```
 
 ---
@@ -151,7 +151,6 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | `newbedwars.bw.arena.disable` | op | Disable arenas |
 | `newbedwars.bw.arena.setup` | op | Enter arena setup mode |
 | `newbedwars.bw.setlobby` | op | Set the lobby location |
-| `newbedwars.bw.setupguis` | op | Open the GUI editor |
 | `newbedwars.bw.managegame` | op | Manage running games |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions |
 

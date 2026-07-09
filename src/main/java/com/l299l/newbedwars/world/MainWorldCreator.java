@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.world;
 
+import com.l299l.newbedwars.version.VersionCompat;
 import com.l299l.newbedwars.world.chunkgenerators.VoidGenerator;
 import com.l299l.newbedwars.world.schematic.SchematicManager;
 import org.bukkit.Bukkit;
@@ -27,6 +28,7 @@ public class MainWorldCreator implements WorldCreator {
                 w.setGameRule(GameRule.DO_INSOMNIA, false);
                 w.setGameRule(GameRule.DO_MOB_SPAWNING, false);
                 w.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+                VersionCompat.disableLocatorBar(w);
             }
             Bukkit.getWorlds().add(w);
             return true;

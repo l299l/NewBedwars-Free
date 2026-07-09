@@ -23,6 +23,7 @@ import com.l299l.newbedwars.utils.DecoUtils;
 import com.l299l.newbedwars.utils.JsonUtils;
 import com.l299l.newbedwars.scoreboard.NScoreboard;
 import com.l299l.newbedwars.scoreboard.ScoreboardManager;
+import com.l299l.newbedwars.version.VersionCompat;
 import org.bukkit.*;
 import org.bukkit.boss.BossBar;
 import org.bukkit.block.Block;
@@ -320,6 +321,7 @@ public class Arena implements IArena {
         newWorld.setGameRule(GameRule.DO_FIRE_TICK, false);
         newWorld.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
         newWorld.setGameRule(GameRule.KEEP_INVENTORY, true);
+        VersionCompat.disableLocatorBar(newWorld);
         world = newWorld;
         arenaByWorld.put(newWorld, this);
         DecoUtils.removeAllArmorStands(this);

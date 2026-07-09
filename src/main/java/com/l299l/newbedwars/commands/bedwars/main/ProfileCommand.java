@@ -3,16 +3,22 @@ package com.l299l.newbedwars.commands.bedwars.main;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
+import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.gui.configuration.game.guis.ProfileGUI;
 import com.l299l.newbedwars.player.PlayerIns;
 import com.l299l.newbedwars.player.PlayerStats;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class ProfileCommand extends SubCommand {
+    private final Messages msg;
+
+    public ProfileCommand() {
+        msg = NewBedwars.plugin.getMessages();
+    }
 
     @Override public String getName() { return "profile"; }
     @Override public String getDescription() { return "View your or another player's profile."; }
@@ -21,8 +27,11 @@ public class ProfileCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena arena) {
+        if (!player.hasPermission("newbedwars.bw.profile") && !player.isOp()) {
+            msg.send(player, "NoPermissions");
+            return;
+        }
         if (args.length < 2) {
-            // Open profile GUI for self
             player.openInventory(new ProfileGUI(NewBedwars.plugin.getGuiManager(), player, player).getInventory());
             return;
         }
@@ -36,8 +45,7 @@ public class ProfileCommand extends SubCommand {
             PlayerStats stats = NewBedwars.plugin.getPlayerManager().getStats(targetName);
             PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(targetName);
             String language = ins != null ? ins.language().name() : null;
-            String prefix = ChatColor.GOLD + "[NewBedwars] " + ChatColor.RESET;
-            player.sendMessage(prefix + ChatColor.RED + targetName + " is offline; showing cached data.");
+            msg.send(player, "StatsOffline", new HashMap<>() {{ put("/player/", targetName); }});
             StatsCommand.sendStatsChat(player, targetName, stats, language);
         }
     }
