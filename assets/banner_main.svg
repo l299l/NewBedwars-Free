@@ -141,7 +141,7 @@
     <rect x="1" y="1" width="88" height="26" rx="13" fill="none" stroke="#ff8888" stroke-width="1" opacity="0.5"/>
     <text x="45" y="19" font-family="'Segoe UI', Arial, sans-serif" font-size="13"
           font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="2">
-      v2.1-BETA
+      v2.2-BETA
     </text>
   </g>
 
@@ -157,6 +157,6 @@
   <!-- Bottom label -->
   <text x="600" y="284" font-family="'Segoe UI', Arial, sans-serif" font-size="12"
         fill="#666666" text-anchor="middle" letter-spacing="3">
-    PAPER 1.17 – 26.1.2  ·  JAVA 16+  ·  FREE
+    PAPER 1.17 – 26.2  ·  JAVA 16+  ·  FREE
   </text>
 </svg>

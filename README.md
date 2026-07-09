@@ -9,104 +9,134 @@
 </div>
 
 ---
+# NewBedwars
 
-## 📖 Overview
+A modern, fully configurable Bedwars plugin built from the ground up for **Paper 1.17+**. You get the classic Bedwars experience (teams, beds, generators, shops) plus a proper in-game setup system, YAML-driven GUIs, multi-arena support, and deep gamerule control. No extra plugins needed.
 
-**NewBedwars** is a modern, fully configurable Bedwars plugin built from the ground up for **Paper 1.17+**. It delivers the classic Bedwars experience with a powerful in-game setup system, YAML-driven GUIs, multi-arena support, and deep gamerule control - all without requiring any additional plugin dependencies.
+Whether you're running a small survival server and just want to add a Bedwars minigame, or building a full-blown Bedwars network, NewBedwars gives you the tools to build polished arenas without a headache.
 
-Whether you're running a small survival server looking to add a Bedwars minigame, or building a dedicated Bedwars network, NewBedwars gives you the tools to create polished, production-ready arenas with minimal configuration effort.
-
-> ⚠️ **This is a beta release.** Core gameplay is stable and feature-complete. Please report any issues via the GitHub issue tracker.
-
----
-
-## ✨ Key Features
-
-### ⚔️ Gameplay
-| Feature | Description |
-|---------|-------------|
-| **Multi-Arena** | Run unlimited simultaneous arenas, each with its own world |
-| **Team System** | Configurable team count, colors, player limits |
-| **Quick Void** | Instant death below a configurable Y level |
-| **Build Protection** | Per-team zones where players cannot place blocks |
-| **Rejoin System** | Players can reconnect within a configurable time window |
-| **Party System** | Group up with friends via `/party`; invite with clickable chat buttons; party admin leads the whole group into an arena together |
-
-### 💬 Chat & Visibility
-| Feature | Description |
-|---------|-------------|
-| **Arena Chat Isolation** | Each arena has its own chat — lobby players and other arenas are completely isolated |
-| **Team Chat** | Type `!message` to send a team-only message, controlled per arena via gamerule |
-| **Global Arena Chat** | Optional arena-wide chat channel, toggle per arena via gamerule |
-| **Tab List Isolation** | Each arena gets its own tab list — lobby players are hidden from arena players and vice versa |
-
-### 🎭 Display & HUD
-| Feature | Description |
-|---------|-------------|
-| **Bossbar** | YAML templates for waiting, playing, and ending states |
-| **Scoreboard** | Per-player scoreboards with full placeholder support |
-| **Spectator Mode** | Fly around the arena; compass teleports to live players |
-| **Multi-Language** | English, Polish, German, Spanish, French, and Russian — missing keys fall back to English automatically |
-| **Per-Arena Resource Pack** | Force a custom resource pack for each arena; automatically sent on join and cleared on leave |
-
-### 🔌 Integrations
-| Feature | Description |
-|---------|-------------|
-| **PlaceholderAPI** | 14 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and external plugins *(soft dependency — plugin loads without it)* |
-| **WorldEdit / FAWE** | Create arenas directly from `.schem` / `.schematic` files saved in the WorldEdit schematics folder *(soft dependency — manual setup still works without it)* |
+> **This is a beta release.** Core gameplay is stable and feature-complete. Please report any issues via the GitHub issue tracker.
 
 ---
 
-## 💻 Commands
+## Why this exists
 
-### Player Commands
-```
-/bw join [arena]      — Open arena selector or join a specific arena
-/bw rejoin            — Rejoin your previous arena
-/bw lobby             — Leave the arena and return to the main lobby
-/bw spectate [arena]  — Join a running arena as spectator
-/bw lang <en|pl|de|es|fr|ru>  — Change your display language
-/bw help              — Show all available commands
-/bw stats [player]    - Show players stats
-/bw profile [player]    - Show players stats
-/bw leaderboard [wins|kills|beds|fk] - Show top 10 players by a stat.
-/lobby                — Shortcut: teleport to lobby
-/lang <en|pl|de|es|fr|ru>     — Shortcut: change language
-```
-
-### Party Commands
-```
-/party invite <player>  — Invite a player to your party
-/party accept           — Accept a pending invite (clickable in chat)
-/party deny             — Deny a pending invite (clickable in chat)
-/party leave            — Leave your current party
-/party list             — List all party members
-/party kick <player>    — Kick a member from your party (admin only)
-/party admin <player>   — Transfer the admin role (admin only)
-/p                      — Alias for /party
-```
-
-### Admin Commands
-```
-/bw arena create <name> [-sche <schematic>] [-n]  — Create a new arena (optionally from a WorldEdit schematic)
-/bw arena list                  — List all arenas and their current status
-/bw arena delete <name>         — Permanently delete an arena
-/bw arena enable <name>         — Enable a fully configured arena
-/bw arena disable <name>        — Disable a running arena
-/bw arena setup <name>          — Enter setup mode for an arena
-/bw setLobby                    — Set the global lobby spawn point
-/bw manageGame                  — In-game admin management panel (phase skip, force-start, stop)
-/bw reload                      — Save arenas, kick all players, and reload the configuration
-```
+A lot of free Bedwars plugins make you pick one: simple but bare-bones, or powerful but bloated with dependencies and a config file the size of a novel. NewBedwars tries to skip that trade-off. You set up an arena entirely in-game through a guided setup flow, so there's no hand-editing YAML just to place a bed or a generator. Everything from the shop GUI to the scoreboard is defined in YAML you can reshape without touching a single line of Java. PlaceholderAPI and WorldEdit are supported if you have them, but you don't need either one. Install the jar, start the server, and you've got a fully working Bedwars setup.
 
 ---
 
-## 🔑 Permissions
+## Highlights
 
-### Admin Permissions
+**Gameplay**
+- Multi-arena support, so you can run as many arenas as you want at once, each in its own world
+- Configurable team count, colors, and player limits per arena
+- Quick Void: instant death below a configurable Y level
+- Per-team build protection zones so the opposing side can't place blocks where they shouldn't
+- Rejoin system, so players can reconnect to a game if they get disconnected
+- Party system: group up with `/party`, invite friends with clickable chat buttons, and let the party admin lead everyone into an arena together
+
+**Chat & visibility**
+- Arena chat isolation, so each arena has its own chat completely separate from the lobby and other arenas
+- Team chat via `!message`, toggleable per arena
+- Optional arena-wide global chat channel
+- Tab list isolation, so lobby and arena players never see each other
+
+**Display & HUD**
+- YAML-templated bossbars for waiting, playing, and ending states
+- Per-player scoreboards with full placeholder support
+- Spectator mode with flight and a compass that teleports you to live players
+- Six languages out of the box: English, Polish, German, Spanish, French, and Russian. Missing keys just fall back to English automatically
+- Per-arena resource packs, sent automatically on join and cleared on leave
+
+**Integrations**
+- PlaceholderAPI: 14 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and other plugins. Totally optional, the plugin loads fine without it
+- WorldEdit / FastAsyncWorldEdit: build an arena straight from a `.schem` file instead of placing blocks by hand. Also optional, manual setup works fine without it
+
+---
+
+## Requirements
+
+- **Server:** Paper 1.17 – 26.2 *(Spigot will probably work too, but it's untested, so Paper is recommended)*
+- **Java:** 16 or higher
+
+Optional: **PlaceholderAPI**, if you want `%newbedwars_*%` placeholders elsewhere on your server, and **WorldEdit** or **FastAsyncWorldEdit**, if you'd rather build arenas from a schematic than by hand. Neither is required, NewBedwars runs fine standalone.
+
+---
+
+## Getting started
+
+1. Grab the jar from the **[latest Modrinth release](https://modrinth.com/plugin/new-bedwars/versions)** and drop it into your server's `/plugins/` folder.
+2. Start the server. Config files generate automatically.
+3. Set your lobby spawn: `/bw setLobby`
+4. Create your first arena: `/bw arena create myArena`
+5. Follow the setup checklist shown by `/bw arena`.
+6. Save the arena: `/bw save`
+7. Enable it when ready: `/bw arena enable myArena`
+
+### Building an arena from a schematic
+
+If you'd rather paste in a finished map than build one from scratch in-game:
+
+1. Save your map as a `.schem` file in WorldEdit's schematics folder (`plugins/WorldEdit/schematics/` or `plugins/FastAsyncWorldEdit/schematics/`).
+2. Run `/bw arena create myArena -sche myMap`.
+3. The map gets pasted automatically at world origin. Continue with the normal setup checklist from there.
+
+---
+
+## Commands
+
+**Player**
+
+| Command | Description |
+|---|---|
+| `/bw join [arena]` | Open the arena selector or join a specific arena |
+| `/bw rejoin` | Rejoin your previous arena |
+| `/bw lobby` | Leave the arena and return to the main lobby |
+| `/bw spectate [arena]` | Join a running arena as a spectator |
+| `/bw lang <en\|pl\|de\|es\|fr\|ru>` | Change your display language |
+| `/bw help` | Show all available commands |
+| `/bw stats [player]` | Show a player's stats |
+| `/bw profile [player]` | Show a player's stats via GUI |
+| `/bw leaderboard [wins\|kills\|beds\|fk]` | Show the top 10 players by a stat |
+| `/lobby` | Shortcut for `/bw lobby` |
+| `/lang <en\|pl\|de\|es\|fr\|ru>` | Shortcut for `/bw lang` |
+
+**Party**
+
+| Command | Description |
+|---|---|
+| `/party invite <player>` | Invite a player to your party |
+| `/party accept` | Accept a pending invite (clickable in chat) |
+| `/party deny` | Deny a pending invite (clickable in chat) |
+| `/party leave` | Leave your current party |
+| `/party list` | List all party members |
+| `/party kick <player>` | Kick a member from your party (admin only) |
+| `/party admin <player>` | Transfer the admin role (admin only) |
+| `/p` | Alias for `/party` |
+
+**Admin**
+
+| Command | Description |
+|---|---|
+| `/bw arena create <name> [-sche <schematic>] [-n]` | Create a new arena, optionally from a WorldEdit schematic |
+| `/bw arena list` | List all arenas and their current status |
+| `/bw arena delete <name>` | Permanently delete an arena |
+| `/bw arena enable <name>` | Enable a fully configured arena |
+| `/bw arena disable <name>` | Disable a running arena |
+| `/bw arena setup <name>` | Enter setup mode for an arena |
+| `/bw setLobby` | Set the global lobby spawn point |
+| `/bw manageGame` | In-game admin management panel (phase skip, force-start, stop) |
+| `/bw reload` | Save arenas, kick all players, and reload the configuration |
+
+---
+
+## Permissions
+
+**Admin**
+
 | Permission | Default | Description |
-|------------|---------|-------------|
-| `newbedwars.bw.admin` | op | Full admin access — grants all sub-permissions below |
+|---|---|---|
+| `newbedwars.bw.admin` | op | Full admin access, grants all sub-permissions below |
 | `newbedwars.bw.arena` | op | Manage arenas (grants the 5 sub-permissions below) |
 | `newbedwars.bw.arena.create` | op | Create arenas |
 | `newbedwars.bw.arena.delete` | op | Delete arenas |
@@ -117,69 +147,31 @@ Whether you're running a small survival server looking to add a Bedwars minigame
 | `newbedwars.bw.managegame` | op | Manage running games |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions |
 
-### Player Permissions
-| Permission               | Default | Description |
-|--------------------------|---------|-------------|
-| `newbedwars.bw.player`   | true | Bundle — grants all player permissions below |
-| `newbedwars.bw.join`     | true | Join arenas |
-| `newbedwars.bw.lobby`    | true | Teleport to the lobby |
-| `newbedwars.bw.rejoin`   | true | Rejoin after disconnect |
+**Player**
+
+| Permission | Default | Description |
+|---|---|---|
+| `newbedwars.bw.player` | true | Bundle, grants all player permissions below |
+| `newbedwars.bw.join` | true | Join arenas |
+| `newbedwars.bw.lobby` | true | Teleport to the lobby |
+| `newbedwars.bw.rejoin` | true | Rejoin after disconnect |
 | `newbedwars.bw.spectate` | true | Spectate arenas |
-| `newbedwars.bw.lang`     | true | Change language |
-| `newbedwars.bw.help`     | true | View help menu |
-| `newbedwars.party`       | true | Use all `/party` commands |
+| `newbedwars.bw.lang` | true | Change language |
+| `newbedwars.bw.help` | true | View help menu |
+| `newbedwars.party` | true | Use all `/party` commands |
 
-> **Config:** Set `RequireJoinPermission: true` or `RequireLobbyPermission: true` in `config.yml` to restrict `/bw join` and `/bw lobby` to players with the explicit permission. Both default to `false` (open to everyone).
-
----
-
-## 📦 Requirements
-
-- **Server:** Paper 1.17 – 26.2 *(Spigot likely compatible but untested — Paper recommended)*
-- **Java:** 16 or higher
-
-### Soft Dependencies *(optional)*
-| Plugin | Purpose |
-|--------|---------|
-| **PlaceholderAPI** | Enables `%newbedwars_*%` placeholders for scoreboards, chat formatters, etc. |
-| **WorldEdit** or **FastAsyncWorldEdit** | Required only for schematic-based arena creation (`-sche` flag) |
+Set `RequireJoinPermission: true` or `RequireLobbyPermission: true` in `config.yml` if you want `/bw join` and `/bw lobby` restricted to players with the explicit permission. Both default to `false` (open to everyone).
 
 ---
 
-## 🚀 Installation
+## PlaceholderAPI
 
-1. Download **NewBedwars-2.1-beta.jar**
-2. Drop it into your server's `/plugins/` folder
-3. Start the server — config files generate automatically
-4. Set your lobby spawn: `/bw setLobby`
-5. Create your first arena: `/bw arena create myArena`
-6. Follow the checklist shown by `/bw arena`
-7. Save arena by `/bw save`
-8. Enable when ready: `/bw arena enable myArena`
+If PlaceholderAPI is installed, all of the placeholders below become available under the prefix `%newbedwars_<placeholder>%`.
 
-### Creating an arena from a schematic
-1. Save your map as a `.schem` file in WorldEdit's schematics folder (`plugins/WorldEdit/schematics/` or `plugins/FastAsyncWorldEdit/schematics/`)
-2. Run: `/bw arena create myArena -sche myMap`
-3. The map is pasted automatically at world origin; continue with normal setup
-
----
-
-## 🐛 Support & Bug Reports
-
-Found a bug or have a suggestion? Please open an issue on **[GitHub](https://github.com/l299l/NewBedwars-Free/issues)** or use the platform's discussion section.
-
-> Most problems can be resolved quickly with a bug report.
-
----
-
-### PlaceholderAPI Placeholders
-
-All placeholders use the prefix `%newbedwars_<placeholder>%`.
-
-#### In-Game (per-player)
+**In-game (per-player)**
 
 | Placeholder | Description |
-|-------------|-------------|
+|---|---|
 | `%newbedwars_arena%` | Arena name the player is in, or `""` |
 | `%newbedwars_status%` | Game status: `waiting` / `starting` / `playing` / `ending` / `restarting`, or `lobby` |
 | `%newbedwars_team%` | Team name, or `""` |
@@ -194,10 +186,10 @@ All placeholders use the prefix `%newbedwars_<placeholder>%`.
 | `%newbedwars_phase%` | Current phase name, or `""` |
 | `%newbedwars_game_time%` | Seconds elapsed since game start, or `0` |
 
-#### Lifetime Stats (per-player)
+**Lifetime stats (per-player)**
 
 | Placeholder | Description |
-|-------------|-------------|
+|---|---|
 | `%newbedwars_stat_wins%` | Total wins |
 | `%newbedwars_stat_losses%` | Total losses |
 | `%newbedwars_stat_kills%` | Total kills |
@@ -208,10 +200,10 @@ All placeholders use the prefix `%newbedwars_<placeholder>%`.
 | `%newbedwars_stat_kd%` | Kill/death ratio (1 decimal, e.g. `2.3`) |
 | `%newbedwars_stat_wl%` | Win/loss ratio (1 decimal) |
 
-#### Per-Arena
+**Per-arena**
 
 | Placeholder | Description |
-|-------------|-------------|
+|---|---|
 | `%newbedwars_arena_<name>_status%` | Game status of the named arena |
 | `%newbedwars_arena_<name>_players%` | Current player count |
 | `%newbedwars_arena_<name>_max_players%` | Max players |
@@ -219,9 +211,9 @@ All placeholders use the prefix `%newbedwars_<placeholder>%`.
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-> **Beta exit:** NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.1.2).
+NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.1.2).
 
 - [x] Party support
 - [x] PlaceholderAPI support
@@ -236,7 +228,7 @@ All placeholders use the prefix `%newbedwars_<placeholder>%`.
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### Joining & Waiting
 <table>
@@ -312,8 +304,22 @@ All placeholders use the prefix `%newbedwars_<placeholder>%`.
 
 ---
 
+## Support & Bug Reports
+
+Found a bug or have a suggestion? Please open an issue on **[GitHub](https://github.com/l299l/NewBedwars-Free/issues)** or use the platform's discussion section. Most problems can be resolved quickly with a good bug report.
+
+---
+
+## License
+
+See [LICENSE.txt](LICENSE.txt).
+
+---
+
 <div align="center">
 
-**NewBedwars v2.1-beta** — Made with ❤️ by **l299l** — Paper 1.17 – 26.2
+[![Latest version](https://img.shields.io/modrinth/v/new-bedwars?label=latest%20version&style=flat-square)](https://modrinth.com/plugin/new-bedwars/versions)
+
+**NewBedwars** - Developed by **l299l** - Paper 1.17–26.2
 
 </div>
