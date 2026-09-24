@@ -142,6 +142,11 @@ public class Arena implements IArena {
     }
 
     @Override
+    public void setArenaStarting() {
+        starting();
+    }
+
+    @Override
     public void start() {
         if (countdownTimer != null && gameStatus == GameStatus.starting) {
             countdownTimer.cancel();
@@ -384,7 +389,7 @@ public class Arena implements IArena {
         if (players.size() > teams.size() * maxInTeam) {
             return false;
         } else if (players.size() + 1 >= minPlayers && gameStatus == GameStatus.waiting) {
-            starting();
+            checkIfCanStart();
         }
         Team team = joinPlayerToTeam(player);
         if (team == null) {
@@ -417,7 +422,7 @@ public class Arena implements IArena {
         if (targetTeam == null) return false;
 
         if (players.size() + partyMembers.size() >= minPlayers && gameStatus == GameStatus.waiting) {
-            starting();
+            checkIfCanStart();
         }
 
         final Team finalTeam = targetTeam;
@@ -1296,14 +1301,19 @@ public class Arena implements IArena {
         return sb.toString();
     }
 
-    private void starting() {
+    private void checkIfCanStart() {
         if (players.size() < minPlayers) {
             broadcast("NotEnoughPlayers", new HashMap<String, String>() {{
                 put("/arenaname/", arenaName);
                 put("/minplayers/", minPlayers.toString());
                 put("/players/", Integer.toString(players.size()));
             }});
+            return;
         }
+        starting();
+    }
+
+    private void starting() {
         gameStatus = GameStatus.starting;
         nextPhaseTime = waitingTime;
         countdownTimer = new CountdownTimer(players.keySet(), waitingTime, this);

@@ -4,6 +4,21 @@ All notable changes to NewBedwars are documented here.
 
 ---
 
+## [2.3-beta] - 2026-09-24
+
+### Added
+- **`/bw game start` command - Allows to start countdown timer to start game (No need to use `/bw game forcestart`)
+- **26.3 support**
+
+### Fixed
+- **Some team colors didn't work when creating team**
+- **Ender chest** - The ender chest is now cleared at the start of every game
+- **Disabled crafting in arenas**
+- **Diamond/Emerald generator** - Interacting with the generator hologram no longer puts the item in the player's inventory
+- **Join command tab completion** - The join command tab completion no longer suggests disabled arenas to join
+
+---
+
 ## [2.2-beta] — 2026-07-09
 
 ### Added

@@ -1,6 +1,8 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
+import com.google.common.collect.Lists;
 import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
@@ -8,6 +10,7 @@ import com.l299l.newbedwars.config.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,12 +33,12 @@ public class ManageGameCommand extends SubCommand {
 
     @Override
     public String getSyntax() {
-        return "/bw game <forcestart|stop|forcestop|nextPhase>";
+        return "/bw game <start|forcestart|stop|forcestop|nextPhase>";
     }
 
     @Override
     public String getExample() {
-        return "/bw game gui";
+        return "/bw game stop";
     }
 
     @Override
@@ -53,14 +56,25 @@ public class ManageGameCommand extends SubCommand {
             return;
         }
         switch (args[1]) {
-            case "gui" -> {
-                player.sendMessage(ChatColor.GOLD + "[NewBedwars] " + ChatColor.YELLOW + "The in-game game manager GUI is available in " + ChatColor.GOLD + "NewBedwars Premium" + ChatColor.YELLOW + ".");
-            }
             case "forcestart" -> {
-                arena.broadcast("AdminForcedStart", new HashMap<>() {{
-                    put("/admin/", player.getName());
-                }});
-                arena.start();
+                if (arena.status() == GameStatus.starting || arena.status() == GameStatus.waiting) {
+                    arena.broadcast("AdminForcedStart", new HashMap<>() {{
+                        put("/admin/", player.getName());
+                    }});
+                    arena.start();
+                }else {
+                    player.sendMessage(ChatColor.RED + "The game must be in waiting status to use this command.");
+                }
+            }
+            case "start" -> {
+                if (arena.status() == GameStatus.waiting) {
+                    arena.broadcast("AdminForcedStart", new HashMap<>() {{
+                        put("/admin/", player.getName());
+                    }});
+                    arena.setArenaStarting();
+                }else {
+                    player.sendMessage(ChatColor.RED + "The game must be in waiting status to use this command.");
+                }
             }
             case "stop" -> {
                 if (arena.status() != GameStatus.playing) {
@@ -74,9 +88,6 @@ public class ManageGameCommand extends SubCommand {
                     put("/admin/", player.getName());
                 }});
                 arena.stop();
-            }
-            case "troll" -> {
-                player.sendMessage(ChatColor.GOLD + "[NewBedwars] " + ChatColor.YELLOW + "Troll commands are available in " + ChatColor.GOLD + "NewBedwars Premium" + ChatColor.YELLOW + ".");
             }
             case "nextPhase" -> {
                 if (arena.status() != GameStatus.playing) {
@@ -94,9 +105,22 @@ public class ManageGameCommand extends SubCommand {
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        if (args.length == 2) {
-            return List.of("forcestart", "stop", "forcestop", "nextPhase");
+        if (args.length != 2) return null;
+        IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        ArrayList<String> completion = new ArrayList<>();
+        if (arena.status() == GameStatus.playing) {
+            completion.add("stop");
+            completion.add("forcestop");
+            completion.add("nextPhase");
         }
-        return null;
+        if (arena.status() == GameStatus.waiting) {
+            completion.add("start");
+            completion.add("forcestart");
+        }
+        if (arena.status() == GameStatus.starting) {
+            completion.add("forcestart");
+        }
+        return completion;
+
     }
 }

@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ public class Hologram {
             armorStand.setInvulnerable(true);
             armorStand.setCollidable(false);
             armorStand.setCanPickupItems(false);
+            armorStand.addDisabledSlots(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET,
+                    EquipmentSlot.OFF_HAND, EquipmentSlot.HAND);
             vector = new Vector(0, 0.3, 0);
             armorStands.add(armorStand);
         }

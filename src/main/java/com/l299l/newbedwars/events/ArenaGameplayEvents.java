@@ -15,6 +15,7 @@ import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.Bridg
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.IronGolemLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.NoneLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.SilverfishLogic;
+import org.bukkit.entity.*;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import com.l299l.newbedwars.arena.player.GamePlayer;
 import com.l299l.newbedwars.arena.team.Team;
@@ -29,11 +30,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Egg;
-import org.bukkit.entity.EnderDragon;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -48,7 +44,8 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.entity.Projectile;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -873,5 +870,17 @@ public class ArenaGameplayEvents implements Listener {
         } else {
             player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
         }
+    }
+
+    @EventHandler
+    public void onPlayerCraft(CraftItemEvent e) {
+        HumanEntity clicker = e.getWhoClicked();
+        if (!(clicker instanceof Player)) return;
+        Player p = (Player) clicker;
+
+        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        if (arena == null || arena.status() != GameStatus.playing) return;
+
+        e.setCancelled(true);
     }
 }

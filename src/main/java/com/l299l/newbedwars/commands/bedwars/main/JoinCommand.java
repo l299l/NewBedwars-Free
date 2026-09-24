@@ -12,6 +12,7 @@ import com.l299l.newbedwars.parties.Party;
 import com.l299l.newbedwars.parties.PartyManager;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -133,7 +134,14 @@ public class JoinCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 2) {
-            return Arena.arenaByName.keySet().stream().toList();
+            List<String> completions = new ArrayList<>();
+            for (String arenaName : Arena.arenaByName.keySet()) {
+                IArena arena = Arena.arenaByName.get(arenaName);
+                if (arena != null && arena.isEnabled()) {
+                    completions.add(arena.getArenaName());
+                }
+            }
+            return completions;
         }
         return null;
     }

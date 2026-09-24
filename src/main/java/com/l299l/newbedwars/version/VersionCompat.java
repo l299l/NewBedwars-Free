@@ -15,7 +15,7 @@ import org.bukkit.potion.PotionType;
 
 import java.lang.reflect.Field;
 
-/** Cross-version compatibility layer for 1.17 – 26.1.2. Reflection handles PotionData/setBasePotionType API gap in 1.20.5. */
+/** Cross-version compatibility layer for 1.17 – 26.3. Reflection handles PotionData/setBasePotionType API gap in 1.20.5. */
 public final class VersionCompat {
 
     /** True when running on Paper 1.20.5 or newer. */

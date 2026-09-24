@@ -41,7 +41,7 @@ public class CreateTeamCommand extends SubCommand {
     public void perform(Player player, String[] args, IArena arena) {
         if(args.length >= 2) {
             try {
-                ChatColor color = ChatColor.valueOf(args[1].toUpperCase());
+                ChatColor color = parseColor(args[1].toUpperCase());
                 String name;
                 if(args.length == 3) {
                     name = args[2];
@@ -61,8 +61,26 @@ public class CreateTeamCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if(args.length == 2) {
-            return new ArrayList<>(Arrays.asList("RED", "BLUE", "GREEN", "YELLOW", "PINK", "GRAY", "LIGHT_PURPLE", "AQUA", "LIME", "ORANGE", "PURPLE", "WHITE", "BLACK"));
+            return new ArrayList<>(Arrays.asList("WHITE", "LIGHT_GRAY", "GRAY", "BLACK", "RED", "ORANGE", "YELLOW", "LIME",
+                    "GREEN", "CYAN", "LIGHT_BLUE", "BLUE", "PURPLE"));
         }
         return null;
+    }
+
+    private ChatColor parseColor(String color) {
+        ChatColor c;
+        switch (color) {
+            case "PINK" -> c = ChatColor.LIGHT_PURPLE;
+            case "ORANGE" -> c = ChatColor.GOLD;
+            case "LIME" -> c = ChatColor.GREEN;
+            case "LIGHT_GRAY" -> c = ChatColor.GRAY;
+            case "GRAY" -> c = ChatColor.DARK_GRAY;
+            case "CYAN" -> c = ChatColor.DARK_AQUA;
+            case "LIGHT_BLUE" -> c = ChatColor.AQUA;
+            case "BLUE" -> c = ChatColor.DARK_BLUE;
+            case "PURPLE" -> c = ChatColor.DARK_PURPLE;
+            default -> c = ChatColor.valueOf(color);
+        }
+        return c;
     }
 }

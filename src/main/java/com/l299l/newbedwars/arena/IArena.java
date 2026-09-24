@@ -20,6 +20,7 @@ import java.util.*;
 
 public interface IArena {
     void start();
+    void setArenaStarting();
     void stop();
     boolean rollback();
     Integer getGameTime();

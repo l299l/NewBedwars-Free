@@ -56,7 +56,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 
 ## Requirements
 
-- **Server:** Paper 1.17 – 26.2 *(Spigot will probably work too, but it's untested, so Paper is recommended)*
+- **Server:** Paper 1.17 – 26.3 *(Spigot will probably work too, but it's untested, so Paper is recommended)*
 - **Java:** 16 or higher
 
 Optional: **PlaceholderAPI**, if you want `%newbedwars_*%` placeholders elsewhere on your server, and **WorldEdit** or **FastAsyncWorldEdit**, if you'd rather build arenas from a schematic than by hand. Neither is required, NewBedwars runs fine standalone.
@@ -320,6 +320,6 @@ See [LICENSE.txt](LICENSE.txt).
 
 [![Latest version](https://img.shields.io/modrinth/v/new-bedwars?label=latest%20version&style=flat-square)](https://modrinth.com/plugin/new-bedwars/versions)
 
-**NewBedwars** - Developed by **l299l** - Paper 1.17–26.2
+**NewBedwars** - Developed by **l299l** - Paper 1.17–26.3
 
 </div>
