@@ -7,7 +7,7 @@ All notable changes to NewBedwars are documented here.
 ## [2.3-beta] - 2026-09-24
 
 ### Added
-- **`/bw game start` command - Allows to start countdown timer to start game (No need to use `/bw game forcestart`)
+- **`/bw game start` command** - Allows to start countdown timer to start game (No need to use `/bw game forcestart`)
 - **26.3 support**
 
 ### Fixed
