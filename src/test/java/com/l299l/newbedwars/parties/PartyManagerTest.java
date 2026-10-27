@@ -177,4 +177,46 @@ class PartyManagerTest {
         pm.cleanupOfflinePlayer(invitee);
         assertFalse(pm.hasPendingInvite(invitee));
     }
+
+    @Test
+    void adminQuittingPassesAdminToOnlineMember() {
+        Player admin = mockPlayer("Alice");
+        Player member = mockPlayer("Bob");
+        Party party = pm.createParty(admin);
+        party.addMember(member.getUniqueId());
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(member.getUniqueId())).thenReturn(member);
+            bukkit.when(() -> Bukkit.getPlayer(admin.getUniqueId())).thenReturn(admin);
+            pm.cleanupOfflinePlayer(admin);
+        }
+        assertTrue(party.isAdmin(member.getUniqueId()));
+        assertTrue(party.getMembers().contains(admin.getUniqueId()));
+        verify(messages).send(member, "PartyYouAreAdmin");
+    }
+
+    @Test
+    void partyDisbandsWhenNoOtherMemberIsOnline() {
+        Player admin = mockPlayer("Alice");
+        Player member = mockPlayer("Bob");
+        Party party = pm.createParty(admin);
+        party.addMember(member.getUniqueId());
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(member.getUniqueId())).thenReturn(null);
+            pm.cleanupOfflinePlayer(admin);
+        }
+        assertFalse(pm.isPlayerInParty(admin));
+    }
+
+    @Test
+    void nonAdminQuittingKeepsAdmin() {
+        Player admin = mockPlayer("Alice");
+        Player member = mockPlayer("Bob");
+        Party party = pm.createParty(admin);
+        party.addMember(member.getUniqueId());
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(admin.getUniqueId())).thenReturn(admin);
+            pm.cleanupOfflinePlayer(member);
+        }
+        assertTrue(party.isAdmin(admin.getUniqueId()));
+    }
 }

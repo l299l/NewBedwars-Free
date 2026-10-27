@@ -7,13 +7,15 @@ import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.gui.GuiManager;
 import com.l299l.newbedwars.gui.GuiSave;
 import com.l299l.newbedwars.arena.IArena;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitTask;
 
 public class GamePlayer {
     private final Player player;
-    private final Team team;
-    private final ArmorContents inventory;
+    private Team team;
+    private ArmorContents inventory;
     private final GuiSave playerShopGui;
     private final GuiSave playerUpgradesGui;
     private int kills;
@@ -21,6 +23,7 @@ public class GamePlayer {
     private int bedsBroken;
     private int deaths;
     private BukkitTask respawnTask;
+    private Inventory virtualEnderChest;
 
     public GamePlayer(Player player, Team team) {
         this.player = player;
@@ -40,6 +43,12 @@ public class GamePlayer {
 
     public Team getTeam() {
         return team;
+    }
+
+    /** Teams are assigned at game start, so a player joins the waiting lobby without one. */
+    public void setTeam(Team team) {
+        this.team = team;
+        this.inventory = new ArmorContents(player, team);
     }
 
     public ArmorContents getInventory() {
@@ -88,6 +97,15 @@ public class GamePlayer {
 
     public void setRespawnTask(BukkitTask task) {
         this.respawnTask = task;
+    }
+
+    /** Per-game ender chest; the player's real ender chest is never touched. */
+    public Inventory getVirtualEnderChest() {
+        if (virtualEnderChest == null) {
+            virtualEnderChest = Bukkit.createInventory(null, 27,
+                    NewBedwars.plugin.getMessages().getMsg(player, "EnderChestTitle"));
+        }
+        return virtualEnderChest;
     }
 
     public void cancelRespawnTask() {

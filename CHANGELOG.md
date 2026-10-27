@@ -2,6 +2,23 @@
 
 All notable changes to NewBedwars are documented here.
 
+## [2.5-beta] - Coming soon
+
+### Added
+- **Automatic team assignment** - Teams are now assigned when the game starts instead of when joining, balanced evenly, and party members are kept together when possible
+- **`SplitPartiesToStart` gamerule** - Controls what happens when everyone in the arena would end up in one team (e.g. a single big party): `true` (default) splits the party over other teams so the game can start, `false` keeps waiting until players fill at least two teams
+
+### Fixed
+- **Items in shop/upgrade GUI** - Players can no longer move items into the shop, upgrade and other menus by shift-clicking them from their inventory
+- **Game ending instantly with a party** - A party joining alone no longer starts a game that immediately ends with "your team wins"
+- **Iron golem / silverfish kills** - When a player is killed by a golem or silverfish, their resources now drop on the ground instead of going to the owner (the owner still gets the kill)
+- **Rejoin timer** - The rejoin countdown is now cancelled when the player rejoins, the game ends, or their team is eliminated, so players can't come back to a lost team or be removed from a later game
+- **Party admin quitting** - When the party admin disconnects, the admin role now passes to another online member; a party with nobody online is disbanded, and pending invites from quitting players are removed
+- **Game ending when everyone leaves** - If all remaining players leave (or every team is eliminated at once), the game now ends as a draw and the arena resets instead of staying stuck
+- **Arena capacity** - An arena can no longer be joined by one player more than its maximum
+- **Party join countdown** - Joining as a party now starts the countdown correctly when the minimum player count is reached
+- **Leaving during countdown** - Leaving while the game is starting no longer cancels the countdown if enough players remain
+
 ## [2.4-beta] - 22.10.2026
 
 ### Added
@@ -12,6 +29,10 @@ All notable changes to NewBedwars are documented here.
 - **Advanced setup mode** - New setup mode that provides access to gamerules, resource packs, custom GUIs, and generator leveling configuration
 - **`/bw setupMode` command** - Reopens the setup mode selection GUI at any time during setup to switch between normal and advanced modes
 - **Team accessories location** - `/bw teamAccessories <team> [<x> <y> <z>]` sets a team-specific accessories location (available in advanced setup) (For now does nothing)
+- **Improved `/bw help`** - The command list now shows only what you can use in your current situation (lobby, in a game, spectating, admin), is paginated (`/bw help <page>`), translated, and clickable with hover details
+- **Better `/bw arena`** - Typing `/bw arena` (or a wrong subcommand) now shows a list of all arena commands with descriptions, and `/bw arena list` also shows each arena's state (setup mode or game status) and player count
+- **Game ender chest** - Ender chests in an arena now open a private per-game chest for each player; players' real ender chest contents are no longer wiped when a game starts
+- **Armor lock** - Players can no longer take off, swap or shift-click armor during a game, so purchased armor can't be lost or exploited
 
 ### Fixed
 - **Wrong world generator on 26.1+** - Fixed void world generator on the newest mc versions

@@ -120,6 +120,7 @@ public class ArenaInfoCommand extends SubCommand {
             player.sendMessage("    AllowTeamDamage: " + gameruleStr(gamerules.AllowTeamDamage));
             player.sendMessage("    MakeSwordsPermanent: " + gameruleStr(gamerules.MakeSwordsPermanent));
             player.sendMessage("    AllowMultipleGolems: " + gameruleStr(gamerules.AllowMultipleGolems));
+            player.sendMessage("    SplitPartiesToStart: " + gameruleStr(gamerules.SplitPartiesToStart));
             
             // Resource pack
             player.sendMessage("  " + field("Resource pack") + (arena.getResourcePackUrl() != null

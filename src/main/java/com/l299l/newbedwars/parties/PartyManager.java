@@ -126,7 +126,34 @@ public class PartyManager {
         return online;
     }
 
+    /**
+     * Called when a player quits: drops their pending invite, hands the admin role to another
+     * online member and disbands the party once nobody else is online. The quitting player stays
+     * in the party so they can come back to it.
+     */
     public void cleanupOfflinePlayer(Player player) {
-        pendingInvites.remove(player.getUniqueId());
+        UUID id = player.getUniqueId();
+        pendingInvites.remove(id);
+        Party party = playerToParty.get(id);
+        if (party == null) return;
+        UUID nextOnline = null;
+        for (UUID member : party.getMembers()) {
+            if (!member.equals(id) && Bukkit.getPlayer(member) != null) {
+                nextOnline = member;
+                break;
+            }
+        }
+        if (nextOnline == null) {
+            pendingInvites.values().removeIf(party::equals);
+            disbandParty(party);
+            return;
+        }
+        if (party.isAdmin(id)) {
+            party.setAdmin(nextOnline);
+            Player newAdmin = Bukkit.getPlayer(nextOnline);
+            if (newAdmin != null) {
+                messages.send(newAdmin, "PartyYouAreAdmin");
+            }
+        }
     }
 }

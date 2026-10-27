@@ -14,6 +14,8 @@ public class Gamerules {
     public Boolean AllowTeamDamage;
     public Boolean MakeSwordsPermanent;
     public Boolean AllowMultipleGolems;
+    /** true: split a party over other teams when it would be the only team; false: keep waiting for more players. */
+    public Boolean SplitPartiesToStart;
 
     public Gamerules() {
         HashMap<String, Boolean> gamerules = Properties.DefaultGamerules;
@@ -26,6 +28,7 @@ public class Gamerules {
         AllowTeamDamage = gamerules.get("AllowTeamDamage");
         MakeSwordsPermanent = gamerules.get("MakeSwordsPermanent");
         AllowMultipleGolems = gamerules.get("AllowMultipleGolems");
+        SplitPartiesToStart = gamerules.get("SplitPartiesToStart");
     }
 
     public void setGamerule(String name, Boolean value) {
@@ -39,6 +42,7 @@ public class Gamerules {
             case "AllowTeamDamage" -> AllowTeamDamage = value;
             case "MakeSwordsPermanent" -> MakeSwordsPermanent = value;
             case "AllowMultipleGolems" -> AllowMultipleGolems = value;
+            case "SplitPartiesToStart" -> SplitPartiesToStart = value;
         }
     }
     public String toJson() {
@@ -52,6 +56,7 @@ public class Gamerules {
                 ", \"AllowTeamDamage\":" + AllowTeamDamage +
                 ", \"MakeSwordsPermanent\":" + MakeSwordsPermanent +
                 ", \"AllowMultipleGolems\":" + AllowMultipleGolems +
+                ", \"SplitPartiesToStart\":" + SplitPartiesToStart +
                 '}';
     }
 }

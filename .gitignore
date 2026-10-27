@@ -51,9 +51,10 @@ CLAUDE.md
 latest.log
 .claude/
 .junie/
-plan.md
+PLAN.md
 graphify-out/
-/TODO.txt
+TODO.txt
+COMMENT.txt
 
 # Icon must end with two \r
 Icon

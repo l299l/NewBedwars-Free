@@ -3,6 +3,7 @@ package com.l299l.newbedwars.commands.bedwars.admin.manageArena;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
 import org.bukkit.entity.Player;
@@ -48,9 +49,17 @@ public class ListArenaCommand extends SubCommand {
                 .replaceAll("/count/", String.valueOf(arenas.size())));
         for (IArena arena : arenas) {
             String statusKey = Boolean.TRUE.equals(arena.isEnabled()) ? "ArenaListEnabled" : "ArenaListDisabled";
+            Setup setup = arena.getSetupMode();
+            String state = setup != null && setup != Setup.READY
+                    ? setup.name().toLowerCase() : arena.status().name();
+            int max = arena.getTeams().size() * arena.getMaxInTeam();
             player.sendMessage(msg.getMsg(player, "ArenaListEntry")
                     .replaceAll("/arenaname/", arena.getArenaName())
-                    .replaceAll("/status/", msg.getMsg(player, statusKey)));
+                    .replaceAll("/status/", msg.getMsg(player, statusKey))
+                    + msg.getMsg(player, "ArenaListDetails")
+                    .replace("/state/", state)
+                    .replace("/players/", String.valueOf(arena.getPlayers().size()))
+                    .replace("/max/", String.valueOf(max)));
         }
     }
 

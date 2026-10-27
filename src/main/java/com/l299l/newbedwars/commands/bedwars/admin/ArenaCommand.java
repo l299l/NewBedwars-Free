@@ -5,6 +5,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.manageArena.*;
 import com.l299l.newbedwars.config.Messages;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -62,10 +63,20 @@ public class ArenaCommand extends SubCommand {
                 case "disable" -> disableArenaCommand.perform(player, args, old);
                 case "setup" -> setupCommand.perform(player, args, old);
                 case "list" -> listArenaCommand.perform(player, args, old);
-                default -> player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                default -> sendUsage(player);
             }
         } else {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            sendUsage(player);
+        }
+    }
+
+    private void sendUsage(Player player) {
+        player.sendMessage(msg.getMsg(player, "ArenaUsageHeader"));
+        for (SubCommand sub : List.of(createCommand, deleteCommand, enableArenaCommand,
+                disableArenaCommand, setupCommand, listArenaCommand)) {
+            String description = msg.getMsg(player, "ArenaUsageDesc-" + sub.getName());
+            player.sendMessage(ChatColor.YELLOW + sub.getSyntax() + ChatColor.GRAY + " - "
+                    + (description.isEmpty() ? sub.getDescription() : description));
         }
     }
 

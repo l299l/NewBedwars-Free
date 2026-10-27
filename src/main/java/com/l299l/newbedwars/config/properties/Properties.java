@@ -86,6 +86,7 @@ public class Properties{
         DefaultGamerules.put("AllowTeamDamage", (Boolean) get("DefaultGamerules.AllowTeamDamage"));
         DefaultGamerules.put("MakeSwordsPermanent", (Boolean) get("DefaultGamerules.MakeSwordsPermanent"));
         DefaultGamerules.put("AllowMultipleGolems", (Boolean) get("DefaultGamerules.AllowMultipleGolems"));
+        DefaultGamerules.put("SplitPartiesToStart", (Boolean) get("DefaultGamerules.SplitPartiesToStart"));
         DefaultLanguage = (String) get("DefaultLanguage");
         //Game
         RejoinTimeEnabled = (Boolean) get("RejoinTimeLimitEnabled");

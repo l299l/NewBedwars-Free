@@ -34,6 +34,7 @@ public class GuiManager {
     }
     public void reloadGuis() {
         NewBedwars plugin = NewBedwars.plugin;
+        plugin.getServer().getPluginManager().registerEvents(new GuiProtectionListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ArenaInfoGUISettings(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new BasicConfigurationGuiSettings(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ConfirmLeaveGuiSettings(), plugin);

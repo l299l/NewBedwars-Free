@@ -28,6 +28,9 @@ DefaultGamerules:
   AllowTeamDamage: false
   MakeSwordsPermanent: false
   AllowMultipleGolems: false
+  # When all players would end up in a single team (e.g. one big party), true splits the
+  # party over other teams so the game can start; false keeps waiting for more players.
+  SplitPartiesToStart: true
 
 # ----- Language -----------------------------------
 # Supported: en (English), pl (Polish), de (German), es (Spanish), fr (French), ru (Russian)

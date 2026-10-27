@@ -12,7 +12,7 @@ import java.util.List;
 public class GameruleCommand extends SubCommand {
     private static final List<String> GAMERULE_NAMES = Arrays.asList(
             "RandomTeams", "AllowParties", "AllowSpectators", "AllowTeamChat",
-            "AllowGlobalChat", "AllowPrivateChat", "AllowTeamDamage", "MakeSwordsPermanent", "AllowMultipleGolems"
+            "AllowGlobalChat", "AllowPrivateChat", "AllowTeamDamage", "MakeSwordsPermanent", "AllowMultipleGolems", "SplitPartiesToStart"
     );
     private final Messages msg;
 

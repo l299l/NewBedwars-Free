@@ -171,6 +171,7 @@ public class ArenaInfoGUI implements InventoryHolder {
             gamerulesLore.add(ChatColor.GRAY + "AllowTeamDamage: " + gameruleColor(gamerules.AllowTeamDamage));
             gamerulesLore.add(ChatColor.GRAY + "MakeSwordsPermanent: " + gameruleColor(gamerules.MakeSwordsPermanent));
             gamerulesLore.add(ChatColor.GRAY + "AllowMultipleGolems: " + gameruleColor(gamerules.AllowMultipleGolems));
+            gamerulesLore.add(ChatColor.GRAY + "SplitPartiesToStart: " + gameruleColor(gamerules.SplitPartiesToStart));
             inv.setItem(advSlot++, createItem(Material.JIGSAW, ChatColor.AQUA + "" + ChatColor.BOLD + "Gamerules", gamerulesLore));
             
             // Resource pack

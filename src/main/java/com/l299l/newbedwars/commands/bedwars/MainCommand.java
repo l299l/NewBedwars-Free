@@ -31,7 +31,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainCommand implements TabExecutor {
@@ -219,9 +221,7 @@ public class MainCommand implements TabExecutor {
 
         subCommandsGameAdmin.add(new ManageGameCommand());
 
-        ArrayList<SubCommand> allLobby = new ArrayList<>(subCommandsLobbyPublic);
-        allLobby.addAll(subCommandsLobbyAdmin);
-        helpCommand = new HelpCommand(allLobby, subCommandsGameAdmin);
+        helpCommand = new HelpCommand(this::helpCommandsFor);
         subCommandsLobbyPublic.add(helpCommand);
         subCommandsGamePublic.add(helpCommand);
 
@@ -258,6 +258,28 @@ public class MainCommand implements TabExecutor {
         setupSubBasicCommands.add(new SetupHelpCommand(joinedSubSubCommands()));
 
 
+    }
+
+    /** Commands the player may use right now (value = admin-only), mirroring the routing in onCommand. */
+    private Map<SubCommand, Boolean> helpCommandsFor(Player p) {
+        Map<SubCommand, Boolean> result = new LinkedHashMap<>();
+        ArrayList<SubCommand> publicCmds;
+        ArrayList<SubCommand> adminCmds = null;
+        if (isPlayerInGame(p, false)) {
+            publicCmds = subCommandsGamePublic;
+            if (isPlayerInGame(p, true)) adminCmds = subCommandsGameAdmin;
+        } else if (isSpectatorInArena(p)) {
+            publicCmds = subCommandsGamePublic;
+            if (isAdmin(p) || p.hasPermission("newbedwars.bw.managegame")) adminCmds = subCommandsGameAdmin;
+        } else {
+            publicCmds = subCommandsLobbyPublic;
+            if (hasAnyLobbyAdminPermission(p)) adminCmds = subCommandsLobbyAdmin;
+        }
+        for (SubCommand cmd : publicCmds) result.put(cmd, false);
+        if (adminCmds != null) {
+            for (SubCommand cmd : adminCmds) result.put(cmd, true);
+        }
+        return result;
     }
 
     private boolean subCmd(ArrayList<SubCommand> sub, String[] args, Player p, Boolean set) {

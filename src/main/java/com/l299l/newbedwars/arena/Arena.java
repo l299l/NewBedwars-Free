@@ -3,6 +3,7 @@ package com.l299l.newbedwars.arena;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
 import com.l299l.newbedwars.parties.Party;
+import com.l299l.newbedwars.arena.team.TeamAssigner;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.generators.GeneratorType;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
@@ -79,6 +80,7 @@ public class Arena implements IArena {
     private GeneratorLeveling generatorsLeveling;
     private Integer minPlayers;
     private Integer maxInTeam;
+    private final Map<UUID, BukkitTask> rejoinTasks = new HashMap<>();
     private Integer waitingTime;
     private GamePhases gamePhases;
     private Integer nextPhaseTime;
@@ -157,6 +159,7 @@ public class Arena implements IArena {
         gameStartMillis = System.currentTimeMillis();
         broadcast("GameStarted");
         clearWaitingArea();
+        assignTeams();
         for (Team team : teams.values()) {
             team.start();
         }
@@ -216,6 +219,7 @@ public class Arena implements IArena {
         if (gamePhases != null) {
             gamePhases.stop();
         }
+        cancelAllRejoinTasks();
 
         for (UUID playerId : new ArrayList<>(players.keySet())) {
             GamePlayer gp = players.get(playerId);
@@ -269,6 +273,7 @@ public class Arena implements IArena {
         if (endingTimer != null) { endingTimer.cancel(); endingTimer = null; }
         if (countdownTimer != null) { countdownTimer.cancel(); countdownTimer = null; }
         if (gamePhases != null) gamePhases.stop();
+        cancelAllRejoinTasks();
         for (UUID id : new ArrayList<>(players.keySet())) {
             GamePlayer gp = players.get(id);
             if (gp != null) gp.cancelRespawnTask();
@@ -363,7 +368,7 @@ public class Arena implements IArena {
         }
     }
 
-    private void applyJoinSetup(Player player, Team team) {
+    private void applyJoinSetup(Player player) {
         player.teleport(waitingSpawn);
         player.setGameMode(GameMode.ADVENTURE);
         player.setHealth(20);
@@ -384,7 +389,7 @@ public class Arena implements IArena {
         if (scoreboard != null) {
             scoreboards.put(player.getUniqueId(), scoreboard);
         }
-        players.put(player.getUniqueId(), new GamePlayer(player, team));
+        players.put(player.getUniqueId(), new GamePlayer(player, null));
         updateTablist(player);
         sendResourcePack(player);
     }
@@ -392,14 +397,10 @@ public class Arena implements IArena {
     @Override
     public boolean join(Player player) {
         if (players.containsKey(player.getUniqueId())) return false;
-        if (players.size() > teams.size() * maxInTeam) {
+        if (players.size() >= teams.size() * maxInTeam) {
             return false;
         }
-        Team team = joinPlayerToTeam(player);
-        if (team == null) {
-            return false;
-        }
-        applyJoinSetup(player, team);
+        applyJoinSetup(player);
         broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
             put("/player/", player.getName());
             put("/players/", Integer.toString(players.size()));
@@ -415,27 +416,10 @@ public class Arena implements IArena {
         int newTotal = players.size() + partyMembers.size();
         if (newTotal > teams.size() * maxInTeam) return false;
 
-        // Find a team with enough consecutive free slots for all party members
-        Team targetTeam = null;
-        for (Team team : teams.values()) {
-            int freeSlots = maxInTeam - team.getPlayers().size();
-            if (freeSlots >= partyMembers.size()) {
-                targetTeam = team;
-                break;
-            }
-        }
-        if (targetTeam == null) return false;
-
-        if (players.size() + partyMembers.size() >= minPlayers && gameStatus == GameStatus.waiting) {
-            checkIfCanStart();
-        }
-
-        final Team finalTeam = targetTeam;
         List<Player> joined = new ArrayList<>();
         for (Player member : partyMembers) {
             if (players.containsKey(member.getUniqueId())) continue;
-            finalTeam.addPlayer(member);
-            applyJoinSetup(member, finalTeam);
+            applyJoinSetup(member);
             joined.add(member);
         }
 
@@ -449,6 +433,7 @@ public class Arena implements IArena {
                 put("/maxplayers/", Integer.toString(maxSize));
             }});
         }
+        checkIfCanStart();
         return true;
     }
 
@@ -462,6 +447,12 @@ public class Arena implements IArena {
         }
         GamePlayer gamePlayer = players.get(player.getUniqueId());
         Team team = gamePlayer.getTeam();
+        if (!team.isAlive()) {
+            cancelRejoinTask(player.getUniqueId());
+            players.remove(player.getUniqueId());
+            return false;
+        }
+        cancelRejoinTask(player.getUniqueId());
         team.addPlayer(player);
         if (arenaBossBar != null) {
             arenaBossBar.addPlayer(player);
@@ -513,20 +504,22 @@ public class Arena implements IArena {
         if (gameStatus == GameStatus.playing) {
             leavingPlayer.getTeam().removePlayer(player);
             if (!checkWin()) {
-                if (Properties.RejoinTimeEnabled) {
+                if (Properties.RejoinTimeEnabled && leavingPlayer.getTeam().isAlive()) {
                     int displayCount = players.size() - 1;
                     broadcast("PlayerLeftArenaGame", new HashMap<String, String>() {{
                         put("/player/", playerName);
                         put("/players/", Integer.toString(displayCount));
                         put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
                     }});
-                    new BukkitRunnable() {
+                    cancelRejoinTask(player.getUniqueId());
+                    rejoinTasks.put(player.getUniqueId(), new BukkitRunnable() {
                         @Override
                         public void run() {
+                            rejoinTasks.remove(player.getUniqueId());
                             players.remove(player.getUniqueId());
                             NewBedwars.plugin.getMessages().send(player, "RejoinTimeOver");
                         }
-                    }.runTaskLater(NewBedwars.plugin, 20L * 60 * Properties.RejoinTime);
+                    }.runTaskLater(NewBedwars.plugin, 20L * 60 * Properties.RejoinTime));
                 } else {
                     players.remove(player.getUniqueId());
                     broadcast("PlayerLeftArenaGame", new HashMap<String, String>() {{
@@ -535,20 +528,26 @@ public class Arena implements IArena {
                         put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
                     }});
                 }
-            }else {
-                leave(player);
+            } else {
+                // the game just ended because of this departure
+                finishLeave(player, leavingPlayer);
             }
         } else {
-            leavingPlayer.getTeam().removePlayer(player);
-            players.remove(player.getUniqueId());
-            broadcast("PlayerLeftArena", new HashMap<String, String>() {{
-                put("/player/", playerName);
-                put("/players/", Integer.toString(players.size()));
-                put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
-            }});
-            if (gameStatus == GameStatus.starting && players.size() < minPlayers) {
-                cancelStart();
-            }
+            finishLeave(player, leavingPlayer);
+        }
+    }
+
+    private void finishLeave(Player player, GamePlayer leavingPlayer) {
+        final String playerName = player.getName();
+        if (leavingPlayer.getTeam() != null) leavingPlayer.getTeam().removePlayer(player);
+        players.remove(player.getUniqueId());
+        broadcast("PlayerLeftArena", new HashMap<String, String>() {{
+            put("/player/", playerName);
+            put("/players/", Integer.toString(players.size()));
+            put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
+        }});
+        if (gameStatus == GameStatus.starting && (players.size() < minPlayers || !hasEnoughTeams())) {
+            cancelStart();
         }
     }
 
@@ -1325,6 +1324,10 @@ public class Arena implements IArena {
     }
 
     private void checkIfCanStart() {
+        if (gameStatus == GameStatus.waiting && players.size() >= minPlayers && !hasEnoughTeams()) {
+            broadcast("WaitingForOtherTeams");
+            return;
+        }
         if (players.size() < minPlayers || gameStatus != GameStatus.waiting) {
 /*            broadcast("NotEnoughPlayers", new HashMap<String, String>() {{
                 put("/arenaname/", arenaName);
@@ -1343,81 +1346,72 @@ public class Arena implements IArena {
         countdownTimer.start();
     }
 
-    private Team joinPlayerToTeam(Player player) {
-        List<String> teamNames = new ArrayList<>(teams.keySet());
-        List<Team> emptyTeams = new ArrayList<>();
-        for (String teamName : teamNames) {
-            Team team = teams.get(teamName);
-            if (team.getPlayers().isEmpty()) {
-                emptyTeams.add(team);
-            }
-        }
-        if (gamerules.RandomTeams) {
-            if (!emptyTeams.isEmpty()) {
-                int random = ThreadLocalRandom.current().nextInt(emptyTeams.size());
-                Team team = emptyTeams.get(random);
-                team.addPlayer(player);
-                return team;
-            }else {
-                int random = ThreadLocalRandom.current().nextInt(teamNames.size());
-                Team team = teams.get(teamNames.get(random));
-                if (team.getPlayers().size() < maxInTeam) {
-                    team.addPlayer(player);
-                    return team;
-                }else {
-                    for (String teamName : teamNames) {
-                        team = teams.get(teamName);
-                        if (team.getPlayers().size() < maxInTeam) {
-                            team.addPlayer(player);
-                            return team;
+    private boolean splitPartiesToStart() {
+        return gamerules.SplitPartiesToStart == null || gamerules.SplitPartiesToStart;
+    }
+
+    private List<List<Player>> buildGroups(boolean keepParties) {
+        List<List<Player>> groups = new ArrayList<>();
+        Set<UUID> grouped = new HashSet<>();
+        for (UUID id : players.keySet()) {
+            if (grouped.contains(id)) continue;
+            Player player = Bukkit.getPlayer(id);
+            if (player == null) continue;
+            List<Player> group = new ArrayList<>();
+            group.add(player);
+            grouped.add(id);
+            if (keepParties && NewBedwars.plugin.getPartyManager().isPlayerInParty(player)) {
+                Party party = NewBedwars.plugin.getPartyManager().getParty(player);
+                if (party != null) {
+                    for (UUID memberId : party.getMembers()) {
+                        Player member = Bukkit.getPlayer(memberId);
+                        if (member != null && players.containsKey(memberId) && grouped.add(memberId)) {
+                            group.add(member);
                         }
                     }
                 }
             }
-        } else if (gamerules.AllowParties && NewBedwars.plugin.getPartyManager().isPlayerInParty(player)) {
-            // Try to join the same team as existing party members already in the arena
-            Party party = NewBedwars.plugin.getPartyManager().getParty(player);
-            if (party != null) {
-                for (UUID memberId : party.getMembers()) {
-                    if (players.containsKey(memberId)) {
-                        GamePlayer gp = players.get(memberId);
-                        if (gp == null) continue;
-                        Team memberTeam = gp.getTeam();
-                        if (memberTeam.getPlayers().size() < maxInTeam) {
-                            memberTeam.addPlayer(player);
-                            return memberTeam;
-                        }
-                    }
-                }
-            }
-            if (!emptyTeams.isEmpty()) {
-                Team team = emptyTeams.get(0);
-                team.addPlayer(player);
-                return team;
-            }
-            for (String teamName : teamNames) {
-                Team team = teams.get(teamName);
-                if (team.getPlayers().size() < maxInTeam) {
-                    team.addPlayer(player);
-                    return team;
-                }
-            }
-        } else {
-            if (!emptyTeams.isEmpty()) {
-                Team team = emptyTeams.get(0);
-                team.addPlayer(player);
-                return team;
-            }else {
-                for (String teamName : teamNames) {
-                    Team team = teams.get(teamName);
-                    if (team.getPlayers().size() < maxInTeam) {
-                        team.addPlayer(player);
-                        return team;
-                    }
-                }
+            groups.add(group);
+        }
+        return groups;
+    }
+
+    private List<List<Player>> computeAssignment(boolean keepParties) {
+        return TeamAssigner.assign(buildGroups(keepParties), teams.size(), maxInTeam,
+                gamerules.RandomTeams, ThreadLocalRandom.current());
+    }
+
+    private static int nonEmptyTeams(List<List<Player>> assignment) {
+        int count = 0;
+        for (List<Player> team : assignment) if (!team.isEmpty()) count++;
+        return count;
+    }
+
+    /** A game needs players in at least two teams; one big party may otherwise be alone. */
+    private boolean hasEnoughTeams() {
+        boolean keepParties = gamerules.AllowParties;
+        if (nonEmptyTeams(computeAssignment(keepParties)) >= 2) return true;
+        return keepParties && splitPartiesToStart() && nonEmptyTeams(computeAssignment(false)) >= 2;
+    }
+
+    /**
+     * Distributes everyone in the arena over the teams. Party members stay together when
+     * possible; teams are filled evenly (ties are random when {@code RandomTeams} is on).
+     * If that would leave a single team, parties are split (gamerule {@code SplitPartiesToStart}).
+     */
+    private void assignTeams() {
+        boolean keepParties = gamerules.AllowParties;
+        List<List<Player>> assignment = computeAssignment(keepParties);
+        if (keepParties && nonEmptyTeams(assignment) < 2 && splitPartiesToStart()) {
+            assignment = computeAssignment(false);
+        }
+        List<Team> teamList = new ArrayList<>(teams.values());
+        for (int i = 0; i < teamList.size(); i++) {
+            for (Player player : assignment.get(i)) {
+                teamList.get(i).addPlayer(player);
+                players.get(player.getUniqueId()).setTeam(teamList.get(i));
             }
         }
-        return null;
     }
 
     private void updateScoreboards() {
@@ -1536,14 +1530,41 @@ public class Arena implements IArena {
         }
     }
 
+    private void cancelRejoinTask(UUID id) {
+        BukkitTask task = rejoinTasks.remove(id);
+        if (task != null) task.cancel();
+    }
+
+    private void cancelAllRejoinTasks() {
+        for (UUID id : new ArrayList<>(rejoinTasks.keySet())) cancelRejoinTask(id);
+    }
+
+    /** Offline players whose team has been eliminated can no longer rejoin. */
+    private void dropRejoinOfDeadTeams() {
+        for (UUID id : new ArrayList<>(rejoinTasks.keySet())) {
+            GamePlayer gp = players.get(id);
+            if (gp == null || (gp.getTeam() != null && !gp.getTeam().isAlive())) {
+                cancelRejoinTask(id);
+                players.remove(id);
+            }
+        }
+    }
+
     private boolean checkWin() {
-        if (teamsAlive() == 1) {
+        if (gameStatus != GameStatus.playing) return false;
+        dropRejoinOfDeadTeams();
+        int alive = teamsAlive();
+        if (alive == 1) {
             for (Team team : teams.values()) {
                 if (team.isAlive()) {
                     startEnding(team);
                     return true;
                 }
             }
+        } else if (alive == 0) {
+            // everyone left or was eliminated at once: nobody wins
+            startEnding(null);
+            return true;
         }
         return false;
     }
@@ -1615,6 +1636,8 @@ public class Arena implements IArena {
         world.getEntitiesByClass(Item.class).forEach(item -> item.remove());
         if (winner != null) {
             sendWinMessage(winner);
+        } else {
+            broadcast("GameEndedDraw");
         }
         for (UUID uuid : new ArrayList<>(players.keySet())) {
             Player p = Bukkit.getPlayer(uuid);

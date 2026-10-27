@@ -56,8 +56,6 @@ public class Team {
             player.setInvulnerable(false);
             player.setGameMode(GameMode.SURVIVAL);
             player.setBedSpawnLocation(teamSpawn, true);
-            player.getEnderChest().clear();
-            //TODO: add restoring normal world ender chest
         }
         teamBed.respawn();
         teamShop.start();

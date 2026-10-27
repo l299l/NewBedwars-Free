@@ -44,6 +44,8 @@ import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.potion.PotionEffect;
@@ -73,6 +75,8 @@ public class ArenaGameplayEvents implements Listener {
     private final HashMap<UUID, BukkitTask> pendingLeave = new HashMap<>();
     private final HashMap<UUID, UUID> lastAttacker = new HashMap<>();
     private final HashMap<UUID, BukkitTask> lastAttackerClearTasks = new HashMap<>();
+    /** Victims whose last hit came from a golem/silverfish (resources drop instead of going to the owner). */
+    private final Set<UUID> lastHitByMob = new HashSet<>();
     private final HashSet<UUID> quickVoidDeaths = new HashSet<>();
     private final HashSet<UUID> pendingBridgeEggThrow = new HashSet<>();
     private final HashSet<UUID> potionHandledByInteract = new HashSet<>();
@@ -106,9 +110,11 @@ public class ArenaGameplayEvents implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         Player p = e.getPlayer();
+        if (plugin.getPartyManager() != null) plugin.getPartyManager().cleanupOfflinePlayer(p);
         BukkitTask pending = pendingLeave.remove(p.getUniqueId());
         if (pending != null) pending.cancel();
         lastAttacker.remove(p.getUniqueId());
+        lastHitByMob.remove(p.getUniqueId());
         BukkitTask clearTask = lastAttackerClearTasks.remove(p.getUniqueId());
         if (clearTask != null) clearTask.cancel();
         quickVoidDeaths.remove(p.getUniqueId());
@@ -118,13 +124,7 @@ public class ArenaGameplayEvents implements Listener {
         if(Arena.arenaByWorld.get(p.getWorld()) != null) {
             IArena arena = Arena.arenaByWorld.get(p.getWorld());
             if(arena.isPlayerInArena(p)) {
-                if (arena.status() == GameStatus.starting) {
-                    arena.cancelStart();
-                    arena.leave(p);
-                } else if (arena.status() == GameStatus.waiting || arena.status() == GameStatus.playing
-                        || arena.status() == GameStatus.ending || arena.status() == GameStatus.restarting) {
-                    arena.leave(p);
-                }
+                arena.leave(p);
             } else if (arena.getSpectators().contains(p)) {
                 arena.leave(p);
             }
@@ -200,9 +200,6 @@ public class ArenaGameplayEvents implements Listener {
     }
 
     private void doLeave(Player p, IArena arena, boolean isSpectator) {
-        if (!isSpectator && arena.status() == GameStatus.starting) {
-            arena.cancelStart();
-        }
         arena.leave(p);
     }
 
@@ -244,8 +241,35 @@ public class ArenaGameplayEvents implements Listener {
             if (arena.getSpectators().contains(p) ||
                     (arena.isPlayerInArena(p) && (arena.status() == GameStatus.waiting || arena.status() == GameStatus.starting))) {
                 e.setCancelled(true);
+                return;
+            }
+            if (arena.isPlayerInArena(p) && arena.status() == GameStatus.playing) {
+                // armor is managed by the shop: block taking it off, swapping (incl. number keys) and shift-equipping
+                boolean armorSlot = e.getSlotType() == InventoryType.SlotType.ARMOR;
+                boolean shiftEquip = e.isShiftClick() && e.getClickedInventory() == p.getInventory()
+                        && e.getCurrentItem() != null && isArmorPiece(e.getCurrentItem().getType());
+                if (armorSlot || shiftEquip) e.setCancelled(true);
             }
         }
+    }
+
+    @EventHandler
+    public void playerArmorDrag(InventoryDragEvent e) {
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        if (arena == null || !arena.isPlayerInArena(p) || arena.status() != GameStatus.playing) return;
+        for (int slot : e.getRawSlots()) {
+            if (e.getView().getSlotType(slot) == InventoryType.SlotType.ARMOR) {
+                e.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    private static boolean isArmorPiece(Material m) {
+        String n = m.name();
+        return n.endsWith("_HELMET") || n.endsWith("_CHESTPLATE") || n.endsWith("_LEGGINGS")
+                || n.endsWith("_BOOTS") || m == Material.ELYTRA || m == Material.CARVED_PUMPKIN;
     }
 
     @EventHandler
@@ -282,7 +306,8 @@ public class ArenaGameplayEvents implements Listener {
             if (arena.isPlayerInArena(p) && (arena.status() == GameStatus.playing)) {
                 e.setCancelled(true);
                 e.setDeathMessage(null);
-                Player killer = p.getKiller();
+                boolean mobKill = lastHitByMob.remove(p.getUniqueId());
+                Player killer = mobKill ? null : p.getKiller();
                 if (killer == null) {
                     UUID attackerId = lastAttacker.get(p.getUniqueId());
                     if (attackerId != null) killer = Bukkit.getPlayer(attackerId);
@@ -306,9 +331,18 @@ public class ArenaGameplayEvents implements Listener {
                             killerGp.addFinalKill();
                         }
                     }
-                    final Player finalKiller = killer;
-                    for (ItemStack stack : resources) {
-                        finalKiller.getInventory().addItem(stack);
+                    if (mobKill) {
+                        Location dropAt = lastGround != null && lastGround.getWorld() != null
+                                && p.getLocation().getY() < p.getWorld().getMinHeight()
+                                ? lastGround : p.getLocation();
+                        for (ItemStack stack : resources) {
+                            dropAt.getWorld().dropItemNaturally(dropAt, stack);
+                        }
+                    } else {
+                        final Player finalKiller = killer;
+                        for (ItemStack stack : resources) {
+                            finalKiller.getInventory().addItem(stack);
+                        }
                     }
                 }
                 GamePlayer dyingGp = arena.getPlayer(p.getUniqueId());
@@ -362,6 +396,7 @@ public class ArenaGameplayEvents implements Listener {
         if (!arena.isPlayerInArena(victim)) return;
         if (arena.getGamerules() != null && arena.getGamerules().AllowTeamDamage) return;
         Player attacker = null;
+        boolean byMob = false;
         if (e.getDamager() instanceof Player p) {
             attacker = p;
         } else if (e.getDamager() instanceof Projectile proj && proj.getShooter() instanceof Player p) {
@@ -376,6 +411,7 @@ public class ArenaGameplayEvents implements Listener {
                     && SilverfishLogic.activeSilverfish.contains(sf.getUniqueId())) {
                 ownerUuid = SilverfishLogic.getSfOwner(sf);
             }
+            byMob = true;
             if (ownerUuid != null) {
                 try { attacker = Bukkit.getPlayer(java.util.UUID.fromString(ownerUuid)); }
                 catch (IllegalArgumentException ignored) {}
@@ -392,7 +428,7 @@ public class ArenaGameplayEvents implements Listener {
             e.setCancelled(true);
             return;
         }
-        recordAttacker(victim.getUniqueId(), attacker.getUniqueId());
+        recordAttacker(victim.getUniqueId(), attacker.getUniqueId(), byMob);
     }
 
     @EventHandler
@@ -563,13 +599,16 @@ public class ArenaGameplayEvents implements Listener {
         }
     }
 
-    private void recordAttacker(UUID victimId, UUID attackerId) {
+    private void recordAttacker(UUID victimId, UUID attackerId, boolean byMob) {
         lastAttacker.put(victimId, attackerId);
+        if (byMob) lastHitByMob.add(victimId);
+        else lastHitByMob.remove(victimId);
         BukkitTask prev = lastAttackerClearTasks.remove(victimId);
         if (prev != null) prev.cancel();
         BukkitTask clear = new BukkitRunnable() {
             @Override public void run() {
                 lastAttacker.remove(victimId);
+                lastHitByMob.remove(victimId);
                 lastAttackerClearTasks.remove(victimId);
             }
         }.runTaskLater(plugin, 200L);
@@ -766,6 +805,20 @@ public class ArenaGameplayEvents implements Listener {
             if (arena.isBlastProtBlock(loc)) return true;
             return arena.isBlastProtBlock(loc.clone().add(0, 1, 0));
         });
+    }
+
+    @EventHandler
+    public void onEnderChestOpen(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK || e.getClickedBlock() == null
+                || e.getClickedBlock().getType() != Material.ENDER_CHEST) return;
+        Player p = e.getPlayer();
+        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        if (arena == null || arena.status() != GameStatus.playing) return;
+        GamePlayer gp = arena.getPlayer(p.getUniqueId());
+        if (gp == null || arena.getSpectators().contains(p)) return;
+        if (p.isSneaking() && e.getItem() != null) return; // let the player place a block
+        e.setCancelled(true);
+        p.openInventory(gp.getVirtualEnderChest());
     }
 
     @EventHandler
