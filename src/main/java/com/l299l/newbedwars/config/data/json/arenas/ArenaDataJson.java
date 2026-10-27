@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.l299l.newbedwars.config.data.IOExecutor;
 import com.l299l.newbedwars.world.template.ArenaMaps;
+import com.l299l.newbedwars.world.template.MapTemplateManager;
 import org.bukkit.World;
 import com.google.gson.internal.LinkedTreeMap;
 import com.l299l.newbedwars.NewBedwars;
@@ -224,7 +225,7 @@ public class ArenaDataJson {
     /** Restores the world folder from the template when the last game never finished (server crash). */
     private static void restoreIfNeeded(String arenaName, String worldName) {
         if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) return;
-        boolean missing = !Files.isRegularFile(ArenaMaps.worldFolder(worldName).resolve("level.dat"));
+        boolean missing = !MapTemplateManager.isWorldFolder(ArenaMaps.worldFolder(worldName));
         if (!missing && !ArenaMaps.isDirty(arenaName)) return;
         try {
             ArenaMaps.restoreOffline(arenaName, worldName);

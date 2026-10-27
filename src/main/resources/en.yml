@@ -428,3 +428,6 @@ ImportDone: "&b[NewBedwars] &8&l> &aArena &e/arenaname/&a imported. It is disabl
 ImportFailed: "&b[NewBedwars] &8&l> &cImporting &e/arenaname/&c failed: &7/info/"
 EnderChestTitle: "Ender Chest"
 WaitingForOtherTeams: "&b[NewBedwars] &8&l> &eWaiting for players to fill at least two teams..."
+SetupHelpHeader: "&b=-=-=-= NewBedwars Setup Help (&e/page/&7/&e/pages/&b) =-=-=-="
+SetupHelpCommandHeader: "&b=-=-=-= Setup: &e/command/ &b=-=-=-="
+SetupHelpSyntax: "Syntax:"

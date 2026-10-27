@@ -177,7 +177,12 @@ public class Properties{
 
     public static int getUpgradePrice(Upgrade upgrade, int currentLevel) {
         List<Integer> prices = UpgradePrices.get(upgrade.name());
-        if (prices == null || currentLevel >= prices.size()) return 999;
+        if (prices == null) {
+            // upgrades registered by addons after the config was read
+            List<Integer> configured = NewBedwars.plugin.getConfig().getIntegerList("UpgradePrices." + upgrade.name());
+            prices = configured.isEmpty() ? upgrade.defaultPrices() : configured;
+        }
+        if (currentLevel >= prices.size()) return 999;
         return prices.get(currentLevel);
     }
 

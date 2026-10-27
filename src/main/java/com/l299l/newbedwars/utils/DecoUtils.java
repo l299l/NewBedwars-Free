@@ -81,20 +81,6 @@ public class DecoUtils {
         }
     }
 
-    public static Color getColorFromChatColor(ChatColor color) {
-        return switch (color) {
-            case AQUA, DARK_AQUA -> Color.AQUA;
-            case BLACK -> Color.BLACK;
-            case BLUE, DARK_BLUE -> Color.BLUE;
-            case DARK_GRAY, GRAY -> Color.GRAY;
-            case DARK_GREEN, GREEN -> Color.GREEN;
-            case DARK_PURPLE, LIGHT_PURPLE -> Color.PURPLE;
-            case DARK_RED, RED -> Color.RED;
-            case GOLD, YELLOW -> Color.YELLOW;
-            default -> Color.WHITE;
-        };
-    }
-
     private static ChatColor getGeneratorColor(GeneratorType generatorType) {
         return switch (generatorType) {
             case BASIC -> ChatColor.GOLD;

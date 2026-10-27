@@ -295,7 +295,7 @@ public class ArenaMaintenanceCommand extends SubCommand {
                 throw new IOException("an arena or world named '" + name + "' / '" + worldName + "' already exists");
             }
             Path template = tmp.resolve("template");
-            if (!Files.isRegularFile(template.resolve("level.dat"))) throw new IOException("the zip has no map");
+            if (!MapTemplateManager.isWorldFolder(template)) throw new IOException("the zip has no map");
             json.addProperty("enabled", false);
             json.addProperty("setup", "NO_SETUP");
             Path mapTemplate = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name);

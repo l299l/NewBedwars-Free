@@ -69,7 +69,7 @@ public class RemoveCommand extends SubCommand {
         }
 
         if (args.length == 3) {
-            arena.getTeams().remove(teamName);
+            arena.removeTeam(teamName);
             msg.send(player, "TeamRemoved", new HashMap<>() {{
                 put("/team/", teamName);
             }});
@@ -130,9 +130,8 @@ public class RemoveCommand extends SubCommand {
     private void handleGenerator(Player player, String[] args, IArena arena) {
         try {
             int index = Integer.parseInt(args[2]) - 1;
-            ArrayList<Generator> generators = arena.getGenerators();
-            if (index >= 0 && index < generators.size()) {
-                Generator removed = generators.remove(index);
+            Generator removed = arena.removeGenerator(index);
+            if (removed != null) {
                 String typeName = removed.getType().name();
                 String displayIndex = args[2];
                 msg.send(player, "GeneratorRemoved", new HashMap<>() {{

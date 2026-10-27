@@ -1,10 +1,13 @@
 package com.l299l.newbedwars.arena.shops.customitems;
 
+import com.l299l.newbedwars.utils.TeamColor;
+import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
+import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
-import com.l299l.newbedwars.arena.player.inventory.ArmorType;
+import com.l299l.newbedwars.arena.player.inventory.ArmorTier;
 import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
@@ -81,9 +84,9 @@ public class CustomItem {
     public ItemStack getItem(Player player) {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
         Material resolvedMaterial = material;
-        if (material == Material.WHITE_WOOL) {
+        if (TeamColor.undyedKind(material) != null) {
             Team team = Arena.arenaByWorld.get(player.getWorld()).getTeam(player);
-            resolvedMaterial = getWool(team.getColor());
+            resolvedMaterial = TeamColor.recolor(material, team.getColor());
         }
         ItemStack item = new ItemStack(resolvedMaterial, amount);
         ItemMeta meta = item.getItemMeta();
@@ -135,9 +138,25 @@ public class CustomItem {
         }
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
             ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
-            ArmorType newType = ArmorType.getArmorType(material);
-            if (newType != ArmorType.OTHER && armorContents.getArmor().ordinal() >= newType.ordinal()) {
+            ArmorTier newType = ArmorTier.getArmorTier(material);
+            if (newType != ArmorTier.OTHER && armorContents.getArmor().rank() >= newType.rank()) {
                 return false;
+            }
+        }
+        IArena shopArena = Arena.arenaByWorld.get(player.getWorld());
+        if (shopArena != null) {
+            ShopPurchaseEvent.Kind kind = switch (onBuyEvent) {
+                case GIVE_ARMOR -> ShopPurchaseEvent.Kind.ARMOR;
+                case GIVE_TOOL -> ShopPurchaseEvent.Kind.TOOL;
+                case UPGRADE -> ShopPurchaseEvent.Kind.UPGRADE;
+                default -> ShopPurchaseEvent.Kind.ITEM;
+            };
+            if (!ApiEvents.shopPurchase(shopArena, player, name, kind, String.valueOf(priceType), price)) return false;
+            if (onBuyEvent == OnBuyEvent.UPGRADE) {
+                Upgrade upgrade = Upgrade.valueOf(name.toUpperCase());
+                Team upgradeTeam = shopArena.getTeam(player);
+                if (upgradeTeam != null && !ApiEvents.teamUpgrade(shopArena, upgradeTeam, upgrade.name(),
+                        upgradeTeam.getTeamUpgrades().getUpgradeLevel(upgrade) + 1, player)) return false;
             }
         }
         if (priceType == PriceType.EMERALD) {
@@ -181,7 +200,7 @@ public class CustomItem {
             }
             case GIVE_ARMOR -> {
                 ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
-                armorContents.setArmor(ArmorType.getArmorType(material));
+                armorContents.setArmor(ArmorTier.getArmorTier(material));
                 armorContents.loadPlayerArmorContents(player);
                 return true;
             }
@@ -264,11 +283,11 @@ public class CustomItem {
     public ItemStack getIcon(Player player) {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
         Material iconMaterial = material;
-        if (material == Material.WHITE_WOOL) {
+        if (TeamColor.undyedKind(material) != null) {
             IArena arena = Arena.arenaByWorld.get(player.getWorld());
             if (arena != null) {
                 Team team = arena.getTeam(player);
-                if (team != null) iconMaterial = getWool(team.getColor());
+                if (team != null) iconMaterial = TeamColor.recolor(material, team.getColor());
             }
         }
         return buildIcon(language, iconMaterial);
@@ -357,7 +376,7 @@ public class CustomItem {
         map.put("amount", amount);
         map.put("iconDesc", iconDesc);
         map.put("permission", permission);
-        map.put("itemLogic", event.getType().name());
+        map.put("itemLogic", event.getKey());
         map.put("onBuyEvent", onBuyEvent.name());
         map.put("isPermanent", isPermanent);
         map.put("enchantments", getEnchantmentsAsHashMap());
@@ -376,7 +395,7 @@ public class CustomItem {
         sb.append("\"amount\":").append(amount).append(",");
         sb.append("\"iconDesc\":\"").append(iconDesc).append("\",");
         sb.append("\"permission\":\"").append(permission).append("\",");
-        sb.append("\"event\":\"").append(event.getType().name()).append("\",");
+        sb.append("\"event\":\"").append(event.getKey()).append("\",");
         sb.append("\"onBuyEvent\":\"").append(onBuyEvent.name()).append("\",");
         sb.append("\"isPermanent\":").append(isPermanent).append(",");
         sb.append("\"enchantments\":{");
@@ -431,50 +450,6 @@ public class CustomItem {
             list.add(itemFlag.name());
         }
         return list;
-    }
-
-    private Material getWool(ChatColor color) {
-        switch (color) {
-            case RED, DARK_RED -> {
-                return Material.RED_WOOL;
-            }
-            case BLUE -> {
-                return Material.BLUE_WOOL;
-            }
-            case GREEN, DARK_GREEN -> {
-                return Material.GREEN_WOOL;
-            }
-            case YELLOW -> {
-                return Material.YELLOW_WOOL;
-            }
-            case AQUA -> {
-                return Material.LIGHT_BLUE_WOOL;
-            }
-            case BLACK -> {
-                return Material.BLACK_WOOL;
-            }
-            case DARK_GRAY -> {
-                return Material.GRAY_WOOL;
-            }
-            case GRAY -> {
-                return Material.LIGHT_GRAY_WOOL;
-            }
-            case DARK_AQUA -> {
-                return Material.CYAN_WOOL;
-            }
-            case DARK_PURPLE -> {
-                return Material.PURPLE_WOOL;
-            }
-            case GOLD -> {
-                return Material.ORANGE_WOOL;
-            }
-            case LIGHT_PURPLE -> {
-                return Material.MAGENTA_WOOL;
-            }
-            default -> {
-                return Material.WHITE_WOOL;
-            }
-        }
     }
 }
 

@@ -1,6 +1,8 @@
 package com.l299l.newbedwars.arena.shops.customitems;
 
+import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
+import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogicRegistry;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.LogicType;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.*;
@@ -142,9 +144,42 @@ public class CustomItemManager {
         customItems.put(customItem.getUuid(), customItem);
         customItemsByName.put(name.toLowerCase(), customItem);
     }
+    /** Same as the {@link LogicType} overload, but with the saved logic key (built-in name or an addon's key). */
+    public void createCustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
+                                 String permission, String logicKey, OnBuyEvent onBuyEvent, boolean isPermanent, HashMap<Enchantment, Integer> enchantments,
+                                 List<ItemFlag> itemFlags, boolean load) {
+        CustomLogic logic = matchLogicKey(logicKey);
+        CustomItem customItem = new CustomItem(name, description, material, price, priceType, amount, iconDesc, permission, logic, onBuyEvent, isPermanent, enchantments, itemFlags, load);
+        customItems.put(customItem.getUuid(), customItem);
+        customItemsByName.put(name.toLowerCase(), customItem);
+    }
+
+    /** Built-in logic for a known type name, otherwise a lazy stand-in that resolves addon logic on use. */
+    public CustomLogic matchLogicKey(String logicKey) {
+        if (CustomLogicRegistry.isBuiltIn(logicKey)) {
+            return matchLogicType(LogicType.valueOf(CustomLogicRegistry.normalize(logicKey)));
+        }
+        return new RegisteredLogic(logicKey);
+    }
+
     public void addCustomItem(CustomItem customItem) {
         customItems.put(customItem.getUuid(), customItem);
         customItemsByName.put(customItem.getName().toLowerCase(), customItem);
+    }
+
+    /**
+     * The shop item that sells the white form of {@code kind} (e.g. the "Wool" item for wool), used to hand a
+     * broken team block back as that item. The default "Wool" item wins for wool.
+     */
+    public CustomItem getTeamBlockItem(TeamColor.Kind kind) {
+        if (kind == TeamColor.Kind.WOOL) {
+            CustomItem wool = getCustomItem("Wool");
+            if (wool != null && TeamColor.undyedKind(wool.getMaterial()) == kind) return wool;
+        }
+        for (CustomItem item : customItems.values()) {
+            if (TeamColor.undyedKind(item.getMaterial()) == kind) return item;
+        }
+        return null;
     }
 
     public List<CustomItem> getCustomItems() {

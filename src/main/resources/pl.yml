@@ -425,3 +425,6 @@ ImportDone: "&b[NewBedwars] &8&l> &aArena &e/arenaname/&a zaimportowana. Jest wy
 ImportFailed: "&b[NewBedwars] &8&l> &cImport &e/arenaname/&c nie powiódł się: &7/info/"
 EnderChestTitle: "Skrzynia Endu"
 WaitingForOtherTeams: "&b[NewBedwars] &8&l> &eOczekiwanie na graczy, aby zapełnić co najmniej dwie drużyny..."
+SetupHelpHeader: "&b=-=-=-= Pomoc konfiguracji NewBedwars (&e/page/&7/&e/pages/&b) =-=-=-="
+SetupHelpCommandHeader: "&b=-=-=-= Konfiguracja: &e/command/ &b=-=-=-="
+SetupHelpSyntax: "Składnia:"

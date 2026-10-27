@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics;
 
+import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
@@ -64,24 +65,6 @@ public class BridgeEggLogic implements CustomLogic {
                 }
             }
         }
-    }
-
-    public static Material getWoolFromColor(ChatColor color) {
-        return switch (color) {
-            case RED, DARK_RED -> Material.RED_WOOL;
-            case BLUE, DARK_BLUE -> Material.BLUE_WOOL;
-            case GREEN, DARK_GREEN -> Material.GREEN_WOOL;
-            case YELLOW -> Material.YELLOW_WOOL;
-            case AQUA -> Material.LIGHT_BLUE_WOOL;
-            case BLACK -> Material.BLACK_WOOL;
-            case DARK_GRAY -> Material.GRAY_WOOL;
-            case GRAY -> Material.LIGHT_GRAY_WOOL;
-            case DARK_AQUA -> Material.CYAN_WOOL;
-            case DARK_PURPLE -> Material.PURPLE_WOOL;
-            case GOLD -> Material.ORANGE_WOOL;
-            case LIGHT_PURPLE -> Material.MAGENTA_WOOL;
-            default -> Material.WHITE_WOOL;
-        };
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.game.settings;
 
+import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
+import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
@@ -76,12 +78,15 @@ public class ShopGUISettings implements Listener {
             TeamUpgrades tu = team.getTeamUpgrades();
             if (tu == null) return;
             Upgrade upgrade = guiUpgrade.upgrade();
+            if (upgrade == null) return;
             int currentLevel = tu.getUpgradeLevel(upgrade);
             if (currentLevel >= upgrade.maxLevel) return;
             int price = Properties.getUpgradePrice(upgrade, currentLevel);
             PriceType priceType = Properties.UpgradePriceType;
             Material mat = Properties.getMaterialForPriceType(priceType);
             CustomItem icon = guiUpgrade.icon();
+            if (!ApiEvents.shopPurchase(arena, player, icon.getName(), ShopPurchaseEvent.Kind.UPGRADE, priceType.name(), price)
+                    || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) return;
             if (player.getInventory().contains(mat, price)) {
                 Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
                     player.getInventory().removeItem(new ItemStack(mat, price));

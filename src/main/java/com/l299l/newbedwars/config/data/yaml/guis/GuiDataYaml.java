@@ -127,11 +127,10 @@ public class GuiDataYaml {
     }
 
     private GuiUpgrade getGuiUpgrade(String upgradeName) {
-        Upgrade upgrade = Upgrade.valueOf(upgradeName.toUpperCase());
         CustomItem icon = NewBedwars.plugin.getCustomItemManager().getCustomItem(upgradeName);
         if (icon == null) {
             throw new RuntimeException("Icon for upgrade " + upgradeName + " not found!");
         }
-        return new GuiUpgrade(upgradeName, icon, upgrade);
+        return new GuiUpgrade(upgradeName, icon);
     }
 }

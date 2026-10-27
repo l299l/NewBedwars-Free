@@ -49,7 +49,7 @@ public class ItemsDataManager {
                     }
                     customItemManager.createCustomItem(key, item.get("description").toString(),
                             Material.matchMaterial(item.get("material").toString()), (int) item.get("price"), PriceType.valueOf(item.get("priceType").toString()),
-                            (int) item.get("amount"), item.get("iconDesc").toString(), item.get("permission").toString(), LogicType.valueOf(item.get("itemLogic").toString()),
+                            (int) item.get("amount"), item.get("iconDesc").toString(), item.get("permission").toString(), item.get("itemLogic").toString(),
                             OnBuyEvent.valueOf(item.get("onBuyEvent").toString()), Boolean.parseBoolean(item.get("isPermanent").toString()),
                             enchantments1, itemFlags1, true);
                     NewBedwars.plugin.getLangMessages().addCustomItemProperty(key, "-name");

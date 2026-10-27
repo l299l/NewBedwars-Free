@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.gui.configuration.setup.settings;
 
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.arena.Arena;
@@ -71,7 +72,9 @@ public class DeleteConfirmGuiSettings implements Listener {
             p.setGameMode(GameMode.SURVIVAL);
             p.getInventory().clear();
             p.getInventory().setArmorContents(null);
-            p.teleport(lobby);
+            if (!LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ARENA_DELETED) && p.getWorld().equals(arenaWorld)) {
+                p.teleport(lobby);
+            }
         }
 
         Arena.arenaByName.remove(arenaName);

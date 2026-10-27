@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics;
 
+import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -21,7 +22,7 @@ public class PortableTowerLogic implements CustomLogic {
         Team team = arena.getTeam(player);
         if (team == null) return false;
 
-        Material wool = BridgeEggLogic.getWoolFromColor(team.getColor());
+        Material wool = TeamColor.wool(team.getColor());
         org.bukkit.World world = arena.getArenaWorld();
 
         Block target = player.getTargetBlock(null, 6);

@@ -38,7 +38,11 @@ public interface IArena {
     boolean join(Player player);
     boolean joinParty(List<Player> partyMembers);
     boolean rejoin(Player player);
-    void leave(Player player);
+    void leave(Player player, com.l299l.newbedwars.api.events.LeaveReason reason);
+
+    default void leave(Player player) {
+        leave(player, com.l299l.newbedwars.api.events.LeaveReason.OTHER);
+    }
     Boolean isPlayerInArena(Player player);
     Set<UUID> getPlayers();
     int getActivePlayerCount();
@@ -66,10 +70,16 @@ public interface IArena {
     GeneratorLeveling getGeneratorsLeveling();
     void setGeneratorsLeveling(GeneratorLeveling generatorLeveling);
     void setGamerules(Gamerules gamerules);
-    HashMap<String, Team> getTeams();
+    /** Unmodifiable view; use {@link #createTeam} and {@link #removeTeam} to change the teams. */
+    java.util.Map<String, Team> getTeams();
     Integer getMaxInTeam();
-    ArrayList<Generator> getGenerators();
+    /** Unmodifiable view; use {@link #addGenerator} and {@link #removeGenerator} to change the generators. */
+    java.util.List<Generator> getGenerators();
     void addGenerator(Generator generator);
+    /** @return the removed generator, or {@code null} for an invalid index */
+    Generator removeGenerator(int index);
+    /** Removes a team (and its setup armor stands are left to the caller). @return false when there is no such team */
+    boolean removeTeam(String name);
     ArrayList<Player> getSpectators();
     void addSpectator(Player player, boolean canExit);
     boolean joinAsSpectator(Player player);

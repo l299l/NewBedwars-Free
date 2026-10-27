@@ -45,7 +45,15 @@ public final class MapTemplateManager {
     }
 
     public static boolean hasTemplate(Path mapsRoot, String arena) {
-        return Files.isRegularFile(templateDir(mapsRoot, arena).resolve("level.dat"));
+        return isWorldFolder(templateDir(mapsRoot, arena));
+    }
+
+    /**
+     * Old servers keep a {@code level.dat} in every world folder; newer ones (26.x) store extra worlds as
+     * dimension folders ({@code <level>/dimensions/minecraft/<name>}) that only hold {@code region/} etc.
+     */
+    public static boolean isWorldFolder(Path dir) {
+        return Files.isRegularFile(dir.resolve("level.dat")) || Files.isDirectory(dir.resolve("region"));
     }
 
     public static boolean isDirty(Path mapsRoot, String arena) {
@@ -72,9 +80,9 @@ public final class MapTemplateManager {
         Path fresh = root.resolve(TEMPLATE_DIR + ".new");
         deleteTree(fresh);
         copyTree(worldFolder, fresh, excludes);
-        if (!Files.isRegularFile(fresh.resolve("level.dat"))) {
+        if (!isWorldFolder(fresh)) {
             deleteTree(fresh);
-            throw new IOException("World folder " + worldFolder + " has no level.dat (was the world saved?)");
+            throw new IOException("World folder " + worldFolder + " has no level.dat or region folder (was the world saved?)");
         }
         Path current = templateDir(mapsRoot, arena);
         deleteTree(current);
@@ -94,8 +102,8 @@ public final class MapTemplateManager {
         }
         deleteTree(worldFolder);
         copyTree(template, worldFolder, excludes);
-        if (!Files.isRegularFile(worldFolder.resolve("level.dat"))) {
-            throw new IOException("Restored world of " + arena + " has no level.dat");
+        if (!isWorldFolder(worldFolder)) {
+            throw new IOException("Restored world of " + arena + " has no world data");
         }
     }
 
@@ -116,7 +124,7 @@ public final class MapTemplateManager {
         Path fresh = root.resolve(TEMPLATE_DIR + ".new");
         deleteTree(fresh);
         unzip(zip, fresh);
-        if (!Files.isRegularFile(fresh.resolve("level.dat"))) {
+        if (!isWorldFolder(fresh)) {
             deleteTree(fresh);
             throw new IOException("Backup " + zip.getFileName() + " does not contain a world");
         }

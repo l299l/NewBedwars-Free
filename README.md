@@ -83,84 +83,11 @@ If you'd rather paste in a finished map than build one from scratch in-game:
 
 ---
 
-## Commands
+## Commands and permissions
 
-**Player**
+Players mostly use `/bw join`, `/bw lobby`, `/bw spectate`, `/bw stats` and `/party`. Admins manage arenas with `/bw arena ...` (create, setup, enable, backup, export...) and `/bw setlobby`; `/bw help` and `/bw setupHelp` list what is available to you right now.
 
-| Command | Description |
-|---|---|
-| `/bw join [arena]` | Open the arena selector or join a specific arena |
-| `/bw rejoin` | Rejoin your previous arena |
-| `/bw lobby` | Leave the arena and return to the main lobby |
-| `/bw spectate [arena]` | Join a running arena as a spectator |
-| `/bw lang <en\|pl\|de\|es\|fr\|ru>` | Change your display language |
-| `/bw help` | Show all available commands |
-| `/bw stats [player]` | Show a player's stats |
-| `/bw profile [player]` | Show a player's stats via GUI |
-| `/bw leaderboard [wins\|kills\|beds\|fk]` | Show the top 10 players by a stat |
-| `/lobby` | Shortcut for `/bw lobby` |
-| `/lang <en\|pl\|de\|es\|fr\|ru>` | Shortcut for `/bw lang` |
-
-**Party**
-
-| Command | Description |
-|---|---|
-| `/party invite <player>` | Invite a player to your party |
-| `/party accept` | Accept a pending invite (clickable in chat) |
-| `/party deny` | Deny a pending invite (clickable in chat) |
-| `/party leave` | Leave your current party |
-| `/party list` | List all party members |
-| `/party kick <player>` | Kick a member from your party (admin only) |
-| `/party admin <player>` | Transfer the admin role (admin only) |
-| `/p` | Alias for `/party` |
-
-**Admin**
-
-| Command | Description |
-|---|---|
-| `/bw arena create <name> [-sche <schematic>] [-n]` | Create a new arena, optionally from a WorldEdit schematic |
-| `/bw arena list` | List all arenas and their current status |
-| `/bw arena delete <name>` | Permanently delete an arena |
-| `/bw arena enable <name>` | Enable a fully configured arena |
-| `/bw arena disable <name>` | Disable a running arena |
-| `/bw arena setup <name>` | Enter setup mode for an arena |
-| `/bw setLobby` | Set the global lobby spawn point |
-| `/bw game <start/forcestart/stop/forcestop/nextPhase>` | In-game admin management panel (phase skip, force-start, stop) |
-| `/bw reload` | Save arenas, kick all players, and reload the configuration |
-
----
-
-## Permissions
-
-**Admin**
-
-| Permission | Default | Description |
-|---|---|---|
-| `newbedwars.bw.admin` | op | Full admin access, grants all sub-permissions below |
-| `newbedwars.bw.arena` | op | Manage arenas (grants the 5 sub-permissions below) |
-| `newbedwars.bw.arena.create` | op | Create arenas |
-| `newbedwars.bw.arena.delete` | op | Delete arenas |
-| `newbedwars.bw.arena.enable` | op | Enable arenas |
-| `newbedwars.bw.arena.disable` | op | Disable arenas |
-| `newbedwars.bw.arena.setup` | op | Enter arena setup mode |
-| `newbedwars.bw.setlobby` | op | Set the lobby location |
-| `newbedwars.bw.managegame` | op | Manage running games |
-| `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions |
-
-**Player**
-
-| Permission | Default | Description |
-|---|---|---|
-| `newbedwars.bw.player` | true | Bundle, grants all player permissions below |
-| `newbedwars.bw.join` | true | Join arenas |
-| `newbedwars.bw.lobby` | true | Teleport to the lobby |
-| `newbedwars.bw.rejoin` | true | Rejoin after disconnect |
-| `newbedwars.bw.spectate` | true | Spectate arenas |
-| `newbedwars.bw.lang` | true | Change language |
-| `newbedwars.bw.help` | true | View help menu |
-| `newbedwars.party` | true | Use all `/party` commands |
-
-Set `RequireJoinPermission: true` or `RequireLobbyPermission: true` in `config.yml` if you want `/bw join` and `/bw lobby` restricted to players with the explicit permission. Both default to `false` (open to everyone).
+The full list of commands, setup commands and permissions is in **[docs/COMMANDS.md](docs/COMMANDS.md)**.
 
 ---
 
@@ -211,6 +138,74 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 
 ---
 
+## Addon developers
+
+> **Warning:** the addon API is not available yet. It will be available after NewBedwars **2.5-beta** is released. Until then the JitPack dependency below does not exist, and the API can still change.
+
+**Full documentation: [docs/API.md](docs/API.md)** (reading data, events, registering shop items/upgrades/armor/commands/phase actions, extra data, editing arenas).
+
+NewBedwars has a small API with events, so other plugins can hook into it without touching internals. Only the `com.l299l.newbedwars.api` package is stable; everything else can change in any update.
+
+**1. Add the dependency** (published through [JitPack](https://jitpack.io/#l299l/NewBedwars-Free); available from the first release that contains the API):
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.github.l299l</groupId>
+        <artifactId>NewBedwars-Free</artifactId>
+        <version>v2.5-beta</version> <!-- a release tag -->
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+**2. Depend on it** in your `plugin.yml`: `depend: [NewBedwars]`.
+
+**3. Use it:**
+
+```java
+public class MyAddon extends JavaPlugin implements Listener {
+    @Override
+    public void onEnable() {
+        getServer().getPluginManager().registerEvents(this, this);
+        NewBedwarsAPI api = NewBedwarsAPI.get(); // read-only views of arenas, teams and players
+        getLogger().info("Arenas: " + api.getArenas().size());
+    }
+
+    @EventHandler
+    public void onBedBreak(BedBreakEvent e) {
+        e.getArena().getPlayers().forEach(p -> p.sendMessage(e.getBreaker().getName() + " broke " + e.getTeam().getName() + "'s bed!"));
+    }
+
+    @EventHandler
+    public void onKill(PlayerKillEvent e) {
+        if (e.isFinalKill()) getLogger().info(e.getVictim().getName() + " was eliminated");
+    }
+}
+```
+
+| Event | Cancellable | Fired |
+|---|---|---|
+| `GameStartEvent` / `GameEndEvent` | no | game starts (teams assigned) / ends (winner or draw) |
+| `ArenaResetEvent` | no | before (`PRE`) and after (`POST`) the map is reset |
+| `PlayerJoinArenaEvent` | yes | before a player joins or rejoins |
+| `PlayerLeaveArenaEvent` | no | a player or spectator leaves (with a `LeaveReason`) |
+| `BedBreakEvent` | yes | before an enemy bed is destroyed |
+| `PlayerKillEvent` | no | a player dies in a running game |
+| `ShopPurchaseEvent` | yes | before a shop purchase is charged |
+| `TeamUpgradeEvent` | yes | before a team upgrade or trap is bought |
+| `ArmorEquipEvent` | no (armor can be replaced) | before armor is applied |
+| `PlayerSendToLobbyEvent` | yes (target can be changed) | whenever the plugin sends a player to the lobby, e.g. to redirect to a lobby server |
+
+---
+
 ## Roadmap
 
 NewBedwars will leave beta once stable operation is verified across all supported server versions (Paper 1.17 – 26.3).
@@ -223,7 +218,8 @@ NewBedwars will leave beta once stable operation is verified across all supporte
 - [x] More custom items (Iron Golem, Silverfish, etc.)
 - [x] Arena statistics and leaderboards
 - [x] Player profile GUI with stats history
-- [ ] Improved help
+- [x] Improved help
+- [x] Addon API and events
 - [ ] In-game map voting system
 - [ ] More languages (full support)
 - [ ] Network / BungeeCord / Velocity mode

@@ -49,6 +49,45 @@ public class MainCommand implements TabExecutor {
     private final ArrayList<SubCommand> setupSubAdvencedCommands;
     private final ArrayList<SubCommand> setupSubAutomaticCommands;
 
+    /** Where a registered command is available, mirroring the command buckets. */
+    public enum Context {
+        LOBBY, LOBBY_ADMIN, GAME, GAME_ADMIN, SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_BUILDING
+    }
+
+    private ArrayList<SubCommand> bucket(Context context) {
+        return switch (context) {
+            case LOBBY -> subCommandsLobbyPublic;
+            case LOBBY_ADMIN -> subCommandsLobbyAdmin;
+            case GAME -> subCommandsGamePublic;
+            case GAME_ADMIN -> subCommandsGameAdmin;
+            case SETUP_BASIC -> setupSubBasicCommands;
+            case SETUP_NORMAL -> setupSubNormalCommands;
+            case SETUP_ADVANCED -> setupSubAdvencedCommands;
+            case SETUP_BUILDING -> setupSubAutomaticCommands;
+        };
+    }
+
+    /**
+     * Adds a subcommand to a context.
+     * @throws IllegalArgumentException when a command with that name already exists in any context
+     */
+    public void register(SubCommand command, Context context) {
+        for (Context c : Context.values()) {
+            for (SubCommand existing : bucket(c)) {
+                if (existing.getName().equalsIgnoreCase(command.getName())) {
+                    throw new IllegalArgumentException("command '" + command.getName() + "' already exists (" + c + ")");
+                }
+            }
+        }
+        bucket(context).add(command);
+    }
+
+    public boolean unregister(SubCommand command) {
+        boolean removed = false;
+        for (Context c : Context.values()) removed |= bucket(c).remove(command);
+        return removed;
+    }
+
     public MainCommand() {
         plugin = NewBedwars.plugin;
         msg = plugin.getMessages();
@@ -255,7 +294,7 @@ public class MainCommand implements TabExecutor {
         setupSubAdvencedCommands.add(new SetTeamsAccessoriesCommand());
 
         setupSubAutomaticCommands.add(new StartAutomaticSetupCommand());
-        setupSubBasicCommands.add(new SetupHelpCommand(joinedSubSubCommands()));
+        setupSubBasicCommands.add(new SetupHelpCommand(this::setupCommandsFor, this::getArena));
 
 
     }
@@ -311,6 +350,18 @@ public class MainCommand implements TabExecutor {
     private List<String> joinedSubSubArgs(String[] args, Player p) {
         ArrayList<SubCommand> allSubCommands = joinedSubSubCommands();
         return subSubArgs(allSubCommands, args, p);
+    }
+
+    /** Setup commands usable in the current setup mode of {@code arena}, mirroring the routing in onCommand. */
+    private List<SubCommand> setupCommandsFor(IArena arena) {
+        List<SubCommand> result = new ArrayList<>(setupSubBasicCommands);
+        switch (arena.getSetupMode()) {
+            case NORMAL_SETUP -> result.addAll(setupSubNormalCommands);
+            case ADVANCED_SETUP -> { result.addAll(setupSubNormalCommands); result.addAll(setupSubAdvencedCommands); }
+            case BUILDING_MODE -> result.addAll(setupSubAutomaticCommands);
+            default -> { }
+        }
+        return result;
     }
 
     private ArrayList<SubCommand> joinedSubSubCommands() {

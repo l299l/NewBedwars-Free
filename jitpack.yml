@@ -1,0 +1,5 @@
+# JitPack builds with JDK 17; the plugin itself is compiled with `release 16` (see pom.xml).
+jdk:
+  - openjdk17
+install:
+  - mvn -B -DskipTests clean install

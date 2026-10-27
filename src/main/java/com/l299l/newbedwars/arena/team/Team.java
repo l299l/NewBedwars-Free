@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.team;
 
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 public class Team {
     private HashMap<UUID, ArmorContents> armorContents;
-    private final ChatColor color;
+    private ChatColor color;
     private final String name;
     private final IArena arena;
     private final ArrayList<Player> players;
@@ -75,7 +76,7 @@ public class Team {
     }
 
     public boolean isBedDestroyed() {
-        return !teamBed.isAlive();
+        return teamBed != null && !teamBed.isAlive();
     }
 
     public ArmorContents getArmorContents(Player player) {
@@ -236,8 +237,22 @@ public class Team {
         return generator;
     }
 
+    public IArena getArena() {
+        return arena;
+    }
+
     public ChatColor getColor() {
         return color;
+    }
+
+    /** Changes the team color; only possible while no game is running. */
+    public void setColor(ChatColor color) {
+        if (color == null || !color.isColor()) throw new IllegalArgumentException("not a color: " + color);
+        GameStatus status = arena.status();
+        if (status == GameStatus.playing || status == GameStatus.ending) {
+            throw new IllegalStateException("the team color can not be changed during a game");
+        }
+        this.color = color;
     }
 
     public String getName() {

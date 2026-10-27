@@ -1,5 +1,10 @@
 package com.l299l.newbedwars.events;
 
+import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.RegisteredLogic;
+import com.l299l.newbedwars.utils.TeamColor;
+import com.l299l.newbedwars.api.events.LeaveReason;
+import com.l299l.newbedwars.apiimpl.ApiEvents;
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
@@ -92,7 +97,7 @@ public class ArenaGameplayEvents implements Listener {
         if (Arena.arenaByWorld.get(p.getWorld()) == null) return;
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!p.isOnline()) return;
-            p.teleport(NewBedwars.plugin.getLobbyLocation());
+            LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.JOINED_IN_ARENA_WORLD);
             p.setGameMode(org.bukkit.GameMode.SURVIVAL);
             p.setHealth(20);
             p.setFoodLevel(20);
@@ -124,9 +129,9 @@ public class ArenaGameplayEvents implements Listener {
         if(Arena.arenaByWorld.get(p.getWorld()) != null) {
             IArena arena = Arena.arenaByWorld.get(p.getWorld());
             if(arena.isPlayerInArena(p)) {
-                arena.leave(p);
+                arena.leave(p, LeaveReason.DISCONNECT);
             } else if (arena.getSpectators().contains(p)) {
-                arena.leave(p);
+                arena.leave(p, LeaveReason.DISCONNECT);
             }
         }
     }
@@ -200,7 +205,7 @@ public class ArenaGameplayEvents implements Listener {
     }
 
     private void doLeave(Player p, IArena arena, boolean isSpectator) {
-        arena.leave(p);
+        arena.leave(p, LeaveReason.COMMAND);
     }
 
     @EventHandler
@@ -347,6 +352,11 @@ public class ArenaGameplayEvents implements Listener {
                 }
                 GamePlayer dyingGp = arena.getPlayer(p.getUniqueId());
                 if (dyingGp != null) dyingGp.addDeath();
+                Team dyingTeam = arena.getTeam(p);
+                EntityDamageEvent lastDamage = p.getLastDamageCause();
+                ApiEvents.playerKill(arena, p, killer != null && arena.isPlayerInArena(killer) ? killer : null,
+                        dyingTeam != null && dyingTeam.isBedDestroyed(),
+                        lastDamage != null ? lastDamage.getCause() : EntityDamageEvent.DamageCause.CUSTOM);
                 arena.killPlayer(p);
                 if (killer != null && arena.isPlayerInArena(killer)) {
                     final String killerName = killer.getName();
@@ -717,6 +727,7 @@ public class ArenaGameplayEvents implements Listener {
                         }
                         if (!team.isBedDestroyed()) {
                                 e.setCancelled(true);
+                                if (!ApiEvents.bedBreak(arena, team, p)) return;
                                 Block block = e.getBlock();
                                 block.setType(Material.AIR, false);
                                 for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST,
@@ -753,17 +764,18 @@ public class ArenaGameplayEvents implements Listener {
                     e.setCancelled(true);
                 } else {
                     arena.removeBlastProtBlock(e.getBlock().getLocation());
-                    if (e.getBlock().getType().name().endsWith("_WOOL")) {
+                    TeamColor.Kind brokenKind = TeamColor.kindOf(e.getBlock().getType());
+                    CustomItem blockItem = brokenKind == null ? null : plugin.getCustomItemManager().getTeamBlockItem(brokenKind);
+                    if (blockItem != null) {
                         e.setDropItems(false);
-                        CustomItem woolItem = plugin.getCustomItemManager().getCustomItem("Wool");
-                        if (woolItem != null) {
-                            ItemStack singleWool = woolItem.getItem(p);
-                            singleWool.setAmount(1);
-                            Map<Integer, ItemStack> leftover = p.getInventory().addItem(singleWool);
-                            for (ItemStack drop : leftover.values()) {
-                                p.getWorld().dropItem(p.getLocation(), drop);
-                            }
+                        ItemStack single = blockItem.getItem(p);
+                        single.setAmount(1);
+                        Map<Integer, ItemStack> leftover = p.getInventory().addItem(single);
+                        for (ItemStack drop : leftover.values()) {
+                            p.getWorld().dropItem(p.getLocation(), drop);
                         }
+                    } else if (brokenKind == TeamColor.Kind.WOOL) {
+                        e.setDropItems(false);
                     }
                 }
             }
@@ -804,6 +816,15 @@ public class ArenaGameplayEvents implements Listener {
             if (!arena.isPlacedBlock(loc)) return true;
             if (arena.isBlastProtBlock(loc)) return true;
             return arena.isBlastProtBlock(loc.clone().add(0, 1, 0));
+        });
+        // Team blocks (wool, glass, concrete...) must not drop vanilla colored items when exploded: like a
+        // normal break they would give a different item than the shop one, so remove them without drops.
+        e.blockList().removeIf(block -> {
+            TeamColor.Kind kind = TeamColor.kindOf(block.getType());
+            if (kind == null || kind == TeamColor.Kind.BED) return false;
+            arena.removeBlastProtBlock(block.getLocation());
+            block.setType(Material.AIR, false);
+            return true;
         });
     }
 
@@ -869,6 +890,13 @@ public class ArenaGameplayEvents implements Listener {
                     // PortableTowerLogic manually consumes the item, so don't consume again
                 }
             }
+            default -> {
+                // logic registered by an addon
+                if (customItem.getEvent() instanceof RegisteredLogic) {
+                    e.setCancelled(true);
+                    if (customItem.getEvent().perform(p, arena)) consumeOneItem(p);
+                }
+            }
         }
     }
 
@@ -883,7 +911,7 @@ public class ArenaGameplayEvents implements Listener {
         Team team = arena.getTeam(p);
         if (team == null) return;
 
-        Material woolType = BridgeEggLogic.getWoolFromColor(team.getColor());
+        Material woolType = TeamColor.wool(team.getColor());
         BridgeEggLogic.startTracking(egg.getUniqueId(), woolType, arena, egg);
     }
 

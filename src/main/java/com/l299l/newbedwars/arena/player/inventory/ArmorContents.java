@@ -1,5 +1,9 @@
 package com.l299l.newbedwars.arena.player.inventory;
 
+import com.l299l.newbedwars.utils.TeamColor;
+import com.l299l.newbedwars.apiimpl.ApiEvents;
+import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
@@ -20,7 +24,7 @@ import java.util.List;
 public class ArmorContents {
     private final Team team;
     private Player player;
-    private ArmorType armor;
+    private ArmorTier armor;
     private CustomItem[] otherArmorContents;
     private CustomItem sword;
     private CustomItem pickaxe;
@@ -31,7 +35,7 @@ public class ArmorContents {
     public ArmorContents(Player player, Team team) {
         this.player = player;
         this.team = team;
-        armor = ArmorType.BASIC;
+        armor = ArmorTier.BASIC;
         otherArmorContents = null;
         sword = getBasicSword();
         pickaxe = null;
@@ -42,7 +46,10 @@ public class ArmorContents {
 
     public void loadPlayerArmorContents(Player player) {
         this.player = player;
-        player.getInventory().setArmorContents(getArmorContents());
+        ItemStack[] armorToSet = getArmorContents();
+        IArena armorArena = Arena.arenaByWorld.get(player.getWorld());
+        if (armorArena != null) armorToSet = ApiEvents.armorEquip(armorArena, player, armorToSet);
+        player.getInventory().setArmorContents(armorToSet);
         ItemStack[] contents = getInventoryContents();
         for (int i = 0; i < contents.length; i++) {
             if (contents[i] != null) {
@@ -51,11 +58,11 @@ public class ArmorContents {
         }
     }
 
-    public ArmorType getArmor() {
+    public ArmorTier getArmor() {
         return armor;
     }
 
-    public void setArmor(ArmorType armor) {
+    public void setArmor(ArmorTier armor) {
         this.armor = armor;
     }
 
@@ -97,15 +104,8 @@ public class ArmorContents {
         ChatColor color = team.getColor();
         int protectionLevel = team.getTeamUpgrades().getUpgradeLevel(Upgrade.PROTECTION);
         boolean all = Properties.FullArmor;
-        return switch (armor) {
-            case GOLD -> getGoldArmor(all, protectionLevel, color);
-            case CHAINMAIL -> getChainmailArmor(all, protectionLevel, color);
-            case IRON -> getIronArmor(all, protectionLevel, color);
-            case DIAMOND -> getDiamondArmor(all, protectionLevel, color);
-            case NETHERITE -> getNetheriteArmor(all, protectionLevel, color);
-            case OTHER -> getOtherArmorContents(all, protectionLevel, color, player);
-            default -> getDefaultArmor(color, protectionLevel);
-        };
+        if (armor == ArmorTier.OTHER) return getOtherArmorContents(all, protectionLevel, color, player);
+        return getTierArmor(armor, all, protectionLevel, color);
     }
 
     private ItemStack[] getInventoryContents() {
@@ -152,12 +152,13 @@ public class ArmorContents {
         return NewBedwars.plugin.getCustomItemManager().getCustomItem(Properties.BasicSword);
     }
 
-    private ItemStack[] getDefaultArmor(ChatColor color, int protectionLevel) {
-        ItemStack[] items =  new ItemStack[]{
-                createLeatherArmor(Material.LEATHER_BOOTS, color),
-                createLeatherArmor(Material.LEATHER_LEGGINGS, color),
-                createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
-                createLeatherArmor(Material.LEATHER_HELMET, color)
+    /** Boots and leggings of the tier, plus its chestplate and helmet when {@code FullArmor} is on (else team leather). */
+    private ItemStack[] getTierArmor(ArmorTier tier, boolean all, int protectionLevel, ChatColor color) {
+        ItemStack[] items = new ItemStack[]{
+                piece(tier.boots(), color),
+                piece(tier.leggings(), color),
+                all ? piece(tier.chestplate(), color) : createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
+                all ? piece(tier.helmet(), color) : createLeatherArmor(Material.LEATHER_HELMET, color)
         };
         if (protectionLevel > 0) {
             for (ItemStack item : items) {
@@ -167,129 +168,9 @@ public class ArmorContents {
         return items;
     }
 
-    private ItemStack[] getGoldArmor(boolean all, int protectionLevel, ChatColor color) {
-        ItemStack[] items;
-        if (all) {
-            items =  new ItemStack[]{
-                    new ItemStack(Material.GOLDEN_BOOTS),
-                    new ItemStack(Material.GOLDEN_LEGGINGS),
-                    new ItemStack(Material.GOLDEN_CHESTPLATE),
-                    new ItemStack(Material.GOLDEN_HELMET)
-            };
-        } else {
-            items = new ItemStack[]{
-                    new ItemStack(Material.GOLDEN_BOOTS),
-                    new ItemStack(Material.GOLDEN_LEGGINGS),
-                    createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
-                    createLeatherArmor(Material.LEATHER_HELMET, color)
-            };
-        }
-        if (protectionLevel > 0) {
-            for (ItemStack item : items) {
-                addProtection(item, protectionLevel);
-            }
-        }
-        return items;
-    }
-
-    private ItemStack[] getChainmailArmor(boolean all, int protectionLevel, ChatColor color) {
-        ItemStack[] items;
-        if (all) {
-            items =  new ItemStack[]{
-                    new ItemStack(Material.CHAINMAIL_BOOTS),
-                    new ItemStack(Material.CHAINMAIL_LEGGINGS),
-                    new ItemStack(Material.CHAINMAIL_CHESTPLATE),
-                    new ItemStack(Material.CHAINMAIL_HELMET)
-            };
-        } else {
-            items = new ItemStack[]{
-                    new ItemStack(Material.CHAINMAIL_BOOTS),
-                    new ItemStack(Material.CHAINMAIL_LEGGINGS),
-                    createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
-                    createLeatherArmor(Material.LEATHER_HELMET, color)
-            };
-        }
-        if (protectionLevel > 0) {
-            for (ItemStack item : items) {
-                addProtection(item, protectionLevel);
-            }
-        }
-        return items;
-    }
-
-    private ItemStack[] getIronArmor(boolean all, int protectionLevel, ChatColor color) {
-        ItemStack[] items;
-        if (all) {
-            items =  new ItemStack[]{
-                    new ItemStack(Material.IRON_BOOTS),
-                    new ItemStack(Material.IRON_LEGGINGS),
-                    new ItemStack(Material.IRON_CHESTPLATE),
-                    new ItemStack(Material.IRON_HELMET)
-            };
-        } else {
-            items = new ItemStack[]{
-                    new ItemStack(Material.IRON_BOOTS),
-                    new ItemStack(Material.IRON_LEGGINGS),
-                    createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
-                    createLeatherArmor(Material.LEATHER_HELMET, color)
-            };
-        }
-        if (protectionLevel > 0) {
-            for (ItemStack item : items) {
-                addProtection(item, protectionLevel);
-            }
-        }
-        return items;
-    }
-
-    private ItemStack[] getDiamondArmor(boolean all, int protectionLevel, ChatColor color) {
-        ItemStack[] items;
-        if (all) {
-            items =  new ItemStack[]{
-                    new ItemStack(Material.DIAMOND_BOOTS),
-                    new ItemStack(Material.DIAMOND_LEGGINGS),
-                    new ItemStack(Material.DIAMOND_CHESTPLATE),
-                    new ItemStack(Material.DIAMOND_HELMET)
-            };
-        } else {
-            items = new ItemStack[]{
-                    new ItemStack(Material.DIAMOND_BOOTS),
-                    new ItemStack(Material.DIAMOND_LEGGINGS),
-                    createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
-                    createLeatherArmor(Material.LEATHER_HELMET, color)
-            };
-        }
-        if (protectionLevel > 0) {
-            for (ItemStack item : items) {
-                addProtection(item, protectionLevel);
-            }
-        }
-        return items;
-    }
-
-    private ItemStack[] getNetheriteArmor(boolean all, int protectionLevel, ChatColor color) {
-        ItemStack[] items;
-        if (all) {
-            items =  new ItemStack[]{
-                    new ItemStack(Material.NETHERITE_BOOTS),
-                    new ItemStack(Material.NETHERITE_LEGGINGS),
-                    new ItemStack(Material.NETHERITE_CHESTPLATE),
-                    new ItemStack(Material.NETHERITE_HELMET)
-            };
-        } else {
-            items = new ItemStack[]{
-                    new ItemStack(Material.NETHERITE_BOOTS),
-                    new ItemStack(Material.NETHERITE_LEGGINGS),
-                    createLeatherArmor(Material.LEATHER_CHESTPLATE, color),
-                    createLeatherArmor(Material.LEATHER_HELMET, color)
-            };
-        }
-        if (protectionLevel > 0) {
-            for (ItemStack item : items) {
-                addProtection(item, protectionLevel);
-            }
-        }
-        return items;
+    /** Leather pieces get the team color, everything else is used as is. */
+    private ItemStack piece(Material material, ChatColor color) {
+        return material.name().startsWith("LEATHER_") ? createLeatherArmor(material, color) : new ItemStack(material);
     }
 
     private ItemStack[] getOtherArmorContents(boolean all, int protectionLevel, ChatColor color, Player player) {
@@ -321,7 +202,7 @@ public class ArmorContents {
     private ItemStack createLeatherArmor(Material material, ChatColor color) {
         ItemStack item = new ItemStack(material);
         LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
-        meta.setColor(DecoUtils.getColorFromChatColor(color));
+        meta.setColor(TeamColor.leather(color));
         item.setItemMeta(meta);
         return item;
     }

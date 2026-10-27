@@ -8,6 +8,7 @@ import org.bukkit.GameRule;
 import org.bukkit.World;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,8 +35,16 @@ public final class ArenaMaps {
         return NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("backups").resolve("arenas").resolve(arena);
     }
 
+    /** Folder of a world by name: the loaded world's own folder, else the classic or the 26.x dimension layout. */
     public static Path worldFolder(String worldName) {
-        return Bukkit.getWorldContainer().toPath().resolve(worldName);
+        World loaded = Bukkit.getWorld(worldName);
+        if (loaded != null) return loaded.getWorldFolder().toPath();
+        Path container = Bukkit.getWorldContainer().toPath();
+        Path classic = container.resolve(worldName);
+        if (Files.exists(classic) || Bukkit.getWorlds().isEmpty()) return classic;
+        Path dimension = container.resolve(Bukkit.getWorlds().get(0).getName()).resolve("dimensions").resolve("minecraft")
+                .resolve(worldName.toLowerCase(java.util.Locale.ROOT));
+        return Files.isDirectory(dimension.getParent()) ? dimension : classic;
     }
 
     public static boolean hasTemplate(String arena) {

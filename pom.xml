@@ -6,7 +6,7 @@
 
     <groupId>com.l299l</groupId>
     <artifactId>NewBedwars</artifactId>
-    <version>2.4-beta</version>
+    <version>2.5-beta</version>
     <packaging>jar</packaging>
 
     <name>NewBedwars</name>
@@ -36,6 +36,19 @@
                 <configuration>
                     <argLine>-Dnet.bytebuddy.experimental=true</argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

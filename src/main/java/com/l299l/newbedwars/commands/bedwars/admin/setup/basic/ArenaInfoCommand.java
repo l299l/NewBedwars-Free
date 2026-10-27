@@ -94,7 +94,7 @@ public class ArenaInfoCommand extends SubCommand {
         }
 
         player.sendMessage("");
-        ArrayList<Generator> generators = arena.getGenerators();
+        java.util.List<Generator> generators = arena.getGenerators();
         int diamond = 0, emerald = 0;
         for (Generator g : generators) {
             if (g.getType() == GeneratorType.DIAMOND) diamond++;

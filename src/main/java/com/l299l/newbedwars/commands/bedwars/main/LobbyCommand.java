@@ -1,5 +1,7 @@
 package com.l299l.newbedwars.commands.bedwars.main;
 
+import com.l299l.newbedwars.api.events.LeaveReason;
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -45,10 +47,10 @@ public class LobbyCommand extends SubCommand {
         }
         IArena playerArena = Arena.arenaByWorld.get(player.getWorld());
         if (playerArena != null && (playerArena.isPlayerInArena(player) || playerArena.getSpectators().contains(player))) {
-            playerArena.leave(player);
+            playerArena.leave(player, LeaveReason.COMMAND);
             return;
         }
-        player.teleport(NewBedwars.plugin.getLobbyLocation());
+        LobbyService.sendToLobby(player, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.LOBBY_COMMAND);
         msg.send(player, "TeleportedToLobby");
     }
 

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.gui.configuration.setup.settings;
 
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -83,7 +84,7 @@ public class ConfirmLeaveGuiSettings implements Listener {
         if (arena.getPlayersOnSetup().isEmpty()) {
             DecoUtils.removeAllArmorStands(arena);
         }
-        player.teleport(NewBedwars.plugin.getLobbyLocation());
+        LobbyService.sendToLobby(player, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SETUP_ENDED);
         player.closeInventory();
         player.setGameMode(GameMode.SURVIVAL);
     }

@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public final class NewBedwars extends JavaPlugin {
+    private MainCommand mainCommand;
     public static NewBedwars plugin;
     private Location lobbyLocation;
     private final Updater updater;
@@ -69,7 +70,8 @@ public final class NewBedwars extends JavaPlugin {
     @Override
     public void onEnable() {
         reloadAll();
-        Objects.requireNonNull(getCommand("bw")).setExecutor(new MainCommand());
+        mainCommand = new MainCommand();
+        Objects.requireNonNull(getCommand("bw")).setExecutor(mainCommand);
         Objects.requireNonNull(getCommand("lobby")).setExecutor(new LobbyStandaloneCommand());
         LangStandaloneCommand langCmd = new LangStandaloneCommand();
         Objects.requireNonNull(getCommand("lang")).setExecutor(langCmd);
@@ -82,18 +84,24 @@ public final class NewBedwars extends JavaPlugin {
         if (ExtensionManager.isPlaceholderAPIPresent()) {
             new NewBedwarsExpansion(this).register();
         }
+        com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl api = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
+        getServer().getPluginManager().registerEvents(api, this);
+        com.l299l.newbedwars.api.ApiHolder.set(api);
+        getServer().getServicesManager().register(com.l299l.newbedwars.api.NewBedwarsAPI.class, api, this, org.bukkit.plugin.ServicePriority.Normal);
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_GREEN + "Enabled");
     }
 
     @Override
     public void onDisable() {
+        com.l299l.newbedwars.api.ApiHolder.set(null);
+        getServer().getServicesManager().unregisterAll(this);
         int active = 0;
         for (IArena arena : Arena.arenaByName.values()) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
             else if (!arena.getPlayersOnSetup().isEmpty()) {
                 arena.getPlayersOnSetup().forEach(p -> {
                     Player pl = Objects.requireNonNull(Bukkit.getPlayer(p));
-                    pl.teleport(getLobbyLocation());
+                    com.l299l.newbedwars.utils.LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SERVER_SHUTDOWN);
                     pl.kickPlayer(ChatColor.RED + "Server went down!");});
             }
         }
@@ -184,6 +192,10 @@ public final class NewBedwars extends JavaPlugin {
 
     public ScoreboardManager getScoreboardManager() {
         return scoreboardManager;
+    }
+
+    public MainCommand getMainCommand() {
+        return mainCommand;
     }
 
     public Location getLobbyLocation() {

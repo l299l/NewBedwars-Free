@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.config.data.json.arenas;
 
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -48,7 +49,7 @@ public class ArenaDataManager {
         World world = old.getArenaWorld();
         String worldName = world.getName();
         for (org.bukkit.entity.Player p : new java.util.ArrayList<>(world.getPlayers())) {
-            p.teleport(NewBedwars.plugin.getLobbyLocation());
+            LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ARENA_UNLOADED);
         }
         world.setAutoSave(false);
         if (!Bukkit.unloadWorld(world, false)) return null;

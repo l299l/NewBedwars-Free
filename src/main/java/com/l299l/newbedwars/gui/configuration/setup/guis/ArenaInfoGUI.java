@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.gui.configuration.setup.guis;
 
+import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
 import com.l299l.newbedwars.arena.generators.Generator;
@@ -103,7 +104,7 @@ public class ArenaInfoGUI implements InventoryHolder {
         int teamSlot = 18;
         for (int i = 0; i < pageTeams.size(); i++) {
             Team team = pageTeams.get(i);
-            ItemStack teamItem = new ItemStack(getTeamWool(team.getColor()));
+            ItemStack teamItem = new ItemStack(TeamColor.wool(team.getColor()));
             ItemMeta teamMeta = teamItem.getItemMeta();
             teamMeta.setDisplayName(team.getColor() + "" + ChatColor.BOLD + team.getName());
             List<String> teamLore = new ArrayList<>();
@@ -255,27 +256,6 @@ public class ArenaInfoGUI implements InventoryHolder {
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
-    }
-
-    private Material getTeamWool(ChatColor color) {
-        if (color == null) return Material.GRAY_WOOL;
-        return switch (color.name()) {
-            case "WHITE" -> Material.WHITE_WOOL;
-            case "GRAY" -> Material.LIGHT_GRAY_WOOL;
-            case "DARK_GRAY" -> Material.GRAY_WOOL;
-            case "BLACK" -> Material.BLACK_WOOL;
-            case "RED" -> Material.RED_WOOL;
-            case "GOLD" -> Material.ORANGE_WOOL;
-            case "YELLOW" -> Material.YELLOW_WOOL;
-            case "GREEN" -> Material.LIME_WOOL;
-            case "DARK_GREEN" -> Material.GREEN_WOOL;
-            case "AQUA" -> Material.LIGHT_BLUE_WOOL;
-            case "DARK_AQUA" -> Material.CYAN_WOOL;
-            case "DARK_BLUE" -> Material.BLUE_WOOL;
-            case "DARK_PURPLE" -> Material.PURPLE_WOOL;
-            case "LIGHT_PURPLE" -> Material.PINK_WOOL;
-            default -> Material.GRAY_WOOL;
-        };
     }
 
     private String tick(boolean set) {

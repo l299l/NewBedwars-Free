@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.world.template;
 
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.config.properties.Properties;
@@ -34,10 +35,25 @@ public final class ArenaResetPipeline {
         return true;
     }
 
+    /** Continues a failed reset from wherever it stopped: unloads the world if it is still loaded, else restores it. */
+    public static void retry(Arena arena) {
+        World world = arena.getArenaWorld();
+        if (world == null) {
+            arena.failReset("the arena world is not known");
+            return;
+        }
+        if (Bukkit.getWorld(world.getName()) != null) {
+            start(arena);
+            return;
+        }
+        arena.unbindWorld();
+        restoreAndReload(arena, world.getName(), ArenaMaps.worldFolder(world.getName()));
+    }
+
     private static void tryUnload(Arena arena, World world, Path folder, int attempt) {
         // Nobody may stay in the world, otherwise it can not be unloaded.
         for (Player player : world.getPlayers()) {
-            player.teleport(NewBedwars.plugin.getLobbyLocation());
+            LobbyService.sendToLobby(player, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.MAP_RESET);
         }
         // Chunks are NOT saved (save = false): game damage must never reach the disk.
         if (Bukkit.unloadWorld(world, false)) {

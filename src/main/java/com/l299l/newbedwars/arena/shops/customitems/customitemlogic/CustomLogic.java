@@ -12,4 +12,9 @@ public interface CustomLogic {
      */
     boolean perform(Player player, IArena arena);
     LogicType getType();
+
+    /** Key saved in items.yml: the built-in type name, or the key an addon registered the logic with. */
+    default String getKey() {
+        return getType().name();
+    }
 }

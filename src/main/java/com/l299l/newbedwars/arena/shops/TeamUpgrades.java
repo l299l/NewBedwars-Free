@@ -113,47 +113,19 @@ public class TeamUpgrades {
 
     public void upgrade(Upgrade upgrade) {
         upgrades.put(upgrade, getUpgradeLevel(upgrade) + 1);
-        int level = getUpgradeLevel(upgrade);
-        if (upgrade == Upgrade.HEALPOOL) {
-            startHealPool();
-            return;
-        }
-        if (upgrade == Upgrade.ALARMTRAP || upgrade == Upgrade.BLINDTRAP || upgrade == Upgrade.MININGFATIGUETRAP) {
-            return;
-        }
-        for (Player player : team.getPlayers()) {
-            applyUpgradeEffect(player, upgrade, level);
-        }
+        if (!upgrade.handler().isTrap()) upgrade.handler().onPurchase(this, team, getUpgradeLevel(upgrade));
     }
 
+    /** Uses up one level of every bought trap and fires it at the enemy who entered the base. */
     public void triggerTraps(Player enemy, IArena arena) {
-        if (upgrades.getOrDefault(Upgrade.ALARMTRAP, 0) > 0) {
-            upgrades.put(Upgrade.ALARMTRAP, upgrades.get(Upgrade.ALARMTRAP) - 1);
-            String enemyName = enemy.getName();
-            for (Player ally : team.getPlayers()) {
-                ally.sendTitle(
-                        ChatColor.RED + "" + ChatColor.BOLD + "⚠ ALARM ⚠",
-                        ChatColor.YELLOW + enemyName + " is in your base!",
-                        10, 60, 20
-                );
-            }
-            for (Player ally : team.getPlayers()) {
-                String alarmMsg = NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapTriggered");
-                if (alarmMsg != null) ally.sendMessage(alarmMsg.replace("/team/", team.getName()));
-            }
-        }
-        if (upgrades.getOrDefault(Upgrade.BLINDTRAP, 0) > 0) {
-            upgrades.put(Upgrade.BLINDTRAP, upgrades.get(Upgrade.BLINDTRAP) - 1);
-            enemy.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 0, true, false));
-            enemy.addPotionEffect(new PotionEffect(VersionCompat.SLOWNESS, 120, 1, true, false));
-        }
-        if (upgrades.getOrDefault(Upgrade.MININGFATIGUETRAP, 0) > 0) {
-            upgrades.put(Upgrade.MININGFATIGUETRAP, upgrades.get(Upgrade.MININGFATIGUETRAP) - 1);
-            enemy.addPotionEffect(new PotionEffect(VersionCompat.MINING_FATIGUE, 200, 2, true, false));
+        for (Upgrade upgrade : Upgrade.values()) {
+            if (!upgrade.handler().isTrap() || getUpgradeLevel(upgrade) <= 0) continue;
+            upgrades.put(upgrade, getUpgradeLevel(upgrade) - 1);
+            upgrade.handler().trigger(enemy, team, arena);
         }
     }
 
-    private void startHealPool() {
+    void startHealPool() {
         if (healPoolTask != null) healPoolTask.cancel();
         healPoolTask = new BukkitRunnable() {
             @Override
@@ -172,51 +144,12 @@ public class TeamUpgrades {
         }.runTaskTimer(NewBedwars.plugin, 0L, 10L);
     }
 
-    private void applyUpgradeEffect(Player player, Upgrade upgrade, int level) {
-        switch (upgrade) {
-            case PROTECTION -> {
-                ItemStack[] armor = player.getInventory().getArmorContents();
-                for (ItemStack piece : armor) {
-                    if (piece != null && piece.getType() != Material.AIR) {
-                        org.bukkit.inventory.meta.ItemMeta meta = piece.getItemMeta();
-                        if (meta != null) {
-                            VersionCompat.addProtection(meta, level);
-                            piece.setItemMeta(meta);
-                        }
-                    }
-                }
-                player.getInventory().setArmorContents(armor);
-            }
-            case SHARPNESS -> {
-                for (int i = 0; i < 36; i++) {
-                    ItemStack item = player.getInventory().getItem(i);
-                    if (item != null && item.getType().name().endsWith("_SWORD")) {
-                        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
-                        if (meta != null && VersionCompat.SHARPNESS != null) {
-                            meta.addEnchant(VersionCompat.SHARPNESS, level, true);
-                            item.setItemMeta(meta);
-                        }
-                        player.getInventory().setItem(i, item);
-                    }
-                }
-            }
-            case HASTE -> player.addPotionEffect(
-                    new PotionEffect(VersionCompat.HASTE, Integer.MAX_VALUE, level - 1, true, false));
-            case FORGE -> {
-                Generator gen = team.getGenerator();
-                if (gen != null) {
-                    gen.upgrade(level);
-                }
-            }
-            default -> {}
-        }
-    }
-
+    /** Re-applies the upgrades that live on the player (sword enchant, haste, ...) after a respawn. */
     public void applyPlayerUpgrades(Player player) {
-        int sharpnessLevel = getUpgradeLevel(Upgrade.SHARPNESS);
-        if (sharpnessLevel > 0) applyUpgradeEffect(player, Upgrade.SHARPNESS, sharpnessLevel);
-        int hasteLevel = getUpgradeLevel(Upgrade.HASTE);
-        if (hasteLevel > 0) applyUpgradeEffect(player, Upgrade.HASTE, hasteLevel);
+        for (Upgrade upgrade : Upgrade.values()) {
+            int level = getUpgradeLevel(upgrade);
+            if (level > 0 && upgrade.handler().reapplyOnRespawn()) upgrade.handler().apply(player, team, level);
+        }
     }
 
     public void open(Player player) {

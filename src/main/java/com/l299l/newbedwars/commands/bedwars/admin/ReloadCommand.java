@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
+import com.l299l.newbedwars.utils.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -56,7 +57,7 @@ public class ReloadCommand extends SubCommand {
             else if (!arena.getPlayersOnSetup().isEmpty()) {
                 arena.getPlayersOnSetup().forEach(plu -> {
                     Player pl = Objects.requireNonNull(Bukkit.getPlayer(plu));
-                    pl.teleport(NewBedwars.plugin.getLobbyLocation());
+                    LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.RELOAD);
                     pl.kickPlayer(ChatColor.RED + "Server went down!");});
             }
         }

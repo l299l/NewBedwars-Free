@@ -13,11 +13,16 @@ import static org.mockito.Mockito.*;
 class TeamTest {
 
     private Team team;
+    private IArena arena;
 
     @BeforeEach
     void setUp() {
-        IArena arena = mock(IArena.class);
+        arena = mock(IArena.class);
         team = new Team(ChatColor.RED, "Red", arena);
+    }
+
+    private IArena arenaMock() {
+        return arena;
     }
 
     private Player mockPlayer() {
@@ -167,5 +172,32 @@ class TeamTest {
         team.setTeamBuildProtAreaPos1(loc(0, 60, 0));
         team.setTeamBuildProtAreaPos2(loc(10, 70, 10));
         assertTrue(team.isBuildProtAreaPosSet());
+    }
+
+    // ── color ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void colorCanBeChangedOutsideAGame() {
+        when(arenaMock().status()).thenReturn(com.l299l.newbedwars.arena.GameStatus.waiting);
+        team.setColor(ChatColor.BLUE);
+        assertEquals(ChatColor.BLUE, team.getColor());
+    }
+
+    @Test
+    void colorCanNotBeChangedDuringAGame() {
+        when(arenaMock().status()).thenReturn(com.l299l.newbedwars.arena.GameStatus.playing);
+        assertThrows(IllegalStateException.class, () -> team.setColor(ChatColor.BLUE));
+        assertEquals(ChatColor.RED, team.getColor());
+    }
+
+    @Test
+    void colorMustBeARealColor() {
+        assertThrows(IllegalArgumentException.class, () -> team.setColor(null));
+        assertThrows(IllegalArgumentException.class, () -> team.setColor(ChatColor.BOLD));
+    }
+
+    @Test
+    void teamWithoutBedIsNotBedDestroyed() {
+        assertFalse(team.isBedDestroyed());
     }
 }

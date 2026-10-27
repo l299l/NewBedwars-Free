@@ -15,9 +15,20 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-public record GuiUpgrade(String id, CustomItem icon, Upgrade upgrade) {
+public record GuiUpgrade(String id, CustomItem icon) {
+    /** The upgrade, resolved when used so GUI files can reference upgrades an addon registers later. {@code null} while it is missing. */
+    public Upgrade upgrade() {
+        try {
+            return Upgrade.valueOf(id);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     public ItemStack getIcon(Player player) {
         ItemStack item = icon.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language());
+        Upgrade upgrade = upgrade();
+        if (upgrade == null) return item;
         Arena arena = (Arena) Arena.arenaByWorld.get(player.getWorld());
         if (arena == null) return item;
         Team team = arena.getTeam(player);
