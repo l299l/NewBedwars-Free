@@ -1,6 +1,6 @@
 # =====================================================
 #  NewBedwars — Main Configuration
-#  Plugin version: 2.2-beta
+#  Plugin version: 2.5-beta
 # =====================================================
 
 ServerName: "&6&lExample&f&lServer.com"
@@ -89,6 +89,33 @@ DragonIndestructibleBlocks:
   - BARRIER
   - END_PORTAL_FRAME
   - IRON_BARS
+
+# ----- Rollback / Arena World ---------------------
+# The map of every arena is stored as a pristine template in plugins/NewBedwars/data/maps/<arena>/template.
+# After each game the arena world is replaced by a fresh copy of that template, so a crash or
+# an accidental save can never damage the map. Edit the map in setup mode, then use /bw save.
+Rollback:
+  # true = use the OLD system (unload the world and reload it from the server folder, no templates).
+  UseLegacySystem: false
+  # Copy the template on a separate thread (recommended for big maps).
+  AsyncCopy: true
+  # Also restore the maps when the plugin is disabled (slower server stop, but maps are always clean).
+  # When false, a map that was in use is restored on the next start instead.
+  RestoreOnShutdown: false
+  # Ticks to wait between attempts when the arena world can not be unloaded yet.
+  UnloadRetryTicks: 10
+  # Files and folders that are not copied into the template.
+  TemplateExcludes:
+    - session.lock
+    - uid.dat
+    - playerdata
+    - stats
+    - advancements
+
+# ----- Backups ------------------------------------
+Backups:
+  # How many automatic arena file / map backups are kept per arena.
+  Keep: 5
 
 # ----- Iron Golem Settings ------------------------
 # How long (seconds) iron golems stay alive before despawning

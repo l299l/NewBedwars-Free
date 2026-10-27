@@ -5,6 +5,7 @@ import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.world.template.ArenaMaps;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -52,6 +53,16 @@ public class EnableArenaCommand extends SubCommand {
                         put("/arenaname/", arena.getArenaName());
                     }});
                     return;
+                }
+                if (ArenaMaps.isEnabled()) {
+                    // Leaving setup: whatever the admin built is the map from now on.
+                    try {
+                        ArenaMaps.createTemplate(arena.getArenaName(), arena.getArenaWorld());
+                    } catch (java.io.IOException e) {
+                        NewBedwars.plugin.getLogger().warning("Could not save map template of " + arena.getArenaName() + ": " + e.getMessage());
+                        msg.send(player, "MapTemplateFailed");
+                        return;
+                    }
                 }
                 arena.enable();
                 msg.send(player, "ArenaEnabled", new HashMap<>() {{

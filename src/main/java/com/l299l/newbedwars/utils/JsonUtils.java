@@ -1,15 +1,21 @@
 package com.l299l.newbedwars.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonPrimitive;
 import com.l299l.newbedwars.arena.generators.Generator;
 import org.bukkit.Location;
 
 import java.io.IOException;
 
 public class JsonUtils {
+    /** Returns {@code value} as a quoted, escaped JSON string ({@code null} for null). */
+    public static String quote(String value) {
+        return value == null ? "null" : new JsonPrimitive(value).toString();
+    }
+
     public static String generatorToJson(Generator generator) {
         String sb = "{" +
-                "\"type\": \"" + generator.getType() + "\"," +
+                "\"type\": " + quote(String.valueOf(generator.getType())) + "," +
                 "\"location\": " + locationToJson(generator.getLocation()) +
                 "}";
         return sb;
@@ -23,7 +29,7 @@ public class JsonUtils {
                     "\"z\": \"" + location.getZ() + "\"," +
                     "\"yaw\": \"" + location.getYaw() + "\"," +
                     "\"pitch\": \"" + location.getPitch() + "\"," +
-                    "\"world\": \"" + location.getWorld().getName() + "\"" +
+                    "\"world\": " + quote(location.getWorld().getName()) +
                     "}";
             return sb;
         }catch (NullPointerException e) {

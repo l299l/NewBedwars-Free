@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena;
 
+import com.google.gson.JsonObject;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.generators.GeneratorType;
@@ -24,6 +25,14 @@ public interface IArena {
     void stop();
     void forceShutdown();
     boolean rollback();
+    /** Problems found while loading the arena (empty when it is fine). */
+    List<String> getLoadProblems();
+    /** Free-form data owned by addons, saved and loaded unchanged. */
+    JsonObject getExtra();
+    void setExtra(JsonObject extra);
+    /** Top-level fields of the arena file this version does not know; written back unchanged. */
+    JsonObject getUnknownFields();
+    void setUnknownFields(JsonObject unknownFields);
     Integer getGameTime();
     void upgradeGenerators(GeneratorType type, Integer level);
     boolean join(Player player);

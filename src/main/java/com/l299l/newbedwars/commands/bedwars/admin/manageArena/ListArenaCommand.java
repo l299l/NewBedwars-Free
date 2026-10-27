@@ -60,6 +60,10 @@ public class ListArenaCommand extends SubCommand {
                     .replace("/state/", state)
                     .replace("/players/", String.valueOf(arena.getPlayers().size()))
                     .replace("/max/", String.valueOf(max)));
+            if (!arena.getLoadProblems().isEmpty()) {
+                player.sendMessage(msg.getMsg(player, "ArenaListProblems")
+                        .replace("/problems/", String.join("; ", arena.getLoadProblems())));
+            }
         }
     }
 

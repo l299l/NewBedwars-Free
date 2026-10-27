@@ -18,6 +18,7 @@ public class ArenaCommand extends SubCommand {
     private final DisableArenaCommand disableArenaCommand;
     private final SetupArenaCommand setupCommand;
     private final ListArenaCommand listArenaCommand;
+    private final List<ArenaMaintenanceCommand> maintenanceCommands;
 
     public ArenaCommand() {
         msg = NewBedwars.plugin.getMessages();
@@ -27,6 +28,12 @@ public class ArenaCommand extends SubCommand {
         disableArenaCommand = new DisableArenaCommand();
         setupCommand = new SetupArenaCommand();
         listArenaCommand = new ListArenaCommand();
+        maintenanceCommands = List.of("backup", "backups", "restore", "export", "import", "resetmap").stream()
+                .map(ArenaMaintenanceCommand::new).toList();
+    }
+
+    private ArenaMaintenanceCommand maintenance(String name) {
+        return maintenanceCommands.stream().filter(c -> c.getName().equals(name)).findFirst().orElse(null);
     }
 
     @Override
@@ -41,7 +48,7 @@ public class ArenaCommand extends SubCommand {
 
     @Override
     public String getSyntax() {
-        return "/bw arena (<create|delete|enable|disable|setup|list>) <arenaName> (options of subcommands)";
+        return "/bw arena (<create|delete|enable|disable|setup|list|backup|backups|restore|export|import|resetmap>) <arenaName> (options of subcommands)";
     }
 
     @Override
@@ -51,7 +58,8 @@ public class ArenaCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena old) {
-        if(!player.hasPermission("newbedwars.bw.admin") && !player.hasPermission("newbedwars.bw.arena")) {
+        if(!player.hasPermission("newbedwars.bw.admin") && !player.hasPermission("newbedwars.bw.arena")
+                && (args.length < 2 || maintenance(args[1]) == null || !player.hasPermission("newbedwars.bw.arena." + args[1]))) {
             msg.send(player, "NoPermissions");
             return;
         }
@@ -63,7 +71,11 @@ public class ArenaCommand extends SubCommand {
                 case "disable" -> disableArenaCommand.perform(player, args, old);
                 case "setup" -> setupCommand.perform(player, args, old);
                 case "list" -> listArenaCommand.perform(player, args, old);
-                default -> sendUsage(player);
+                default -> {
+                    ArenaMaintenanceCommand sub = maintenance(args[1]);
+                    if (sub != null) sub.perform(player, args, old);
+                    else sendUsage(player);
+                }
             }
         } else {
             sendUsage(player);
@@ -72,8 +84,10 @@ public class ArenaCommand extends SubCommand {
 
     private void sendUsage(Player player) {
         player.sendMessage(msg.getMsg(player, "ArenaUsageHeader"));
-        for (SubCommand sub : List.of(createCommand, deleteCommand, enableArenaCommand,
-                disableArenaCommand, setupCommand, listArenaCommand)) {
+        List<SubCommand> all = new java.util.ArrayList<>(List.of(createCommand, deleteCommand, enableArenaCommand,
+                disableArenaCommand, setupCommand, listArenaCommand));
+        all.addAll(maintenanceCommands);
+        for (SubCommand sub : all) {
             String description = msg.getMsg(player, "ArenaUsageDesc-" + sub.getName());
             player.sendMessage(ChatColor.YELLOW + sub.getSyntax() + ChatColor.GRAY + " - "
                     + (description.isEmpty() ? sub.getDescription() : description));
@@ -86,7 +100,8 @@ public class ArenaCommand extends SubCommand {
             return null;
         }
         if (args.length == 2) {
-            return List.of("create", "delete", "enable", "disable", "setup", "list");
+            return List.of("create", "delete", "enable", "disable", "setup", "list",
+                    "backup", "backups", "restore", "export", "import", "resetmap");
         } else if (args.length >= 3) {
             return switch (args[1]) {
                 case "create" -> createCommand.getSubcommandArguments(player, args);
@@ -94,7 +109,10 @@ public class ArenaCommand extends SubCommand {
                 case "enable" -> enableArenaCommand.getSubcommandArguments(player, args);
                 case "disable" -> disableArenaCommand.getSubcommandArguments(player, args);
                 case "setup" -> setupCommand.getSubcommandArguments(player, args);
-                default -> null;
+                default -> {
+                    ArenaMaintenanceCommand sub = maintenance(args[1]);
+                    yield sub != null ? sub.getSubcommandArguments(player, args) : null;
+                }
             };
         }
         return null;

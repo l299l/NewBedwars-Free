@@ -1,7 +1,11 @@
 package com.l299l.newbedwars.config.data.json.arenas;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.l299l.newbedwars.config.data.IOExecutor;
+import com.l299l.newbedwars.world.template.ArenaMaps;
+import org.bukkit.World;
 import com.google.gson.internal.LinkedTreeMap;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
@@ -24,10 +28,11 @@ import org.bukkit.Location;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.EntityType;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.logging.Level;
 
 public class ArenaDataJson {
     IArena arena;
@@ -35,11 +40,19 @@ public class ArenaDataJson {
     public ArenaDataJson(IArena arena) {
         this.arena = arena;
     }
+    private static final Set<String> KNOWN_FIELDS = Set.of("schemaVersion", "arenaName", "worldName", "minPlayers",
+            "maxInTeam", "waitingTime", "respawnTime", "setup", "enabled", "quickVoidY", "waitingPos1", "waitingPos2",
+            "waitingSpawn", "gamePhasesId", "generatorsLeveling", "gamerules", "teams", "generators", "resourcePackUrl",
+            "resourcePackHash", "shopGuiId", "upgradeGuiId", "shopGui", "upgradeGui", "extra");
+
     public ArenaDataJson(String json) {
         Gson gson = new Gson();
+        String loadingArena = null;
+        World loadingWorld = null;
         try {
-            JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+            JsonObject jsonObject = ArenaMigrator.migrate(gson.fromJson(json, JsonObject.class));
             String arenaName = jsonObject.get("arenaName").getAsString();
+            loadingArena = arenaName;
             String worldName = jsonObject.get("worldName").getAsString();
             int minPlayers = jsonObject.get("minPlayers").getAsInt();
             int maxInTeam = jsonObject.get("maxInTeam").getAsInt();
@@ -62,10 +75,12 @@ public class ArenaDataJson {
             HashMap<String, Boolean> gamerules = gson.fromJson(jsonObject.get("gamerules"), HashMap.class);
 
             if (NewBedwars.plugin.getServer().getWorld(worldName) == null) {
+                restoreIfNeeded(arenaName, worldName);
                 WorldCreator wc = new WorldCreator(worldName);
                 wc.generator(new VoidGenerator());
                 NewBedwars.plugin.getServer().createWorld(wc);
             }
+            loadingWorld = NewBedwars.plugin.getServer().getWorld(worldName);
             Location waitingSpawn = getLocation(gson.fromJson(jsonObject.get("waitingSpawn"), Object.class));
             Location waitingPos1 = getLocation(gson.fromJson(jsonObject.get("waitingPos1"), Object.class));
             Location waitingPos2 = getLocation(gson.fromJson(jsonObject.get("waitingPos2"), Object.class));
@@ -97,6 +112,9 @@ public class ArenaDataJson {
                 String teamName = teamObject.get("name").getAsString();
                 arena.createTeam(teamName, gson.fromJson(teamObject.get("color"), ChatColor.class));
                 Team arenaTeam = arena.getTeams().get(teamName);
+                if (teamObject.has("extra") && teamObject.get("extra").isJsonObject()) {
+                    arenaTeam.setExtra(teamObject.getAsJsonObject("extra"));
+                }
                 Location teamSpawn = getLocation(gson.fromJson(teamObject.get("teamSpawn"), Object.class));
                 Location teamBed = getLocation(gson.fromJson(teamObject.get("teamBed"), Object.class));
                 Location teamAccessories = getLocation(gson.fromJson(teamObject.get("teamAccessories"), Object.class));
@@ -170,24 +188,91 @@ public class ArenaDataJson {
             if (jsonObject.has("resourcePackHash") && !jsonObject.get("resourcePackHash").isJsonNull()) {
                 arena.setResourcePackHash(jsonObject.get("resourcePackHash").getAsString());
             }
+            if (jsonObject.has("extra") && jsonObject.get("extra").isJsonObject()) {
+                arena.setExtra(jsonObject.getAsJsonObject("extra"));
+            }
+            JsonObject unknown = new JsonObject();
+            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                if (!KNOWN_FIELDS.contains(entry.getKey())) unknown.add(entry.getKey(), entry.getValue());
+            }
+            arena.setUnknownFields(unknown);
+            if (gamePhases == null && jsonObject.has("gamePhasesId") && !jsonObject.get("gamePhasesId").isJsonNull()
+                    && !"null".equals(jsonObject.get("gamePhasesId").getAsString())) {
+                arena.getLoadProblems().add("unknown game phases id '" + jsonObject.get("gamePhasesId").getAsString() + "'");
+            }
+            if (ArenaMaps.isEnabled() && loadingWorld != null && !ArenaMaps.hasTemplate(arenaName)) {
+                createMissingTemplate(arenaName, loadingWorld);
+            }
+            if (enabled) {
+                arena.getLoadProblems().addAll(ArenaValidator.validate(arena));
+                if (!arena.getLoadProblems().isEmpty()) {
+                    arena.disable();
+                    NewBedwars.plugin.getLogger().warning("Arena " + arenaName + " was loaded DISABLED because: "
+                            + String.join("; ", arena.getLoadProblems()));
+                }
+            }
             this.arena = arena;
         } catch (Exception e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not load arena " + loadingArena + ": " + e, e);
+            if (loadingArena != null) {
+                Arena.arenaByName.remove(loadingArena);
+                if (loadingWorld != null) Arena.arenaByWorld.remove(loadingWorld);
+            }
         }
     }
 
-    public void save(){
-        File dataDir = new File(NewBedwars.plugin.getDataFolder(), "data/arenas");
-        if (!dataDir.exists()) {
-            boolean correct = dataDir.mkdirs();
-            if (!correct) {
-                System.out.println("[NewBedwars]: Could not create arenas data folder!");
-            }
-        }
-        try (FileWriter file = new FileWriter(new File(dataDir, arena.getArenaName() + ".json"))) {
-            file.write(JsonUtils.beautifyJson(arena.toJson()));
+    /** Restores the world folder from the template when the last game never finished (server crash). */
+    private static void restoreIfNeeded(String arenaName, String worldName) {
+        if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) return;
+        boolean missing = !Files.isRegularFile(ArenaMaps.worldFolder(worldName).resolve("level.dat"));
+        if (!missing && !ArenaMaps.isDirty(arenaName)) return;
+        try {
+            ArenaMaps.restoreOffline(arenaName, worldName);
+            NewBedwars.plugin.getLogger().info("Restored map of arena " + arenaName + " from its template.");
         } catch (IOException e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not restore map of arena " + arenaName, e);
+        }
+    }
+
+    /** First start after the update: existing arenas get their template from the current world. */
+    private static void createMissingTemplate(String arenaName, World world) {
+        try {
+            ArenaMaps.createTemplate(arenaName, world);
+            NewBedwars.plugin.getLogger().info("Created map template for arena " + arenaName + ".");
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not create map template for arena " + arenaName
+                    + " (the legacy reload will be used): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves the arena. The JSON is built (and validated by parsing it) on the calling thread; the file
+     * is then written atomically on the IO thread, or immediately when the plugin is shutting down.
+     * The previous file is kept as a backup.
+     */
+    public void save(){
+        String name = arena.getArenaName();
+        Path target = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(name + ".json");
+        Path backups = ArenaMaps.arenaBackupDir(name);
+        int keep = Properties.BackupsKeep;
+        String content;
+        try {
+            content = JsonUtils.beautifyJson(arena.toJson());
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Arena " + name + " could not be saved (invalid data); the old file was kept", e);
+            return;
+        }
+        Runnable write = () -> {
+            try {
+                AtomicFileWriter.write(target, content, backups, keep);
+            } catch (IOException e) {
+                NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not write arena file " + target, e);
+            }
+        };
+        if (NewBedwars.plugin.isEnabled()) {
+            IOExecutor.submit(write);
+        } else {
+            write.run();
         }
     }
 

@@ -44,6 +44,31 @@ permissions:
       newbedwars.bw.arena.disable: true
       newbedwars.bw.arena.setup: true
       newbedwars.bw.arena.list: true
+      newbedwars.bw.arena.backup: true
+      newbedwars.bw.arena.backups: true
+      newbedwars.bw.arena.restore: true
+      newbedwars.bw.arena.export: true
+      newbedwars.bw.arena.import: true
+      newbedwars.bw.arena.resetmap: true
+
+  newbedwars.bw.arena.backup:
+    description: Back up an arena (file and map).
+    default: op
+  newbedwars.bw.arena.backups:
+    description: List arena backups.
+    default: op
+  newbedwars.bw.arena.restore:
+    description: Restore an arena from a backup.
+    default: op
+  newbedwars.bw.arena.export:
+    description: Export an arena to a zip.
+    default: op
+  newbedwars.bw.arena.import:
+    description: Import an arena from a zip.
+    default: op
+  newbedwars.bw.arena.resetmap:
+    description: Put an arena map back to its saved state.
+    default: op
 
   newbedwars.bw.arena.create:
     description: Create arenas.

@@ -4,6 +4,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataJson;
+import com.l299l.newbedwars.world.template.ArenaMaps;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -36,6 +37,17 @@ public class SaveSettingsCommand extends SubCommand {
             arenaDataJson.save();
             arena.getArenaWorld().save();
             player.sendMessage(NewBedwars.plugin.getMessages().getMsg(player, "saveSuccess"));
+            if (ArenaMaps.isEnabled()) {
+                // The saved world becomes the pristine copy every game is reset from.
+                ArenaMaps.createTemplateAsync(arena.getArenaName(), arena.getArenaWorld(), error -> {
+                    if (error == null) {
+                        NewBedwars.plugin.getMessages().send(player, "MapTemplateSaved");
+                    } else {
+                        NewBedwars.plugin.getLogger().warning("Could not save map template of " + arena.getArenaName() + ": " + error);
+                        NewBedwars.plugin.getMessages().send(player, "MapTemplateFailed");
+                    }
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -19,6 +19,7 @@ public class Team {
     private final String name;
     private final IArena arena;
     private final ArrayList<Player> players;
+    private com.google.gson.JsonObject extra = new com.google.gson.JsonObject();
     private TeamBed teamBed;
     private Location teamSpawn;
     /** Smaller zone — players cannot place blocks inside (block-protection area). */
@@ -280,10 +281,20 @@ public class Team {
         if (generator != null) generator.getLocation().setWorld(world);
     }
 
+    /** Free-form data owned by addons, saved and loaded unchanged. */
+    public com.google.gson.JsonObject getExtra() {
+        return extra;
+    }
+
+    public void setExtra(com.google.gson.JsonObject extra) {
+        this.extra = extra != null ? extra : new com.google.gson.JsonObject();
+    }
+
     public String toJson() {
         String sb = "{" +
-                "\"color\": \"" + color.name() + "\"," +
-                "\"name\": \"" + name + "\"," +
+                "\"color\": " + JsonUtils.quote(color.name()) + "," +
+                "\"name\": " + JsonUtils.quote(name) + "," +
+                "\"extra\": " + extra + "," +
                 "\"teamBed\": " + (teamBed == null ? "null" : JsonUtils.locationToJson(teamBed.getLocation())) + "," +
                 "\"teamSpawn\": " + (teamSpawn == null ? "null" : JsonUtils.locationToJson(teamSpawn)) + "," +
                 "\"teamBuildProtAreaPos1\": " + (teamBuildProtAreaPos1 == null ? "null" : JsonUtils.locationToJson(teamBuildProtAreaPos1)) + "," +

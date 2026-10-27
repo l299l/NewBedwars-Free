@@ -14,6 +14,8 @@ import com.l299l.newbedwars.commands.party.PartyCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.config.Updater;
 import com.l299l.newbedwars.config.data.DataManager;
+import com.l299l.newbedwars.config.data.IOExecutor;
+import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.config.data.LobbyData;
 import com.l299l.newbedwars.config.properties.LangMessages;
 import com.l299l.newbedwars.config.properties.Properties;
@@ -103,6 +105,19 @@ public final class NewBedwars extends JavaPlugin {
         }
         LobbyData.save(lobbyLocation);
         if (dataManager != null) dataManager.save();
+        if (ArenaMaps.isEnabled() && Properties.RollbackRestoreOnShutdown) {
+            // dataManager.save() unloaded the worlds without saving, so the folders can be replaced now.
+            for (IArena arena : Arena.arenaByName.values()) {
+                String name = arena.getArenaName();
+                if (!ArenaMaps.hasTemplate(name) || !ArenaMaps.isDirty(name)) continue;
+                try {
+                    ArenaMaps.restoreOffline(name, arena.getArenaWorld().getName());
+                } catch (java.io.IOException e) {
+                    getLogger().warning("Could not restore map of arena " + name + " on shutdown: " + e.getMessage());
+                }
+            }
+        }
+        IOExecutor.flush();
         getServer().getConsoleSender().sendMessage(ChatColor.RED + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_RED + "Disabled");
     }
 

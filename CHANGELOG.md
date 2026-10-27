@@ -8,6 +8,10 @@ All notable changes to NewBedwars are documented here.
 - **Automatic team assignment** - Teams are now assigned when the game starts instead of when joining, balanced evenly, and party members are kept together when possible
 - **`SplitPartiesToStart` gamerule** - Controls what happens when everyone in the arena would end up in one team (e.g. a single big party): `true` (default) splits the party over other teams so the game can start, `false` keeps waiting until players fill at least two teams
 
+- **New map reset system** - Every arena now keeps a pristine copy of its map. After each game the map is replaced by that copy, so crashes, restarts or accidental saves can no longer damage a map. If the server stops during a game, the map is restored on the next start. Use `/bw save` (or enable the arena) after building to update the copy. The old system can be brought back with `Rollback.UseLegacySystem: true` in `config.yml`
+- **Arena backups** - New commands `/bw arena backup|backups|restore|export|import|resetmap`. Arena files are also backed up automatically on every save (`Backups.Keep` in `config.yml`)
+- **Safer arena saving** - Arena files are written safely (a crash while saving can no longer corrupt them), names with special characters are saved correctly, and arenas with missing spawns or beds now load disabled with the problems shown in `/bw arena list` instead of failing half-loaded
+
 ### Fixed
 - **Items in shop/upgrade GUI** - Players can no longer move items into the shop, upgrade and other menus by shift-clicking them from their inventory
 - **Game ending instantly with a party** - A party joining alone no longer starts a game that immediately ends with "your team wins"

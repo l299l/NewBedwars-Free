@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.setup.settings;
 
 import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
@@ -81,6 +82,8 @@ public class DeleteConfirmGuiSettings implements Listener {
 
         deleteFolder(worldFolder);
         new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + arenaName + ".json").delete();
+        // The template goes with the arena; backups in data/backups are intentionally kept.
+        deleteFolder(ArenaMaps.mapsRoot().resolve(arenaName).toFile());
 
         msg.send(player, "ArenaDeleted", new HashMap<>() {{
             put("/arenaname/", arenaName);

@@ -53,6 +53,12 @@ public class Properties{
     public static String MySQLDatabase;
     public static Integer MySQLPort;
     public static Integer IronGolemLifetime;
+    public static Boolean RollbackLegacySystem = false;
+    public static Boolean RollbackAsyncCopy = true;
+    public static Boolean RollbackRestoreOnShutdown = false;
+    public static Integer RollbackUnloadRetryTicks = 10;
+    public static List<String> RollbackTemplateExcludes = new ArrayList<>();
+    public static Integer BackupsKeep = 5;
 
     public Properties() {
         NewBedwars.plugin.reloadConfig();
@@ -106,6 +112,24 @@ public class Properties{
         //Iron Golem settings
         Object igl = get("IronGolemLifetime");
         IronGolemLifetime = igl instanceof Integer i ? i : 120;
+        //Rollback
+        Object rls = get("Rollback.UseLegacySystem");
+        RollbackLegacySystem = rls instanceof Boolean b ? b : false;
+        Object rac = get("Rollback.AsyncCopy");
+        RollbackAsyncCopy = rac instanceof Boolean b ? b : true;
+        Object rros = get("Rollback.RestoreOnShutdown");
+        RollbackRestoreOnShutdown = rros instanceof Boolean b ? b : false;
+        Object rurt = get("Rollback.UnloadRetryTicks");
+        RollbackUnloadRetryTicks = rurt instanceof Integer i && i > 0 ? i : 10;
+        RollbackTemplateExcludes = new ArrayList<>();
+        Object rte = get("Rollback.TemplateExcludes");
+        if (rte instanceof List<?> excludes) {
+            for (Object entry : excludes) RollbackTemplateExcludes.add(String.valueOf(entry));
+        } else {
+            RollbackTemplateExcludes.addAll(List.of("session.lock", "uid.dat", "playerdata", "stats", "advancements"));
+        }
+        Object bk = get("Backups.Keep");
+        BackupsKeep = bk instanceof Integer i && i >= 0 ? i : 5;
         DragonIndestructibleBlocks.clear();
         Object dibRaw = get("DragonIndestructibleBlocks");
         if (dibRaw instanceof List<?> dibList) {

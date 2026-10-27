@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena;
 
+import com.google.gson.JsonObject;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
 import com.l299l.newbedwars.parties.Party;
@@ -17,6 +18,7 @@ import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.IronGolemLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.SilverfishLogic;
 import com.l299l.newbedwars.arena.team.Team;
+import com.l299l.newbedwars.config.data.json.arenas.ArenaMigrator;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.utils.CountdownTimer;
 import com.l299l.newbedwars.utils.DecoUtils;
@@ -25,6 +27,8 @@ import com.l299l.newbedwars.scoreboard.NScoreboard;
 import com.l299l.newbedwars.scoreboard.ScoreboardManager;
 import com.l299l.newbedwars.version.VersionCompat;
 import com.l299l.newbedwars.world.chunkgenerators.VoidGenerator;
+import com.l299l.newbedwars.world.template.ArenaMaps;
+import com.l299l.newbedwars.world.template.ArenaResetPipeline;
 import org.bukkit.*;
 import org.bukkit.boss.BossBar;
 import org.bukkit.block.Block;
@@ -99,6 +103,9 @@ public class Arena implements IArena {
     private final ScoreboardManager scoreboardManager;
     private final HashMap<Team, EnderDragon> teamDragons = new HashMap<>();
     private final HashMap<Team, BukkitTask> dragonTasks = new HashMap<>();
+    private final List<String> loadProblems = new ArrayList<>();
+    private JsonObject extra = new JsonObject();
+    private JsonObject unknownFields = new JsonObject();
     private final HashSet<String> placedBlocks;
     private final HashSet<String> blastProtBlocks;
     private final HashSet<UUID> playersWithResourcePack;
@@ -157,6 +164,11 @@ public class Arena implements IArena {
         DecoUtils.removeAllArmorStands(this);
         gameStatus = GameStatus.playing;
         gameStartMillis = System.currentTimeMillis();
+        // From now on the world may contain game damage; the marker makes the next start restore it
+        // from the template if the server dies before the reset finishes.
+        if (ArenaMaps.isEnabled() && ArenaMaps.hasTemplate(arenaName)) {
+            ArenaMaps.markDirty(arenaName);
+        }
         broadcast("GameStarted");
         clearWaitingArea();
         assignTeams();
@@ -264,7 +276,10 @@ public class Arena implements IArena {
             Bukkit.getServer().getLogger().severe("Could not rollback arena " + arenaName);
         }
 
-        gameStatus = GameStatus.waiting;
+        // With the template system the reset pipeline sets the status itself once the world is back.
+        if (!ArenaMaps.isEnabled()) {
+            gameStatus = GameStatus.waiting;
+        }
     }
 
     public void forceShutdown() {
@@ -298,6 +313,12 @@ public class Arena implements IArena {
         SilverfishLogic.cleanupAllForArena(this);
     }
 
+    /**
+     * Resets the arena world. With the default (template) system this only starts an asynchronous
+     * pipeline and returns {@code true} when it started; the arena stays {@code restarting} until the
+     * pipeline calls {@link #finishReset}. With {@code Rollback.UseLegacySystem} the world is reloaded
+     * synchronously from the server folder.
+     */
     @Override
     public boolean rollback() {
         clearPlacedBlocks();
@@ -309,6 +330,89 @@ public class Arena implements IArena {
             if (dragon != null && dragon.isValid()) dragon.remove();
         }
         teamDragons.clear();
+        if (ArenaMaps.isEnabled()) {
+            if (ArenaMaps.hasTemplate(arenaName)) {
+                return ArenaResetPipeline.start(this);
+            }
+            NewBedwars.plugin.getLogger().warning("Arena " + arenaName + " has no map template; falling back to the legacy reload. "
+                    + "Use /bw save in setup mode to create one.");
+            boolean ok = legacyRollback();
+            gameStatus = GameStatus.waiting;
+            return ok;
+        }
+        return legacyRollback();
+    }
+
+    /** Called by {@link ArenaResetPipeline} when the fresh world is loaded. */
+    public void finishReset(World newWorld) {
+        rebindWorld(newWorld);
+        DecoUtils.removeAllArmorStands(this);
+        // a disabled arena keeps the "restarting" status that blocks joins
+        gameStatus = Boolean.TRUE.equals(enabled) ? GameStatus.waiting : GameStatus.restarting;
+    }
+
+    /**
+     * Admin command: puts the map back to its saved state right now. Only possible while nobody is in
+     * the arena. Returns false when the arena is busy.
+     */
+    public boolean resetMap() {
+        if (!players.isEmpty() || !spectatorsList.isEmpty()
+                || (gameStatus != GameStatus.waiting && Boolean.TRUE.equals(enabled))) {
+            return false;
+        }
+        gameStatus = GameStatus.restarting;
+        boolean started = rollback();
+        if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) {
+            gameStatus = Boolean.TRUE.equals(enabled) ? GameStatus.waiting : GameStatus.restarting;
+        }
+        return started;
+    }
+
+    /** Called by {@link ArenaResetPipeline} when the arena can not be reset; the arena is disabled. */
+    public void failReset(String reason) {
+        NewBedwars.plugin.getLogger().severe("Arena " + arenaName + " was disabled: " + reason);
+        enabled = false;
+        setup = Setup.NO_SETUP;
+        gameStatus = GameStatus.restarting;
+        loadProblems.add(reason);
+    }
+
+    public void unbindWorld() {
+        arenaByWorld.remove(world);
+    }
+
+    public void rebindWorld(World newWorld) {
+        world = newWorld;
+        arenaByWorld.put(newWorld, this);
+        if (waitingSpawn != null) waitingSpawn.setWorld(newWorld);
+        if (waitingPos1 != null) waitingPos1.setWorld(newWorld);
+        if (waitingPos2 != null) waitingPos2.setWorld(newWorld);
+        for (Team team : teams.values()) {
+            team.updateWorldReference(newWorld);
+        }
+        for (Generator generator : generators) {
+            generator.getLocation().setWorld(newWorld);
+        }
+    }
+
+    @Override
+    public List<String> getLoadProblems() {
+        return loadProblems;
+    }
+
+    @Override
+    public JsonObject getExtra() { return extra; }
+
+    @Override
+    public void setExtra(JsonObject extra) { this.extra = extra != null ? extra : new JsonObject(); }
+
+    @Override
+    public JsonObject getUnknownFields() { return unknownFields; }
+
+    @Override
+    public void setUnknownFields(JsonObject unknownFields) { this.unknownFields = unknownFields != null ? unknownFields : new JsonObject(); }
+
+    private boolean legacyRollback() {
         try {
             world.setKeepSpawnInMemory(false);
             world.setAutoSave(false);
@@ -331,25 +435,9 @@ public class Arena implements IArena {
             Bukkit.getServer().getLogger().severe("Could not recreate arena world " + worldName);
             return false;
         }
-        newWorld.setAutoSave(false);
-        newWorld.setKeepSpawnInMemory(false);
-        newWorld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-        newWorld.setGameRule(GameRule.DO_FIRE_TICK, false);
-        newWorld.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-        newWorld.setGameRule(GameRule.KEEP_INVENTORY, true);
-        VersionCompat.disableLocatorBar(newWorld);
-        world = newWorld;
-        arenaByWorld.put(newWorld, this);
+        ArenaMaps.applyWorldRules(newWorld);
+        rebindWorld(newWorld);
         DecoUtils.removeAllArmorStands(this);
-        if (waitingSpawn != null) waitingSpawn.setWorld(newWorld);
-        if (waitingPos1 != null) waitingPos1.setWorld(newWorld);
-        if (waitingPos2 != null) waitingPos2.setWorld(newWorld);
-        for (Team team : teams.values()) {
-            team.updateWorldReference(newWorld);
-        }
-        for (Generator generator : generators) {
-            generator.getLocation().setWorld(newWorld);
-        }
         return true;
     }
 
@@ -1280,8 +1368,9 @@ public class Arena implements IArena {
     public String toJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("\"arenaName\": \"").append(arenaName).append("\",");
-        sb.append("\"worldName\": \"").append(worldName).append("\",");
+        sb.append("\"schemaVersion\": ").append(ArenaMigrator.CURRENT_VERSION).append(",");
+        sb.append("\"arenaName\": ").append(JsonUtils.quote(arenaName)).append(",");
+        sb.append("\"worldName\": ").append(JsonUtils.quote(worldName)).append(",");
         sb.append("\"minPlayers\": ").append(minPlayers).append(",");
         sb.append("\"maxInTeam\": ").append(maxInTeam).append(",");
         sb.append("\"waitingTime\": ").append(waitingTime).append(",");
@@ -1292,8 +1381,8 @@ public class Arena implements IArena {
         sb.append("\"waitingPos1\": ").append(waitingPos1 == null ? "null" : JsonUtils.locationToJson(waitingPos1)).append(",");
         sb.append("\"waitingPos2\": ").append(waitingPos2 == null ? "null" : JsonUtils.locationToJson(waitingPos2)).append(",");
         sb.append("\"waitingSpawn\": ").append(waitingSpawn == null ? "null" : JsonUtils.locationToJson(waitingSpawn)).append(",");
-        sb.append("\"gamePhasesId\": \"").append(gamePhases == null ? "null" : gamePhases.getID()).append("\",");
-        sb.append("\"generatorsLeveling\": \"").append(generatorsLeveling == null ? "null" : generatorsLeveling.getId()).append("\",");
+        sb.append("\"gamePhasesId\": ").append(JsonUtils.quote(gamePhases == null ? "null" : gamePhases.getID())).append(",");
+        sb.append("\"generatorsLeveling\": ").append(JsonUtils.quote(generatorsLeveling == null ? "null" : generatorsLeveling.getId())).append(",");
         sb.append("\"gamerules\": ").append(gamerules.toJson()).append(",");
         sb.append("\"teams\": [");
         int i = 0;
@@ -1315,10 +1404,14 @@ public class Arena implements IArena {
             i++;
         }
         sb.append("],");
-        sb.append("\"resourcePackUrl\": ").append(resourcePackUrl == null ? "null" : "\"" + resourcePackUrl + "\"").append(",");
-        sb.append("\"resourcePackHash\": ").append(resourcePackHash == null ? "null" : "\"" + resourcePackHash + "\"").append(",");
-        sb.append("\"shopGuiId\": \"").append(shopGuiId == null ? Properties.DefaultTeamShopGui : shopGuiId).append("\",");
-        sb.append("\"upgradeGuiId\": \"").append(upgradeGuiId == null ? Properties.DefaultUpgradeShopGui : upgradeGuiId).append("\"");
+        sb.append("\"resourcePackUrl\": ").append(JsonUtils.quote(resourcePackUrl)).append(",");
+        sb.append("\"resourcePackHash\": ").append(JsonUtils.quote(resourcePackHash)).append(",");
+        sb.append("\"shopGuiId\": ").append(JsonUtils.quote(shopGuiId == null ? Properties.DefaultTeamShopGui : shopGuiId)).append(",");
+        sb.append("\"upgradeGuiId\": ").append(JsonUtils.quote(upgradeGuiId == null ? Properties.DefaultUpgradeShopGui : upgradeGuiId)).append(",");
+        sb.append("\"extra\": ").append(extra);
+        for (Map.Entry<String, com.google.gson.JsonElement> unknown : unknownFields.entrySet()) {
+            sb.append(",").append(JsonUtils.quote(unknown.getKey())).append(": ").append(unknown.getValue());
+        }
         sb.append("}");
         return sb.toString();
     }

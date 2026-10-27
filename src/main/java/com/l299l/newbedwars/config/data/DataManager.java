@@ -59,6 +59,10 @@ public class DataManager {
     public void loadArenas() {
         arenaDataManager.load();
     }
+    public ArenaDataManager getArenaDataManager() {
+        return arenaDataManager;
+    }
+
     public void unloadArenas() {
         for (World arenaWorld : Arena.arenaByWorld.keySet()) {
             boolean correct = Bukkit.getServer().unloadWorld(arenaWorld, false);
