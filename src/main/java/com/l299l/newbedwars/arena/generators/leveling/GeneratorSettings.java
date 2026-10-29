@@ -128,6 +128,15 @@ public class GeneratorSettings {
             diamondSpawnAmount = null;
         }
         spawnDelay = configurationSection.getDoubleList("SpawnDelay");
+        if (spawnDelay.size() != maxLevel && spawnDelay.size() != 1) {
+            throw new IllegalArgumentException("SpawnDelay size must be equal to MaxLevel");
+        } else if (spawnDelay.size() == 1) {
+            double delay = spawnDelay.get(0);
+            spawnDelay.clear();
+            for (int i = 0; i < maxLevel; i++) {
+                spawnDelay.add(delay);
+            }
+        }
     }
 
     public int getMaxLevel() {

@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.api.events;
 
-import com.l299l.newbedwars.api.ArenaView;
+import com.l299l.newbedwars.api.view.ArenaView;
 import org.bukkit.event.HandlerList;
 
 /** Fired twice per map reset: before it starts and after the arena world is ready again. */

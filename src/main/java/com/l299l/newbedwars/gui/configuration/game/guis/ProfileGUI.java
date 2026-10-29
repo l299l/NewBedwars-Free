@@ -31,12 +31,10 @@ public class ProfileGUI extends BasicGUI {
     private void init() {
         PlayerStats stats = NewBedwars.plugin.getPlayerManager().getStats(target.getName());
 
-        // Player head
         inv.setItem(4, getGuiManager().getPlayerHead(target.getName(),
                 ChatColor.GOLD + "" + ChatColor.BOLD + target.getName(),
                 List.of(ChatColor.GRAY + "Games Played: " + ChatColor.WHITE + stats.gamesPlayed())));
 
-        // Stats items
         inv.setItem(10, statItem(Material.GREEN_STAINED_GLASS_PANE,
                 ChatColor.GREEN + "Wins", stats.wins()));
         inv.setItem(11, statItem(Material.RED_STAINED_GLASS_PANE,
@@ -56,7 +54,6 @@ public class ProfileGUI extends BasicGUI {
         inv.setItem(17, statItem(Material.ORANGE_STAINED_GLASS_PANE,
                 ChatColor.GOLD + "Beds Broken", stats.bedsBroken()));
 
-        // Language item (slot 20)
         PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(target.getName());
         String langName = ins != null ? ins.language().name() : "ENGLISH";
         inv.setItem(20, statItem(Material.PAPER,
@@ -72,7 +69,6 @@ public class ProfileGUI extends BasicGUI {
             inv.setItem(22, fastBuyBtn);
         }
 
-        // Close button
         ItemStack close = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = close.getItemMeta();
         closeMeta.setDisplayName(ChatColor.RED + "Close");

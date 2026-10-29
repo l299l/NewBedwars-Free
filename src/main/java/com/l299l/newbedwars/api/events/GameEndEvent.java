@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.api.events;
 
-import com.l299l.newbedwars.api.ArenaView;
-import com.l299l.newbedwars.api.TeamView;
+import com.l299l.newbedwars.api.view.ArenaView;
+import com.l299l.newbedwars.api.view.TeamView;
 import org.bukkit.event.HandlerList;
 
 /** Fired when a game ends, before the winners are announced. */

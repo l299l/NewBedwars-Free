@@ -5,45 +5,54 @@
 #  Create additional files in the generators/ folder with
 #  different IDs to define alternative generator presets.
 #
-#  SpawnRate: probability (%) for each resource at each generator level.
-#  MaxAmount: max items per spawn tick at each level.
+#  SpawnRate: relative chance (weight) of each resource at each generator level.
+#  MaxAmount: each spawn tick drops a random amount from 1 to MaxAmount (0 = never drops).
 #  SpawnDelay: seconds between spawn ticks at each level.
+#
+#  Each tick drops ONE resource, so the income of a resource per second is
+#    (its share of the SpawnRate weights) x (average amount, (MaxAmount + 1) / 2) / SpawnDelay
+#  Team generator income per second (levels 1-9; level 1 is the base, every Forge purchase adds a level):
+#    iron 1.0 -> 3.0, gold 0.14 -> 0.43, emerald (from level 4) 0.05 -> 0.15, diamond (from level 6) 0.01 -> 0.025
+#  i.e. the Hypixel forge steps (+50% / +100% / emerald / +200%) spread over the 8 Forge levels.
+#  The diamond and emerald island generators use the Hypixel intervals.
 # =====================================================
 
 ConfigurationId: DefaultGenerators
 
 # ----- Team (Basic) Generator ---------------------
 TeamGenerator:
-  MaxLevel: 8
+  MaxLevel: 9
   ShowNextSpawnTime: false
   Iron:
-    SpawnRate: [75.0, 60.0, 55.0, 50.5, 50.0, 50.0, 50.0, 45.0]
-    MaxAmount: [4, 4, 4, 4, 5, 6, 7, 8]
+    SpawnRate: [87.7, 87.4, 87.7, 79.5, 79.7, 78.5, 82.7, 82.1, 81.5]
+    MaxAmount: [1, 1, 1, 2, 2, 2, 2, 2, 2]
   Gold:
-    SpawnRate: [25.0, 40.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0]
-    MaxAmount: [2, 3, 3, 3, 4, 5, 5, 6]
+    SpawnRate: [12.3, 12.6, 12.3, 17.0, 16.7, 16.8, 11.6, 11.6, 11.4]
+    MaxAmount: [1, 1, 1, 1, 1, 1, 2, 2, 2]
   Emerald:
-    SpawnRate: [0.0, 0.0, 0.0, 4.5, 5.0, 5.0, 5.0, 5.0]
-    MaxAmount: [0, 0, 0, 1, 1, 2, 3, 3]
+    SpawnRate: [0.0, 0.0, 0.0, 3.4, 3.6, 4.2, 5.0, 5.4, 6.1]
+    MaxAmount: [0, 0, 0, 1, 1, 1, 1, 1, 1]
   Diamond:
-    SpawnRate: [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0]
-    MaxAmount: [0, 0, 0, 0, 1, 1, 2, 2]
-  SpawnDelay: [2, 2, 1, 1, 1, 1, 0.75, 0.70]
+    SpawnRate: [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.7, 0.9, 1.0]
+    MaxAmount: [0, 0, 0, 0, 0, 1, 1, 1, 1]
+  SpawnDelay: [0.9, 0.7, 0.6, 0.7, 0.6, 0.5, 0.5, 0.45, 0.4]
 
 # ----- Diamond Generator --------------------------
+# Hypixel: 1 diamond every 30 / 24 / 12 seconds.
 DiamondGenerator:
   MaxLevel: 3
   ShowNextSpawnTime: true
   Diamond:
     SpawnRate: [100.0]
     MaxAmount: [1]
-  SpawnDelay: [60, 30, 15]
+  SpawnDelay: [30, 24, 12]
 
 # ----- Emerald Generator --------------------------
+# Hypixel (3-4 team modes): 1 emerald every 56 / 40 / 28 seconds (solo/doubles: 65 / 50 / 35).
 EmeraldGenerator:
   MaxLevel: 3
   ShowNextSpawnTime: true
   Emerald:
     SpawnRate: [100.0]
     MaxAmount: [1]
-  SpawnDelay: [60, 30, 15]
+  SpawnDelay: [56, 40, 28]

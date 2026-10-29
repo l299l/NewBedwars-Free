@@ -1,7 +1,9 @@
 package com.l299l.newbedwars.apiimpl;
 
-import com.l299l.newbedwars.api.ArenaView;
-import com.l299l.newbedwars.api.TeamView;
+import com.l299l.newbedwars.apiimpl.view.ApiArena;
+import com.l299l.newbedwars.apiimpl.view.ApiTeam;
+import com.l299l.newbedwars.api.view.ArenaView;
+import com.l299l.newbedwars.api.view.TeamView;
 import com.l299l.newbedwars.api.events.ArenaResetEvent;
 import com.l299l.newbedwars.api.events.ArmorEquipEvent;
 import com.l299l.newbedwars.api.events.BedBreakEvent;

@@ -18,7 +18,6 @@ public class FastBuyCustomizerGUISettings implements Listener {
 
         int slot = e.getRawSlot();
 
-        // Save & Close (slot 53)
         if (slot == FastBuyCustomizerGUI.saveSlot()) {
             NewBedwars.plugin.getPlayerManager().updateFastBuy(player.getName(), gui.getSelection());
             player.closeInventory();
@@ -26,7 +25,6 @@ public class FastBuyCustomizerGUISettings implements Listener {
             return;
         }
 
-        // Reset All (slot 49)
         if (slot == FastBuyCustomizerGUI.resetSlot()) {
             gui.resetAll();
             NewBedwars.plugin.getMessages().send(player, "FastBuyReset");
@@ -35,7 +33,6 @@ public class FastBuyCustomizerGUISettings implements Listener {
 
         if (e.getCurrentItem() == null || e.getCurrentItem().getType().isAir()) return;
 
-        // Category icon click → open item picker
         int iconCatIdx = gui.catIndexForIconSlot(slot);
         if (iconCatIdx >= 0) {
             player.openInventory(new ItemPickerGUI(

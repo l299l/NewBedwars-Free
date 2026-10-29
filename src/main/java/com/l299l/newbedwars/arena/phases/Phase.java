@@ -20,12 +20,28 @@ public class Phase {
         this.duration = duration;
         this.actions = actions;
     }
+    /** A fresh phase with the same settings; running state (duration, timer) is never shared between arenas. */
+    public Phase copy() {
+        return new Phase(name, initialDuration, actions);
+    }
+
     public void start(IArena arena) {
+        cancel();
         duration = initialDuration;
-        actions.forEach(action -> action.execute(arena));
-        if (duration == 0) {
-            return;
+        if (duration > 0) {
+            startTimer(arena);
         }
+        // a failing action must not skip the others or stop the timer above
+        for (PhaseAction action : actions) {
+            try {
+                action.execute(arena);
+            } catch (RuntimeException e) {
+                NewBedwars.plugin.getLogger().warning("Phase '" + name + "' action failed: " + e);
+            }
+        }
+    }
+
+    private void startTimer(IArena arena) {
         task = new BukkitRunnable() {
             @Override
             public void run() {

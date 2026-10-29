@@ -35,7 +35,7 @@ public class ConfirmLeaveGuiSettings implements Listener {
             if (e.getClickedInventory().getHolder() instanceof ConfirmLeaveGUI) {
                 IArena arena = Arena.arenaByWorld.get(player.getWorld());
                 if(!((ConfirmLeaveGUI) e.getClickedInventory().getHolder()).getAll()) {
-                    if (e.getSlot() > 0 && e.getSlot() < 4) {
+                    if (e.getSlot() >= 0 && e.getSlot() < 4) {
                         leave(arena, player);
                         msg.send(player, "SuccessfullyLeave");
                     } else {
@@ -47,7 +47,7 @@ public class ConfirmLeaveGuiSettings implements Listener {
                     }
                     e.setCancelled(true);
                 }else {
-                    if (e.getSlot() > 0 && e.getSlot() < 4) {
+                    if (e.getSlot() >= 0 && e.getSlot() < 4) {
                         Collection<? extends Player> cAllPlayers = Bukkit.getServer().getOnlinePlayers();
                         ArrayList<Player> allPlayers = new ArrayList<>(cAllPlayers);
                         for (Player allPlayer : allPlayers) {
@@ -57,7 +57,7 @@ public class ConfirmLeaveGuiSettings implements Listener {
                                         leave(arena, allPlayer);
                                         msg.send(allPlayer, "KickedByOtherAdmin");
                                     } else {
-                                        player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replaceAll("/admin/", allPlayer.getName()));
+                                        player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", allPlayer.getName()));
                                     }
                                 }
                             }

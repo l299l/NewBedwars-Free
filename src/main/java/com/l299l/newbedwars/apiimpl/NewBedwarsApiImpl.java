@@ -1,13 +1,19 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.apiimpl.view.ApiArena;
+import com.l299l.newbedwars.apiimpl.edit.ApiEditor;
+import com.l299l.newbedwars.apiimpl.adapter.ApiShopLogic;
+import com.l299l.newbedwars.apiimpl.adapter.ApiUpgradeHandler;
+import com.l299l.newbedwars.apiimpl.adapter.ApiSubCommand;
+import com.l299l.newbedwars.apiimpl.adapter.ApiRegistrations;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.api.AddonCommand;
-import com.l299l.newbedwars.api.ArenaEditor;
-import com.l299l.newbedwars.api.ArmorTierDefinition;
-import com.l299l.newbedwars.api.CommandContext;
-import com.l299l.newbedwars.api.PhaseActionHandler;
-import com.l299l.newbedwars.api.ShopLogic;
-import com.l299l.newbedwars.api.UpgradeDefinition;
+import com.l299l.newbedwars.api.command.AddonCommand;
+import com.l299l.newbedwars.api.edit.ArenaEditor;
+import com.l299l.newbedwars.api.registry.ArmorTierDefinition;
+import com.l299l.newbedwars.api.command.CommandContext;
+import com.l299l.newbedwars.api.registry.PhaseActionHandler;
+import com.l299l.newbedwars.api.registry.ShopLogic;
+import com.l299l.newbedwars.api.registry.UpgradeDefinition;
 import com.l299l.newbedwars.arena.phases.PhaseActionRegistry;
 import com.l299l.newbedwars.arena.player.inventory.ArmorTier;
 import com.l299l.newbedwars.arena.shops.Upgrade;
@@ -17,7 +23,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
-import com.l299l.newbedwars.api.ArenaView;
+import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.NewBedwarsAPI;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -29,7 +35,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
-    private final AddonRegistrations registrations = new AddonRegistrations();
+    private final ApiRegistrations registrations = new ApiRegistrations();
 
     @Override
     public String getVersion() {
@@ -80,7 +86,7 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
 
     @Override
     public void registerCommand(Plugin owner, AddonCommand command, CommandContext context) {
-        AddonSubCommand subCommand = new AddonSubCommand(command);
+        ApiSubCommand subCommand = new ApiSubCommand(command);
         MainCommand main = NewBedwars.plugin.getMainCommand();
         main.register(subCommand, MainCommand.Context.valueOf(context.name()));
         registrations.add(owner, () -> main.unregister(subCommand));
@@ -94,8 +100,8 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
 
     @Override
     public void registerArmorTier(Plugin owner, ArmorTierDefinition tier) {
-        ArmorTier registered = ArmorTier.register(tier.getName(), tier.getRank(), tier.getBoots(), tier.getLeggings(),
-                tier.getChestplate(), tier.getHelmet());
+        ArmorTier registered = ArmorTier.register(tier.name(), tier.rank(), tier.boots(), tier.leggings(),
+                tier.chestplate(), tier.helmet());
         registrations.add(owner, () -> ArmorTier.unregister(registered));
     }
 

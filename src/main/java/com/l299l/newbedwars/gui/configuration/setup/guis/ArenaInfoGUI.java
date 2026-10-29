@@ -49,58 +49,45 @@ public class ArenaInfoGUI implements InventoryHolder {
     }
 
     private void init(boolean isAdvanced) {
-        // Border fill
         fillBorder();
 
-        // Global info items
         int slot = 9;
 
-        // Name
         slot = addItem(slot, Material.NAME_TAG, ChatColor.AQUA + "" + ChatColor.BOLD + "Name",
                 ChatColor.GRAY + "Value:" + ChatColor.WHITE + " " + arena.getArenaName());
 
-        // Setup mode
         slot = addItem(slot, Material.COMPASS, ChatColor.AQUA + "" + ChatColor.BOLD + "Setup Mode",
                 ChatColor.GRAY + "Value:" + ChatColor.WHITE + " " + arena.getSetupMode().name());
 
-        // Waiting time
         slot = addItem(slot, Material.CLOCK, ChatColor.AQUA + "" + ChatColor.BOLD + "Waiting Time",
                 ChatColor.GRAY + "Value:" + ChatColor.WHITE + " " + arena.getWaitingTime() + "s");
 
-        // Min players
         slot = addItem(slot, Material.PLAYER_HEAD, ChatColor.AQUA + "" + ChatColor.BOLD + "Min Players",
                 ChatColor.GRAY + "Value:" + ChatColor.WHITE + " " + arena.getMinPlayers());
 
-        // Max per team
         slot = addItem(slot, Material.GOLD_INGOT, ChatColor.AQUA + "" + ChatColor.BOLD + "Max Per Team",
                 ChatColor.GRAY + "Value:" + ChatColor.WHITE + " " + arena.getMaxInTeam());
 
-        // Quick void Y
         slot = addItem(slot, Material.IRON_BARS, ChatColor.AQUA + "" + ChatColor.BOLD + "Quick Void Y",
                 ChatColor.GRAY + "Value:" + (arena.getQuickVoidY() != null
                         ? ChatColor.WHITE + String.valueOf(arena.getQuickVoidY())
                         : ChatColor.RED + "not set"));
 
-        // Waiting spawn
         slot = addItem(slot, Material.BEDROCK, ChatColor.AQUA + "" + ChatColor.BOLD + "Waiting Spawn",
                 ChatColor.GRAY + "Value:" + locStr(arena.getWaitingSpawn()));
 
-        // Waiting pos1
         slot = addItem(slot, Material.RED_CONCRETE, ChatColor.AQUA + "" + ChatColor.BOLD + "Waiting Pos1",
                 ChatColor.GRAY + "Value:" + locStr(arena.getWaitingPos1()));
 
-        // Waiting pos2
         slot = addItem(slot, Material.GREEN_CONCRETE, ChatColor.AQUA + "" + ChatColor.BOLD + "Waiting Pos2",
                 ChatColor.GRAY + "Value:" + locStr(arena.getWaitingPos2()));
 
-        // Pagination: calculate teams for this page
         java.util.List<Team> allTeams = new java.util.ArrayList<>(arena.getTeams().values());
         int totalPages = (int) Math.ceil(allTeams.size() / (double) TEAMS_PER_PAGE);
         int start = page * TEAMS_PER_PAGE;
         int end = Math.min(start + TEAMS_PER_PAGE, allTeams.size());
         java.util.List<Team> pageTeams = allTeams.subList(start, end);
 
-        // Team items in rows 3-4 (slots 18-33, 8 teams per page)
         int teamSlot = 18;
         for (int i = 0; i < pageTeams.size(); i++) {
             Team team = pageTeams.get(i);
@@ -126,15 +113,15 @@ public class ArenaInfoGUI implements InventoryHolder {
             slotToTeam.put(teamSlot + i * 2, team);
         }
 
-        // Navigation arrow (slot 35) - shared for previous/next
         if (totalPages > 1) {
             if (page > 0) {
                 ItemStack prevItem = new ItemStack(Material.ARROW);
                 ItemMeta prevMeta = prevItem.getItemMeta();
                 prevMeta.setDisplayName(ChatColor.GRAY + "← Previous Page");
                 prevItem.setItemMeta(prevMeta);
-                inv.setItem(35, prevItem);
-            } else if (page < totalPages - 1) {
+                inv.setItem(34, prevItem);
+            }
+            if (page < totalPages - 1) {
                 ItemStack nextItem = new ItemStack(Material.ARROW);
                 ItemMeta nextMeta = nextItem.getItemMeta();
                 nextMeta.setDisplayName(ChatColor.GRAY + "Next Page →");
@@ -143,7 +130,6 @@ public class ArenaInfoGUI implements InventoryHolder {
             }
         }
 
-        // Generator info in row 5 (slots 36-44)
         int diamond = 0, emerald = 0;
         for (Generator g : arena.getGenerators()) {
             if (g.getType() == GeneratorType.DIAMOND) diamond++;
@@ -155,12 +141,10 @@ public class ArenaInfoGUI implements InventoryHolder {
         inv.setItem(41, createItem(Material.EMERALD, ChatColor.AQUA + "" + ChatColor.BOLD + "Emerald Generators",
                 ChatColor.GRAY + "Count:" + ChatColor.WHITE + " " + emerald));
 
-        // Advanced settings in row 6 (slots 45-53, but border is at 45 and 53)
         // We use slots 46-52 for advanced settings (only shown in ADVANCED_SETUP mode)
         if (isAdvanced) {
             int advSlot = 46;
             
-            // Gamerules summary
             Gamerules gamerules = arena.getGamerules();
             List<String> gamerulesLore = new ArrayList<>();
             gamerulesLore.add(ChatColor.GRAY + "RandomTeams: " + gameruleColor(gamerules.RandomTeams));
@@ -175,7 +159,6 @@ public class ArenaInfoGUI implements InventoryHolder {
             gamerulesLore.add(ChatColor.GRAY + "SplitPartiesToStart: " + gameruleColor(gamerules.SplitPartiesToStart));
             inv.setItem(advSlot++, createItem(Material.JIGSAW, ChatColor.AQUA + "" + ChatColor.BOLD + "Gamerules", gamerulesLore));
             
-            // Resource pack
             List<String> rpLore = new ArrayList<>();
             if (arena.getResourcePackUrl() != null) {
                 rpLore.add(ChatColor.GRAY + "URL: " + ChatColor.WHITE + arena.getResourcePackUrl());
@@ -187,26 +170,23 @@ public class ArenaInfoGUI implements InventoryHolder {
             }
             inv.setItem(advSlot++, createItem(Material.MUSIC_DISC_13, ChatColor.AQUA + "" + ChatColor.BOLD + "Resource Pack", rpLore));
             
-            // Shop GUI
             List<String> shopGuiLore = new ArrayList<>();
             shopGuiLore.add(ChatColor.GRAY + "Shop: " + (arena.getShopGuiId() != null ? ChatColor.WHITE + arena.getShopGuiId() : ChatColor.RED + "not set"));
             shopGuiLore.add(ChatColor.GRAY + "Upgrades: " + (arena.getUpgradeGuiId() != null ? ChatColor.WHITE + arena.getUpgradeGuiId() : ChatColor.RED + "not set"));
             inv.setItem(advSlot++, createItem(Material.CHEST, ChatColor.AQUA + "" + ChatColor.BOLD + "GUIs", shopGuiLore));
             
-            // Generator leveling
             List<String> genLore = new ArrayList<>();
             GeneratorLeveling leveling = arena.getGeneratorsLeveling();
             genLore.add(ChatColor.GRAY + "Config: " + (leveling != null ? ChatColor.WHITE + leveling.getId() : ChatColor.RED + "not set"));
             inv.setItem(advSlot++, createItem(Material.HOPPER, ChatColor.AQUA + "" + ChatColor.BOLD + "Generator Leveling", genLore));
         }
         
-        // Enable status in bottom center
         boolean canEnable = arena.canBeEnabled();
         inv.setItem(49, createItem(
                 canEnable ? Material.GREEN_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE,
                 canEnable ? ChatColor.GREEN + "" + ChatColor.BOLD + "✔ Ready to enable"
                         : ChatColor.RED + "" + ChatColor.BOLD + "✘ Not ready",
-                canEnable ? ChatColor.GREEN + "Use /bw enable " + arena.getArenaName()
+                canEnable ? ChatColor.GREEN + "Use /bw save and then /bw arena enable while in lobby" + arena.getArenaName()
                         : ChatColor.RED + "Complete all missing fields above"));
     }
 
@@ -222,14 +202,11 @@ public class ArenaInfoGUI implements InventoryHolder {
 
     private void fillBorder() {
         Material border = Material.BLACK_STAINED_GLASS_PANE;
-        // Top row
         for (int i = 0; i < 9; i++) inv.setItem(i, new ItemStack(border));
-        // Left and right columns
         for (int row = 1; row < 6; row++) {
             inv.setItem(row * 9, new ItemStack(border));
             inv.setItem(row * 9 + 8, new ItemStack(border));
         }
-        // Bottom row corners only (leave center open for advanced settings)
         inv.setItem(45, new ItemStack(border));
         inv.setItem(53, new ItemStack(border));
     }

@@ -51,8 +51,8 @@ public class ChatEvent implements Listener {
             if (team == null) return;
             String formatted = ChatColor.translateAlternateColorCodes('&',
                     plugin.getMessages().getMsg(sender, "TeamChatFormat")
-                            .replace("/player/", sender.getName())
-                            .replace("/team/", team.getName())
+                            .replace("/player/", team.colored(sender.getName()))
+                            .replace("/team/", team.colored(team.getName()))
                             .replace("/message/", stripped));
             for (Player member : team.getPlayers()) {
                 member.sendMessage(formatted);
@@ -60,7 +60,7 @@ public class ChatEvent implements Listener {
         } else if (Boolean.TRUE.equals(arena.getGamerules().AllowGlobalChat)) {
             String formatted = ChatColor.translateAlternateColorCodes('&',
                     plugin.getMessages().getMsg(sender, "ArenaChatFormat")
-                            .replace("/player/", sender.getName())
+                            .replace("/player/", arena.coloredName(sender))
                             .replace("/message/", message));
             for (UUID uuid : arena.getPlayers()) {
                 Player p = Bukkit.getPlayer(uuid);

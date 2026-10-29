@@ -1,7 +1,8 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.apiimpl.view.ApiExtra;
 import com.google.gson.JsonObject;
-import com.l299l.newbedwars.api.ExtraData;
+import com.l299l.newbedwars.api.view.ExtraData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

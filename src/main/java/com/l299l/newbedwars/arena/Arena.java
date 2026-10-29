@@ -114,6 +114,8 @@ public class Arena implements IArena {
     private int resetRetries = 0;
     private JsonObject extra = new JsonObject();
     private JsonObject unknownFields = new JsonObject();
+    private String unresolvedGamePhasesId;
+    private String unresolvedGeneratorsLevelingId;
     private final HashSet<String> placedBlocks;
     private final HashSet<String> blastProtBlocks;
     private final HashSet<UUID> playersWithResourcePack;
@@ -135,7 +137,6 @@ public class Arena implements IArena {
         maxInTeam = Properties.DefaultMaxInTeam;
         waitingTime = Properties.DefaultWaitingTime;
         generatorsLeveling = NewBedwars.plugin.getGeneratorLeveling().get(Properties.DefaultGeneratorConfig);
-        arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("WaitingBeforeStart", this);
         scoreboardManager = NewBedwars.plugin.getScoreboardManager();
         GamePhases defaultPhases = Properties.GamePhases.get(Properties.DefaultGamePhase);
         gamePhases = defaultPhases != null ? new GamePhases(defaultPhases) : null;
@@ -172,8 +173,6 @@ public class Arena implements IArena {
         DecoUtils.removeAllArmorStands(this);
         gameStatus = GameStatus.playing;
         gameStartMillis = System.currentTimeMillis();
-        // From now on the world may contain game damage; the marker makes the next start restore it
-        // from the template if the server dies before the reset finishes.
         if (ArenaMaps.isEnabled() && ArenaMaps.hasTemplate(arenaName)) {
             ArenaMaps.markDirty(arenaName);
         }
@@ -188,7 +187,7 @@ public class Arena implements IArena {
         }
         updateBossBars();
         updateScoreboards();
-        gamePhases.start(this);
+        if (gamePhases != null) gamePhases.start(this);
         startTntParticleTask();
         for (Team team : new ArrayList<>(teams.values())) {
             if (team.getPlayers().isEmpty()) {
@@ -265,10 +264,7 @@ public class Arena implements IArena {
             team.stop();
         }
 
-        if (arenaBossBar != null) {
-            arenaBossBar.removeAll();
-            arenaBossBar.setVisible(false);
-        }
+        discardBossBar();
 
         for (NScoreboard scoreboard : scoreboards.values()) {
             scoreboard.kill();
@@ -285,7 +281,6 @@ public class Arena implements IArena {
             Bukkit.getServer().getLogger().severe("Could not rollback arena " + arenaName);
         }
 
-        // With the template system the reset pipeline sets the status itself once the world is back.
         if (!ArenaMaps.isEnabled()) {
             gameStatus = GameStatus.waiting;
         }
@@ -310,7 +305,7 @@ public class Arena implements IArena {
         nextPhaseTime = 0;
         for (Generator generator : generators) generator.stop();
         for (Team team : teams.values()) team.stop();
-        if (arenaBossBar != null) { arenaBossBar.removeAll(); arenaBossBar.setVisible(false); }
+        discardBossBar();
         for (NScoreboard sb : scoreboards.values()) sb.kill();
         scoreboards.clear();
         playersWithResourcePack.clear();
@@ -437,6 +432,12 @@ public class Arena implements IArena {
     public void setExtra(JsonObject extra) { this.extra = extra != null ? extra : new JsonObject(); }
 
     @Override
+    public void setUnresolvedIds(String gamePhasesId, String generatorsLevelingId) {
+        this.unresolvedGamePhasesId = gamePhasesId;
+        this.unresolvedGeneratorsLevelingId = generatorsLevelingId;
+    }
+
+    @Override
     public JsonObject getUnknownFields() { return unknownFields; }
 
     @Override
@@ -500,9 +501,7 @@ public class Arena implements IArena {
         player.setAllowFlight(false);
         player.setInvulnerable(true);
         player.getInventory().setItem(8, NewBedwars.plugin.getGuiManager().getLeaveItem(player));
-        if (arenaBossBar != null) {
-            arenaBossBar.addPlayer(player);
-        }
+        addToBossBar(player);
         NScoreboard scoreboard = scoreboardManager.createPlayerScoreboard("WaitingScoreboard", this, player);
         if (scoreboard != null) {
             scoreboards.put(player.getUniqueId(), scoreboard);
@@ -521,7 +520,7 @@ public class Arena implements IArena {
         if (!ApiEvents.playerJoin(this, player, false)) return false;
         applyJoinSetup(player);
         broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
-            put("/player/", player.getName());
+            put("/player/", coloredName(player));
             put("/players/", Integer.toString(players.size()));
             put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
         }});
@@ -575,9 +574,7 @@ public class Arena implements IArena {
         if (!ApiEvents.playerJoin(this, player, true)) return false;
         cancelRejoinTask(player.getUniqueId());
         team.addPlayer(player);
-        if (arenaBossBar != null) {
-            arenaBossBar.addPlayer(player);
-        }
+        addToBossBar(player);
         NScoreboard scoreboard = scoreboardManager.createPlayerScoreboard("InGameScoreboard", this, player);
         if (scoreboards != null && scoreboard != null) {
             scoreboards.put(player.getUniqueId(), scoreboard);
@@ -624,7 +621,7 @@ public class Arena implements IArena {
         }
         GamePlayer leavingPlayer = players.get(player.getUniqueId());
         if (leavingPlayer == null) return;
-        final String playerName = player.getName();
+        final String playerName = coloredName(player);
         if (gameStatus == GameStatus.playing) {
             leavingPlayer.getTeam().removePlayer(player);
             if (!checkWin()) {
@@ -662,7 +659,8 @@ public class Arena implements IArena {
     }
 
     private void finishLeave(Player player, GamePlayer leavingPlayer) {
-        final String playerName = player.getName();
+        final String playerName = leavingPlayer.getTeam() != null
+                ? leavingPlayer.getTeam().colored(player.getName()) : player.getName();
         if (leavingPlayer.getTeam() != null) leavingPlayer.getTeam().removePlayer(player);
         players.remove(player.getUniqueId());
         broadcast("PlayerLeftArena", new HashMap<String, String>() {{
@@ -693,7 +691,7 @@ public class Arena implements IArena {
             addSpectator(player, false);
             GamePlayer gp = players.get(player.getUniqueId());
             BukkitTask task = new BukkitRunnable() {
-                int time = respawnTime;
+                int time = Math.max(1, respawnTime);
                 @Override
                 public void run() {
                     if (gameStatus != GameStatus.playing || !isPlayerInArena(player)) {
@@ -727,6 +725,8 @@ public class Arena implements IArena {
 
     @Override
     public int getActivePlayerCount() {
+        // teams are only assigned when the game starts, so the lobby counts everyone who joined
+        if (gameStatus == GameStatus.waiting || gameStatus == GameStatus.starting) return players.size();
         if (teams == null) return 0;
         int count = 0;
         for (Team team : teams.values()) {
@@ -752,27 +752,32 @@ public class Arena implements IArena {
         }});
     }
 
+    /** Everyone who should see arena messages: the players and the spectators who are not in the player list. */
+    private List<Player> audience() {
+        Set<Player> audience = new LinkedHashSet<>();
+        for (UUID uuid : players.keySet()) {
+            Player player = Bukkit.getServer().getPlayer(uuid);
+            if (player != null) audience.add(player);
+        }
+        for (Player spectator : spectatorsList) {
+            if (spectator != null && spectator.isOnline()) audience.add(spectator);
+        }
+        return new ArrayList<>(audience);
+    }
+
     @Override
     public void broadcast(String message) {
-        for (UUID p : players.keySet()) {
-            Player player = Bukkit.getServer().getPlayer(p);
-            if (player == null) {
-                continue;
-            }
+        for (Player player : audience()) {
             NewBedwars.plugin.getMessages().send(player, message);
         }
     }
 
     @Override
     public void broadcast(String message, HashMap<String, String> replace) {
-        for (UUID p : players.keySet()) {
-            Player player = Bukkit.getServer().getPlayer(p);
-            if (player == null) {
-                continue;
-            }
+        for (Player player : audience()) {
             String msg = NewBedwars.plugin.getMessages().getMsg(player, message);
             for (String key : replace.keySet()) {
-                msg = msg.replaceAll(key, replace.get(key));
+                msg = msg.replace(key, replace.get(key));
             }
             player.sendMessage(msg);
         }
@@ -780,15 +785,12 @@ public class Arena implements IArena {
 
     @Override
     public void broadcastTitle(String title, String subtitle, Integer fadeIn, Integer stay, Integer fadeOut) {
-        for (UUID p : players.keySet()) {
-            Player player = Bukkit.getServer().getPlayer(p);
-            if (player != null) {
-                player.sendTitle(
-                        ChatColor.translateAlternateColorCodes('&', title),
-                        ChatColor.translateAlternateColorCodes('&', subtitle),
-                        fadeIn, stay, fadeOut
-                );
-            }
+        for (Player player : audience()) {
+            player.sendTitle(
+                    ChatColor.translateAlternateColorCodes('&', title),
+                    ChatColor.translateAlternateColorCodes('&', subtitle),
+                    fadeIn, stay, fadeOut
+            );
         }
     }
 
@@ -801,6 +803,7 @@ public class Arena implements IArena {
         enabled = true;
         setup = Setup.READY;
         gameStatus = GameStatus.waiting;
+        discardBossBar();
         arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("WaitingBeforeStart", this);
     }
 
@@ -815,6 +818,7 @@ public class Arena implements IArena {
             leave(player, LeaveReason.KICKED);
             NewBedwars.plugin.getMessages().send(player, "KickedFromArena");
         }
+        discardBossBar();
         enabled = false;
         setup = Setup.NO_SETUP;
         gameStatus = GameStatus.restarting;
@@ -841,7 +845,7 @@ public class Arena implements IArena {
 
     @Override
     public void nextPhase() {
-        gamePhases.nextPhase(this);
+        if (gamePhases != null) gamePhases.nextPhase(this);
     }
 
     @Override
@@ -1015,9 +1019,7 @@ public class Arena implements IArena {
         if (players.containsKey(player.getUniqueId())) return false;
         addSpectatorInternal(player, true);
         updateTablist(player);
-        if (arenaBossBar != null) {
-            arenaBossBar.addPlayer(player);
-        }
+        addToBossBar(player);
         NScoreboard scoreboard = scoreboardManager.createPlayerScoreboard("InGameScoreboard", this, player);
         if (scoreboard != null) {
             scoreboards.put(player.getUniqueId(), scoreboard);
@@ -1082,7 +1084,6 @@ public class Arena implements IArena {
     public void setResourcePackUrl(String url) {
         if (!java.util.Objects.equals(this.resourcePackUrl, url)) {
             this.resourcePackUrl = url;
-            // Clear tracking and resend to all online players when URL changes
             playersWithResourcePack.clear();
             resendResourcePackToAll();
         } else {
@@ -1097,7 +1098,6 @@ public class Arena implements IArena {
     public void setResourcePackHash(String hash) {
         if (!java.util.Objects.equals(this.resourcePackHash, hash)) {
             this.resourcePackHash = hash;
-            // Clear tracking and resend to all online players when hash changes
             playersWithResourcePack.clear();
             resendResourcePackToAll();
         } else {
@@ -1429,8 +1429,8 @@ public class Arena implements IArena {
         sb.append("\"waitingPos1\": ").append(waitingPos1 == null ? "null" : JsonUtils.locationToJson(waitingPos1)).append(",");
         sb.append("\"waitingPos2\": ").append(waitingPos2 == null ? "null" : JsonUtils.locationToJson(waitingPos2)).append(",");
         sb.append("\"waitingSpawn\": ").append(waitingSpawn == null ? "null" : JsonUtils.locationToJson(waitingSpawn)).append(",");
-        sb.append("\"gamePhasesId\": ").append(JsonUtils.quote(gamePhases == null ? "null" : gamePhases.getID())).append(",");
-        sb.append("\"generatorsLeveling\": ").append(JsonUtils.quote(generatorsLeveling == null ? "null" : generatorsLeveling.getId())).append(",");
+        sb.append("\"gamePhasesId\": ").append(JsonUtils.quote(gamePhases != null ? gamePhases.getID() : unresolvedGamePhasesId != null ? unresolvedGamePhasesId : "null")).append(",");
+        sb.append("\"generatorsLeveling\": ").append(JsonUtils.quote(generatorsLeveling != null ? generatorsLeveling.getId() : unresolvedGeneratorsLevelingId != null ? unresolvedGeneratorsLevelingId : "null")).append(",");
         sb.append("\"gamerules\": ").append(gamerules.toJson()).append(",");
         sb.append("\"teams\": [");
         int i = 0;
@@ -1470,11 +1470,6 @@ public class Arena implements IArena {
             return;
         }
         if (players.size() < minPlayers || gameStatus != GameStatus.waiting) {
-/*            broadcast("NotEnoughPlayers", new HashMap<String, String>() {{
-                put("/arenaname/", arenaName);
-                put("/minplayers/", minPlayers.toString());
-                put("/players/", Integer.toString(players.size()));
-            }});*/
             return;
         }
         starting();
@@ -1571,11 +1566,25 @@ public class Arena implements IArena {
         }
     }
 
-    private void updateBossBars() {
+    private void discardBossBar() {
         if (arenaBossBar != null) {
-            arenaBossBar.removeAll();
-            arenaBossBar.setVisible(false);
+            NewBedwars.plugin.getBossBarManager().removeBossBar(arenaBossBar);
+            arenaBossBar = null;
         }
+    }
+
+    /** A finished game removes the bar, so the next waiting lobby gets a fresh one on first use. */
+    private void addToBossBar(Player player) {
+        if (arenaBossBar == null && (gameStatus == GameStatus.waiting || gameStatus == GameStatus.starting)) {
+            arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("WaitingBeforeStart", this);
+        }
+        if (arenaBossBar != null) {
+            arenaBossBar.addPlayer(player);
+        }
+    }
+
+    private void updateBossBars() {
+        discardBossBar();
         arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("GameInProgress", this);
         if (arenaBossBar != null) {
             arenaBossBar.setVisible(true);
@@ -1722,7 +1731,7 @@ public class Arena implements IArena {
 
     private void sendWinMessage(Team team) {
         broadcast("GameEnded", new HashMap<String, String>() {{
-            put("/team/", team.getName());
+            put("/team/", team.colored(team.getName()));
         }});
         broadcastTitle("&6&lGame Ended!", "&e" + team.getColor() + team.getName() + " &fwins!", 10, 40, 10);
         Color teamColor = Color.WHITE;
@@ -1750,8 +1759,7 @@ public class Arena implements IArena {
             boolean won = winner != null && winner.getPlayers().contains(gp.getPlayer());
             pm.addGameResult(gp.getPlayer().getName(), gp, won);
         }
-        Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin,
-                () -> NewBedwars.plugin.getDataManager().savePlayerStats());
+        NewBedwars.plugin.getDataManager().savePlayerStats();
     }
 
     private void startEnding(Team winner) {
@@ -1762,12 +1770,10 @@ public class Arena implements IArena {
             gamePhases.getCurrentPhase().cancel();
         }
         
-        // Cancel all respawn tasks when game ends
         for (GamePlayer gp : players.values()) {
             if (gp != null) gp.cancelRespawnTask();
         }
         
-        // Cleanup all golems and silverfish when game ends
         IronGolemLogic.cleanupAllForArena(arenaName);
         SilverfishLogic.cleanupAllForArena(this);
         
@@ -1805,10 +1811,7 @@ public class Arena implements IArena {
             if (sb != null) scoreboards.put(p.getUniqueId(), sb);
         }
 
-        if (arenaBossBar != null) {
-            arenaBossBar.removeAll();
-            arenaBossBar.setVisible(false);
-        }
+        discardBossBar();
         arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("GameEnding", this);
         if (arenaBossBar != null) {
             arenaBossBar.setVisible(true);

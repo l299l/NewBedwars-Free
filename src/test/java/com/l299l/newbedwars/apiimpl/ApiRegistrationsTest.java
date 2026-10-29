@@ -1,10 +1,10 @@
 package com.l299l.newbedwars.apiimpl;
 
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.api.AddonCommand;
-import com.l299l.newbedwars.api.ArmorTierDefinition;
-import com.l299l.newbedwars.api.CommandContext;
-import com.l299l.newbedwars.api.UpgradeDefinition;
+import com.l299l.newbedwars.api.command.AddonCommand;
+import com.l299l.newbedwars.api.registry.ArmorTierDefinition;
+import com.l299l.newbedwars.api.command.CommandContext;
+import com.l299l.newbedwars.api.registry.UpgradeDefinition;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.phases.PhaseAction;
 import com.l299l.newbedwars.arena.phases.PhaseActionRegistry;

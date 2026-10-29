@@ -43,6 +43,7 @@ import java.util.Objects;
 
 public final class NewBedwars extends JavaPlugin {
     private MainCommand mainCommand;
+    private com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl apiImpl;
     public static NewBedwars plugin;
     private Location lobbyLocation;
     private final Updater updater;
@@ -84,25 +85,25 @@ public final class NewBedwars extends JavaPlugin {
         if (ExtensionManager.isPlaceholderAPIPresent()) {
             new NewBedwarsExpansion(this).register();
         }
-        com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl api = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
-        getServer().getPluginManager().registerEvents(api, this);
-        com.l299l.newbedwars.api.ApiHolder.set(api);
-        getServer().getServicesManager().register(com.l299l.newbedwars.api.NewBedwarsAPI.class, api, this, org.bukkit.plugin.ServicePriority.Normal);
+        apiImpl = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
+        getServer().getPluginManager().registerEvents(apiImpl, this);
+        getServer().getServicesManager().register(com.l299l.newbedwars.api.NewBedwarsAPI.class, apiImpl, this, org.bukkit.plugin.ServicePriority.Normal);
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_GREEN + "Enabled");
     }
 
     @Override
     public void onDisable() {
-        com.l299l.newbedwars.api.ApiHolder.set(null);
         getServer().getServicesManager().unregisterAll(this);
         int active = 0;
         for (IArena arena : Arena.arenaByName.values()) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
             else if (!arena.getPlayersOnSetup().isEmpty()) {
-                arena.getPlayersOnSetup().forEach(p -> {
-                    Player pl = Objects.requireNonNull(Bukkit.getPlayer(p));
+                for (java.util.UUID p : new ArrayList<>(arena.getPlayersOnSetup())) {
+                    Player pl = Bukkit.getPlayer(p);
+                    if (pl == null) continue;
                     com.l299l.newbedwars.utils.LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SERVER_SHUTDOWN);
-                    pl.kickPlayer(ChatColor.RED + "Server went down!");});
+                    pl.kickPlayer(ChatColor.RED + "Server went down!");
+                }
             }
         }
         if (active > 0) {
@@ -224,6 +225,9 @@ public final class NewBedwars extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InitializationEvent(this), this);
         getServer().getPluginManager().registerEvents(new ArenaGameplayEvents(this), this);
         getServer().getPluginManager().registerEvents(new ChatEvent(this), this);
+        if (apiImpl != null) {
+            getServer().getPluginManager().registerEvents(apiImpl, this);
+        }
         guiManager.reloadGuis();
     }
 

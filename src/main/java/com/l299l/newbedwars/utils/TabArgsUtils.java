@@ -27,7 +27,7 @@ public class TabArgsUtils {
     public static List<String> getTabCordsWithTeam(Player player, String[] args, int start) {
         if(args.length == start) {
             IArena arena = Arena.arenaByWorld.get(player.getWorld());
-            return new ArrayList<>(arena.getTeams().keySet());
+            return arena == null ? new ArrayList<>() : new ArrayList<>(arena.getTeams().keySet());
         }else if(args.length >= start + 1) {
             int x = player.getLocation().getBlockX();
             int y = player.getLocation().getBlockY();
@@ -69,7 +69,7 @@ public class TabArgsUtils {
     public static List<String> getTabEntities(Player player, String[] args) {
         if(args.length == 2) {
             IArena arena = Arena.arenaByWorld.get(player.getWorld());
-            return new ArrayList<>(arena.getTeams().keySet());
+            return arena == null ? new ArrayList<>() : new ArrayList<>(arena.getTeams().keySet());
         }else if(args.length == 3) {
             EntityType[] values = EntityType.values();
             ArrayList<String> arrayList = new ArrayList<>();

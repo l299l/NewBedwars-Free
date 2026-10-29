@@ -44,7 +44,6 @@ public class ShopGUI extends BasicGUI {
         int footerSize = (int) guiSave.getGuiData("FooterSize");
         int contentSize = guiSave.getSize() - headerSize - footerSize;
 
-        // Always render header slots (category buttons, fills, etc.)
         for (int i = 0; i < headerSize; i++) {
             Object item = guiSave.getItem(i);
             if (item instanceof CustomItem customItem) {
@@ -71,8 +70,8 @@ public class ShopGUI extends BasicGUI {
 
             if (!fastBuyPerCat.isEmpty()) {
                 renderCustomFastBuy(headerSize, fastBuyPerCat);
+                renderFromSlot(headerSize + contentSize);
             } else {
-                // Default: render exactly as YAML defines
                 for (int i = headerSize; i < guiSave.getItems().size(); i++) {
                     Object item = guiSave.getItem(i);
                     if (item instanceof CustomItem customItem) {
@@ -90,7 +89,6 @@ public class ShopGUI extends BasicGUI {
             }
 
         } else {
-            // Category page: render items centered with margins
             int itemsSize = guiCategory.items().size();
             int itemsInLine = 5;
             int marginSize = 2;
@@ -105,8 +103,8 @@ public class ShopGUI extends BasicGUI {
             }
             int i = headerSize;
             int j = 0;
-            boolean end = false;
-            for (int l = 0; l < lines; l++) {
+            boolean end = itemsSize == 0;
+            for (int l = 0; l < lines && !end; l++) {
                 i += marginSize;
                 for (int k = 0; k < itemsInLine; k++) {
                     Object itemO = guiCategory.items().get(j);
@@ -127,21 +125,24 @@ public class ShopGUI extends BasicGUI {
                 i += marginSize;
                 if (end) break;
             }
-            // Footer area
-            i = headerSize + contentSize;
-            for (; i < guiSave.getItems().size(); i++) {
-                Object item = guiSave.getItem(i);
-                if (item instanceof CustomItem customItem) {
-                    inv.setItem(i, customItem.getIcon(getPlayer()));
-                    items.set(i, customItem);
-                } else if (item instanceof GuiCategory category) {
-                    inv.setItem(i, category.getIcon(getPlayer()));
-                    items.set(i, category);
-                    categories.add(category);
-                } else if (item instanceof GuiUpgrade guiUpgrade) {
-                    inv.setItem(i, guiUpgrade.getIcon(getPlayer()));
-                    items.set(i, guiUpgrade);
-                }
+            renderFromSlot(headerSize + contentSize);
+        }
+    }
+
+    /** Renders the YAML-defined items from {@code start} to the end of the inventory (the footer). */
+    private void renderFromSlot(int start) {
+        for (int i = start; i < guiSave.getItems().size(); i++) {
+            Object item = guiSave.getItem(i);
+            if (item instanceof CustomItem customItem) {
+                inv.setItem(i, customItem.getIcon(getPlayer()));
+                items.set(i, customItem);
+            } else if (item instanceof GuiCategory category) {
+                inv.setItem(i, category.getIcon(getPlayer()));
+                items.set(i, category);
+                categories.add(category);
+            } else if (item instanceof GuiUpgrade guiUpgrade) {
+                inv.setItem(i, guiUpgrade.getIcon(getPlayer()));
+                items.set(i, guiUpgrade);
             }
         }
     }
@@ -153,7 +154,6 @@ public class ShopGUI extends BasicGUI {
      * Empty fast-buy slots render as empty (no item).
      */
     private void renderCustomFastBuy(int headerSize, Map<String, List<String>> fastBuyPerCat) {
-        // Collect ordered categories from the header
         List<GuiCategory> orderedCats = new ArrayList<>();
         for (int i = 0; i < headerSize; i++) {
             Object o = guiSave.getItem(i);
@@ -164,10 +164,8 @@ public class ShopGUI extends BasicGUI {
         int numCats = orderedCats.size();
         if (numCats == 0) return;
 
-        // Centre categories in a 9-wide row (same as YAML layout)
         int margin = (9 - Math.min(numCats, 9)) / 2;
 
-        // Up to 3 rows of fast-buy items
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < Math.min(numCats, 9); col++) {
                 GuiCategory cat = orderedCats.get(col);

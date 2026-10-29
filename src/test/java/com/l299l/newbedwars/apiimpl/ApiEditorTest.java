@@ -1,9 +1,10 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.apiimpl.edit.ApiEditor;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.api.ArenaEditor;
-import com.l299l.newbedwars.api.GeneratorKind;
-import com.l299l.newbedwars.api.TeamEditor;
+import com.l299l.newbedwars.api.edit.ArenaEditor;
+import com.l299l.newbedwars.api.view.GeneratorKind;
+import com.l299l.newbedwars.api.edit.TeamEditor;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.Generator;

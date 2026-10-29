@@ -51,7 +51,6 @@ public class ArenaInfoCommand extends SubCommand {
                 + ChatColor.AQUA + " =-=-=-=-=-=-";
         player.sendMessage(line);
 
-        // Global arena fields
         player.sendMessage(field("Name") + arena.getArenaName());
         player.sendMessage(field("Setup mode") + arena.getSetupMode());
         player.sendMessage(field("Waiting time") + arena.getWaitingTime() + "s");
@@ -108,7 +107,6 @@ public class ArenaInfoCommand extends SubCommand {
             player.sendMessage("");
             player.sendMessage(ChatColor.AQUA + "Advanced Settings:");
             
-            // Gamerules
             Gamerules gamerules = arena.getGamerules();
             player.sendMessage("  " + ChatColor.GREEN + "Gamerules:");
             player.sendMessage("    RandomTeams: " + gameruleStr(gamerules.RandomTeams));
@@ -122,12 +120,10 @@ public class ArenaInfoCommand extends SubCommand {
             player.sendMessage("    AllowMultipleGolems: " + gameruleStr(gamerules.AllowMultipleGolems));
             player.sendMessage("    SplitPartiesToStart: " + gameruleStr(gamerules.SplitPartiesToStart));
             
-            // Resource pack
             player.sendMessage("  " + field("Resource pack") + (arena.getResourcePackUrl() != null
                     ? ChatColor.WHITE + arena.getResourcePackUrl()
                     : missing("not set")));
             
-            // GUI IDs
             player.sendMessage("  " + field("Shop GUI") + (arena.getShopGuiId() != null
                     ? ChatColor.WHITE + arena.getShopGuiId()
                     : missing("not set")));
@@ -135,7 +131,6 @@ public class ArenaInfoCommand extends SubCommand {
                     ? ChatColor.WHITE + arena.getUpgradeGuiId()
                     : missing("not set")));
             
-            // Generator leveling
             GeneratorLeveling leveling = arena.getGeneratorsLeveling();
             player.sendMessage("  " + field("Generator leveling") + (leveling != null
                     ? ChatColor.WHITE + leveling.getId()

@@ -49,7 +49,6 @@ public class CustomItemManager {
         createCustomItem("Glass", Material.GLASS, 12, PriceType.IRON, 16);
         createCustomItem("Obsidian", Material.OBSIDIAN, 4, PriceType.EMERALD, 4);
         createCustomItem("WaterBucket", Material.WATER_BUCKET, 4, PriceType.GOLD, 1);
-        createCustomItem("LavaBucket", Material.LAVA_BUCKET, 3, PriceType.GOLD, 1);
         createCustomItem("TNT", Material.TNT, 4, PriceType.GOLD, 1, new TntLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("Fireball", Material.FIRE_CHARGE, 40, PriceType.IRON, 1, new FireballLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("BlastProtGlass", Material.WHITE_STAINED_GLASS, 4, PriceType.IRON, 4, new BlastProtLogic(), OnBuyEvent.GIVE_ITEM);
@@ -68,7 +67,7 @@ public class CustomItemManager {
                 new HashMap<Enchantment, Integer>() {{put(VersionCompat.GLOW_ENCHANT, 1);}}, glowFlags);
         createCustomItem("Silverfish", Material.SPIDER_EYE, 1, PriceType.EMERALD, 1, new SilverfishLogic(), OnBuyEvent.GIVE_ITEM,
                 new HashMap<Enchantment, Integer>() {{put(VersionCompat.GLOW_ENCHANT, 1);}}, glowFlags);
-        createCustomItem("PortableTower", Material.BRICKS, 4, PriceType.EMERALD, 1, new PortableTowerLogic(), OnBuyEvent.GIVE_ITEM);
+        createCustomItem("PortableTower", Material.BRICKS, 24, PriceType.IRON, 1, new PortableTowerLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("Fill", Material.BLACK_STAINED_GLASS_PANE, 0, PriceType.NONE, 1, new NoneLogic(), OnBuyEvent.CANCEL);
         List<ItemFlag> itemFlags = new ArrayList<>();
         itemFlags.add(ItemFlag.HIDE_ENCHANTS);

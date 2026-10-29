@@ -121,3 +121,8 @@ buildNumber.properties
 run/
 # Personal notes
 LFY.txt
+
+# Local testing notes
+TESTING-GUIDE.md
+TODO.txt
+COMMENT.txt

@@ -24,6 +24,7 @@ public class Updater extends Files {
     private FileConfiguration bossBarsConf = null;
     private FileConfiguration scoreboardsConf = null;
     private final List<FileConfiguration> generatorsConfigurations = new ArrayList<>();
+    private FileConfiguration defaultGeneratorsConf = null;
     private final ClassLoader classLoader;
     private final File bossBarsFile = new File(NewBedwars.plugin.getDataFolder(), "bossBars.yml");
     private final File scoreboardFile = new File(NewBedwars.plugin.getDataFolder(), "scoreboards.yml");
@@ -151,6 +152,7 @@ public class Updater extends Files {
     }
 
     private void saveBossBars() {
+        if (bossBarsConf == null) return;
         try {
             bossBarsConf.save(bossBarsFile);
         } catch (IOException e) {
@@ -168,6 +170,7 @@ public class Updater extends Files {
     }
 
     private void saveScoreboards() {
+        if (scoreboardsConf == null) return;
         try {
             scoreboardsConf.save(scoreboardFile);
         } catch (IOException e) {
@@ -177,6 +180,7 @@ public class Updater extends Files {
 
     private void reloadGenerators() {
         generatorsConfigurations.clear();
+        defaultGeneratorsConf = null;
         if (!generatorsFolder.exists()) {
             generatorsFolder.mkdirs();
         }
@@ -192,12 +196,14 @@ public class Updater extends Files {
             InputStream s = getFilesResource("defaultGenerators.yml", getMessagesClassLoader());
             if (s != null) generatorsConf = YamlConfiguration.loadConfiguration(new InputStreamReader(s));
         }
+        defaultGeneratorsConf = generatorsConf;
         if (generatorsConf != null) generatorsConfigurations.add(generatorsConf);
     }
 
     private void saveGenerators() {
+        if (defaultGeneratorsConf == null) return;
         try {
-            generatorsConfigurations.get(0).save(generatorsFile);
+            defaultGeneratorsConf.save(generatorsFile);
         } catch (IOException e) {
             NewBedwars.plugin.getServer().getConsoleSender().sendMessage(error);
         }

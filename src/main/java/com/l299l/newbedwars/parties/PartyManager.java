@@ -74,7 +74,7 @@ public class PartyManager {
 
     public boolean acceptInvite(Player player) {
         Party party = pendingInvites.remove(player.getUniqueId());
-        if (party == null) return false;
+        if (party == null || party.size() == 0) return false;
         party.addMember(player.getUniqueId());
         playerToParty.put(player.getUniqueId(), party);
         return true;
@@ -100,6 +100,7 @@ public class PartyManager {
     }
 
     public void disbandParty(Party party) {
+        pendingInvites.values().removeIf(invited -> invited == party);
         for (UUID member : new ArrayList<>(party.getMembers())) {
             playerToParty.remove(member);
         }
@@ -107,11 +108,13 @@ public class PartyManager {
     }
 
     public void kickFromParty(Party party, UUID target) {
+        if (!party.getMembers().contains(target)) return;
         party.removeMember(target);
         playerToParty.remove(target);
     }
 
     public void transferAdmin(Party party, UUID newAdmin) {
+        if (!party.getMembers().contains(newAdmin)) return;
         party.setAdmin(newAdmin);
     }
 

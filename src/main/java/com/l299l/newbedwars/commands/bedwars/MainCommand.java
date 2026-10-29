@@ -419,14 +419,11 @@ public class MainCommand implements TabExecutor {
 
     private IArena getArena(Player player) {
         World world = player.getWorld();
-        IArena arena;
-        try {
-            arena = Arena.arenaByWorld.get(world);
-            return arena;
-        }catch (Exception e) {
+        IArena arena = Arena.arenaByWorld.get(world);
+        if (arena == null) {
             msg.send(player, "NotInArena");
-            return null;
         }
+        return arena;
     }
 
 }

@@ -2,6 +2,7 @@ package com.l299l.newbedwars.arena.phases;
 
 import com.l299l.newbedwars.arena.IArena;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GamePhases {
@@ -16,7 +17,10 @@ public class GamePhases {
 
     public GamePhases(GamePhases source) {
         this.ID = source.ID;
-        this.phases = source.phases;
+        this.phases = new ArrayList<>(source.phases.size());
+        for (Phase phase : source.phases) {
+            this.phases.add(phase.copy());
+        }
         this.currentPhase = 0;
     }
 

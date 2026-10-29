@@ -15,6 +15,7 @@ class GamePhasesTest {
         Phase p = mock(Phase.class);
         doNothing().when(p).start(any());
         doNothing().when(p).cancel();
+        when(p.copy()).thenAnswer(i -> mockPhase());
         return p;
     }
 
@@ -104,7 +105,7 @@ class GamePhasesTest {
         original.nextPhase(arena);     // original is now at phase 1
         GamePhases copy = new GamePhases(original);
         assertFalse(copy.isLastPhase()); // copy starts at phase 0
-        assertSame(second, copy.getNextPhase());
+        assertNotNull(copy.getNextPhase());
     }
 
     @Test
@@ -112,6 +113,15 @@ class GamePhasesTest {
         GamePhases gp = new GamePhases("myPhase", List.of(mockPhase()));
         GamePhases copy = new GamePhases(gp);
         assertEquals("myPhase", copy.getID());
+    }
+
+    @Test
+    void copyDoesNotShareRunningPhasesWithTheOriginal() {
+        Phase first = new Phase("first", 30, List.of());
+        GamePhases original = new GamePhases("test", List.of(first));
+        GamePhases copy = new GamePhases(original);
+        assertNotSame(original.getCurrentPhase(), copy.getCurrentPhase());
+        assertEquals("first", copy.getCurrentPhase().getName());
     }
 
     // ── getCurrentPhase ──────────────────────────────────────────────────────

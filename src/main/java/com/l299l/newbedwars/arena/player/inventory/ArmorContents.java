@@ -44,12 +44,52 @@ public class ArmorContents {
         other = new ArrayList<>();
     }
 
-    public void loadPlayerArmorContents(Player player) {
+    /** Equips the armor only; the rest of the inventory is left alone. */
+    public void applyArmor(Player player) {
         this.player = player;
         ItemStack[] armorToSet = getArmorContents();
         IArena armorArena = Arena.arenaByWorld.get(player.getWorld());
         if (armorArena != null) armorToSet = ApiEvents.armorEquip(armorArena, player, armorToSet);
         player.getInventory().setArmorContents(armorToSet);
+    }
+
+    /**
+     * Gives a freshly bought tool. It takes the place of the player's current tool of the same kind
+     * (wooden pickaxe -> iron pickaxe) wherever they moved it; other slots are never touched.
+     */
+    public void giveTool(Player player, CustomItem tool) {
+        this.player = player;
+        String type = getToolType(tool.getMaterial());
+        ItemStack newItem = tool.getItem(player);
+        if (!type.equals("OTHER")) {
+            ItemStack[] storage = player.getInventory().getStorageContents();
+            int target = -1;
+            for (int i = 0; i < storage.length; i++) {
+                if (storage[i] == null || !getToolType(storage[i].getType()).equals(type)) continue;
+                if (target == -1) {
+                    target = i;
+                } else {
+                    player.getInventory().setItem(i, null);
+                }
+            }
+            if (target != -1) {
+                player.getInventory().setItem(target, newItem);
+                return;
+            }
+        }
+        giveOrDrop(player, newItem);
+    }
+
+    /** Adds the item to the inventory; what does not fit lands at the player's feet instead of vanishing. */
+    public static void giveOrDrop(Player player, ItemStack item) {
+        for (ItemStack left : player.getInventory().addItem(item).values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), left);
+        }
+    }
+
+    /** Equips everything (start of the game, respawn). */
+    public void loadPlayerArmorContents(Player player) {
+        applyArmor(player);
         ItemStack[] contents = getInventoryContents();
         for (int i = 0; i < contents.length; i++) {
             if (contents[i] != null) {
@@ -97,6 +137,9 @@ public class ArmorContents {
         other.set(index, item);
     }
     public void addOther(CustomItem item) {
+        for (CustomItem owned : other) {
+            if (owned.getName().equalsIgnoreCase(item.getName())) return;
+        }
         other.add(item);
     }
 
@@ -104,7 +147,8 @@ public class ArmorContents {
         ChatColor color = team.getColor();
         int protectionLevel = team.getTeamUpgrades().getUpgradeLevel(Upgrade.PROTECTION);
         boolean all = Properties.FullArmor;
-        if (armor == ArmorTier.OTHER) return getOtherArmorContents(all, protectionLevel, color, player);
+        if (armor == ArmorTier.OTHER && otherArmorContents != null) return getOtherArmorContents(all, protectionLevel, color, player);
+        if (armor == ArmorTier.OTHER) return getTierArmor(ArmorTier.BASIC, all, protectionLevel, color);
         return getTierArmor(armor, all, protectionLevel, color);
     }
 
@@ -121,7 +165,7 @@ public class ArmorContents {
             items[3] = shears.getItem(player);
         }
         if (other != null) {
-            for (int i = 0; i < other.size(); i++) {
+            for (int i = 0; i < other.size() && i + 4 < items.length; i++) {
                 items[i + 4] = other.get(i).getItem(player);
             }
         }

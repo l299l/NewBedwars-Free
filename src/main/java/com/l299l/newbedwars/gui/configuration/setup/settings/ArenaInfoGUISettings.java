@@ -21,20 +21,14 @@ public class ArenaInfoGUISettings implements Listener {
                 e.setCancelled(true);
                 Team team = gui.getTeam(e.getSlot());
                 if (team != null) {
-                    // Open team detail GUI
                     player.openInventory(new ArenaInfoTeamGUI(gui.getArena(), team).getInventory());
-                } else if (e.getSlot() == 35) {
-                    // Navigation button - go previous if on last page, otherwise go next
-                    if (gui.getPage() > 0) {
-                        player.openInventory(new ArenaInfoGUI(gui.getArena(), gui.getPage() - 1).getInventory());
-                    } else if (gui.getPage() < gui.getTotalPages() - 1) {
-                        player.openInventory(new ArenaInfoGUI(gui.getArena(), gui.getPage() + 1).getInventory());
-                    }
+                } else if (e.getSlot() == 34 && gui.getPage() > 0) {
+                    player.openInventory(new ArenaInfoGUI(gui.getArena(), gui.getPage() - 1).getInventory());
+                } else if (e.getSlot() == 35 && gui.getPage() < gui.getTotalPages() - 1) {
+                    player.openInventory(new ArenaInfoGUI(gui.getArena(), gui.getPage() + 1).getInventory());
                 }
-                // If not a team item or navigation, just keep the GUI open (do nothing)
             } else if (e.getClickedInventory().getHolder() instanceof ArenaInfoTeamGUI gui) {
                 e.setCancelled(true);
-                // Back button or any click returns to main GUI
                 player.openInventory(new ArenaInfoGUI(gui.getArena()).getInventory());
             }
         } catch (Exception exception) {

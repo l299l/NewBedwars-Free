@@ -254,8 +254,6 @@ CustomItemsNames:
   Obsidian-icon-description: "&5Bloc extrêmement résistant aux explosions.; &5Prend du temps à miner.; ; &7Prix: &e/price/; &7Quantité: &e/amount/"
   WaterBucket-name: "&bSeau d'Eau"
   WaterBucket-icon-description: "&bStoppez les dégâts de chute ou repoussez les ennemis.; ; &7Prix: &e/price/"
-  LavaBucket-name: "&6Seau de Lave"
-  LavaBucket-icon-description: "&6Versez pour piéger ou blesser les ennemis.; ; &7Prix: &e/price/"
   TNT-name: "&cTNT"
   TNT-icon-description: "&cLe poser l'allume immédiatement!; ; &7Prix: &e/price/"
   Fireball-name: "&cBoule de Feu"

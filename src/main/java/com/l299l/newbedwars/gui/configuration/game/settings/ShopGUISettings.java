@@ -85,28 +85,30 @@ public class ShopGUISettings implements Listener {
             PriceType priceType = Properties.UpgradePriceType;
             Material mat = Properties.getMaterialForPriceType(priceType);
             CustomItem icon = guiUpgrade.icon();
-            if (!ApiEvents.shopPurchase(arena, player, icon.getName(), ShopPurchaseEvent.Kind.UPGRADE, priceType.name(), price)
-                    || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) return;
-            if (player.getInventory().contains(mat, price)) {
-                Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
-                    player.getInventory().removeItem(new ItemStack(mat, price));
-                    tu.upgrade(upgrade);
-                    msg.send(player, "BoughtItem", new HashMap<>() {{
-                        put("/item/", icon.getName());
-                        put("/price/", String.valueOf(price));
-                        put("/priceType/", priceType.name());
-                        put("/amount/", "1");
-                    }});
-                    tu.open(player);
-                });
-            } else {
+            if (!player.getInventory().contains(mat, price)) {
                 msg.send(player, "NotEnoughMoney", new HashMap<>() {{
                     put("/item/", icon.getName());
                     put("/price/", String.valueOf(price));
                     put("/priceType/", priceType.name());
                     put("/amount/", "1");
                 }});
+                return;
             }
+            if (!ApiEvents.shopPurchase(arena, player, icon.getName(), ShopPurchaseEvent.Kind.UPGRADE, priceType.name(), price)
+                    || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) return;
+            Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
+                // a second click in the same tick must not buy the same level twice
+                if (tu.getUpgradeLevel(upgrade) != currentLevel || !player.getInventory().contains(mat, price)) return;
+                player.getInventory().removeItem(new ItemStack(mat, price));
+                tu.upgrade(upgrade);
+                msg.send(player, "BoughtItem", new HashMap<>() {{
+                    put("/item/", icon.getName());
+                    put("/price/", String.valueOf(price));
+                    put("/priceType/", priceType.name());
+                    put("/amount/", "1");
+                }});
+                tu.open(player);
+            });
         }
     }
 }

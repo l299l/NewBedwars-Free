@@ -41,9 +41,9 @@ public class DeleteConfirmGUI extends BasicGUI {
         }
 
         String infoLore = getMsg().getMsg(getPlayer(), "DeleteInfoLore")
-                .replaceAll("/arenaname/", arenaName);
+                .replace("/arenaname/", arenaName);
         String infoName = getMsg().getMsg(getPlayer(), "DeleteInfo")
-                .replaceAll("/arenaname/", arenaName);
+                .replace("/arenaname/", arenaName);
         List<String> infoLoreLines = Arrays.asList(infoLore.split(";"));
         inv.setItem(4, getGuiManager().createItem(infoName, Material.BARRIER, infoLoreLines, true));
 

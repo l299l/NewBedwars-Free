@@ -29,7 +29,6 @@ public class ArenaInfoTeamGUI implements InventoryHolder {
     }
 
     private void init() {
-        // Border
         for (int i = 0; i < 9; i++) inv.setItem(i, new ItemStack(Material.BLACK_STAINED_GLASS_PANE));
         for (int i = 18; i < 27; i++) inv.setItem(i, new ItemStack(Material.BLACK_STAINED_GLASS_PANE));
         inv.setItem(9, new ItemStack(Material.BLACK_STAINED_GLASS_PANE));
@@ -40,43 +39,34 @@ public class ArenaInfoTeamGUI implements InventoryHolder {
 
         int slot = 10;
 
-        // Bed
         slot = addSetting(slot, Material.RED_BED, "Bed", team.isBedSet(),
                 team.isBedSet() ? locStr(team.getTeamBed().getLocation()) : null);
 
-        // Spawn
         slot = addSetting(slot, Material.BEDROCK, "Spawn", team.isSpawnSet(),
                 team.isSpawnSet() ? locStr(team.getTeamSpawn()) : null);
 
-        // Shop
         slot = addSetting(slot, Material.CHEST, "Shop", team.isShopSet(),
                 team.isShopSet() ? locStr(team.getTeamShop().getLocation()) : null);
 
-        // Upgrades
         slot = addSetting(slot, Material.ANVIL, "Upgrades", team.isUpgradesSet(),
                 team.isUpgradesSet() ? locStr(team.getTeamUpgrades().getLocation()) : null);
 
-        // Generator
         slot = addSetting(slot, Material.DROPPER, "Generator", team.isGeneratorSet(),
                 team.isGeneratorSet() ? locStr(team.getGenerator().getLocation()) : null);
 
-        // BuildProt (combined Pos1 → Pos2)
         slot = addAreaSetting(slot, Material.RED_CONCRETE, "BuildProt",
                 team.isBuildProtAreaPosSet(),
                 team.getTeamBuildProtAreaPos1(), team.getTeamBuildProtAreaPos2());
 
-        // BaseArea (combined Pos1 → Pos2)
         slot = addAreaSetting(slot, Material.RED_STAINED_GLASS, "BaseArea",
                 team.isBasePosSet(),
                 team.getTeamBasePos1(), team.getTeamBasePos2());
 
-        // Accessories (only in ADVANCED_SETUP mode)
         if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {
             slot = addSetting(slot, Material.DIAMOND_HORSE_ARMOR, "Accessories", team.isAccessoriesSet(),
                     team.isAccessoriesSet() ? locStr(team.getTeamAccessories()) : null);
         }
 
-        // Back button
         ItemStack backItem = new ItemStack(Material.ARROW);
         ItemMeta backMeta = backItem.getItemMeta();
         backMeta.setDisplayName(ChatColor.GRAY + "← Back to Arena Info");

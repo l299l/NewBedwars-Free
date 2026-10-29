@@ -2,7 +2,7 @@
 
 All notable changes to NewBedwars are documented here.
 
-## [2.5-beta] - Coming soon
+## [2.5-beta] - 30.10.2026
 
 ### Added
 - **Addon extensions** - Addons can now register their own shop items, upgrades/traps, armor tiers, phase actions and `/bw` subcommands, store their own data in arenas and teams, and edit arenas (teams, spawns, beds, generators) while they are waiting
@@ -16,6 +16,26 @@ All notable changes to NewBedwars are documented here.
 - **Improved `/bw setupHelp`** - Now paginated and clickable like `/bw help`, shows only the commands of your current setup mode, and `/bw setupHelp <command>` shows its description, syntax and example
 
 ### Fixed
+- **Team colors in arena messages** - Player names in join/leave, kill, bed destruction and arena chat messages, and the winning team name, are now shown in their team color
+- **Spectators at the end of a game** - Spectators now see the winner message and title, and the arena restart countdown
+- **Team bed command** - `/bw setTeamBed` with a wrong number of arguments or a bad coordinate now shows the usage instead of an error
+- **Boss bars** - Boss bar animations no longer pile up and keep running after a game, titles with `/players/` or `/phase/` now stay up to date, the waiting-lobby boss bar comes back after a game, and a short or incomplete bar config no longer breaks loading
+- **Player count in the lobby** - The boss bar, scoreboard, arena list and placeholders now show the real number of players while the arena is still waiting
+- **Scoreboards** - Scoreboards are no longer updated off the main thread and no longer fail on 1.17 because of long names
+- **Messages with special characters** - Arena, team or player names containing `$` or `\` no longer break messages
+- **Generators config** - Saving settings can no longer overwrite `defaultGenerators.yml` with a custom generator file
+- **Parties** - Disbanding a party now cancels its open invites, and kicking or promoting someone who is not in the party does nothing
+- **Fast-buy customizer** - More than 8 categories no longer overwrite the Reset and Save buttons
+- **Game phases with several arenas** - Running the same game phases in more than one arena no longer resets or speeds up the other arenas' countdowns, and a failing phase action no longer skips the rest of the phase
+- **Shop tools and armor** - Buying a tool replaces your old one of that kind where you put it instead of overwriting other items in your hotbar or duplicating your sword; buying a pickaxe no longer removes your sword's Sharpness; items that do not fit your inventory drop at your feet; armor that no tier knows is refused before you pay
+- **Arena names** - `/bw arena create` now only accepts letters, numbers, `_` and `-`, and refuses a name that is already a world on the server; deleting an arena no longer deletes a world that could not be unloaded
+- **Player stats** - Stats are now saved safely in the background, so a crash or two games ending together can no longer corrupt `playerStats.json`
+- **Forge upgrade** - The first Forge level now upgrades the team generator (it did nothing), and each level speeds up the generator by one tier
+- **Team generator speed** - The spawn delay of team generators now follows the generator level instead of staying at the level 1 delay
+- **Diamond and emerald generators** - Items now drop exactly after the configured delay (they came one second late) and the hologram counts down correctly
+- **Generator amounts** - `MaxAmount` now means a random amount from 1 to the configured maximum, a `MaxAmount` of 0 drops nothing, and a too short `SpawnDelay` list or a missing resource section in a generator config no longer breaks the game.
+- **Rebalanced generators** - The default generator config was rebuilt around real resource income: team generators give about 1 iron/s and 0.14 gold/s at the start and grow with every Forge level up to about 3 iron/s and 0.43 gold/s (emeralds from Forge 3, diamonds from Forge 5), the diamond generator now spawns every 30 / 24 / 12 seconds and the emerald generator every 56 / 40 / 28 seconds. The team generator now has 9 levels so all 8 Forge purchases count. Existing servers keep their current `generators/defaultGenerators.yml`; delete it and restart to get the new values
+- **Shop and upgrade NPCs** - A zombie NPC no longer sometimes spawns as a baby zombie
 - **Items in shop/upgrade GUI** - Players can no longer move items into the shop, upgrade and other menus by shift-clicking them from their inventory
 - **Game ending instantly with a party** - A party joining alone no longer starts a game that immediately ends with "your team wins"
 - **Iron golem / silverfish kills** - When a player is killed by a golem or silverfish, their resources now drop on the ground instead of going to the owner (the owner still gets the kill)
@@ -25,6 +45,9 @@ All notable changes to NewBedwars are documented here.
 - **Arena capacity** - An arena can no longer be joined by one player more than its maximum
 - **Party join countdown** - Joining as a party now starts the countdown correctly when the minimum player count is reached
 - **Leaving during countdown** - Leaving while the game is starting no longer cancels the countdown if enough players remain
+
+### Removed
+- **Lava bucket** - Removed from the default shop (Misc category). Servers that already have a shop file keep it until the item is removed from `data/guis/exampleShop.yml`
 
 ## [2.4-beta] - 22.10.2026
 

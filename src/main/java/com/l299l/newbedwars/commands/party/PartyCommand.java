@@ -154,7 +154,6 @@ public class PartyCommand implements TabExecutor {
             msg.send(p, "PartyNoParty");
             return;
         }
-        boolean wasAdmin = party.isAdmin(p.getUniqueId());
         List<UUID> membersBefore = new ArrayList<>(party.getMembers());
         pm.leaveParty(p);
         msg.send(p, "PartyLeft");
@@ -163,10 +162,6 @@ public class PartyCommand implements TabExecutor {
             return;
         }
 
-        if (wasAdmin && party.size() > 0) {
-            // Admin left — disbandParty or keep going? Spec says admin transfer happens automatically.
-            // leaveParty already transferred admin. Notify remaining members.
-        }
         final String leaverName = p.getName();
         for (UUID memberId : membersBefore) {
             if (memberId.equals(p.getUniqueId())) continue;

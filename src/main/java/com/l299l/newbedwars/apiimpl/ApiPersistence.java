@@ -11,13 +11,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /** Saves arena files after API changes, collecting bursts of changes into one write. */
-final class ApiPersistence {
+public final class ApiPersistence {
     private static final long DELAY_TICKS = 100L;
     private static final Set<String> PENDING = new HashSet<>();
 
     private ApiPersistence() {}
 
-    static void requestSave(IArena arena) {
+    public static void requestSave(IArena arena) {
         String name = arena.getArenaName();
         if (!PENDING.add(name)) return;
         try {
@@ -26,12 +26,11 @@ final class ApiPersistence {
                 if (Arena.arenaByName.get(name) == arena) saveNow(arena);
             }, DELAY_TICKS);
         } catch (IllegalStateException | IllegalPluginAccessException e) {
-            // plugin is disabling; everything is saved on disable anyway
             PENDING.remove(name);
         }
     }
 
-    static void saveNow(IArena arena) {
+    public static void saveNow(IArena arena) {
         new ArenaDataJson(arena).save();
     }
 }

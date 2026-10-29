@@ -46,7 +46,7 @@ public class ListArenaCommand extends SubCommand {
             return;
         }
         player.sendMessage(msg.getMsg(player, "ArenaListHeader")
-                .replaceAll("/count/", String.valueOf(arenas.size())));
+                .replace("/count/", String.valueOf(arenas.size())));
         for (IArena arena : arenas) {
             String statusKey = Boolean.TRUE.equals(arena.isEnabled()) ? "ArenaListEnabled" : "ArenaListDisabled";
             Setup setup = arena.getSetupMode();
@@ -54,8 +54,8 @@ public class ListArenaCommand extends SubCommand {
                     ? setup.name().toLowerCase() : arena.status().name();
             int max = arena.getTeams().size() * arena.getMaxInTeam();
             player.sendMessage(msg.getMsg(player, "ArenaListEntry")
-                    .replaceAll("/arenaname/", arena.getArenaName())
-                    .replaceAll("/status/", msg.getMsg(player, statusKey))
+                    .replace("/arenaname/", arena.getArenaName())
+                    .replace("/status/", msg.getMsg(player, statusKey))
                     + msg.getMsg(player, "ArenaListDetails")
                     .replace("/state/", state)
                     .replace("/players/", String.valueOf(arena.getPlayers().size()))

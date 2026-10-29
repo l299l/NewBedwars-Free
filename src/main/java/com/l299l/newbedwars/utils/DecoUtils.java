@@ -6,8 +6,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Ageable;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Zombie;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +19,7 @@ public class DecoUtils {
     private static final List<ArmorStand> armorStands = new ArrayList<>();
 
     public static ArmorStand summonSetupArmorStand(Location location, String text) {
+        if (location == null || location.getWorld() == null) return null;
         ArmorStand armorStand = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
         armorStand.setVisible(false);
         armorStand.setGravity(false);
@@ -47,14 +51,25 @@ public class DecoUtils {
     public static void summonAllArmorStands(IArena arena) {
         arena.getTeams().forEach((s, team) -> {
             summonSetupArmorStand(team.getTeamSpawn(), team.getColor() + "Spawn");
-            summonSetupArmorStand(team.getTeamBed().getLocation(), team.getColor() + "Bed");
-            summonSetupArmorStand(team.getTeamShop().getLocation(), team.getColor() + "Shop");
-            summonSetupArmorStand(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrade");
-            summonSetupArmorStand(team.getGenerator().getLocation(), team.getColor() + "Generator");
+            if (team.getTeamBed() != null) summonSetupArmorStand(team.getTeamBed().getLocation(), team.getColor() + "Bed");
+            if (team.getTeamShop() != null) summonSetupArmorStand(team.getTeamShop().getLocation(), team.getColor() + "Shop");
+            if (team.getTeamUpgrades() != null) summonSetupArmorStand(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrade");
+            if (team.getGenerator() != null) summonSetupArmorStand(team.getGenerator().getLocation(), team.getColor() + "Generator");
         });
         arena.getGenerators().forEach((generator) -> {
             summonSetupArmorStand(generator.getLocation(), getGeneratorColor(generator.getType()) + "Generator");
         });
+    }
+
+    /** Zombies spawn as babies by chance and baby animals grow up; shop NPCs must always be adults. */
+    @SuppressWarnings("deprecation")
+    public static void makeAdult(LivingEntity entity) {
+        if (entity instanceof Zombie zombie) {
+            zombie.setBaby(false);
+        } else if (entity instanceof Ageable ageable) {
+            ageable.setAdult();
+            ageable.setAgeLock(true);
+        }
     }
 
     public static void removeArmorStand(ArmorStand armorStand) {

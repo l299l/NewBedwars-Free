@@ -241,6 +241,11 @@ public class Team {
         return arena;
     }
 
+    /** The text in this team's color, reset to white afterwards so the rest of a message keeps its own colors. */
+    public String colored(String text) {
+        return color + text + ChatColor.RESET;
+    }
+
     public ChatColor getColor() {
         return color;
     }

@@ -1,5 +1,15 @@
 package com.l299l.newbedwars.api;
 
+import com.l299l.newbedwars.api.view.ArenaView;
+import com.l299l.newbedwars.api.view.ArenaState;
+import com.l299l.newbedwars.api.edit.ArenaEditor;
+import com.l299l.newbedwars.api.command.AddonCommand;
+import com.l299l.newbedwars.api.command.CommandContext;
+import com.l299l.newbedwars.api.registry.UpgradeDefinition;
+import com.l299l.newbedwars.api.registry.ArmorTierDefinition;
+import com.l299l.newbedwars.api.registry.PhaseActionHandler;
+import com.l299l.newbedwars.api.registry.ShopLogic;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -13,11 +23,14 @@ import java.util.Optional;
  * <p>
  * Everything in the {@code com.l299l.newbedwars.api} package is the stable contract; other packages
  * can change in any update.
+ * <p>
+ * Everything an addon registers is removed again when that addon is disabled; registering a name that
+ * already exists throws {@link IllegalArgumentException}.
  */
 public interface NewBedwarsAPI {
     /** @throws IllegalStateException when NewBedwars is not enabled */
     static NewBedwarsAPI get() {
-        NewBedwarsAPI api = ApiHolder.api;
+        NewBedwarsAPI api = Bukkit.getServicesManager().load(NewBedwarsAPI.class);
         if (api == null) throw new IllegalStateException("NewBedwars is not enabled");
         return api;
     }
@@ -39,9 +52,6 @@ public interface NewBedwarsAPI {
      * @throws IllegalStateException when the arena is not {@link ArenaState#WAITING}
      */
     ArenaEditor edit(ArenaView arena);
-
-    // Registrations. Everything an addon registers is removed again when that addon is disabled; names that
-    // already exist throw IllegalArgumentException.
 
     /** Adds an action usable in {@code GamePhases} in config.yml as {@code NAME} or {@code NAME:argument}. */
     void registerPhaseAction(Plugin owner, String name, PhaseActionHandler handler);

@@ -144,10 +144,16 @@ public class Properties{
             String ID = (String) gamePhase.get("ID");
             List<Map<String, Object>> phases = (List<Map<String, Object>>) gamePhase.get("Phases");
             List<Phase> phaseList = new ArrayList<>();
-            for (Map<String, Object> phase : phases) {
-                String name = (String) phase.get("Name");
-                Integer duration = (Integer) phase.get("Duration");
-                List<String> actions = (List<String>) phase.get("Actions");
+            for (int i = 0; i < phases.size(); i++) {
+                Map<String, Object> phase = phases.get(i);
+                String name = String.valueOf(phase.get("Name"));
+                int duration = phase.get("Duration") instanceof Number n ? n.intValue() : 0;
+                if (duration <= 0 && i < phases.size() - 1) {
+                    NewBedwars.plugin.getLogger().warning("Game phases '" + ID + "': phase '" + name
+                            + "' has no valid Duration, using 1 second so the game can continue");
+                    duration = 1;
+                }
+                List<String> actions = phase.get("Actions") instanceof List<?> l ? (List<String>) l : List.of();
                 List<PhaseAction> phaseActions = new ArrayList<>();
                 for (String action : actions) {
                     phaseActions.add(new PhaseAction(action));

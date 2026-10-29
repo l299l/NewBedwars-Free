@@ -63,7 +63,7 @@ public class ManageGameCommand extends SubCommand {
                     }});
                     arena.start();
                 }else {
-                    player.sendMessage(ChatColor.RED + "The game must be in waiting status to use this command.");
+                    player.sendMessage(ChatColor.RED + "The game must be waiting or starting to use this command.");
                 }
             }
             case "start" -> {
@@ -73,7 +73,7 @@ public class ManageGameCommand extends SubCommand {
                     }});
                     arena.setArenaStarting();
                 }else {
-                    player.sendMessage(ChatColor.RED + "The game must be in waiting status to use this command.");
+                    player.sendMessage(ChatColor.RED + "The game must be waiting or starting to use this command.");
                 }
             }
             case "stop" -> {
@@ -108,6 +108,7 @@ public class ManageGameCommand extends SubCommand {
         if (args.length != 2) return null;
         IArena arena = Arena.arenaByWorld.get(player.getWorld());
         ArrayList<String> completion = new ArrayList<>();
+        if (arena == null) return completion;
         if (arena.status() == GameStatus.playing) {
             completion.add("stop");
             completion.add("forcestop");

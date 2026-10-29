@@ -1,0 +1,14 @@
+name: NewBedwarsEventLogger
+version: 1.0
+main: com.example.nbwlogger.EventLoggerPlugin
+api-version: "1.17"
+depend: [NewBedwars]
+description: Logs every NewBedwars API event for testing.
+commands:
+  nbwlog:
+    description: "NewBedwarsEventLogger: /nbwlog [chat|dump|edit]"
+    usage: /nbwlog [chat|dump|edit]
+    permission: nbwlogger.use
+permissions:
+  nbwlogger.use:
+    default: op

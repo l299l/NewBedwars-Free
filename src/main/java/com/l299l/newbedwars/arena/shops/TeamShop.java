@@ -65,6 +65,7 @@ public class TeamShop {
             npc.remove();
         }
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
+        com.l299l.newbedwars.utils.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
         npc.setCustomName(team.getColor() + team.getName() + " Shop");
         npc.setCustomNameVisible(true);

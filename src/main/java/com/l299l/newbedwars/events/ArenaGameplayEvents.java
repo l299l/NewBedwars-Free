@@ -357,11 +357,12 @@ public class ArenaGameplayEvents implements Listener {
                 ApiEvents.playerKill(arena, p, killer != null && arena.isPlayerInArena(killer) ? killer : null,
                         dyingTeam != null && dyingTeam.isBedDestroyed(),
                         lastDamage != null ? lastDamage.getCause() : EntityDamageEvent.DamageCause.CUSTOM);
+                final String victimName = arena.coloredName(p);
                 arena.killPlayer(p);
                 if (killer != null && arena.isPlayerInArena(killer)) {
-                    final String killerName = killer.getName();
+                    final String killerName = arena.coloredName(killer);
                     arena.broadcast("PlayerDeath", new HashMap<>() {{
-                        put("/player/", p.getName());
+                        put("/player/", victimName);
                         put("/killer/", killerName);
                     }});
                 } else {
@@ -377,7 +378,7 @@ public class ArenaGameplayEvents implements Listener {
                             }
                         }
                         arena.broadcast("PlayerDeathByVoid", new HashMap<>() {{
-                            put("/player/", p.getName());
+                            put("/player/", victimName);
                         }});
                     } else {
                         EntityDamageEvent lastDmg = e.getEntity().getLastDamageCause();
@@ -385,7 +386,7 @@ public class ArenaGameplayEvents implements Listener {
                                 ? lastDmg.getCause() : EntityDamageEvent.DamageCause.CUSTOM;
                         String causeName = cause.name().toLowerCase().replace('_', ' ');
                         arena.broadcast("PlayerDeath", new HashMap<>() {{
-                            put("/player/", p.getName());
+                            put("/player/", victimName);
                             put("/killer/", causeName);
                         }});
                     }
@@ -519,7 +520,6 @@ public class ArenaGameplayEvents implements Listener {
         Team golemTeam = arena.getTeam(teamName);
         if (golemTeam == null) return;
         
-        // Extract attacker from damager
         Player attacker = null;
         if (e.getDamager() instanceof Player p) {
             attacker = p;
@@ -529,7 +529,6 @@ public class ArenaGameplayEvents implements Listener {
         
         if (attacker == null) return;
         
-        // Priority 1: Cancel if attacker is the owner
         String ownerUuid = golem.getPersistentDataContainer().get(
                 IronGolemLogic.GOLEM_OWNER_KEY, PersistentDataType.STRING);
         if (ownerUuid != null && attacker.getUniqueId().toString().equals(ownerUuid)) {
@@ -537,7 +536,6 @@ public class ArenaGameplayEvents implements Listener {
             return;
         }
         
-        // Priority 2: Cancel if attacker is on same team
         Team attackerTeam = arena.getTeam(attacker);
         if (attackerTeam != null && attackerTeam.equals(golemTeam)) {
             e.setCancelled(true);
@@ -744,8 +742,8 @@ public class ArenaGameplayEvents implements Listener {
                                     breakerGp.addBedBroken();
                                 }
                                 arena.broadcast("BedDestroyed", new HashMap<>() {{
-                                    put("/team/", team.getName());
-                                    put("/destroyer/", p.getName());
+                                    put("/team/", team.colored(team.getName()));
+                                    put("/destroyer/", arena.coloredName(p));
                                 }});
                                 for (Player member : team.getPlayers()) {
                                     String titleMsg = ChatColor.translateAlternateColorCodes('&',
@@ -931,8 +929,12 @@ public class ArenaGameplayEvents implements Listener {
 
         Player p = e.getPlayer();
         IArena arena = Arena.arenaByWorld.get(p.getWorld());
-        if (arena == null || arena.status() != GameStatus.playing) return;
-        if (!arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) return;
+        if (arena == null || arena.status() != GameStatus.playing
+                || !arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) {
+            // a finished game must not leave "already inside this base" state behind
+            if (!playersInBases.isEmpty()) playersInBases.remove(p.getUniqueId());
+            return;
+        }
 
         Team playerTeam = arena.getTeam(p);
         if (playerTeam == null) return;

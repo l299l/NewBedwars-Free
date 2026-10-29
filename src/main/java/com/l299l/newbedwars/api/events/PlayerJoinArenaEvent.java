@@ -1,12 +1,11 @@
 package com.l299l.newbedwars.api.events;
 
-import com.l299l.newbedwars.api.ArenaView;
+import com.l299l.newbedwars.api.view.ArenaView;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
 /** Fired before a player joins (or rejoins) an arena. Cancelling it keeps the player out. */
-public class PlayerJoinArenaEvent extends ArenaEvent implements Cancellable {
+public class PlayerJoinArenaEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final Player player;
     private final boolean rejoin;
@@ -24,18 +23,6 @@ public class PlayerJoinArenaEvent extends ArenaEvent implements Cancellable {
     /** True when the player returns to a running game they left. */
     public boolean isRejoin() {
         return rejoin;
-    }
-
-    private boolean cancelled;
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
     }
 
     @Override

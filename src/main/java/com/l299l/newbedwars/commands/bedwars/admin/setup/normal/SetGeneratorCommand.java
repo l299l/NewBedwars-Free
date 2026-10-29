@@ -126,6 +126,7 @@ public class SetGeneratorCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        if (arena == null) return new ArrayList<>();
         if (args.length == 2) {
             if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {
                 return new ArrayList<>(Arrays.asList("DIAMOND", "EMERALD", "BASIC", "OTHER"));

@@ -2,9 +2,7 @@
 
 <div align="center">
 
-[![SpigotMC](https://img.shields.io/badge/SpigotMC-Download-ED8106?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==)](https://www.spigotmc.org/resources/new-bedwars.136050/)
 [![Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars)
-[![Hangar](https://img.shields.io/badge/Hangar-Download-0EA5E9?style=for-the-badge)](https://hangar.papermc.io/l299l/New-Bedwars)
 
 </div>
 
@@ -49,7 +47,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Per-arena resource packs, sent automatically on join and cleared on leave
 
 **Integrations**
-- PlaceholderAPI: 14 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and other plugins. Totally optional, the plugin loads fine without it
+- PlaceholderAPI: 26 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and other plugins. Totally optional, the plugin loads fine without it
 - WorldEdit / FastAsyncWorldEdit: build an arena straight from a `.schem` file instead of placing blocks by hand. Also optional, manual setup works fine without it
 
 ---
@@ -93,54 +91,11 @@ The full list of commands, setup commands and permissions is in **[docs/COMMANDS
 
 ## PlaceholderAPI
 
-If PlaceholderAPI is installed, all of the placeholders below become available under the prefix `%newbedwars_<placeholder>%`.
-
-**In-game (per-player)**
-
-| Placeholder | Description |
-|---|---|
-| `%newbedwars_arena%` | Arena name the player is in, or `""` |
-| `%newbedwars_status%` | Game status: `waiting` / `starting` / `playing` / `ending` / `restarting`, or `lobby` |
-| `%newbedwars_team%` | Team name, or `""` |
-| `%newbedwars_team_color%` | Team ChatColor code, or `""` |
-| `%newbedwars_kills%` | Kills in the current game |
-| `%newbedwars_deaths%` | Deaths in the current game |
-| `%newbedwars_final_kills%` | Final kills in the current game |
-| `%newbedwars_beds_broken%` | Beds broken in the current game |
-| `%newbedwars_players%` | Current player count in the arena |
-| `%newbedwars_max_players%` | Max players in the arena |
-| `%newbedwars_is_spectator%` | `true` / `false` |
-| `%newbedwars_phase%` | Current phase name, or `""` |
-| `%newbedwars_game_time%` | Seconds elapsed since game start, or `0` |
-
-**Lifetime stats (per-player)**
-
-| Placeholder | Description |
-|---|---|
-| `%newbedwars_stat_wins%` | Total wins |
-| `%newbedwars_stat_losses%` | Total losses |
-| `%newbedwars_stat_kills%` | Total kills |
-| `%newbedwars_stat_deaths%` | Total deaths |
-| `%newbedwars_stat_final_kills%` | Total final kills |
-| `%newbedwars_stat_beds%` | Total beds broken |
-| `%newbedwars_stat_games%` | Total games played |
-| `%newbedwars_stat_kd%` | Kill/death ratio (1 decimal, e.g. `2.3`) |
-| `%newbedwars_stat_wl%` | Win/loss ratio (1 decimal) |
-
-**Per-arena**
-
-| Placeholder | Description |
-|---|---|
-| `%newbedwars_arena_<name>_status%` | Game status of the named arena |
-| `%newbedwars_arena_<name>_players%` | Current player count |
-| `%newbedwars_arena_<name>_max_players%` | Max players |
-| `%newbedwars_arena_<name>_phase%` | Current phase name |
+If PlaceholderAPI is installed, NewBedwars registers 26 placeholders under `%newbedwars_<placeholder>%` for the current game, lifetime stats and individual arenas. The full list is in **[docs/PLACEHOLDERS.md](docs/PLACEHOLDERS.md)**.
 
 ---
 
 ## Addon developers
-
-> **Warning:** the addon API is not available yet. It will be available after NewBedwars **2.5-beta** is released. Until then the JitPack dependency below does not exist, and the API can still change.
 
 **Full documentation: [docs/API.md](docs/API.md)** (reading data, events, registering shop items/upgrades/armor/commands/phase actions, extra data, editing arenas).
 
@@ -220,6 +175,7 @@ NewBedwars will leave beta once stable operation is verified across all supporte
 - [x] Player profile GUI with stats history
 - [x] Improved help
 - [x] Addon API and events
+- [ ] Citizens2 support
 - [ ] In-game map voting system
 - [ ] More languages (full support)
 - [ ] Network / BungeeCord / Velocity mode

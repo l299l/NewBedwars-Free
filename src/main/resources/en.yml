@@ -80,6 +80,9 @@ OnlyPlayer: "&b[NewBedwars] &8&l> &fOnly &4player &fcan use these command!"
 NotInArena: "&b[NewBedwars] &8&l> &cYou not on Arena!"
 ArenaNotExists: "&4&lError: &r&cThis arena don't exist!"
 AlreadyCreated: "&4&lError: &r&cArena with that name already exist!"
+InvalidArenaName: "&4&lError: &r&cArena names may only contain letters, numbers, _ and - (max 64 characters)!"
+ArenaWorldExists: "&4&lError: &r&cA world with that name already exists on the server!"
+ArenaDeleteFailed: "&4&lError: &r&cThe arena world could not be unloaded, so nothing was deleted!"
 LoadingSchematicError: "&4&lError: &r&cThis schemat don't exist!"
 PageDoesntExists: "&4&lError: &r&cThis page doesn't exists!"
 CommandDoesntExists: "&4&lError: &r&cThis command doesn't exists!"
@@ -243,8 +246,6 @@ CustomItemsNames:
   #--- Buckets ---
   WaterBucket-name: "&bWater Bucket"
   WaterBucket-icon-description: "&bStop fall damage or push enemies.; ; &7Cost: &e/price/"
-  LavaBucket-name: "&6Lava Bucket"
-  LavaBucket-icon-description: "&6Spill to trap or damage enemies.; ; &7Cost: &e/price/"
   #--- Combat ---
   TNT-name: "&cTNT"
   TNT-icon-description: "&cPlacing it ignites it immediately!; ; &7Cost: &e/price/"

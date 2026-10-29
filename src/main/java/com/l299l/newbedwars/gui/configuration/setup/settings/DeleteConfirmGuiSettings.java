@@ -63,6 +63,10 @@ public class DeleteConfirmGuiSettings implements Listener {
 
         World arenaWorld = arena.getArenaWorld();
         File worldFolder = arenaWorld.getWorldFolder();
+        if (arenaWorld.equals(Bukkit.getWorlds().get(0))) {
+            msg.send(player, "ArenaDeleteFailed");
+            return;
+        }
 
         DecoUtils.removeAllArmorStands(arena);
 
@@ -77,12 +81,15 @@ public class DeleteConfirmGuiSettings implements Listener {
             }
         }
 
+        arenaWorld.setAutoSave(false);
+        if (!Bukkit.unloadWorld(arenaWorld, false)) {
+            msg.send(player, "ArenaDeleteFailed");
+            return;
+        }
         Arena.arenaByName.remove(arenaName);
         Arena.arenaByWorld.remove(arenaWorld);
 
-        arenaWorld.setAutoSave(false);
-        Bukkit.unloadWorld(arenaWorld, false);
-
+        com.l299l.newbedwars.config.data.IOExecutor.flush();
         deleteFolder(worldFolder);
         new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + arenaName + ".json").delete();
         // The template goes with the arena; backups in data/backups are intentionally kept.

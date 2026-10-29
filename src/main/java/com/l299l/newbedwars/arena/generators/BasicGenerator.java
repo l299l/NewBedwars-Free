@@ -4,10 +4,15 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
+import com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BasicGenerator implements Generator {
 
@@ -40,12 +45,22 @@ public class BasicGenerator implements Generator {
 
     @Override
     public void start() {
+        schedule(0);
+    }
+
+    /** (Re)starts the drop timer with the current level's {@code spawnDelay}. */
+    private void schedule(long firstDelayTicks) {
+        if (task != null) task.cancel();
+        long period = Math.max(1L, Math.round(spawnDelay * 20));
         task = new BukkitRunnable() {
             @Override
             public void run() {
-                location.getWorld().dropItem(location.clone().add(0, 1.0, 0), getGeneratorItem());
+                ItemStack item = getGeneratorItem();
+                if (item != null) {
+                    location.getWorld().dropItem(location.clone().add(0, 1.0, 0), item);
+                }
             }
-        }.runTaskTimer(NewBedwars.plugin, 0, (long) (spawnDelay * 20));
+        }.runTaskTimer(NewBedwars.plugin, firstDelayTicks, period);
     }
 
     @Override
@@ -59,21 +74,35 @@ public class BasicGenerator implements Generator {
             throw new RuntimeException("Arena not found");
         }
         GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        ironSpawnRate = generatorLeveling.getDefaultGeneratorSettings().getIronSpawnRate().get(level - 1);
-        goldSpawnRate = generatorLeveling.getDefaultGeneratorSettings().getGoldSpawnRate().get(level - 1);
-        emeraldSpawnRate = generatorLeveling.getDefaultGeneratorSettings().getEmeraldSpawnRate().get(level - 1);
-        diamondSpawnRate = generatorLeveling.getDefaultGeneratorSettings().getDiamondSpawnRate().get(level - 1);
-        ironSpawnAmount = generatorLeveling.getDefaultGeneratorSettings().getIronSpawnAmount().get(level - 1);
-        goldSpawnAmount = generatorLeveling.getDefaultGeneratorSettings().getGoldSpawnAmount().get(level - 1);
-        emeraldSpawnAmount = generatorLeveling.getDefaultGeneratorSettings().getEmeraldSpawnAmount().get(level - 1);
-        diamondSpawnAmount = generatorLeveling.getDefaultGeneratorSettings().getDiamondSpawnAmount().get(level - 1);
-        spawnDelay = generatorLeveling.getDefaultGeneratorSettings().getSpawnDelay().get(level - 1);
+        GeneratorSettings settings = generatorLeveling.getDefaultGeneratorSettings();
+        int index = level - 1;
+        ironSpawnRate = rate(settings.getIronSpawnRate(), index);
+        goldSpawnRate = rate(settings.getGoldSpawnRate(), index);
+        emeraldSpawnRate = rate(settings.getEmeraldSpawnRate(), index);
+        diamondSpawnRate = rate(settings.getDiamondSpawnRate(), index);
+        ironSpawnAmount = amount(settings.getIronSpawnAmount(), index);
+        goldSpawnAmount = amount(settings.getGoldSpawnAmount(), index);
+        emeraldSpawnAmount = amount(settings.getEmeraldSpawnAmount(), index);
+        diamondSpawnAmount = amount(settings.getDiamondSpawnAmount(), index);
+        spawnDelay = settings.getSpawnDelay().get(index);
+        // a running generator picks up the new speed at once; the next drop is one full delay away
+        if (task != null) schedule(Math.max(1L, Math.round(spawnDelay * 20)));
         return true;
+    }
+
+    /** A resource the config has no section for never spawns. */
+    private static double rate(List<Double> values, int index) {
+        return values == null || index >= values.size() ? 0 : values.get(index);
+    }
+
+    private static int amount(List<Integer> values, int index) {
+        return values == null || index >= values.size() ? 0 : values.get(index);
     }
 
     @Override
     public boolean upgrade(Integer level) {
-        if (level > maxLevel || this.level >= level) {
+        level = Math.min(level, maxLevel);
+        if (this.level >= level) {
             return false;
         }
         for (int i = this.level; i < level; i++) {
@@ -99,17 +128,24 @@ public class BasicGenerator implements Generator {
         return location;
     }
 
+    /** The next drop, or {@code null} when the picked resource has a MaxAmount of 0 at this level. */
     private ItemStack getGeneratorItem() {
         double total = ironSpawnRate + goldSpawnRate + emeraldSpawnRate + diamondSpawnRate;
         double random = Math.random() * total;
         if (random < ironSpawnRate) {
-            return new ItemStack(org.bukkit.Material.IRON_INGOT, Math.max(1, (int) Math.floor(Math.random() * ironSpawnAmount)));
+            return stack(Material.IRON_INGOT, ironSpawnAmount);
         } else if (random < ironSpawnRate + goldSpawnRate) {
-            return new ItemStack(org.bukkit.Material.GOLD_INGOT, Math.max(1, (int) Math.floor(Math.random() * goldSpawnAmount)));
+            return stack(Material.GOLD_INGOT, goldSpawnAmount);
         } else if (random < ironSpawnRate + goldSpawnRate + emeraldSpawnRate) {
-            return new ItemStack(org.bukkit.Material.EMERALD, Math.max(1, (int) Math.floor(Math.random() * emeraldSpawnAmount)));
+            return stack(Material.EMERALD, emeraldSpawnAmount);
         } else {
-            return new ItemStack(org.bukkit.Material.DIAMOND, Math.max(1, (int) Math.floor(Math.random() * diamondSpawnAmount)));
+            return stack(Material.DIAMOND, diamondSpawnAmount);
         }
+    }
+
+    /** A random amount from 1 to {@code maxAmount}, both included. */
+    private static ItemStack stack(Material material, int maxAmount) {
+        if (maxAmount <= 0) return null;
+        return new ItemStack(material, 1 + ThreadLocalRandom.current().nextInt(maxAmount));
     }
 }

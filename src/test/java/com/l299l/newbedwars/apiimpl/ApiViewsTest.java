@@ -1,8 +1,10 @@
 package com.l299l.newbedwars.apiimpl;
 
-import com.l299l.newbedwars.api.ArenaState;
-import com.l299l.newbedwars.api.ArenaView;
-import com.l299l.newbedwars.api.TeamView;
+import com.l299l.newbedwars.apiimpl.view.ApiArena;
+import com.l299l.newbedwars.apiimpl.view.ApiTeam;
+import com.l299l.newbedwars.api.view.ArenaState;
+import com.l299l.newbedwars.api.view.ArenaView;
+import com.l299l.newbedwars.api.view.TeamView;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
@@ -183,12 +185,14 @@ class ApiViewsTest {
     }
 
     @Test
-    void getThrowsWhenPluginIsNotEnabled() {
-        com.l299l.newbedwars.api.ApiHolder.set(null);
-        assertThrows(IllegalStateException.class, com.l299l.newbedwars.api.NewBedwarsAPI::get);
-        com.l299l.newbedwars.api.ApiHolder.set(api);
-        assertSame(api, com.l299l.newbedwars.api.NewBedwarsAPI.get());
-        com.l299l.newbedwars.api.ApiHolder.set(null);
+    void getReadsTheRegisteredService() {
+        org.bukkit.plugin.ServicesManager services = mock(org.bukkit.plugin.ServicesManager.class);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::getServicesManager).thenReturn(services);
+            assertThrows(IllegalStateException.class, com.l299l.newbedwars.api.NewBedwarsAPI::get);
+            when(services.load(com.l299l.newbedwars.api.NewBedwarsAPI.class)).thenReturn(api);
+            assertSame(api, com.l299l.newbedwars.api.NewBedwarsAPI.get());
+        }
     }
 
     @Test
@@ -201,7 +205,7 @@ class ApiViewsTest {
         when(arena.getGenerators()).thenReturn(List.of(diamond));
         var generators = new ApiArena(arena).getGenerators();
         assertEquals(1, generators.size());
-        assertEquals(com.l299l.newbedwars.api.GeneratorKind.DIAMOND, generators.get(0).getKind());
+        assertEquals(com.l299l.newbedwars.api.view.GeneratorKind.DIAMOND, generators.get(0).getKind());
         assertSame(location, generators.get(0).getLocation());
     }
 

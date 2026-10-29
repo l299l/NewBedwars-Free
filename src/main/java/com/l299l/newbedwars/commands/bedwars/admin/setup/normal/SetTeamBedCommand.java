@@ -45,32 +45,28 @@ public class SetTeamBedCommand extends SubCommand {
             return;
         }
         Team team = arena.getTeams().get(args[1]);
-        if(team != null) {
-            if(args.length == 5) {
-                try {
-                    Location location = new Location(player.getWorld(), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
-                    if (!isBedPlaced(location)) {
-                        player.sendMessage(msg.getMsg(player, "placeBedFirst"));
-                        return;
-                    }
-                    if (team.isBedSet()) DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation());
-                    arena.getTeams().get(args[1]).setTeamBed(location);
-                }catch (Exception e) {
-                    player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
-                }
-            }else {
-                if (!isBedPlaced(player.getLocation())) {
-                    player.sendMessage(msg.getMsg(player, "placeBedFirst"));
-                    return;
-                }
-                if (team.isBedSet()) DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation());
-                arena.getTeams().get(args[1]).setTeamBed(player.getLocation());
-            }
-            player.sendMessage(msg.getMsg(player, "setTeamBedSuccess") + team.getTeamBed().getLocation().getBlockX() + " " + team.getTeamBed().getLocation().getBlockY() + " " + team.getTeamBed().getLocation().getBlockZ());
-            DecoUtils.summonSetupArmorStand(team.getTeamBed().getLocation(), team.getColor() + "Bed");
-        }else {
+        if (team == null || (args.length != 2 && args.length != 5)) {
             player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            return;
         }
+        Location location = player.getLocation();
+        if (args.length == 5) {
+            try {
+                location = new Location(player.getWorld(), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
+            } catch (NumberFormatException e) {
+                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                return;
+            }
+        }
+        if (!isBedPlaced(location)) {
+            player.sendMessage(msg.getMsg(player, "placeBedFirst"));
+            return;
+        }
+        if (team.isBedSet()) DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation());
+        team.setTeamBed(location);
+        Location bed = team.getTeamBed().getLocation();
+        player.sendMessage(msg.getMsg(player, "setTeamBedSuccess") + bed.getBlockX() + " " + bed.getBlockY() + " " + bed.getBlockZ());
+        DecoUtils.summonSetupArmorStand(bed, team.getColor() + "Bed");
     }
 
     @Override

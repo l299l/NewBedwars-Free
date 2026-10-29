@@ -47,7 +47,7 @@ public class NScoreboard {
                 old.clear();
                 old.addAll(actual);
             }
-        }.runTaskTimerAsynchronously(NewBedwars.plugin, 0, 20);
+        }.runTaskTimer(NewBedwars.plugin, 0, 20);
         effectTask = createEffectTask();
     }
 
@@ -93,7 +93,7 @@ public class NScoreboard {
                         StringBuilder newText = new StringBuilder();
                         ChatColor color = ChatColor.WHITE;
                         int start = 0;
-                        if (rawTitle.startsWith("&")) {
+                        if (rawTitle.startsWith("&") && rawTitle.length() > 1) {
                             ChatColor code = ChatColor.getByChar(rawTitle.charAt(1));
                             if (code != null) color = code;
                             start = 2;
@@ -117,7 +117,7 @@ public class NScoreboard {
             }
             case PULSING: {
                 ChatColor color = ChatColor.WHITE;
-                if (rawTitle.startsWith("&")) {
+                if (rawTitle.startsWith("&") && rawTitle.length() > 1) {
                     ChatColor code = ChatColor.getByChar(rawTitle.charAt(1));
                     if (code != null) color = code;
                 }

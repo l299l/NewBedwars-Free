@@ -2,14 +2,18 @@ package com.l299l.newbedwars.config.data.json;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.JsonParseException;
 import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.config.data.IOExecutor;
+import com.l299l.newbedwars.config.data.json.arenas.AtomicFileWriter;
 import com.l299l.newbedwars.player.PlayerStats;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.logging.Level;
 
 public class PlayerStatsDataJson {
 
@@ -37,19 +41,29 @@ public class PlayerStatsDataJson {
                 );
                 NewBedwars.plugin.getPlayerManager().addStats(name, stats);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | JsonParseException e) {
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not read playerStats.json; starting without saved stats", e);
         }
     }
 
+    /**
+     * Serializes the stats on the calling (main) thread, so nothing changes them while they are read,
+     * and writes the file in the background through a temp file, so a crash can not leave it half written.
+     */
     public void save() {
-        Gson gson = new Gson();
-        File dataDir = new File(NewBedwars.plugin.getDataFolder(), "data");
-        if (!dataDir.exists()) dataDir.mkdirs();
-        try (FileWriter writer = new FileWriter(new File(dataDir, "playerStats.json"))) {
-            gson.toJson(NewBedwars.plugin.getPlayerManager().getAllStats(), writer);
-        } catch (IOException e) {
-            e.printStackTrace();
+        String json = new Gson().toJson(new HashMap<>(NewBedwars.plugin.getPlayerManager().getAllStats()));
+        Path target = new File(NewBedwars.plugin.getDataFolder(), "data/playerStats.json").toPath();
+        Runnable write = () -> {
+            try {
+                AtomicFileWriter.write(target, json, null, 0);
+            } catch (IOException e) {
+                NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not write " + target, e);
+            }
+        };
+        if (NewBedwars.plugin.isEnabled()) {
+            IOExecutor.submit(write);
+        } else {
+            write.run();
         }
     }
 

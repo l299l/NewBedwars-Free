@@ -1,6 +1,6 @@
 # NewBedwars Addon API
 
-Everything in the `com.l299l.newbedwars.api` package (and `api.events`) is the stable contract for addons. All other packages are internal and can change in any update.
+Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`) is the stable contract for addons. All other packages are internal and can change in any update.
 
 - [Setup](#setup)
 - [Reading data](#reading-data)
@@ -169,4 +169,4 @@ editor.removeTeam("Blue");
 
 ## Full example
 
-See the `NewBedwarsEventLogger` test addon (a minimal plugin that logs every event).
+[`docs/examples/event-logger`](examples/event-logger) is a complete, buildable addon (`pom.xml`, `plugin.yml`, [`EventLoggerPlugin.java`](examples/event-logger/src/main/java/com/example/nbwlogger/EventLoggerPlugin.java)). It logs every API event and registers a phase action, shop logic, armor tier, upgrade, trap and subcommands, and uses extra data and the arena editor. Its README says how to try each one.

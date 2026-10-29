@@ -15,13 +15,12 @@ import org.bukkit.potion.PotionType;
 
 import java.lang.reflect.Field;
 
-/** Cross-version compatibility layer for 1.17 – 26.3. Reflection handles PotionData/setBasePotionType API gap in 1.20.5. */
+/** Cross-version compatibility layer; reflection bridges the PotionData/setBasePotionType gap in 1.20.5. */
 public final class VersionCompat {
 
-    /** True when running on Paper 1.20.5 or newer. */
+    /** True when running on 1.20.5 or newer. */
     public static final boolean IS_1_20_5_PLUS;
 
-    // ── Enchantments (NamespacedKey lookup is stable across all versions) ─────
     public static final Enchantment PROTECTION;   // was PROTECTION_ENVIRONMENTAL
     public static final Enchantment SHARPNESS;    // was DAMAGE_ALL
     public static final Enchantment POWER;        // was ARROW_DAMAGE
@@ -29,7 +28,6 @@ public final class VersionCompat {
     /** Any valid enchantment used solely to make an item visually glow (always hidden). */
     public static final Enchantment GLOW_ENCHANT; // unbreaking – exists in every version
 
-    // ── PotionEffectTypes (name changed in 1.20.5) ────────────────────────────
     public static final PotionEffectType SLOWNESS;       // was SLOW
     public static final PotionEffectType HASTE;          // was FAST_DIGGING
     public static final PotionEffectType MINING_FATIGUE; // was SLOW_DIGGING
@@ -37,7 +35,6 @@ public final class VersionCompat {
     public static final PotionEffectType SPEED;          // SWIFTNESS in 1.20.5+
     public static final PotionEffectType INVISIBILITY;   // unchanged across versions
 
-    // ── PotionTypes (name changed in 1.20.5) ──────────────────────────────────
     public static final PotionType POTION_SPEED;       // was SPEED  → SWIFTNESS
     public static final PotionType POTION_JUMP;        // was JUMP   → LEAPING
     public static final PotionType POTION_INVISIBILITY;// stable in all versions
@@ -65,7 +62,6 @@ public final class VersionCompat {
 
     private VersionCompat() {}
 
-    // ── Version detection ─────────────────────────────────────────────────────
 
     public static boolean isAtLeast(int major, int minor, int patch) {
         String ver = Bukkit.getBukkitVersion().split("-")[0];
@@ -82,7 +78,6 @@ public final class VersionCompat {
         }
     }
 
-    // ── Private resolvers ─────────────────────────────────────────────────────
 
     private static Enchantment enchantment(String minecraftKey) {
         return Enchantment.getByKey(NamespacedKey.minecraft(minecraftKey));
@@ -105,7 +100,6 @@ public final class VersionCompat {
         }
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
 
     @SuppressWarnings("deprecation")
     public static void setSkullOwner(SkullMeta meta, String playerName) {
@@ -157,14 +151,7 @@ public final class VersionCompat {
         return item;
     }
 
-    /**
-     * Disables the "Locator Bar" gamerule (the XP-bar player tracker added in 26.x) on servers
-     * that have it. {@code GameRule.LOCATOR_BAR} does not exist in the 1.17.1 API we compile
-     * against, so it can't be referenced directly — but the *running* server's own copy of
-     * {@code org.bukkit.GameRule} (not our compile-time stub) does have the field on 26.x, so a
-     * plain reflective field lookup finds it there. On any version without this gamerule,
-     * getField() throws NoSuchFieldException and this is a silent no-op.
-     */
+    /** Disables the 26.x "Locator Bar" gamerule via reflection; it is absent from the compile-time API and a no-op on older versions. */
     @SuppressWarnings("unchecked")
     public static void disableLocatorBar(World world) {
         try {
@@ -174,7 +161,6 @@ public final class VersionCompat {
                 world.setGameRule(rule, false);
             }
         } catch (ReflectiveOperationException | ClassCastException ignored) {
-            // No Locator Bar gamerule on this server version — nothing to disable.
         }
     }
 }

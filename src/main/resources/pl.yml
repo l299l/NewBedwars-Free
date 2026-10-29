@@ -78,6 +78,9 @@ OnlyPlayer: "&b[NewBedwars] &8&l> &fTylko &4gracz &fmoże używać tej komendy!"
 NotInArena: "&b[NewBedwars] &8&l> &cNie jesteś na Arenie!"
 ArenaNotExists: "&4&lBłąd: &r&cTa arena nie istnieje!"
 AlreadyCreated: "&4&lBłąd: &r&cArena o tej nazwie już istnieje!"
+InvalidArenaName: "&4&lBłąd: &r&cNazwa areny może zawierać tylko litery, cyfry, _ i - (maks. 64 znaki)!"
+ArenaWorldExists: "&4&lBłąd: &r&cŚwiat o tej nazwie już istnieje na serwerze!"
+ArenaDeleteFailed: "&4&lBłąd: &r&cNie udało się wyładować świata areny, nic nie zostało usunięte!"
 LoadingSchematicError: "&4&lBłąd: &r&cTen schemat nie istnieje!"
 PageDoesntExists: "&4&lBłąd: &r&cTa strona nie istnieje!"
 CommandDoesntExists: "&4&lBłąd: &r&cTa komenda nie istnieje!"
@@ -240,8 +243,6 @@ CustomItemsNames:
   #--- Wiadra ---
   WaterBucket-name: "&bWiadro Wody"
   WaterBucket-icon-description: "&bZatrzymaj obrażenia od upadku; &blub odepchnij wrogów.; ; &7Koszt: &e/price/"
-  LavaBucket-name: "&6Wiadro Lawy"
-  LavaBucket-icon-description: "&6Rozlej, aby pułapkować lub ranić wrogów.; ; &7Koszt: &e/price/"
   #--- Walka ---
   TNT-name: "&cTNT"
   TNT-icon-description: "&cPostawienie natychmiast je odpala!; ; &7Koszt: &e/price/"

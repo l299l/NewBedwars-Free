@@ -36,35 +36,46 @@ public class DiamondGenerator implements Generator {
             throw new RuntimeException("Arena not found");
         }
         GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        maxLevel = generatorLeveling.getDiamondGeneratorSettings().getMaxLevel();
+        maxLevel = generatorLeveling.getDiamondGeneratorSettings() == null ? 0 : generatorLeveling.getDiamondGeneratorSettings().getMaxLevel();
         upgrade();
     }
 
     @Override
     public void start() {
+        if (maxLevel == 0 || level == 0) {
+            return;
+        }
+        if (task != null) { task.cancel(); task = null; }
+        if (rotatingTask != null) { rotatingTask.cancel(); rotatingTask = null; }
+        if (hologram != null) { hologram.remove(); hologram = null; }
         hologram = new Hologram(NewBedwars.plugin.getMessages().getMsgToConsole("DiamondGenerator"), location.clone(),
-                new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(spawnDelay))));
+                new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(delayInSeconds()))));
         ArmorStand armorStand = hologram.getArmorStand();
         armorStand.setHelmet(new ItemStack(Material.DIAMOND_BLOCK));
-        final int[] delay = {(int) spawnDelay};
+        final int[] remaining = {delayInSeconds()};
+        // first tick after one second: the hologram counts remaining seconds and the drop lands exactly when it reaches 0
         task = new BukkitRunnable() {
             @Override
             public void run() {
-                if (delay[0] == 0) {
-                    delay[0] = (int) spawnDelay;
+                remaining[0]--;
+                if (remaining[0] <= 0) {
+                    remaining[0] = delayInSeconds();
                     location.getWorld().dropItem(location.clone().add(0, 0.5, 0), new ItemStack(Material.DIAMOND, Math.max(1, diamondSpawnAmount)));
-                } else {
-                    delay[0]--;
                 }
-                hologram.reload(new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(delay[0]))));
+                hologram.reload(new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(remaining[0]))));
             }
-        }.runTaskTimer(NewBedwars.plugin, 0, 20);
+        }.runTaskTimer(NewBedwars.plugin, 20, 20);
         rotatingTask = new BukkitRunnable() {
             @Override
             public void run() {
                 armorStand.setHeadPose(armorStand.getHeadPose().add(0, 0.1, 0));
             }
         }.runTaskTimer(NewBedwars.plugin, 0, 1);
+    }
+
+    /** The delay in whole seconds; the timer ticks once per second, so fractions round up and 0 means every second. */
+    private int delayInSeconds() {
+        return Math.max(1, (int) Math.ceil(spawnDelay));
     }
 
     @Override

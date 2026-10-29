@@ -38,26 +38,25 @@ public class FastBuyCustomizerGUI extends BasicGUI {
 
     /** Maximum fast-buy items per category. */
     public static final int SLOTS_PER_CAT = 3;
+    /** Rows 1-4 hold two categories each; row 5 is reserved for the Reset and Save buttons. */
+    private static final int MAX_CATEGORIES = 8;
 
     private final Inventory inv;
     private final List<GuiCategory> categories;
     private final Map<String, List<String>> selection; // categoryId → chosen item names
 
-    // Ordered flat list of categories (extracted from header slots of the GuiSave)
     public FastBuyCustomizerGUI(GuiManager guiManager, Player player, GuiSave shopGuiSave) {
         super(guiManager, player);
 
-        // Collect categories from the shop GUI header (skip "home")
         categories = new ArrayList<>();
         int headerSize = (int) shopGuiSave.getGuiData("HeaderSize");
         for (int i = 0; i < headerSize; i++) {
             Object o = shopGuiSave.getItem(i);
-            if (o instanceof GuiCategory cat && !cat.id().equalsIgnoreCase("home")) {
+            if (o instanceof GuiCategory cat && !cat.id().equalsIgnoreCase("home") && categories.size() < MAX_CATEGORIES) {
                 categories.add(cat);
             }
         }
 
-        // Load existing selection
         PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName());
         Map<String, List<String>> saved = (ins != null) ? ins.fastBuyPerCategory() : Map.of();
         selection = new HashMap<>();
@@ -71,7 +70,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         redraw();
     }
 
-    // ── Slot arithmetic ────────────────────────────────────────────────────────
 
     /**
      * Row for a category pair: categories 0&1 → row 1, 2&3 → row 2, etc.
@@ -81,7 +79,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return 1 + pairIndex;
     }
 
-    /** Absolute slot for a given category-pair row, column (0-8). */
     private int slot(int row, int col) {
         return row * 9 + col;
     }
@@ -103,13 +100,11 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return slot(row, colBase + 1 + fbIndex); // +1 to skip the category icon col
     }
 
-    /** Slot of the category icon for catIndex. */
     private int catIconSlot(int catIndex) {
         int row = rowForPair(catIndex / 2);
         return slot(row, catIndex % 2 == 0 ? 0 : 5);
     }
 
-    /** Returns the category index for an fb-slot click, or -1 if not an fb slot. */
     public int catIndexForSlot(int rawSlot) {
         for (int c = 0; c < categories.size(); c++) {
             for (int f = 0; f < SLOTS_PER_CAT; f++) {
@@ -119,7 +114,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return -1;
     }
 
-    /** Returns the fb index (0-2) for a click on catIndex, or -1. */
     public int fbIndexForSlot(int catIndex, int rawSlot) {
         for (int f = 0; f < SLOTS_PER_CAT; f++) {
             if (fbSlot(catIndex, f) == rawSlot) return f;
@@ -127,7 +121,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return -1;
     }
 
-    /** Returns the category index whose icon was clicked, or -1. */
     public int catIndexForIconSlot(int rawSlot) {
         for (int c = 0; c < categories.size(); c++) {
             if (catIconSlot(c) == rawSlot) return c;
@@ -135,20 +128,16 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return -1;
     }
 
-    // ── Drawing ────────────────────────────────────────────────────────────────
 
     public void redraw() {
-        // Clear inventory
         inv.clear();
 
-        // Row 0: header pane
         ItemStack header = pane(Material.CYAN_STAINED_GLASS_PANE,
                 ChatColor.AQUA + "" + ChatColor.BOLD + "Fast-Buy Customizer",
                 ChatColor.GRAY + "Click a category icon to add items.",
                 ChatColor.GRAY + "Click a filled fast-buy slot to remove.");
         for (int i = 0; i < 9; i++) inv.setItem(i, header);
 
-        // Category rows
         ItemStack sep = pane(Material.GRAY_STAINED_GLASS_PANE, ChatColor.DARK_GRAY + "───");
         for (int c = 0; c < categories.size(); c++) {
             GuiCategory cat = categories.get(c);
@@ -156,10 +145,8 @@ public class FastBuyCustomizerGUI extends BasicGUI {
             boolean isRight = (c % 2 == 1);
             int colBase = isRight ? 5 : 0;
 
-            // Separator between the two category halves
             if (!isRight) inv.setItem(slot(row, 4), sep);
 
-            // Category icon
             ItemStack icon = cat.getIcon(getPlayer());
             ItemMeta iconMeta = icon.getItemMeta();
             if (iconMeta != null) {
@@ -179,7 +166,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
             }
             inv.setItem(slot(row, colBase), icon);
 
-            // Fast-buy slots
             List<String> chosen = selection.getOrDefault(cat.id(), List.of());
             for (int f = 0; f < SLOTS_PER_CAT; f++) {
                 int s = slot(row, colBase + 1 + f);
@@ -220,9 +206,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         inv.setItem(53, save);
     }
 
-    // ── Public API (called by settings listener) ───────────────────────────────
 
-    /** Add itemName to the next empty fb-slot for catIndex. */
     public void addItem(int catIndex, String itemName) {
         if (catIndex < 0 || catIndex >= categories.size()) return;
         GuiCategory cat = categories.get(catIndex);
@@ -233,21 +217,16 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
     }
 
-    /** Returns the category at catIndex, or null if out of range. */
     public GuiCategory getCategory(int catIndex) {
         return (catIndex >= 0 && catIndex < categories.size()) ? categories.get(catIndex) : null;
     }
 
-    /** Returns true if the fb-slot at (catIndex, fbIndex) already has an item. */
     public boolean isSlotFilled(int catIndex, int fbIndex) {
         if (catIndex < 0 || catIndex >= categories.size()) return false;
         List<String> chosen = selection.getOrDefault(categories.get(catIndex).id(), List.of());
         return fbIndex < chosen.size();
     }
 
-    /**
-     * Clicking a filled fb-slot: removes that item from the category's selection.
-     */
     public void removeFbSlot(int catIndex, int fbIndex) {
         if (catIndex < 0 || catIndex >= categories.size()) return;
         List<String> chosen = selection.computeIfAbsent(categories.get(catIndex).id(), k -> new ArrayList<>());
@@ -267,10 +246,8 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         redraw();
     }
 
-    /** Returns slot 53. */
     public static int saveSlot() { return 53; }
 
-    /** Returns slot 49. */
     public static int resetSlot() { return 49; }
 
     /**
@@ -290,7 +267,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return persisted;
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
 
     private ItemStack emptySlot(int index) {
         return pane(Material.LIGHT_GRAY_STAINED_GLASS_PANE,

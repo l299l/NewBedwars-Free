@@ -24,10 +24,8 @@ public class ProfileGUISettings implements Listener {
 
         int slot = e.getRawSlot();
         if (slot == 26) {
-            // Close
             player.closeInventory();
         } else if (slot == 22 && e.getCurrentItem().getType() == Material.CHEST) {
-            // Open fast-buy customizer (only for the profile owner)
             if (player.equals(gui.getTarget())) {
                 IArena arena = Arena.arenaByWorld.get(player.getWorld());
                 String shopGuiId = arena != null ? arena.getShopGuiId() : Properties.DefaultTeamShopGui;

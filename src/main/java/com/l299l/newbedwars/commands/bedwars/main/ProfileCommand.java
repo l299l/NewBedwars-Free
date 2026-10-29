@@ -38,10 +38,8 @@ public class ProfileCommand extends SubCommand {
         String targetName = args[1];
         Player target = Bukkit.getPlayerExact(targetName);
         if (target != null) {
-            // Open GUI showing the target's profile (viewer is the command sender)
             player.openInventory(new ProfileGUI(NewBedwars.plugin.getGuiManager(), player, target).getInventory());
         } else {
-            // Player offline — show stats in chat with prefix
             PlayerStats stats = NewBedwars.plugin.getPlayerManager().getStats(targetName);
             PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(targetName);
             String language = ins != null ? ins.language().name() : null;

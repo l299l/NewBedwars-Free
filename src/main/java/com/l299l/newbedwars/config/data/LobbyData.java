@@ -16,7 +16,7 @@ public class LobbyData {
     }
 
     public static void save(Location location) {
-        if (location == null) return;
+        if (location == null || location.getWorld() == null) return;
         File f = file();
         f.getParentFile().mkdirs();
         YamlConfiguration yaml = new YamlConfiguration();

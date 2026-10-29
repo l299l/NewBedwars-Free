@@ -49,6 +49,7 @@ public class CountdownTimer {
     }
 
     public void cancel() {
+        if (task == null) return;
         task.cancel();
     }
 }

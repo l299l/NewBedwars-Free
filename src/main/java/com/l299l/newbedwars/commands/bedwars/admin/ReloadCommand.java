@@ -55,10 +55,12 @@ public class ReloadCommand extends SubCommand {
         for (IArena arena : Arena.arenaByName.values()) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
             else if (!arena.getPlayersOnSetup().isEmpty()) {
-                arena.getPlayersOnSetup().forEach(plu -> {
-                    Player pl = Objects.requireNonNull(Bukkit.getPlayer(plu));
+                for (UUID plu : new ArrayList<>(arena.getPlayersOnSetup())) {
+                    Player pl = Bukkit.getPlayer(plu);
+                    if (pl == null) continue;
                     LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.RELOAD);
-                    pl.kickPlayer(ChatColor.RED + "Server went down!");});
+                    pl.kickPlayer(ChatColor.RED + "Server went down!");
+                }
             }
         }
         if (active > 0) {
@@ -69,6 +71,7 @@ public class ReloadCommand extends SubCommand {
         }
 
         NewBedwars.plugin.getDataManager().save();
+        com.l299l.newbedwars.config.data.IOExecutor.flush();
         NewBedwars.plugin.reloadAll();
         NewBedwars.plugin.getDataManager().loadArenas();
         msg.send(p, "ReloadSuccess");

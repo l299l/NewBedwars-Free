@@ -86,6 +86,7 @@ class TeamColorTest {
     void undyedKindRecognisesEveryWhiteFamily() {
         assertEquals(TeamColor.Kind.WOOL, TeamColor.undyedKind(Material.WHITE_WOOL));
         assertEquals(TeamColor.Kind.TERRACOTTA, TeamColor.undyedKind(Material.WHITE_TERRACOTTA));
+        assertEquals(TeamColor.Kind.TERRACOTTA, TeamColor.undyedKind(Material.TERRACOTTA));
         assertEquals(TeamColor.Kind.GLASS, TeamColor.undyedKind(Material.WHITE_STAINED_GLASS));
         assertEquals(TeamColor.Kind.GLASS_PANE, TeamColor.undyedKind(Material.WHITE_STAINED_GLASS_PANE));
         assertEquals(TeamColor.Kind.CONCRETE, TeamColor.undyedKind(Material.WHITE_CONCRETE));
@@ -97,7 +98,6 @@ class TeamColorTest {
     @Test
     void undyedKindIgnoresEverythingElse() {
         assertNull(TeamColor.undyedKind(Material.RED_WOOL));
-        assertNull(TeamColor.undyedKind(Material.TERRACOTTA));
         assertNull(TeamColor.undyedKind(Material.WHITE_GLAZED_TERRACOTTA));
         assertNull(TeamColor.undyedKind(Material.WHITE_BANNER));
         assertNull(TeamColor.undyedKind(Material.OAK_PLANKS));
@@ -115,7 +115,7 @@ class TeamColorTest {
     @Test
     void recolorLeavesOtherBlocksAlone() {
         assertEquals(Material.OAK_PLANKS, TeamColor.recolor(Material.OAK_PLANKS, ChatColor.RED));
-        assertEquals(Material.TERRACOTTA, TeamColor.recolor(Material.TERRACOTTA, ChatColor.RED));
+        assertEquals(Material.RED_TERRACOTTA, TeamColor.recolor(Material.TERRACOTTA, ChatColor.RED));
         assertEquals(Material.WHITE_GLAZED_TERRACOTTA, TeamColor.recolor(Material.WHITE_GLAZED_TERRACOTTA, ChatColor.RED));
     }
 

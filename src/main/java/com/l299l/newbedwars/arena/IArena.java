@@ -33,6 +33,8 @@ public interface IArena {
     /** Top-level fields of the arena file this version does not know; written back unchanged. */
     JsonObject getUnknownFields();
     void setUnknownFields(JsonObject unknownFields);
+    /** IDs from the arena file that did not resolve; saved back unchanged so a missing config does not erase them. */
+    void setUnresolvedIds(String gamePhasesId, String generatorsLevelingId);
     Integer getGameTime();
     void upgradeGenerators(GeneratorType type, Integer level);
     boolean join(Player player);
@@ -86,6 +88,12 @@ public interface IArena {
     void createTeam(String name, ChatColor color);
     Team getTeam(String name);
     Team getTeam(Player player);
+
+    /** The player's name in their team color (plain when they have no team). */
+    default String coloredName(Player player) {
+        Team team = getTeam(player);
+        return team == null ? player.getName() : team.colored(player.getName());
+    }
     List<TeamShop> getTeamShops();
     List<TeamUpgrades> getTeamUpgrades();
     Team getTeamByBed(Location bed);

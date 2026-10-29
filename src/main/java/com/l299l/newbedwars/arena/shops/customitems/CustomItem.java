@@ -29,6 +29,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionType;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CustomItem {
     private final UUID uuid = UUID.randomUUID();
@@ -139,11 +140,27 @@ public class CustomItem {
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
             ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
             ArmorTier newType = ArmorTier.getArmorTier(material);
-            if (newType != ArmorTier.OTHER && armorContents.getArmor().rank() >= newType.rank()) {
+            // a material no armor tier knows cannot be equipped; refuse before taking the payment
+            if (newType == ArmorTier.OTHER || armorContents.getArmor().rank() >= newType.rank()) {
                 return false;
             }
         }
+        if (onBuyEvent == OnBuyEvent.COMMANDS || onBuyEvent == OnBuyEvent.OPEN_GUI || onBuyEvent == OnBuyEvent.GIVE_PERM) {
+            return false;
+        }
         IArena shopArena = Arena.arenaByWorld.get(player.getWorld());
+        Material priceMaterial = priceMaterial();
+        if (priceMaterial != null && !player.getInventory().contains(priceMaterial, price)) {
+            return false;
+        }
+        Upgrade upgrade = null;
+        if (onBuyEvent == OnBuyEvent.UPGRADE) {
+            upgrade = Upgrade.valueOf(name.toUpperCase());
+            Team upgradeTeam = shopArena == null ? null : shopArena.getTeam(player);
+            if (upgradeTeam == null || upgradeTeam.getTeamUpgrades().getUpgradeLevel(upgrade) >= upgrade.maxLevel) {
+                return false;
+            }
+        }
         if (shopArena != null) {
             ShopPurchaseEvent.Kind kind = switch (onBuyEvent) {
                 case GIVE_ARMOR -> ShopPurchaseEvent.Kind.ARMOR;
@@ -152,37 +169,11 @@ public class CustomItem {
                 default -> ShopPurchaseEvent.Kind.ITEM;
             };
             if (!ApiEvents.shopPurchase(shopArena, player, name, kind, String.valueOf(priceType), price)) return false;
-            if (onBuyEvent == OnBuyEvent.UPGRADE) {
-                Upgrade upgrade = Upgrade.valueOf(name.toUpperCase());
-                Team upgradeTeam = shopArena.getTeam(player);
-                if (upgradeTeam != null && !ApiEvents.teamUpgrade(shopArena, upgradeTeam, upgrade.name(),
-                        upgradeTeam.getTeamUpgrades().getUpgradeLevel(upgrade) + 1, player)) return false;
-            }
+            if (upgrade != null && !ApiEvents.teamUpgrade(shopArena, shopArena.getTeam(player), upgrade.name(),
+                    shopArena.getTeam(player).getTeamUpgrades().getUpgradeLevel(upgrade) + 1, player)) return false;
         }
-        if (priceType == PriceType.EMERALD) {
-            if (player.getInventory().contains(Material.EMERALD, price)) {
-                player.getInventory().removeItem(new ItemStack(Material.EMERALD, price));
-            }else {
-                return false;
-            }
-        }else if (priceType == PriceType.DIAMOND) {
-            if (player.getInventory().contains(Material.DIAMOND, price)) {
-                player.getInventory().removeItem(new ItemStack(Material.DIAMOND, price));
-            }else {
-                return false;
-            }
-        }else if (priceType == PriceType.GOLD) {
-            if (player.getInventory().contains(Material.GOLD_INGOT, price)) {
-                player.getInventory().removeItem(new ItemStack(Material.GOLD_INGOT, price));
-            }else {
-                return false;
-            }
-        }else if (priceType == PriceType.IRON) {
-            if (player.getInventory().contains(Material.IRON_INGOT, price)) {
-                player.getInventory().removeItem(new ItemStack(Material.IRON_INGOT, price));
-            }else {
-                return false;
-            }
+        if (priceMaterial != null) {
+            player.getInventory().removeItem(new ItemStack(priceMaterial, price));
         }
         if (onBuyEvent == OnBuyEvent.UPGRADE) {
             return buyUpgrade(player);
@@ -192,7 +183,7 @@ public class CustomItem {
                 return false;
             }
             case GIVE_ITEM -> {
-                player.getInventory().addItem(getItem(player))  ;
+                ArmorContents.giveOrDrop(player, getItem(player));
                 if (isPermanent) {
                     Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player).addOther(this);
                 }
@@ -201,7 +192,7 @@ public class CustomItem {
             case GIVE_ARMOR -> {
                 ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
                 armorContents.setArmor(ArmorTier.getArmorTier(material));
-                armorContents.loadPlayerArmorContents(player);
+                armorContents.applyArmor(player);
                 return true;
             }
             case GIVE_TOOL -> {
@@ -210,10 +201,10 @@ public class CustomItem {
                 boolean isSword = material.name().endsWith("_SWORD");
                 if (isSword && armorContents.hasBoughtSword()) {
                     armorContents.setTool(this);
-                    player.getInventory().addItem(getItem(player));
+                    ArmorContents.giveOrDrop(player, getItem(player));
                 } else {
                     armorContents.setTool(this);
-                    armorContents.loadPlayerArmorContents(player);
+                    armorContents.giveTool(player, this);
                 }
                 if (isSword) {
                     toolTeam.getTeamUpgrades().applyPlayerUpgrades(player);
@@ -299,6 +290,12 @@ public class CustomItem {
             desc = msg.getMsg(language, iconDesc);
         }
         if (desc == null) desc = "";
+        if (onBuyEvent == OnBuyEvent.UPGRADE && price < 0) {
+            // Upgrade price is added per level by GuiUpgrade; drop the placeholder price line
+            desc = Arrays.stream(desc.split(";"))
+                    .filter(line -> !line.contains("/price/"))
+                    .collect(Collectors.joining(";"));
+        }
         desc = desc.replace("/price/", price + " " + priceType.name());
         desc = desc.replace("/amount/", String.valueOf(amount));
         String displayName = msg.getMsg(language, name + "-name");
@@ -424,6 +421,16 @@ public class CustomItem {
         sb.append("]");
         sb.append("}");
         return sb.toString();
+    }
+
+    private Material priceMaterial() {
+        return switch (priceType) {
+            case EMERALD -> Material.EMERALD;
+            case DIAMOND -> Material.DIAMOND;
+            case GOLD -> Material.GOLD_INGOT;
+            case IRON -> Material.IRON_INGOT;
+            default -> null;
+        };
     }
 
     private boolean buyUpgrade(Player p) {

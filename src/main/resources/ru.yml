@@ -254,8 +254,6 @@ CustomItemsNames:
   Obsidian-icon-description: "&5Чрезвычайно устойчив к взрывам.; &5Долго добывается.; ; &7Цена: &e/price/; &7Количество: &e/amount/"
   WaterBucket-name: "&bВедро Воды"
   WaterBucket-icon-description: "&bОстановите урон от падения или оттолкните врагов.; ; &7Цена: &e/price/"
-  LavaBucket-name: "&6Ведро Лавы"
-  LavaBucket-icon-description: "&6Вылейте, чтобы поймать или навредить врагам.; ; &7Цена: &e/price/"
   TNT-name: "&cТНТ"
   TNT-icon-description: "&cРазмещение сразу поджигает!; ; &7Цена: &e/price/"
   Fireball-name: "&cОгненный Шар"

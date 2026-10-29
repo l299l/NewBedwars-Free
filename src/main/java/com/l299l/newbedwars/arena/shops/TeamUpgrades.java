@@ -77,6 +77,7 @@ public class TeamUpgrades {
             npc.remove();
         }
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
+        com.l299l.newbedwars.utils.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
         npc.setCustomName(team.getColor() + team.getName() + " Upgrades");
         npc.setCustomNameVisible(true);
@@ -105,6 +106,8 @@ public class TeamUpgrades {
             npc.remove();
             npc = null;
         }
+        // bought levels belong to one game; the next start() must not equip armor with the old Protection
+        upgrades.clear();
     }
 
     public Integer getUpgradeLevel(Upgrade upgrade) {

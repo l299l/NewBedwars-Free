@@ -123,7 +123,6 @@ public class ArenaMaintenanceCommand extends SubCommand {
         }});
     }
 
-    // ---- backup / backups --------------------------------------------------------------------
 
     private void doBackup(Player player, IArena arena) {
         String name = arena.getArenaName();
@@ -176,7 +175,6 @@ public class ArenaMaintenanceCommand extends SubCommand {
         }
     }
 
-    // ---- restore -----------------------------------------------------------------------------
 
     private void doRestore(Player player, IArena arena, String requestedId) {
         String name = arena.getArenaName();
@@ -192,6 +190,7 @@ public class ArenaMaintenanceCommand extends SubCommand {
                 return;
             }
             ArenaDataManager manager = NewBedwars.plugin.getDataManager().getArenaDataManager();
+            com.l299l.newbedwars.config.data.IOExecutor.flush();
             String worldName = manager.unloadArena(name);
             if (worldName == null) {
                 reply(player, "RestoreFailed", name, "the arena world could not be unloaded");
@@ -228,7 +227,6 @@ public class ArenaMaintenanceCommand extends SubCommand {
         return Files.isRegularFile(file) ? file : null;
     }
 
-    // ---- reset map ---------------------------------------------------------------------------
 
     private void doResetMap(Player player, IArena iArena) {
         String name = iArena.getArenaName();
@@ -239,7 +237,6 @@ public class ArenaMaintenanceCommand extends SubCommand {
         reply(player, "ResetMapStarted", name, null);
     }
 
-    // ---- export / import ---------------------------------------------------------------------
 
     private void doExport(Player player, IArena arena) {
         String name = arena.getArenaName();
@@ -316,7 +313,6 @@ public class ArenaMaintenanceCommand extends SubCommand {
         }
     }
 
-    // ---- helpers -----------------------------------------------------------------------------
 
     private static Path exportsDir() {
         return NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("exports").toAbsolutePath().normalize();

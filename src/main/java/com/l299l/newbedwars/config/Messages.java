@@ -30,7 +30,7 @@ public class Messages {
         Language lang = playerLanguage(p);
         String message = langMessages.getMsg(lang, text);
         for (String key : replace.keySet()) {
-            message = message.replaceAll(key, replace.get(key));
+            message = message.replace(key, replace.get(key));
         }
         p.sendMessage(message);
     }

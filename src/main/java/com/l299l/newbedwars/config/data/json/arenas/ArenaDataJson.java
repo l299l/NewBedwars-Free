@@ -41,6 +41,12 @@ public class ArenaDataJson {
     public ArenaDataJson(IArena arena) {
         this.arena = arena;
     }
+    private static String rawId(JsonObject json, String key) {
+        if (!json.has(key) || json.get(key).isJsonNull()) return null;
+        String id = json.get(key).getAsString();
+        return "null".equals(id) ? null : id;
+    }
+
     private static final Set<String> KNOWN_FIELDS = Set.of("schemaVersion", "arenaName", "worldName", "minPlayers",
             "maxInTeam", "waitingTime", "respawnTime", "setup", "enabled", "quickVoidY", "waitingPos1", "waitingPos2",
             "waitingSpawn", "gamePhasesId", "generatorsLeveling", "gamerules", "teams", "generators", "resourcePackUrl",
@@ -197,9 +203,14 @@ public class ArenaDataJson {
                 if (!KNOWN_FIELDS.contains(entry.getKey())) unknown.add(entry.getKey(), entry.getValue());
             }
             arena.setUnknownFields(unknown);
-            if (gamePhases == null && jsonObject.has("gamePhasesId") && !jsonObject.get("gamePhasesId").isJsonNull()
-                    && !"null".equals(jsonObject.get("gamePhasesId").getAsString())) {
-                arena.getLoadProblems().add("unknown game phases id '" + jsonObject.get("gamePhasesId").getAsString() + "'");
+            String rawPhasesId = rawId(jsonObject, "gamePhasesId");
+            String rawGeneratorsId = rawId(jsonObject, "generatorsLeveling");
+            arena.setUnresolvedIds(gamePhases == null ? rawPhasesId : null, generatorLeveling == null ? rawGeneratorsId : null);
+            if (gamePhases == null && rawPhasesId != null) {
+                arena.getLoadProblems().add("unknown game phases id '" + rawPhasesId + "'");
+            }
+            if (generatorLeveling == null && rawGeneratorsId != null) {
+                arena.getLoadProblems().add("unknown generators config id '" + rawGeneratorsId + "'");
             }
             if (ArenaMaps.isEnabled() && loadingWorld != null && !ArenaMaps.hasTemplate(arenaName)) {
                 createMissingTemplate(arenaName, loadingWorld);

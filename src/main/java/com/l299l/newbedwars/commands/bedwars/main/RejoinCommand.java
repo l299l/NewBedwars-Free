@@ -43,7 +43,6 @@ public class RejoinCommand extends SubCommand {
             p.sendMessage(msg.getMsg(p, "CorrectUsage") + getSyntax());
             return;
         }
-        // If the player is physically inside an arena and actively playing, block rejoin
         IArena physicalArena = Arena.arenaByWorld.get(p.getWorld());
         if (physicalArena != null && physicalArena.isPlayerInArena(p)
                 && !physicalArena.getSpectators().contains(p)) {

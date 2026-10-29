@@ -48,6 +48,8 @@ public class CreateCommand extends SubCommand {
         return "/bw arena create castle -n";
     }
 
+    private static final java.util.regex.Pattern VALID_NAME = java.util.regex.Pattern.compile("[A-Za-z0-9_\\-]{1,64}");
+
     @Override
     public void perform(Player player, String[] args, IArena old) {
         if (args.length < 3) {
@@ -55,9 +57,19 @@ public class CreateCommand extends SubCommand {
             return;
         }
         String arenaName = args[2];
-        player.sendMessage(msg.getMsg(player, "StartArena").replaceAll("/arenaname/", arenaName));
+        if (!VALID_NAME.matcher(arenaName).matches()) {
+            msg.send(player, "InvalidArenaName");
+            return;
+        }
+        player.sendMessage(msg.getMsg(player, "StartArena").replace("/arenaname/", arenaName));
         if (Arena.arenaByName.get(arenaName) != null) {
             msg.send(player, "AlreadyCreated");
+            return;
+        }
+
+        // an existing world (loaded or only on disk) must never be adopted: deleting the arena would delete it too
+        if (Bukkit.getWorld(arenaName) != null || new java.io.File(Bukkit.getWorldContainer(), arenaName).exists()) {
+            msg.send(player, "ArenaWorldExists");
             return;
         }
 
@@ -70,7 +82,7 @@ public class CreateCommand extends SubCommand {
         }
 
         if (createArena(arenaName, schematic)) {
-            player.sendMessage(msg.getMsg(player, "ArenaCreated").replaceAll("/arenaname/", arenaName));
+            player.sendMessage(msg.getMsg(player, "ArenaCreated").replace("/arenaname/", arenaName));
             if (noTeleport) return;
             try {
                 IArena arena = Arena.arenaByName.get(arenaName);
@@ -84,7 +96,7 @@ public class CreateCommand extends SubCommand {
             }
         } else {
             if (schematic != null) {
-                player.sendMessage(msg.getMsg(player, "SchematicNotFound").replaceAll("/name/", schematic));
+                player.sendMessage(msg.getMsg(player, "SchematicNotFound").replace("/name/", schematic));
             } else {
                 msg.send(player, "ErrorOnCreate");
             }

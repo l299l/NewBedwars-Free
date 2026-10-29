@@ -79,7 +79,8 @@ final class BuiltInUpgrades {
             @Override
             public void onPurchase(TeamUpgrades upgrades, Team team, int newLevel) {
                 Generator gen = team.getGenerator();
-                if (gen != null) gen.upgrade(newLevel);
+                // the generator starts at level 1, so Forge level N means generator level N + 1 (capped at its max)
+                if (gen != null) gen.upgrade(newLevel + 1);
             }
         };
     }

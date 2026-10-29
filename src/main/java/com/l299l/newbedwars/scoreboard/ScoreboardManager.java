@@ -18,6 +18,8 @@ import org.bukkit.scoreboard.Scoreboard;
 import java.util.*;
 
 public class ScoreboardManager {
+    /** Every player has their own {@link Scoreboard}, so one short name is enough (1.17 limits objective names to 16 characters). */
+    private static final String OBJECTIVE_ID = "nbw";
     private final HashMap<String, ScoreboardSave> scoreboards;
     private final FileConfiguration scoreboardConf;
 
@@ -32,10 +34,19 @@ public class ScoreboardManager {
             boolean enabled = scoreboardConf.getBoolean("Scoreboards." + key + ".Enabled");
             String title = scoreboardConf.getString("Scoreboards." + key + ".Title");
             String textEffect = scoreboardConf.getString("Scoreboards." + key + ".TitleEffect");
-            ScoreboardSave scoreboardSave = new ScoreboardSave(enabled, title, TextEffect.valueOf(textEffect), scoreboardConf.getStringList("Scoreboards." + key + ".Lines"));
+            ScoreboardSave scoreboardSave = new ScoreboardSave(enabled, title, parseEffect(textEffect), scoreboardConf.getStringList("Scoreboards." + key + ".Lines"));
             scoreboards.put(key, scoreboardSave);
         }
         NewBedwars.plugin.getLogger().info("Loaded " + scoreboards.size() + " scoreboards!");
+    }
+
+    private static TextEffect parseEffect(String name) {
+        if (name == null) return TextEffect.NONE;
+        try {
+            return TextEffect.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return TextEffect.NONE;
+        }
     }
 
     public NScoreboard createPlayerScoreboard(String name, IArena arena, Player player) {
@@ -46,9 +57,9 @@ public class ScoreboardManager {
         if (!scoreboardSave.enabled()) {
             return null;
         }
-        String id = name + "-" + arena.getArenaName() + "-" + player.getName();
+        String id = OBJECTIVE_ID;
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        scoreboard.registerNewObjective(id, name);
+        scoreboard.registerNewObjective(id, "dummy");
         scoreboard.getObjective(id).setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreboardSave.title()));
         scoreboard.getObjective(id).setDisplaySlot(DisplaySlot.SIDEBAR);
         TextEffect textEffect = scoreboardSave.textEffect();
@@ -141,7 +152,9 @@ public class ScoreboardManager {
     }
 
     private String getTeamID(Team team) {
-        return team.getColor().toString() + team.getName().substring(0, 1).toUpperCase() + " " + ChatColor.WHITE + team.getName();
+        String name = team.getName();
+        String initial = name.isEmpty() ? "" : name.substring(0, 1).toUpperCase();
+        return team.getColor().toString() + initial + " " + ChatColor.WHITE + name;
     }
 
     private String getTeamBedInfo(Team team) {

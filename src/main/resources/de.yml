@@ -254,8 +254,6 @@ CustomItemsNames:
   Obsidian-icon-description: "&5Extrem explosionsresistenter Block.; &5Braucht lange zum Abbauen.; ; &7Preis: &e/price/; &7Menge: &e/amount/"
   WaterBucket-name: "&bWassereimer"
   WaterBucket-icon-description: "&bFallschaden verhindern oder Gegner stoßen.; ; &7Preis: &e/price/"
-  LavaBucket-name: "&6Lavaeimer"
-  LavaBucket-icon-description: "&6Schütten, um Gegner zu fangen oder zu schaden.; ; &7Preis: &e/price/"
   TNT-name: "&cTNT"
   TNT-icon-description: "&cPlatzieren zündet es sofort!; ; &7Preis: &e/price/"
   Fireball-name: "&cFeuerball"

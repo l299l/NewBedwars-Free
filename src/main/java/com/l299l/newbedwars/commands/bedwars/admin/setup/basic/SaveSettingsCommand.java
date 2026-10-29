@@ -49,7 +49,8 @@ public class SaveSettingsCommand extends SubCommand {
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(java.util.logging.Level.WARNING, "Could not save arena " + arena.getArenaName(), e);
+            player.sendMessage(org.bukkit.ChatColor.RED + "Could not save the arena, see the console.");
         }
     }
 

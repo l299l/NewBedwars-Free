@@ -219,4 +219,27 @@ class PartyManagerTest {
         }
         assertTrue(party.isAdmin(admin.getUniqueId()));
     }
+
+    @Test
+    void disbandPartyDropsPendingInvites() {
+        Player admin = mockPlayer("Alice");
+        Player invitee = mockPlayer("Bob");
+        Party party = pm.createParty(admin);
+        pm.sendInvite(admin, invitee, party);
+        pm.disbandParty(party);
+        assertFalse(pm.hasPendingInvite(invitee));
+        assertFalse(pm.acceptInvite(invitee));
+        assertFalse(pm.isPlayerInParty(invitee));
+    }
+
+    @Test
+    void kickAndTransferIgnoreNonMembers() {
+        Player admin = mockPlayer("Alice");
+        Party party = pm.createParty(admin);
+        UUID stranger = UUID.randomUUID();
+        pm.kickFromParty(party, stranger);
+        pm.transferAdmin(party, stranger);
+        assertTrue(party.isAdmin(admin.getUniqueId()));
+        assertEquals(1, party.size());
+    }
 }

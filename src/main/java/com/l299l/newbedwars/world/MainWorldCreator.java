@@ -30,7 +30,6 @@ public class MainWorldCreator implements WorldCreator {
                 w.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
                 VersionCompat.disableLocatorBar(w);
             }
-            Bukkit.getWorlds().add(w);
             return true;
         } catch (Exception e) {
             return false;

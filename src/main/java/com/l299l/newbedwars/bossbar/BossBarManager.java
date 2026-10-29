@@ -12,14 +12,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BossBarManager {
     private final HashMap<String, BossBarSave> bossBars;
+    private final Map<BossBar, List<BukkitTask>> tasks = new HashMap<>();
     private final FileConfiguration bossBarsConf;
     private final BarActionManager barActionManager;
 
@@ -39,18 +42,28 @@ public class BossBarManager {
             TextEffect[] effects = new TextEffect[texts.length];
             int time = bossBarsConf.getInt("BossBars." + key + ".Time");
             BarAction action = barActionManager.getAction(bossBarsConf.getString("BossBars." + key + ".Action"));
-            String[] colorsString = bossBarsConf.getStringList("BossBars." + key + ".Colors").toArray(new String[0]);
-            String[] stylesString = bossBarsConf.getStringList("BossBars." + key + ".Styles").toArray(new String[0]);
-            String[] effectsString = bossBarsConf.getStringList("BossBars." + key + ".Effects").toArray(new String[0]);
+            List<String> colorsString = bossBarsConf.getStringList("BossBars." + key + ".Colors");
+            List<String> stylesString = bossBarsConf.getStringList("BossBars." + key + ".Styles");
+            List<String> effectsString = bossBarsConf.getStringList("BossBars." + key + ".Effects");
             for (int i = 0; i < texts.length; i++) {
-                colors[i] = BarColor.valueOf(colorsString[i]);
-                styles[i] = BarStyle.valueOf(stylesString[i]);
-                effects[i] = TextEffect.valueOf(effectsString[i]);
-
+                colors[i] = parse(BarColor.class, colorsString, i, BarColor.WHITE);
+                styles[i] = parse(BarStyle.class, stylesString, i, BarStyle.SOLID);
+                effects[i] = parse(TextEffect.class, effectsString, i, TextEffect.NONE);
             }
             bossBars.put(key, new BossBarSave(enabled, texts, colors, time, styles, effects, action));
         }
         NewBedwars.plugin.getLogger().info("Loaded " + bossBars.size() + " BossBars");
+    }
+
+    /** Entry {@code index} of {@code values} as an enum; a missing or unknown entry falls back to {@code fallback}. */
+    private static <E extends Enum<E>> E parse(Class<E> type, List<String> values, int index, E fallback) {
+        if (index >= values.size()) return fallback;
+        try {
+            return Enum.valueOf(type, values.get(index).toUpperCase());
+        } catch (IllegalArgumentException e) {
+            NewBedwars.plugin.getLogger().warning("Unknown " + type.getSimpleName() + " '" + values.get(index) + "' in bossBars.yml");
+            return fallback;
+        }
     }
 
     public BossBar createBossBar(String name, IArena arena) {
@@ -61,35 +74,50 @@ public class BossBarManager {
         BossBar bossBar = Bukkit.createBossBar(addInfo(bossBarSave.getTexts()[0], arena),
                 bossBarSave.getColor()[0], bossBarSave.getStyle()[0]);
         bossBar.setVisible(bossBarSave.isEnabled());
-        final BukkitTask[] task = {setEffect(bossBar, bossBarSave.getEffects()[0], arena)};
+        List<BukkitTask> bossBarTasks = new ArrayList<>();
+        tasks.put(bossBar, bossBarTasks);
+        BukkitTask[] effect = {setEffect(bossBar, bossBarSave.getTexts()[0], bossBarSave.getEffects()[0], arena)};
+        bossBarTasks.add(effect[0]);
         if (bossBarSave.isAnimated()) {
-            new BukkitRunnable() {
+            bossBarTasks.add(new BukkitRunnable() {
                 int i = 1;
                 @Override
                 public void run() {
                     bossBar.setTitle(addInfo(bossBarSave.getTexts()[i], arena));
                     bossBar.setColor(bossBarSave.getColor()[i]);
                     bossBar.setStyle(bossBarSave.getStyle()[i]);
-                    if (bossBarSave.getEffects()[i] != null) {
-                        if (task[0] != null) {
-                            task[0].cancel();
-                            task[0] = null;
-                        }
-                        task[0] = setEffect(bossBar, bossBarSave.getEffects()[i], arena);
-                    }
+                    effect[0].cancel();
+                    bossBarTasks.remove(effect[0]);
+                    effect[0] = setEffect(bossBar, bossBarSave.getTexts()[i], bossBarSave.getEffects()[i], arena);
+                    bossBarTasks.add(effect[0]);
                     i++;
                     if (i == bossBarSave.getTexts().length) {
                         i = 0;
                     }
                 }
-            }.runTaskTimer(NewBedwars.plugin, 0, 20L * bossBarSave.getTime());
+            }.runTaskTimer(NewBedwars.plugin, 0, 20L * bossBarSave.getTime()));
         }
         return bossBar;
     }
 
-    @Deprecated
-    private BukkitTask setEffect(BossBar bossBar, TextEffect effect, IArena arena) {
-        String text = addInfo(bossBar.getTitle(), arena);
+    /** Stops the animation tasks of a bar made by {@link #createBossBar} and hides it from everyone. */
+    public void removeBossBar(BossBar bossBar) {
+        List<BukkitTask> bossBarTasks = tasks.remove(bossBar);
+        if (bossBarTasks != null) {
+            bossBarTasks.forEach(BukkitTask::cancel);
+        }
+        bossBar.removeAll();
+        bossBar.setVisible(false);
+    }
+
+    /** Leading color code of {@code text}, or {@code null} when it does not start with one. */
+    private static ChatColor leadingColor(String text) {
+        if (text.length() < 2 || (text.charAt(0) != '\u00a7' && text.charAt(0) != '&')) return null;
+        return ChatColor.getByChar(text.charAt(1));
+    }
+
+    /** Starts the effect for {@code template}; the title is rebuilt on every tick so placeholders stay current. */
+    private BukkitTask setEffect(BossBar bossBar, String template, TextEffect effect, IArena arena) {
         switch (effect) {
             case GOING_CHANGING -> {
                 return new BukkitRunnable() {
@@ -98,8 +126,9 @@ public class BossBarManager {
 
                     @Override
                     public void run() {
+                        String text = addInfo(template, arena);
                         StringBuilder newText = new StringBuilder();
-                        ChatColor color = ChatColor.getByChar(text.substring(0, 2).charAt(1));
+                        ChatColor color = leadingColor(text);
                         int j = 2;
                         if (color == null) {
                             color = ChatColor.WHITE;
@@ -115,7 +144,7 @@ public class BossBarManager {
                         }
                         bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', newText.toString()));
                         i++;
-                        if (i == text.length()) {
+                        if (i >= text.length()) {
                             i = 0;
                         }
                     }
@@ -127,18 +156,20 @@ public class BossBarManager {
 
                     @Override
                     public void run() {
+                        String text = addInfo(template, arena);
                         StringBuilder newText = new StringBuilder();
-                        ChatColor color = ChatColor.getByChar(text.substring(0, 2).charAt(1));
+                        ChatColor color = leadingColor(text);
                         int j = 2;
                         if (color == null) {
                             color = ChatColor.WHITE;
                             j = 0;
                         }
                         for (; j < text.length(); j++) {
-                            if (text.charAt(j) == '§' || text.charAt(j) == '&') {
+                            if ((text.charAt(j) == '\u00a7' || text.charAt(j) == '&') && j + 1 < text.length()) {
                                 newText.append(text.charAt(j)).append(text.charAt(j + 1));
                                 j++;
-                                color = ChatColor.getByChar(text.charAt(j));
+                                ChatColor code = ChatColor.getByChar(text.charAt(j));
+                                if (code != null) color = code;
                                 continue;
                             }
                             if (j == i) {
@@ -149,26 +180,23 @@ public class BossBarManager {
                         }
                         bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', newText.toString()));
                         i++;
-                        if (i == text.length()) {
+                        if (i >= text.length()) {
                             i = 0;
                         }
                     }
                 }.runTaskTimer(NewBedwars.plugin, 0, 1);
             }
             case PULSING -> {
-                String startingColor = text.substring(0, 2);
-                ChatColor color = ChatColor.getByChar(startingColor.charAt(1));
-                if (color == null) {
-                    color = getRandomColor();
-                }
+                ChatColor leading = leadingColor(addInfo(template, arena));
+                ChatColor color = leading != null ? leading : getRandomColor();
                 ChatColor secondColor = getSecondColor(color);
-                ChatColor finalColor = color;
                 return new BukkitRunnable() {
                     boolean up = true;
                     @Override
                     public void run() {
+                        String text = addInfo(template, arena);
                         if (up) {
-                            bossBar.setTitle(secondColor + text.replaceAll("[&§]" + finalColor.getChar(), ""));
+                            bossBar.setTitle(secondColor + text.replaceAll("[&\u00a7]" + color.getChar(), ""));
                         } else {
                             bossBar.setTitle(text);
                         }
@@ -180,17 +208,21 @@ public class BossBarManager {
                 return new BukkitRunnable() {
                     @Override
                     public void run() {
-                        bossBar.setTitle(getRandomColor() + text);
+                        bossBar.setTitle(getRandomColor() + addInfo(template, arena));
                     }
                 }.runTaskTimer(NewBedwars.plugin, 0, 5);
             }
             default -> {
-                return null;
+                return new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        bossBar.setTitle(addInfo(template, arena));
+                    }
+                }.runTaskTimer(NewBedwars.plugin, 20, 20);
             }
         }
     }
 
-    @Deprecated
     private ChatColor getSecondColor(ChatColor color) {
         switch (color) {
             case GREEN -> {
@@ -238,7 +270,6 @@ public class BossBarManager {
         }
     }
 
-    @Deprecated
     private ChatColor getRandomColor() {
         List<ChatColor> colors = Arrays.asList(ChatColor.values());
         ChatColor color = colors.get(ThreadLocalRandom.current().nextInt(colors.size()));

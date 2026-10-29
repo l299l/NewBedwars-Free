@@ -37,7 +37,9 @@ public class PlayerManager {
     }
 
     public void addPlayer(PlayerModel player) {
-        UUID playerId = Objects.requireNonNull(Bukkit.getPlayer(player.getName())).getUniqueId();
+        Player online = Bukkit.getPlayer(player.getName());
+        if (online == null) return;
+        UUID playerId = online.getUniqueId();
         players.put(player.getName(), new PlayerIns(playerId, player.getName(), player.getLang(), PlayerIns.defaultFastBuy()));
     }
 
@@ -57,7 +59,7 @@ public class PlayerManager {
         PlayerIns player = players.get(name);
         if (player == null) {
             Player bukkit = Bukkit.getPlayer(name);
-            UUID id = bukkit != null ? bukkit.getUniqueId() : UUID.randomUUID();
+            UUID id = bukkit != null ? bukkit.getUniqueId() : Bukkit.getOfflinePlayer(name).getUniqueId();
             players.put(name, new PlayerIns(id, name, language, PlayerIns.defaultFastBuy()));
             return;
         }

@@ -71,9 +71,10 @@ public final class TeamColor {
         return dye(color).getFireworkColor();
     }
 
-    /** The family of a white (undyed-looking) block such as {@code WHITE_WOOL}, or {@code null} for anything else. */
+    /** The family of a white (undyed-looking) block such as {@code WHITE_WOOL} (plain {@code TERRACOTTA} counts as white), or {@code null} for anything else. */
     public static Kind undyedKind(Material material) {
         if (material == null) return null;
+        if (material == Material.TERRACOTTA) return Kind.TERRACOTTA;
         String name = material.name();
         for (Kind kind : Kind.values()) {
             if (name.equals("WHITE_" + kind.suffix)) return kind;

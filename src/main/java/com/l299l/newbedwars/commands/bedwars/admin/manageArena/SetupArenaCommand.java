@@ -70,7 +70,7 @@ public class SetupArenaCommand extends SubCommand {
                                             msg.sendConf(p, Setup.BUILDING_MODE);
                                         }
                                     } else {
-                                        player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replaceAll("/admin/", p.getName()));
+                                        player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", p.getName()));
                                     }
                                 }
                             }
@@ -90,7 +90,6 @@ public class SetupArenaCommand extends SubCommand {
                         }
                     }
                     player.setGameMode(GameMode.CREATIVE);
-                    //send setup
                 }else {
                     msg.send(player, "ArenaReady");
                 }
