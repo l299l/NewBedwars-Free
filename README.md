@@ -97,6 +97,8 @@ If PlaceholderAPI is installed, NewBedwars registers 26 placeholders under `%new
 
 ## Addon developers
 
+[![](https://jitpack.io/v/l299l/NewBedwars-Free.svg)](https://jitpack.io/#l299l/NewBedwars-Free)
+
 **Full documentation: [docs/API.md](docs/API.md)** (reading data, events, registering shop items/upgrades/armor/commands/phase actions, extra data, editing arenas).
 
 NewBedwars has a small API with events, so other plugins can hook into it without touching internals. Only the `com.l299l.newbedwars.api` package is stable; everything else can change in any update.
