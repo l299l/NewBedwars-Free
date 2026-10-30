@@ -11,7 +11,7 @@ import com.l299l.newbedwars.commands.bedwars.admin.NpcCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.GroupCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.ReloadCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.SetLobbyCommand;
-import com.l299l.newbedwars.commands.bedwars.admin.setup.advenced.*;
+import com.l299l.newbedwars.commands.bedwars.admin.setup.advanced.*;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.automatic.StartAutomaticSetupCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.basic.*;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.normal.*;
@@ -48,12 +48,12 @@ public class MainCommand implements TabExecutor {
     private HelpCommand helpCommand;
     private final ArrayList<SubCommand> setupSubBasicCommands;
     private final ArrayList<SubCommand> setupSubNormalCommands;
-    private final ArrayList<SubCommand> setupSubAdvencedCommands;
+    private final ArrayList<SubCommand> setupSubAdvancedCommands;
     private final ArrayList<SubCommand> setupSubAutomaticCommands;
 
     /** Where a registered command is available, mirroring the command buckets. */
     public enum Context {
-        LOBBY, LOBBY_ADMIN, GAME, GAME_ADMIN, SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_BUILDING
+        LOBBY, LOBBY_ADMIN, GAME, GAME_ADMIN, SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_AUTOMATIC
     }
 
     private ArrayList<SubCommand> bucket(Context context) {
@@ -64,8 +64,8 @@ public class MainCommand implements TabExecutor {
             case GAME_ADMIN -> subCommandsGameAdmin;
             case SETUP_BASIC -> setupSubBasicCommands;
             case SETUP_NORMAL -> setupSubNormalCommands;
-            case SETUP_ADVANCED -> setupSubAdvencedCommands;
-            case SETUP_BUILDING -> setupSubAutomaticCommands;
+            case SETUP_ADVANCED -> setupSubAdvancedCommands;
+            case SETUP_AUTOMATIC -> setupSubAutomaticCommands;
         };
     }
 
@@ -99,7 +99,7 @@ public class MainCommand implements TabExecutor {
         subCommandsGamePublic = new ArrayList<>();
         setupSubBasicCommands = new ArrayList<>();
         setupSubNormalCommands = new ArrayList<>();
-        setupSubAdvencedCommands = new ArrayList<>();
+        setupSubAdvancedCommands = new ArrayList<>();
         setupSubAutomaticCommands = new ArrayList<>();
         setSubCommands();
     }
@@ -145,8 +145,8 @@ public class MainCommand implements TabExecutor {
                 subCmd(setupSubBasicCommands, args, p, true);
                 switch (setupMode) {
                     case NORMAL_SETUP -> { subCmd(setupSubNormalCommands, args, p, true); return true; }
-                    case ADVANCED_SETUP -> { subCmd(setupSubNormalCommands, args, p, true); subCmd(setupSubAdvencedCommands, args, p, true); return true; }
-                    case BUILDING_MODE -> { subCmd(setupSubAutomaticCommands, args, p, true); return true; }
+                    case ADVANCED_SETUP -> { subCmd(setupSubNormalCommands, args, p, true); subCmd(setupSubAdvancedCommands, args, p, true); return true; }
+                    case AUTOMATIC_SETUP -> { subCmd(setupSubAutomaticCommands, args, p, true); return true; }
                 }
             }
         } else {
@@ -200,8 +200,8 @@ public class MainCommand implements TabExecutor {
                 ArrayList<String> basic = subArgs(setupSubBasicCommands);
                 switch (setupMode) {
                     case NORMAL_SETUP -> basic.addAll(subArgs(setupSubNormalCommands));
-                    case ADVANCED_SETUP -> { basic.addAll(subArgs(setupSubNormalCommands)); basic.addAll(subArgs(setupSubAdvencedCommands)); }
-                    case BUILDING_MODE -> basic.addAll(subArgs(setupSubAutomaticCommands));
+                    case ADVANCED_SETUP -> { basic.addAll(subArgs(setupSubNormalCommands)); basic.addAll(subArgs(setupSubAdvancedCommands)); }
+                    case AUTOMATIC_SETUP -> basic.addAll(subArgs(setupSubAutomaticCommands));
                 }
                 return filterAndSort(basic, typed);
             }
@@ -293,11 +293,11 @@ public class MainCommand implements TabExecutor {
         setupSubNormalCommands.add(new SetWaitingPos2Command());
         setupSubNormalCommands.add(new SetWaitingSpawnCommand());
         setupSubNormalCommands.add(new SetWaitingTimeCommand());
-        setupSubAdvencedCommands.add(new GameruleCommand());
-        setupSubAdvencedCommands.add(new SetResourcePackCommand());
-        setupSubAdvencedCommands.add(new SetArenaGuiCommand());
-        setupSubAdvencedCommands.add(new SetGeneratorLevelingCommand());
-        setupSubAdvencedCommands.add(new SetTeamsAccessoriesCommand());
+        setupSubAdvancedCommands.add(new GameruleCommand());
+        setupSubAdvancedCommands.add(new SetResourcePackCommand());
+        setupSubAdvancedCommands.add(new SetArenaGUICommand());
+        setupSubAdvancedCommands.add(new SetGeneratorLevelingCommand());
+        setupSubAdvancedCommands.add(new SetTeamsAccessoriesCommand());
 
         setupSubAutomaticCommands.add(new StartAutomaticSetupCommand());
         setupSubBasicCommands.add(new SetupHelpCommand(this::setupCommandsFor, this::getArena));
@@ -363,8 +363,8 @@ public class MainCommand implements TabExecutor {
         List<SubCommand> result = new ArrayList<>(setupSubBasicCommands);
         switch (arena.getSetupMode()) {
             case NORMAL_SETUP -> result.addAll(setupSubNormalCommands);
-            case ADVANCED_SETUP -> { result.addAll(setupSubNormalCommands); result.addAll(setupSubAdvencedCommands); }
-            case BUILDING_MODE -> result.addAll(setupSubAutomaticCommands);
+            case ADVANCED_SETUP -> { result.addAll(setupSubNormalCommands); result.addAll(setupSubAdvancedCommands); }
+            case AUTOMATIC_SETUP -> result.addAll(setupSubAutomaticCommands);
             default -> { }
         }
         return result;
@@ -373,7 +373,7 @@ public class MainCommand implements TabExecutor {
     private ArrayList<SubCommand> joinedSubSubCommands() {
         ArrayList<SubCommand> allSubCommands = new ArrayList<>();
         allSubCommands.addAll(setupSubNormalCommands);
-        allSubCommands.addAll(setupSubAdvencedCommands);
+        allSubCommands.addAll(setupSubAdvancedCommands);
         allSubCommands.addAll(setupSubAutomaticCommands);
         allSubCommands.addAll(setupSubBasicCommands);
         return allSubCommands;

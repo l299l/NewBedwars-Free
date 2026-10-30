@@ -2,8 +2,8 @@ package com.l299l.newbedwars.gui.configuration.game.guis;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
-import com.l299l.newbedwars.player.PlayerIns;
+import com.l299l.newbedwars.gui.GUIManager;
+import com.l299l.newbedwars.player.PlayerProfile;
 import com.l299l.newbedwars.player.PlayerStats;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,7 +20,7 @@ public class ProfileGUI extends BasicGUI {
     private final Inventory inv;
     private final Player target;
 
-    public ProfileGUI(GuiManager guiManager, Player viewer, Player target) {
+    public ProfileGUI(GUIManager guiManager, Player viewer, Player target) {
         super(guiManager, viewer);
         this.target = target;
         inv = Bukkit.createInventory(this, 27,
@@ -54,7 +54,7 @@ public class ProfileGUI extends BasicGUI {
         inv.setItem(17, statItem(Material.ORANGE_STAINED_GLASS_PANE,
                 ChatColor.GOLD + "Beds Broken", stats.bedsBroken()));
 
-        PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(target.getName());
+        PlayerProfile ins = NewBedwars.plugin.getPlayerManager().getPlayer(target.getName());
         String langName = ins != null ? ins.language().name() : "ENGLISH";
         inv.setItem(20, statItem(Material.PAPER,
                 ChatColor.LIGHT_PURPLE + "Language", langName));

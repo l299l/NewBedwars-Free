@@ -4,7 +4,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.utils.TabArgsUtils;
+import com.l299l.newbedwars.commands.bedwars.admin.setup.TabArgsUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 

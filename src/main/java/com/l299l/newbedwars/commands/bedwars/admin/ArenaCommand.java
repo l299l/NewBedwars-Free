@@ -3,7 +3,7 @@ package com.l299l.newbedwars.commands.bedwars.admin;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.commands.bedwars.admin.manageArena.*;
+import com.l299l.newbedwars.commands.bedwars.admin.managearena.*;
 import com.l299l.newbedwars.config.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

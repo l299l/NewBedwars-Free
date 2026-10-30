@@ -5,7 +5,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.gui.configuration.game.guis.ProfileGUI;
-import com.l299l.newbedwars.player.PlayerIns;
+import com.l299l.newbedwars.player.PlayerProfile;
 import com.l299l.newbedwars.player.PlayerStats;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -39,7 +39,7 @@ public class StatsCommand extends SubCommand {
         Player target = Bukkit.getPlayerExact(targetName);
         String displayName = target != null ? target.getName() : targetName;
         PlayerStats stats = NewBedwars.plugin.getPlayerManager().getStats(displayName);
-        PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(displayName);
+        PlayerProfile ins = NewBedwars.plugin.getPlayerManager().getPlayer(displayName);
         String language = ins != null ? ins.language().name() : null;
         sendStatsChat(player, displayName, stats, language);
     }

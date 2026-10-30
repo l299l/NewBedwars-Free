@@ -2,8 +2,8 @@ package com.l299l.newbedwars.gui.configuration.game.guis;
 
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
-import com.l299l.newbedwars.gui.configuration.game.guis.other.GuiCategory;
+import com.l299l.newbedwars.gui.GUIManager;
+import com.l299l.newbedwars.gui.model.GUICategory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -25,12 +25,12 @@ public class ItemPickerGUI extends BasicGUI {
     private final int catIndex;
     private final List<CustomItem> available;
 
-    public ItemPickerGUI(GuiManager guiManager, Player player, FastBuyCustomizerGUI parent, int catIndex) {
+    public ItemPickerGUI(GUIManager guiManager, Player player, FastBuyCustomizerGUI parent, int catIndex) {
         super(guiManager, player);
         this.parent = parent;
         this.catIndex = catIndex;
 
-        GuiCategory cat = parent.getCategory(catIndex);
+        GUICategory cat = parent.getCategory(catIndex);
         List<String> already = parent.getSelection().getOrDefault(cat.id(), List.of());
 
         available = new ArrayList<>();

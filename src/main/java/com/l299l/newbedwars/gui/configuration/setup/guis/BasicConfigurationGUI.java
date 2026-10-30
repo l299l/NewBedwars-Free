@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.setup.guis;
 
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -17,7 +17,7 @@ import java.util.List;
 public class BasicConfigurationGUI extends BasicGUI {
     private final Inventory inv;
 
-    public BasicConfigurationGUI(GuiManager guiManager, Player player) {
+    public BasicConfigurationGUI(GUIManager guiManager, Player player) {
         super(guiManager, player);
         inv = Bukkit.createInventory(this, 27, getMsg().getMsg(player, "ConfigurationGuiName"));
         init();

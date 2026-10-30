@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class Updater extends Files {
+public class Updater extends PluginFiles {
     private final Map<Language, FileConfiguration> langConfs = new EnumMap<>(Language.class);
     private final Map<Language, File> langFiles = new EnumMap<>(Language.class);
     private FileConfiguration bossBarsConf = null;

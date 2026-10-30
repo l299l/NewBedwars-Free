@@ -3,7 +3,7 @@ package com.l299l.newbedwars.config.data.mysql;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.data.mysql.models.PlayerModel;
 import com.l299l.newbedwars.config.data.mysql.repos.PlayersRepo;
-import com.l299l.newbedwars.player.PlayerIns;
+import com.l299l.newbedwars.player.PlayerProfile;
 import com.l299l.newbedwars.player.PlayerManager;
 import com.l299l.newbedwars.player.PlayerStats;
 
@@ -32,7 +32,7 @@ public class LangDataMySQL {
         PlayersRepo playersRepo = new PlayersRepo(mySQLManager);
         PlayerManager playerManager = NewBedwars.plugin.getPlayerManager();
         for (String key : playerManager.getPlayers().keySet()) {
-            PlayerIns playerIns = playerManager.getPlayers().get(key);
+            PlayerProfile playerIns = playerManager.getPlayers().get(key);
             playersRepo.updatePlayerLanguage(key, playerIns.language());
         }
         for (String key : playerManager.getAllStats().keySet()) {

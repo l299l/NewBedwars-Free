@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
-import com.l299l.newbedwars.utils.LobbyService;
+import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;

@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerManager {
-    private final HashMap<String, PlayerIns> players;
+    private final HashMap<String, PlayerProfile> players;
     private final HashMap<String, PlayerStats> playerStats;
 
     public PlayerManager() {
@@ -32,7 +32,7 @@ public class PlayerManager {
         NewBedwars.plugin.getDataManager().savePlayerData();
     }
 
-    public void addPlayer(PlayerIns player) {
+    public void addPlayer(PlayerProfile player) {
         players.put(player.name(), player);
     }
 
@@ -40,40 +40,40 @@ public class PlayerManager {
         Player online = Bukkit.getPlayer(player.getName());
         if (online == null) return;
         UUID playerId = online.getUniqueId();
-        players.put(player.getName(), new PlayerIns(playerId, player.getName(), player.getLang(), PlayerIns.defaultFastBuy()));
+        players.put(player.getName(), new PlayerProfile(playerId, player.getName(), player.getLang(), PlayerProfile.defaultFastBuy()));
     }
 
     public void addPlayer(Player player, Language lang) {
-        players.put(player.getName(), new PlayerIns(player.getUniqueId(), player.getName(), lang, PlayerIns.defaultFastBuy()));
+        players.put(player.getName(), new PlayerProfile(player.getUniqueId(), player.getName(), lang, PlayerProfile.defaultFastBuy()));
     }
 
     public void removePlayer(String name) {
         players.remove(name);
     }
 
-    public PlayerIns getPlayer(String name) {
+    public PlayerProfile getPlayer(String name) {
         return players.get(name);
     }
 
     public void updatePlayerLanguage(String name, Language language) {
-        PlayerIns player = players.get(name);
+        PlayerProfile player = players.get(name);
         if (player == null) {
             Player bukkit = Bukkit.getPlayer(name);
             UUID id = bukkit != null ? bukkit.getUniqueId() : Bukkit.getOfflinePlayer(name).getUniqueId();
-            players.put(name, new PlayerIns(id, name, language, PlayerIns.defaultFastBuy()));
+            players.put(name, new PlayerProfile(id, name, language, PlayerProfile.defaultFastBuy()));
             return;
         }
-        players.put(name, new PlayerIns(player.id(), player.name(), language, player.fastBuyPerCategory()));
+        players.put(name, new PlayerProfile(player.id(), player.name(), language, player.fastBuyPerCategory()));
     }
 
     public void updateFastBuy(String name, Map<String, List<String>> fastBuyPerCategory) {
-        PlayerIns player = players.get(name);
+        PlayerProfile player = players.get(name);
         if (player == null) return;
-        players.put(name, new PlayerIns(player.id(), player.name(), player.language(), fastBuyPerCategory));
+        players.put(name, new PlayerProfile(player.id(), player.name(), player.language(), fastBuyPerCategory));
         save();
     }
 
-    public HashMap<String, PlayerIns> getPlayers() {
+    public HashMap<String, PlayerProfile> getPlayers() {
         return players;
     }
 

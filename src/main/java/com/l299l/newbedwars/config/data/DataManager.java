@@ -7,10 +7,10 @@ import com.l299l.newbedwars.config.data.json.PlayerStatsDataJson;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataManager;
 import com.l299l.newbedwars.config.data.mysql.LangDataMySQL;
 import com.l299l.newbedwars.config.data.mysql.MySQLManager;
-import com.l299l.newbedwars.config.data.yaml.guis.GuiDataManager;
+import com.l299l.newbedwars.config.data.yaml.guis.GUIDataManager;
 import com.l299l.newbedwars.config.data.yaml.items.ItemsDataManager;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.gui.GuiSave;
+import com.l299l.newbedwars.gui.GUISave;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -23,13 +23,13 @@ public class DataManager {
     private final LangDataMySQL langDataMySQL;
     private final ArenaDataManager arenaDataManager;
     private final ItemsDataManager itemsDataManager;
-    private final GuiDataManager guiDataManager;
+    private final GUIDataManager guiDataManager;
     private MySQLManager mySQLManager;
 
     public DataManager() {
         arenaDataManager = new ArenaDataManager();
         itemsDataManager = new ItemsDataManager();
-        guiDataManager = new GuiDataManager();
+        guiDataManager = new GUIDataManager();
         playerStatsDataJson = new PlayerStatsDataJson();
         mySQLManager = null;
         this.storageType = Properties.StorageType;
@@ -95,7 +95,7 @@ public class DataManager {
         playerStatsDataJson.save();
     }
 
-    public List<GuiSave> getGuiData() {
+    public List<GUISave> getGuiData() {
         return guiDataManager.getGuiSaves();
     }
 }

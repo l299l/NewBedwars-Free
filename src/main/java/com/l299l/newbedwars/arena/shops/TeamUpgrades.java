@@ -6,7 +6,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.gui.configuration.game.guis.ShopGUI;
-import com.l299l.newbedwars.utils.JsonUtils;
+import com.l299l.newbedwars.config.data.json.JsonUtils;
 import com.l299l.newbedwars.version.VersionCompat;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -77,7 +77,7 @@ public class TeamUpgrades {
             npc.remove();
         }
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
-        com.l299l.newbedwars.utils.DecoUtils.makeAdult(npc);
+        com.l299l.newbedwars.arena.setup.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
         npc.setCustomName(team.getColor() + team.getName() + " Upgrades");
         npc.setCustomNameVisible(true);

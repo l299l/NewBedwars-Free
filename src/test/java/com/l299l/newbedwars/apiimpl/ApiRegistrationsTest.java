@@ -82,8 +82,15 @@ class ApiRegistrationsTest {
     @Test
     void everyApiCommandContextHasAnInternalOne() {
         for (CommandContext context : CommandContext.values()) {
-            assertNotNull(MainCommand.Context.valueOf(context.name()));
+            assertNotNull(NewBedwarsApiImpl.toInternal(context));
         }
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void deprecatedBuildingContextMapsToAutomatic() {
+        assertEquals(MainCommand.Context.SETUP_AUTOMATIC, NewBedwarsApiImpl.toInternal(CommandContext.SETUP_BUILDING));
+        assertEquals(MainCommand.Context.SETUP_AUTOMATIC, NewBedwarsApiImpl.toInternal(CommandContext.SETUP_AUTOMATIC));
     }
 
     @Test

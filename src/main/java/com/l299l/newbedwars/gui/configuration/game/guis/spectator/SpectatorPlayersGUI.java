@@ -3,7 +3,7 @@ package com.l299l.newbedwars.gui.configuration.game.guis.spectator;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -16,7 +16,7 @@ public class SpectatorPlayersGUI extends BasicGUI {
     private final Inventory inv;
     private final IArena arena;
 
-    public SpectatorPlayersGUI(GuiManager guiManager, Player player, IArena arena) {
+    public SpectatorPlayersGUI(GUIManager guiManager, Player player, IArena arena) {
         super(guiManager, player);
         this.arena = arena;
         int rows = Math.max(1, (int) Math.ceil(countAlivePlayers() / 9.0));

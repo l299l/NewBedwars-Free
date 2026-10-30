@@ -1,10 +1,10 @@
 package com.l299l.newbedwars.config.data.json.arenas;
 
-import com.l299l.newbedwars.utils.LobbyService;
+import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.config.Files;
+import com.l299l.newbedwars.config.PluginFiles;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -24,7 +24,7 @@ public class ArenaDataManager {
             if (arenas != null) {
                 for (File arena: arenas) {
                     if (!arena.getName().endsWith(".json")) continue;
-                    new ArenaDataJson(Files.readFileContent(arena));
+                    new ArenaDataJson(PluginFiles.readFileContent(arena));
                 }
             }
         }
@@ -62,7 +62,7 @@ public class ArenaDataManager {
     public IArena loadArena(String name) {
         File file = new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + name + ".json");
         if (!file.isFile()) return null;
-        new ArenaDataJson(Files.readFileContent(file));
+        new ArenaDataJson(PluginFiles.readFileContent(file));
         return Arena.arenaByName.get(name);
     }
 

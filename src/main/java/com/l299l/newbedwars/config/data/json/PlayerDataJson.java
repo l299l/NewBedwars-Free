@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.Language;
-import com.l299l.newbedwars.player.PlayerIns;
+import com.l299l.newbedwars.player.PlayerProfile;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class PlayerDataJson {
             Gson gson = new Gson();
             try (FileReader reader = new FileReader(playerFile)) {
                 Object obj = gson.fromJson(reader, HashMap.class);
-                HashMap<String, PlayerIns> hashPlayers = castToHashMap((HashMap<String, LinkedTreeMap>) obj);
+                HashMap<String, PlayerProfile> hashPlayers = castToHashMap((HashMap<String, LinkedTreeMap>) obj);
                 for (String key: hashPlayers.keySet()) {
                     NewBedwars.plugin.getPlayerManager().addPlayer(hashPlayers.get(key));
                 }
@@ -49,8 +49,8 @@ public class PlayerDataJson {
         }
     }
 
-    private HashMap<String, PlayerIns> castToHashMap(HashMap<String, LinkedTreeMap> hashMap) {
-        HashMap<String, PlayerIns> newHashMap = new HashMap<>();
+    private HashMap<String, PlayerProfile> castToHashMap(HashMap<String, LinkedTreeMap> hashMap) {
+        HashMap<String, PlayerProfile> newHashMap = new HashMap<>();
         for (String key : hashMap.keySet()) {
             LinkedTreeMap<String, Object> player = hashMap.get(key);
             Map<String, List<String>> fastBuyPerCat = new java.util.HashMap<>();
@@ -65,7 +65,7 @@ public class PlayerDataJson {
                     fastBuyPerCat.put(catId, items);
                 }
             }
-            newHashMap.put(key, new PlayerIns(
+            newHashMap.put(key, new PlayerProfile(
                     UUID.fromString((String) player.get("id")),
                     (String) player.get("name"),
                     Language.valueOf((String) player.get("language")),

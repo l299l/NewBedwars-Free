@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlayerManagerTest {
 
-    private static PlayerIns ins(String name) {
-        return new PlayerIns(UUID.randomUUID(), name, Language.English, PlayerIns.defaultFastBuy());
+    private static PlayerProfile ins(String name) {
+        return new PlayerProfile(UUID.randomUUID(), name, Language.English, PlayerProfile.defaultFastBuy());
     }
 
     // ── add / get ────────────────────────────────────────────────────────────
@@ -18,7 +18,7 @@ class PlayerManagerTest {
     @Test
     void addAndGetPlayerRoundTrip() {
         PlayerManager pm = new PlayerManager();
-        PlayerIns p = ins("Alice");
+        PlayerProfile p = ins("Alice");
         pm.addPlayer(p);
         assertSame(p, pm.getPlayer("Alice"));
     }
@@ -50,7 +50,7 @@ class PlayerManagerTest {
     @Test
     void updatePlayerLanguageUpdatesExistingEntry() {
         PlayerManager pm = new PlayerManager();
-        pm.addPlayer(new PlayerIns(UUID.randomUUID(), "Alice", Language.English, PlayerIns.defaultFastBuy()));
+        pm.addPlayer(new PlayerProfile(UUID.randomUUID(), "Alice", Language.English, PlayerProfile.defaultFastBuy()));
         pm.updatePlayerLanguage("Alice", Language.Polish);
         assertEquals(Language.Polish, pm.getPlayer("Alice").language());
     }

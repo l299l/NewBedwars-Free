@@ -4,7 +4,7 @@ import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.Regis
 import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.api.events.LeaveReason;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
-import com.l299l.newbedwars.utils.LobbyService;
+import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
@@ -28,7 +28,7 @@ import com.l299l.newbedwars.gui.configuration.game.guis.spectator.SpectatorPlaye
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import com.l299l.newbedwars.utils.DecoUtils;
+import com.l299l.newbedwars.arena.setup.DecoUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;

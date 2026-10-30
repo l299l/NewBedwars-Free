@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.setup.guis;
 
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,7 +15,7 @@ public class DeleteConfirmGUI extends BasicGUI {
     private final Inventory inv;
     private final String arenaName;
 
-    public DeleteConfirmGUI(GuiManager guiManager, Player player, String arenaName) {
+    public DeleteConfirmGUI(GUIManager guiManager, Player player, String arenaName) {
         super(guiManager, player);
         this.arenaName = arenaName;
         String title = getMsg().getMsg(getPlayer(), "ConfirmDeleteGuiName");

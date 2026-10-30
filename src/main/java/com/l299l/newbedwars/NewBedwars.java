@@ -5,7 +5,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.group.ArenaGroupManager;
 import com.l299l.newbedwars.arena.group.MapVoteManager;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
-import com.l299l.newbedwars.extensions.ExtensionManager;
+import com.l299l.newbedwars.extensions.PluginDetector;
 import com.l299l.newbedwars.placeholder.NewBedwarsExpansion;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.bossbar.BossBarManager;
@@ -25,7 +25,7 @@ import com.l299l.newbedwars.events.ArenaGameplayEvents;
 import com.l299l.newbedwars.events.ChatEvent;
 import com.l299l.newbedwars.events.InitializationEvent;
 import com.l299l.newbedwars.events.LanguageEvent;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import com.l299l.newbedwars.npc.JoinNpcManager;
 import com.l299l.newbedwars.parties.PartyManager;
 import com.l299l.newbedwars.player.PlayerManager;
@@ -50,7 +50,7 @@ public final class NewBedwars extends JavaPlugin {
     public static NewBedwars plugin;
     private Location lobbyLocation;
     private final Updater updater;
-    private final GuiManager guiManager;
+    private final GUIManager guiManager;
     private final CustomItemManager customItemManager;
     private final PlayerManager playerManager;
     private final HashMap<String, GeneratorLeveling> generatorLeveling;
@@ -67,7 +67,7 @@ public final class NewBedwars extends JavaPlugin {
 
     public NewBedwars() {
         plugin = this;
-        guiManager = new GuiManager();
+        guiManager = new GUIManager();
         customItemManager = new CustomItemManager();
         updater = new Updater();
         playerManager = new PlayerManager();
@@ -91,7 +91,7 @@ public final class NewBedwars extends JavaPlugin {
         Objects.requireNonNull(getCommand("party")).setTabCompleter(partyCmd);
         Objects.requireNonNull(getCommand("p")).setExecutor(partyCmd);
         Objects.requireNonNull(getCommand("p")).setTabCompleter(partyCmd);
-        if (ExtensionManager.isPlaceholderAPIPresent()) {
+        if (PluginDetector.isPlaceholderAPIPresent()) {
             new NewBedwarsExpansion(this).register();
         }
         joinNpcManager.start();
@@ -112,7 +112,7 @@ public final class NewBedwars extends JavaPlugin {
                 for (java.util.UUID p : new ArrayList<>(arena.getPlayersOnSetup())) {
                     Player pl = Bukkit.getPlayer(p);
                     if (pl == null) continue;
-                    com.l299l.newbedwars.utils.LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SERVER_SHUTDOWN);
+                    com.l299l.newbedwars.player.LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SERVER_SHUTDOWN);
                     pl.kickPlayer(ChatColor.RED + "Server went down!");
                 }
             }
@@ -184,7 +184,7 @@ public final class NewBedwars extends JavaPlugin {
     public Messages getMessages() {
         return messages;
     }
-    public GuiManager getGuiManager() {
+    public GUIManager getGuiManager() {
         return guiManager;
     }
     public PlayerManager getPlayerManager() {

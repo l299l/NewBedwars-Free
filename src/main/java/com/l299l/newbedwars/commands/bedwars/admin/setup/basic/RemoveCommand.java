@@ -7,7 +7,7 @@ import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.utils.DecoUtils;
+import com.l299l.newbedwars.arena.setup.DecoUtils;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

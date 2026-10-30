@@ -9,7 +9,7 @@ import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.utils.DecoUtils;
+import com.l299l.newbedwars.arena.setup.DecoUtils;
 import com.l299l.newbedwars.version.VersionCompat;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

@@ -5,7 +5,7 @@ import com.l299l.newbedwars.arena.generators.BasicGenerator;
 import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.utils.TabArgsUtils;
+import com.l299l.newbedwars.commands.bedwars.admin.setup.TabArgsUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;

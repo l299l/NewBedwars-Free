@@ -6,17 +6,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryHolder;
 
 public abstract class BasicGUI implements InventoryHolder {
-    private final GuiManager guiManager;
+    private final GUIManager guiManager;
     private final Player player;
     private final Messages msg;
 
-    protected BasicGUI(GuiManager guiManager, Player player) {
+    protected BasicGUI(GUIManager guiManager, Player player) {
         this.guiManager = guiManager;
         this.player = player;
         this.msg = NewBedwars.plugin.getMessages();
     }
 
-    protected GuiManager getGuiManager() {
+    protected GUIManager getGuiManager() {
         return guiManager;
     }
 

@@ -109,8 +109,14 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     public void registerCommand(Plugin owner, AddonCommand command, CommandContext context) {
         ApiSubCommand subCommand = new ApiSubCommand(command);
         MainCommand main = NewBedwars.plugin.getMainCommand();
-        main.register(subCommand, MainCommand.Context.valueOf(context.name()));
+        main.register(subCommand, toInternal(context));
         registrations.add(owner, () -> main.unregister(subCommand));
+    }
+
+    @SuppressWarnings("deprecation")
+    static MainCommand.Context toInternal(CommandContext context) {
+        if (context == CommandContext.SETUP_BUILDING) return MainCommand.Context.SETUP_AUTOMATIC;
+        return MainCommand.Context.valueOf(context.name());
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.commands;
 
 import com.l299l.newbedwars.api.events.LeaveReason;
-import com.l299l.newbedwars.utils.LobbyService;
+import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;

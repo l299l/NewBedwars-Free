@@ -16,6 +16,13 @@ public enum CommandContext {
     SETUP_NORMAL,
     /** While setting up an arena in advanced setup. */
     SETUP_ADVANCED,
-    /** While building an arena in the automatic setup. */
+    /** While setting up an arena in automatic setup. */
+    SETUP_AUTOMATIC,
+    /**
+     * Same as {@link #SETUP_AUTOMATIC}.
+     *
+     * @deprecated renamed, use {@link #SETUP_AUTOMATIC}
+     */
+    @Deprecated
     SETUP_BUILDING
 }

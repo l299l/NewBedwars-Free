@@ -11,7 +11,7 @@ import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.gui.GuiSave;
+import com.l299l.newbedwars.gui.GUISave;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;

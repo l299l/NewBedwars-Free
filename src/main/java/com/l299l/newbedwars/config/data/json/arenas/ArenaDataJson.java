@@ -22,7 +22,7 @@ import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.utils.JsonUtils;
+import com.l299l.newbedwars.config.data.json.JsonUtils;
 import com.l299l.newbedwars.world.chunkgenerators.VoidGenerator;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

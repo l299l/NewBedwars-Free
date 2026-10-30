@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.setup.guis;
 
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,7 +15,7 @@ public class ConfirmLeaveGUI extends BasicGUI {
     private final Inventory inv;
     private final Boolean all;
 
-    public ConfirmLeaveGUI(GuiManager guiManager, Player player, Boolean all) {
+    public ConfirmLeaveGUI(GUIManager guiManager, Player player, Boolean all) {
         super(guiManager, player);
         this.all = all;
         inv = Bukkit.createInventory(this, 9, getMsg().getMsg(getPlayer(), "ConfirmLeaveGuiName"));

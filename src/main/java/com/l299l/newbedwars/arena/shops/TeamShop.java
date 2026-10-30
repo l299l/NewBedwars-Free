@@ -5,7 +5,7 @@ import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.gui.configuration.game.guis.ShopGUI;
-import com.l299l.newbedwars.utils.JsonUtils;
+import com.l299l.newbedwars.config.data.json.JsonUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -65,7 +65,7 @@ public class TeamShop {
             npc.remove();
         }
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
-        com.l299l.newbedwars.utils.DecoUtils.makeAdult(npc);
+        com.l299l.newbedwars.arena.setup.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
         npc.setCustomName(team.getColor() + team.getName() + " Shop");
         npc.setCustomNameVisible(true);

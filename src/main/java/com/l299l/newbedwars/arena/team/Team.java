@@ -6,7 +6,7 @@ import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
-import com.l299l.newbedwars.utils.JsonUtils;
+import com.l299l.newbedwars.config.data.json.JsonUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 

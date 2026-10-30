@@ -5,7 +5,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.gui.configuration.game.guis.ProfileGUI;
-import com.l299l.newbedwars.player.PlayerIns;
+import com.l299l.newbedwars.player.PlayerProfile;
 import com.l299l.newbedwars.player.PlayerStats;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -41,7 +41,7 @@ public class ProfileCommand extends SubCommand {
             player.openInventory(new ProfileGUI(NewBedwars.plugin.getGuiManager(), player, target).getInventory());
         } else {
             PlayerStats stats = NewBedwars.plugin.getPlayerManager().getStats(targetName);
-            PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(targetName);
+            PlayerProfile ins = NewBedwars.plugin.getPlayerManager().getPlayer(targetName);
             String language = ins != null ? ins.language().name() : null;
             msg.send(player, "StatsOffline", new HashMap<>() {{ put("/player/", targetName); }});
             StatsCommand.sendStatsChat(player, targetName, stats, language);

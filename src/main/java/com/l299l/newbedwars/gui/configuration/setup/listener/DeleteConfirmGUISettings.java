@@ -1,0 +1,114 @@
+package com.l299l.newbedwars.gui.configuration.setup.listener;
+
+import com.l299l.newbedwars.player.LobbyService;
+import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.world.template.ArenaMaps;
+import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.GameStatus;
+import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.gui.configuration.setup.guis.DeleteConfirmGUI;
+import com.l299l.newbedwars.arena.setup.DecoUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class DeleteConfirmGUISettings implements Listener {
+    private final Messages msg;
+
+    public DeleteConfirmGUISettings() {
+        msg = NewBedwars.plugin.getMessages();
+    }
+
+    @EventHandler
+    public void onClick(InventoryClickEvent e) {
+        if (e.getClickedInventory() == null) return;
+        if (!(e.getClickedInventory().getHolder() instanceof DeleteConfirmGUI gui)) return;
+
+        e.setCancelled(true);
+        Player player = (Player) e.getWhoClicked();
+        int slot = e.getSlot();
+
+        if (slot >= 0 && slot < 4) {
+            player.closeInventory();
+            deleteArena(gui.getArenaName(), player);
+        } else if (slot >= 5 && slot < 9) {
+            player.closeInventory();
+        }
+    }
+
+    private void deleteArena(String arenaName, Player player) {
+        IArena arena = Arena.arenaByName.get(arenaName);
+        if (arena == null) {
+            msg.send(player, "ArenaNotExists");
+            return;
+        }
+
+        GameStatus status = arena.status();
+        if (status == GameStatus.playing || status == GameStatus.starting || status == GameStatus.ending) {
+            msg.send(player, "ArenaCannotBeDeleted", new HashMap<>() {{
+                put("/arenaname/", arenaName);
+            }});
+            return;
+        }
+
+        World arenaWorld = arena.getArenaWorld();
+        File worldFolder = arenaWorld.getWorldFolder();
+        if (arenaWorld.equals(Bukkit.getWorlds().get(0))) {
+            msg.send(player, "ArenaDeleteFailed");
+            return;
+        }
+
+        DecoUtils.removeAllArmorStands(arena);
+
+        Location lobby = NewBedwars.plugin.getLobbyLocation();
+        for (Player p : new ArrayList<>(arenaWorld.getPlayers())) {
+            p.setInvulnerable(false);
+            p.setGameMode(GameMode.SURVIVAL);
+            p.getInventory().clear();
+            p.getInventory().setArmorContents(null);
+            if (!LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ARENA_DELETED) && p.getWorld().equals(arenaWorld)) {
+                p.teleport(lobby);
+            }
+        }
+
+        arenaWorld.setAutoSave(false);
+        if (!Bukkit.unloadWorld(arenaWorld, false)) {
+            msg.send(player, "ArenaDeleteFailed");
+            return;
+        }
+        Arena.arenaByName.remove(arenaName);
+        Arena.arenaByWorld.remove(arenaWorld);
+
+        com.l299l.newbedwars.config.data.IOExecutor.flush();
+        deleteFolder(worldFolder);
+        new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + arenaName + ".json").delete();
+        // The template goes with the arena; backups in data/backups are intentionally kept.
+        deleteFolder(ArenaMaps.mapsRoot().resolve(arenaName).toFile());
+
+        msg.send(player, "ArenaDeleted", new HashMap<>() {{
+            put("/arenaname/", arenaName);
+        }});
+    }
+
+    private void deleteFolder(File folder) {
+        if (folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteFolder(file);
+                }
+            }
+        }
+        folder.delete();
+    }
+}

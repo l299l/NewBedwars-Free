@@ -3,10 +3,10 @@ package com.l299l.newbedwars.gui.configuration.game.guis;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.gui.BasicGUI;
-import com.l299l.newbedwars.gui.GuiManager;
-import com.l299l.newbedwars.gui.GuiSave;
-import com.l299l.newbedwars.gui.configuration.game.guis.other.GuiCategory;
-import com.l299l.newbedwars.player.PlayerIns;
+import com.l299l.newbedwars.gui.GUIManager;
+import com.l299l.newbedwars.gui.GUISave;
+import com.l299l.newbedwars.gui.model.GUICategory;
+import com.l299l.newbedwars.player.PlayerProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -42,25 +42,25 @@ public class FastBuyCustomizerGUI extends BasicGUI {
     private static final int MAX_CATEGORIES = 8;
 
     private final Inventory inv;
-    private final List<GuiCategory> categories;
+    private final List<GUICategory> categories;
     private final Map<String, List<String>> selection; // categoryId → chosen item names
 
-    public FastBuyCustomizerGUI(GuiManager guiManager, Player player, GuiSave shopGuiSave) {
+    public FastBuyCustomizerGUI(GUIManager guiManager, Player player, GUISave shopGuiSave) {
         super(guiManager, player);
 
         categories = new ArrayList<>();
         int headerSize = (int) shopGuiSave.getGuiData("HeaderSize");
         for (int i = 0; i < headerSize; i++) {
             Object o = shopGuiSave.getItem(i);
-            if (o instanceof GuiCategory cat && !cat.id().equalsIgnoreCase("home") && categories.size() < MAX_CATEGORIES) {
+            if (o instanceof GUICategory cat && !cat.id().equalsIgnoreCase("home") && categories.size() < MAX_CATEGORIES) {
                 categories.add(cat);
             }
         }
 
-        PlayerIns ins = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName());
+        PlayerProfile ins = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName());
         Map<String, List<String>> saved = (ins != null) ? ins.fastBuyPerCategory() : Map.of();
         selection = new HashMap<>();
-        for (GuiCategory cat : categories) {
+        for (GUICategory cat : categories) {
             List<String> saved1 = saved.get(cat.id());
             selection.put(cat.id(), saved1 != null ? new ArrayList<>(saved1) : new ArrayList<>());
         }
@@ -140,7 +140,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
 
         ItemStack sep = pane(Material.GRAY_STAINED_GLASS_PANE, ChatColor.DARK_GRAY + "───");
         for (int c = 0; c < categories.size(); c++) {
-            GuiCategory cat = categories.get(c);
+            GUICategory cat = categories.get(c);
             int row = rowForPair(c / 2);
             boolean isRight = (c % 2 == 1);
             int colBase = isRight ? 5 : 0;
@@ -209,7 +209,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
 
     public void addItem(int catIndex, String itemName) {
         if (catIndex < 0 || catIndex >= categories.size()) return;
-        GuiCategory cat = categories.get(catIndex);
+        GUICategory cat = categories.get(catIndex);
         List<String> chosen = selection.computeIfAbsent(cat.id(), k -> new ArrayList<>());
         if (!chosen.contains(itemName) && chosen.size() < SLOTS_PER_CAT) {
             chosen.add(itemName);
@@ -217,7 +217,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
     }
 
-    public GuiCategory getCategory(int catIndex) {
+    public GUICategory getCategory(int catIndex) {
         return (catIndex >= 0 && catIndex < categories.size()) ? categories.get(catIndex) : null;
     }
 
@@ -238,7 +238,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
 
     /**
      * Clears all per-category overrides so the home page falls back to the YAML default
-     * fast-buy grid (an empty map, not a map of empty lists — see {@link com.l299l.newbedwars.player.PlayerIns}).
+     * fast-buy grid (an empty map, not a map of empty lists — see {@link com.l299l.newbedwars.player.PlayerProfile}).
      * Does not persist — caller must still Save & Close.
      */
     public void resetAll() {

@@ -3,7 +3,7 @@ package com.l299l.newbedwars.arena.player;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import com.l299l.newbedwars.player.PlayerManager;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -28,7 +28,7 @@ class GamePlayerTest {
         NewBedwars.plugin = mockPlugin;
 
         mockPm = mock(PlayerManager.class);
-        GuiManager mockGm = mock(GuiManager.class);
+        GUIManager mockGm = mock(GUIManager.class);
         CustomItemManager mockCim = mock(CustomItemManager.class);
 
         when(mockPlugin.getPlayerManager()).thenReturn(mockPm);

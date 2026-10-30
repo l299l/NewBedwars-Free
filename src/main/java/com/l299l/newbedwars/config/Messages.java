@@ -71,7 +71,7 @@ public class Messages {
         switch (setup) {
             case NORMAL_SETUP   -> player.sendMessage(getMsg(player, "NormalSetupText").replaceAll(";", "\n"));
             case ADVANCED_SETUP -> player.sendMessage(getMsg(player, "AdvancedSetupText").replaceAll(";", "\n"));
-            case BUILDING_MODE  -> player.sendMessage(getMsg(player, "AutomaticModeText").replaceAll(";", "\n"));
+            case AUTOMATIC_SETUP  -> player.sendMessage(getMsg(player, "AutomaticModeText").replaceAll(";", "\n"));
         }
     }
 

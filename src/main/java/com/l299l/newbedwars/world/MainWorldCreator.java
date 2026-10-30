@@ -7,7 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 
-public class MainWorldCreator implements WorldCreator {
+public class MainWorldCreator implements ArenaWorldCreator {
 
     @Override
     public boolean createWorld(String worldName) {

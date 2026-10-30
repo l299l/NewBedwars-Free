@@ -2,7 +2,7 @@ package com.l299l.newbedwars.config.data.json.arenas;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.l299l.newbedwars.utils.JsonUtils;
+import com.l299l.newbedwars.config.data.json.JsonUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

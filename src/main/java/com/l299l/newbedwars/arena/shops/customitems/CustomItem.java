@@ -14,7 +14,7 @@ import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.gui.GUIManager;
 import com.l299l.newbedwars.version.VersionCompat;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class CustomItem {
     private final UUID uuid = UUID.randomUUID();
     private final Messages msg;
-    private final GuiManager guiManager;
+    private final GUIManager guiManager;
     private String name;
     private String itemDesc;
     private Material material;
@@ -291,7 +291,7 @@ public class CustomItem {
         }
         if (desc == null) desc = "";
         if (onBuyEvent == OnBuyEvent.UPGRADE && price < 0) {
-            // Upgrade price is added per level by GuiUpgrade; drop the placeholder price line
+            // Upgrade price is added per level by GUIUpgrade; drop the placeholder price line
             desc = Arrays.stream(desc.split(";"))
                     .filter(line -> !line.contains("/price/"))
                     .collect(Collectors.joining(";"));
