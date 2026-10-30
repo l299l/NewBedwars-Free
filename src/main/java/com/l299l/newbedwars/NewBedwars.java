@@ -1,6 +1,6 @@
 package com.l299l.newbedwars;
 
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.group.ArenaGroupManager;
 import com.l299l.newbedwars.arena.group.MapVoteManager;
@@ -21,10 +21,10 @@ import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.config.data.LobbyData;
 import com.l299l.newbedwars.config.properties.LangMessages;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.events.ArenaGameplayEvents;
-import com.l299l.newbedwars.events.ChatEvent;
-import com.l299l.newbedwars.events.InitializationEvent;
-import com.l299l.newbedwars.events.LanguageEvent;
+import com.l299l.newbedwars.events.gameplay.*;
+import com.l299l.newbedwars.events.lifecycle.ChatEvent;
+import com.l299l.newbedwars.events.lifecycle.InitializationEvent;
+import com.l299l.newbedwars.events.lifecycle.LanguageEvent;
 import com.l299l.newbedwars.gui.GUIManager;
 import com.l299l.newbedwars.npc.JoinNpcManager;
 import com.l299l.newbedwars.parties.PartyManager;
@@ -42,6 +42,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public final class NewBedwars extends JavaPlugin {
@@ -106,7 +107,7 @@ public final class NewBedwars extends JavaPlugin {
         getServer().getServicesManager().unregisterAll(this);
         joinNpcManager.shutdown();
         int active = 0;
-        for (IArena arena : Arena.arenaByName.values()) {
+        for (IArena arena : ArenaRegistry.all()) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
             else if (!arena.getPlayersOnSetup().isEmpty()) {
                 for (java.util.UUID p : new ArrayList<>(arena.getPlayersOnSetup())) {
@@ -120,14 +121,14 @@ public final class NewBedwars extends JavaPlugin {
         if (active > 0) {
             getServer().getConsoleSender().sendMessage(ChatColor.YELLOW + "[NewBedwars]: " + active + " arena(s) still active — forcing shutdown...");
         }
-        for (IArena arena : new ArrayList<>(Arena.arenaByName.values())) {
+        for (IArena arena : new ArrayList<>(ArenaRegistry.all())) {
             arena.forceShutdown();
         }
         LobbyData.save(lobbyLocation);
         if (dataManager != null) dataManager.save();
         if (ArenaMaps.isEnabled() && Properties.RollbackRestoreOnShutdown) {
             // dataManager.save() unloaded the worlds without saving, so the folders can be replaced now.
-            for (IArena arena : Arena.arenaByName.values()) {
+            for (IArena arena : ArenaRegistry.all()) {
                 String name = arena.getArenaName();
                 if (!ArenaMaps.hasTemplate(name) || !ArenaMaps.isDirty(name)) continue;
                 try {
@@ -145,13 +146,12 @@ public final class NewBedwars extends JavaPlugin {
 
     public void reloadAll() {
         HandlerList.unregisterAll(this);
-        for (IArena arena : new ArrayList<>(Arena.arenaByName.values())) {
+        for (IArena arena : new ArrayList<>(ArenaRegistry.all())) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) {
                 arena.stop();
             }
         }
-        Arena.arenaByName.clear();
-        Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
         updater.reloadLanguages();
         updater.reloadBossBars();
         updater.reloadScoreboards();
@@ -248,7 +248,12 @@ public final class NewBedwars extends JavaPlugin {
     private void reloadEvents(){
         getServer().getPluginManager().registerEvents(new LanguageEvent(this), this);
         getServer().getPluginManager().registerEvents(new InitializationEvent(this), this);
-        getServer().getPluginManager().registerEvents(new ArenaGameplayEvents(this), this);
+        CombatTracker combat = new CombatTracker();
+        for (org.bukkit.event.Listener listener : List.of(new ConnectionListener(this), new SpectatorListener(this),
+                new InventoryListener(), new CombatListener(combat), new MobListener(),
+                new BlockListener(this), new MovementListener(combat), new CustomItemListener(this))) {
+            getServer().getPluginManager().registerEvents(listener, this);
+        }
         getServer().getPluginManager().registerEvents(new ChatEvent(this), this);
         if (apiImpl != null) {
             getServer().getPluginManager().registerEvents(apiImpl, this);

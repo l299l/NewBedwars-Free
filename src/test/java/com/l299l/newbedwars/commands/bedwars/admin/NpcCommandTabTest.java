@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.group.ArenaGroup;
 import com.l299l.newbedwars.arena.group.ArenaGroupManager;
@@ -26,10 +26,10 @@ class NpcCommandTabTest {
         NewBedwars plugin = mock(NewBedwars.class);
         NewBedwars.plugin = plugin;
         when(plugin.getMessages()).thenReturn(mock(Messages.class));
-        Arena.arenaByName.clear();
+        ArenaRegistry.clear();
         IArena castle = mock(IArena.class);
         when(castle.getArenaName()).thenReturn("castle");
-        Arena.arenaByName.put("castle", castle);
+        ArenaRegistry.register("castle", castle);
         ArenaGroupManager groups = new ArenaGroupManager();
         groups.register(new ArenaGroup("solo", null));
         cmd = new NpcCommand();
@@ -38,7 +38,7 @@ class NpcCommandTabTest {
     @AfterEach
     void tearDown() {
         new ArenaGroupManager();
-        Arena.arenaByName.clear();
+        ArenaRegistry.clear();
         NewBedwars.plugin = null;
     }
 

@@ -9,13 +9,14 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 public class Hologram {
     private final List<ArmorStand> armorStands;
     private final String text;
 
-    public Hologram(String text, Location location, HashMap<String, String> replacements) {
+    public Hologram(String text, Location location, Map<String, String> replacements) {
         armorStands = new ArrayList<>();
         this.text = text;
         text = ChatColor.translateAlternateColorCodes('&', text);
@@ -60,7 +61,7 @@ public class Hologram {
         }
     }
 
-    public void reload(HashMap<String, String> replacements) {
+    public void reload(Map<String, String> replacements) {
         String text = this.text;
         text = ChatColor.translateAlternateColorCodes('&', text);
         if (replacements != null) {

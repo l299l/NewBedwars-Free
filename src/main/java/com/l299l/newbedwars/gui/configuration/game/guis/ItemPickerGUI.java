@@ -1,5 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.game.guis;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
+
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.gui.BasicGUI;
 import com.l299l.newbedwars.gui.GUIManager;
@@ -34,14 +36,14 @@ public class ItemPickerGUI extends BasicGUI {
         List<String> already = parent.getSelection().getOrDefault(cat.id(), List.of());
 
         available = new ArrayList<>();
-        for (Object o : cat.items()) {
+        for (GUIEntry o : cat.items()) {
             if (o instanceof CustomItem ci && !already.contains(ci.getName())) {
                 available.add(ci);
             }
         }
 
         String catDisplayName = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', cat.name()));
-        inv = Bukkit.createInventory(this, 36, ChatColor.YELLOW + "Pick for " + catDisplayName);
+        inv = Bukkit.createInventory(this, 36, ChatColor.YELLOW + text("GuiPickFor").replace("/category/", catDisplayName));
         draw();
     }
 
@@ -52,7 +54,7 @@ public class ItemPickerGUI extends BasicGUI {
             ItemMeta m = icon.getItemMeta();
             if (m != null) {
                 List<String> lore = m.getLore() != null ? new ArrayList<>(m.getLore()) : new ArrayList<>();
-                lore.add(ChatColor.GREEN + "Click to add to fast-buy");
+                lore.add(ChatColor.GREEN + text("GuiClickAddFastBuy"));
                 m.setLore(lore);
                 icon.setItemMeta(m);
             }
@@ -61,8 +63,8 @@ public class ItemPickerGUI extends BasicGUI {
         ItemStack back = new ItemStack(Material.ARROW);
         ItemMeta m = back.getItemMeta();
         if (m != null) {
-            m.setDisplayName(ChatColor.RED + "Back");
-            m.setLore(Arrays.asList(ChatColor.GRAY + "Return to the customizer"));
+            m.setDisplayName(ChatColor.RED + text("GuiBack"));
+            m.setLore(Arrays.asList(ChatColor.GRAY + text("GuiBackToCustomizer")));
             back.setItemMeta(m);
         }
         inv.setItem(BACK_SLOT, back);

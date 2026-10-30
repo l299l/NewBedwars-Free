@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.commands.bedwars.main;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
@@ -45,16 +45,14 @@ class JoinCommandTest {
         when(mockPm.getParty(player)).thenReturn(null);
 
         Properties.RequireJoinPermission = false;
-        Arena.arenaByName.clear();
-        Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
 
         cmd = new JoinCommand();
     }
 
     @AfterEach
     void tearDown() {
-        Arena.arenaByName.clear();
-        Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
         NewBedwars.plugin = null;
     }
 
@@ -67,7 +65,7 @@ class JoinCommandTest {
     @Test
     void arenaInPlayingStatus_sendsRunningError() {
         IArena arena = mockArena(GameStatus.playing);
-        Arena.arenaByName.put("arena1", arena);
+        ArenaRegistry.register("arena1", arena);
         cmd.perform(player, new String[]{"join", "arena1"}, null);
         verify(mockMessages).send(player, "ArenaRunningError");
     }
@@ -75,7 +73,7 @@ class JoinCommandTest {
     @Test
     void arenaInRestartingStatus_sendsRestartingError() {
         IArena arena = mockArena(GameStatus.restarting);
-        Arena.arenaByName.put("arena1", arena);
+        ArenaRegistry.register("arena1", arena);
         cmd.perform(player, new String[]{"join", "arena1"}, null);
         verify(mockMessages).send(player, "ArenaRestartingError");
     }
@@ -84,7 +82,7 @@ class JoinCommandTest {
     void arenaInWaitingStatus_callsJoin() {
         IArena arena = mockArena(GameStatus.waiting);
         when(arena.join(player)).thenReturn(true);
-        Arena.arenaByName.put("arena1", arena);
+        ArenaRegistry.register("arena1", arena);
         cmd.perform(player, new String[]{"join", "arena1"}, null);
         verify(arena).join(player);
     }
@@ -93,7 +91,7 @@ class JoinCommandTest {
     void arenaFull_sendsIsFullError() {
         IArena arena = mockArena(GameStatus.waiting);
         when(arena.join(player)).thenReturn(false);
-        Arena.arenaByName.put("arena1", arena);
+        ArenaRegistry.register("arena1", arena);
         cmd.perform(player, new String[]{"join", "arena1"}, null);
         verify(mockMessages).send(player, "ArenaIsFullError");
     }
@@ -119,7 +117,7 @@ class JoinCommandTest {
         when(arena.isEnabled()).thenReturn(false);
         when(arena.isPlayerInArena(player)).thenReturn(false);
         when(arena.getArenaName()).thenReturn("arena1");
-        Arena.arenaByName.put("arena1", arena);
+        ArenaRegistry.register("arena1", arena);
         cmd.perform(player, new String[]{"join", "arena1"}, null);
         verify(mockMessages).send(eq(player), eq("ArenaNotEnabled"), any());
     }
@@ -130,8 +128,8 @@ class JoinCommandTest {
         when(old.isPlayerInArena(player)).thenReturn(true);
         IArena fresh = mockArena(GameStatus.waiting);
         when(fresh.join(player)).thenReturn(true);
-        Arena.arenaByName.put("old", old);
-        Arena.arenaByName.put("fresh", fresh);
+        ArenaRegistry.register("old", old);
+        ArenaRegistry.register("fresh", fresh);
 
         cmd.perform(player, new String[]{"join", "fresh"}, null);
 
@@ -144,7 +142,7 @@ class JoinCommandTest {
         IArena old = mockArena(GameStatus.playing);
         when(old.isPlayerInArena(player)).thenReturn(true);
         when(old.rejoin(player)).thenReturn(true);
-        Arena.arenaByName.put("old", old);
+        ArenaRegistry.register("old", old);
 
         cmd.perform(player, new String[]{"join", "old"}, null);
 

@@ -1,10 +1,8 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
 import com.l299l.newbedwars.utils.TeamColor;
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -12,12 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CreateTeamCommand extends SubCommand {
-    private final Messages msg;
+public class CreateTeamCommand extends BwCommand {
 
-    public CreateTeamCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
     @Override
     public String getName() {
         return "createTeam";
@@ -52,10 +46,10 @@ public class CreateTeamCommand extends SubCommand {
                 arena.createTeam(name, color);
                 player.sendMessage(msg.getMsg(player, "createTeamSuccess") + name);
             }catch (Exception e) {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
             }
         }else {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
         }
     }
 

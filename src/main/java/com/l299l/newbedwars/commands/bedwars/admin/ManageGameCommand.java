@@ -1,25 +1,17 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
-import com.google.common.collect.Lists;
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
-import org.bukkit.ChatColor;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
-public class ManageGameCommand extends SubCommand {
-    private final Messages msg;
+public class ManageGameCommand extends BwCommand {
 
-    public ManageGameCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -48,7 +40,7 @@ public class ManageGameCommand extends SubCommand {
             return;
         }
         if (args.length < 2) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         if (arena == null) {
@@ -58,47 +50,41 @@ public class ManageGameCommand extends SubCommand {
         switch (args[1]) {
             case "forcestart" -> {
                 if (arena.status() == GameStatus.starting || arena.status() == GameStatus.waiting) {
-                    arena.broadcast("AdminForcedStart", new HashMap<>() {{
-                        put("/admin/", player.getName());
-                    }});
+                    arena.broadcast("AdminForcedStart", Map.of("/admin/", player.getName()));
                     arena.start();
                 }else {
-                    player.sendMessage(ChatColor.RED + "The game must be waiting or starting to use this command.");
+                    msg.send(player, "GameNotWaiting");
                 }
             }
             case "start" -> {
                 if (arena.status() == GameStatus.waiting) {
-                    arena.broadcast("AdminForcedStart", new HashMap<>() {{
-                        put("/admin/", player.getName());
-                    }});
+                    arena.broadcast("AdminForcedStart", Map.of("/admin/", player.getName()));
                     arena.setArenaStarting();
                 }else {
-                    player.sendMessage(ChatColor.RED + "The game must be waiting or starting to use this command.");
+                    msg.send(player, "GameNotWaiting");
                 }
             }
             case "stop" -> {
                 if (arena.status() != GameStatus.playing) {
-                    player.sendMessage(ChatColor.RED + "The game must be in progress to use this command.");
+                    msg.send(player, "GameNotInProgress");
                     return;
                 }
                 arena.endGame("DRAW");
             }
             case "forcestop" -> {
-                arena.broadcast("AdminStoppedGame", new HashMap<>() {{
-                    put("/admin/", player.getName());
-                }});
+                arena.broadcast("AdminStoppedGame", Map.of("/admin/", player.getName()));
                 arena.stop();
             }
             case "nextPhase" -> {
                 if (arena.status() != GameStatus.playing) {
-                    player.sendMessage(ChatColor.RED + "The game must be in progress to advance phases.");
+                    msg.send(player, "GameNotInProgress");
                     return;
                 }
                 String next = arena.getNextGamePhase();
                 arena.advancePhase();
-                player.sendMessage(ChatColor.GREEN + "Advanced to next phase" + (next.isEmpty() ? "." : ": " + next));
+                msg.send(player, next.isEmpty() ? "PhaseAdvanced" : "PhaseAdvancedTo", Map.of("/phase/", next));
             }
-            default -> player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            default -> usage(player);
         }
 
     }
@@ -106,7 +92,7 @@ public class ManageGameCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length != 2) return null;
-        IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
         ArrayList<String> completion = new ArrayList<>();
         if (arena == null) return completion;
         if (arena.status() == GameStatus.playing) {

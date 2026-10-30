@@ -79,16 +79,7 @@ public class GUIManager {
     }
 
     public ItemStack createItem(String name, Material mat, List<String> lore, Boolean enchanted) {
-        ItemStack item = new ItemStack(mat, 1);
-        ItemMeta meta = item.getItemMeta();
-        assert meta != null;
-        meta.setDisplayName(name);
-        meta.setLore(lore);
-        if (enchanted) {
-            VersionCompat.addGlowEffect(meta);
-        }
-        item.setItemMeta(meta);
-        return item;
+        return ItemBuilder.of(mat).name(name).lore(lore).glow(Boolean.TRUE.equals(enchanted)).build();
     }
 
     public ItemStack getPlayerHead(String player, String name, List<String> lore) {

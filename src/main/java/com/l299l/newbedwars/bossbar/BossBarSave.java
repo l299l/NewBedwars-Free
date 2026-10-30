@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.bossbar;
 
+import com.l299l.newbedwars.text.TextEffect;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;

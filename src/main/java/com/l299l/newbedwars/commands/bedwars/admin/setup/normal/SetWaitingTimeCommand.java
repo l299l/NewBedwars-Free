@@ -1,20 +1,13 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
-import org.bukkit.ChatColor;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SetWaitingTimeCommand extends SubCommand {
-    private final Messages msg;
+public class SetWaitingTimeCommand extends BwCommand {
 
-    public SetWaitingTimeCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
     @Override
     public String getName() {
         return "setWaitingTime";
@@ -42,10 +35,10 @@ public class SetWaitingTimeCommand extends SubCommand {
                 arena.setWaitingTime(Integer.parseInt(args[1]));
                 player.sendMessage(msg.getMsg(player, "setWaitingTimeSuccess") + arena.getWaitingTime());
             } catch (Exception e) {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
             }
         }else {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
         }
     }
 

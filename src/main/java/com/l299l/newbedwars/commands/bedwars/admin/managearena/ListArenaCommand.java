@@ -1,22 +1,16 @@
 package com.l299l.newbedwars.commands.bedwars.admin.managearena;
 
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.Setup;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.List;
 
-public class ListArenaCommand extends SubCommand {
-    private final Messages msg;
+public class ListArenaCommand extends BwCommand {
 
-    public ListArenaCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -40,7 +34,7 @@ public class ListArenaCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena old) {
-        Collection<IArena> arenas = Arena.arenaByName.values();
+        Collection<IArena> arenas = ArenaRegistry.all();
         if (arenas.isEmpty()) {
             msg.send(player, "ArenaListEmpty");
             return;
@@ -48,11 +42,11 @@ public class ListArenaCommand extends SubCommand {
         player.sendMessage(msg.getMsg(player, "ArenaListHeader")
                 .replace("/count/", String.valueOf(arenas.size())));
         for (IArena arena : arenas) {
-            String statusKey = Boolean.TRUE.equals(arena.isEnabled()) ? "ArenaListEnabled" : "ArenaListDisabled";
+            String statusKey = arena.isEnabled() ? "ArenaListEnabled" : "ArenaListDisabled";
             Setup setup = arena.getSetupMode();
             String state = setup != null && setup != Setup.READY
                     ? setup.name().toLowerCase() : arena.status().name();
-            int max = arena.getTeams().size() * arena.getMaxInTeam();
+            int max = arena.getMaxPlayers();
             player.sendMessage(msg.getMsg(player, "ArenaListEntry")
                     .replace("/arenaname/", arena.getArenaName())
                     .replace("/status/", msg.getMsg(player, statusKey))

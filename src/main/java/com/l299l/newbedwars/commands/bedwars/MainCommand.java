@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.commands.bedwars;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.Setup;
@@ -161,7 +161,7 @@ public class MainCommand implements TabExecutor {
 
     private boolean isSpectatorInArena(Player p) {
         try {
-            IArena arena = Arena.arenaByWorld.get(p.getWorld());
+            IArena arena = ArenaRegistry.byWorld(p.getWorld());
             return arena != null && arena.getSpectators().contains(p);
         } catch (Exception e) {
             return false;
@@ -282,16 +282,16 @@ public class MainCommand implements TabExecutor {
         setupSubNormalCommands.add(new SetMinPlayersCommand());
         setupSubNormalCommands.add(new SetTeamBedCommand());
         setupSubNormalCommands.add(new SetTeamsShopCommand());
-        setupSubNormalCommands.add(new SetTeamsSpawnCommand());
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_SPAWN));
         setupSubNormalCommands.add(new SetTeamsUpgradesCommand());
-        setupSubNormalCommands.add(new SetTeamBuildProtAreaPos1Command());
-        setupSubNormalCommands.add(new SetTeamBuildProtAreaPos2Command());
-        setupSubNormalCommands.add(new SetTeamBasePos1Command());
-        setupSubNormalCommands.add(new SetTeamBasePos2Command());
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BUILD_PROT_POS1));
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BUILD_PROT_POS2));
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BASE_POS1));
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BASE_POS2));
         setupSubNormalCommands.add(new SetQuickVoidYCommand());
-        setupSubNormalCommands.add(new SetWaitingPos1Command());
-        setupSubNormalCommands.add(new SetWaitingPos2Command());
-        setupSubNormalCommands.add(new SetWaitingSpawnCommand());
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.WAITING_POS1));
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.WAITING_POS2));
+        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.WAITING_SPAWN));
         setupSubNormalCommands.add(new SetWaitingTimeCommand());
         setupSubAdvancedCommands.add(new GameruleCommand());
         setupSubAdvancedCommands.add(new SetResourcePackCommand());
@@ -392,7 +392,7 @@ public class MainCommand implements TabExecutor {
     private Setup getArenaSetupMode(Player p) {
         Setup setupMode = null;
         try {
-            IArena arena = Arena.arenaByWorld.get(p.getWorld());
+            IArena arena = ArenaRegistry.byWorld(p.getWorld());
             setupMode = arena.getSetupMode();
             if (setupMode == Setup.READY) {
                 return setupMode;
@@ -408,7 +408,7 @@ public class MainCommand implements TabExecutor {
 
     private boolean isPlayerInGame(Player p, boolean admin) {
         try {
-            IArena arena = Arena.arenaByWorld.get(p.getWorld());
+            IArena arena = ArenaRegistry.byWorld(p.getWorld());
             boolean is = arena.getPlayers().contains(p.getUniqueId());
             GameStatus status = arena.status();
             if (admin && (p.hasPermission("newbedwars.bw.admin") || p.hasPermission("newbedwars.bw.managegame") || p.isOp()) && status != GameStatus.restarting) {
@@ -425,7 +425,7 @@ public class MainCommand implements TabExecutor {
 
     private IArena getArena(Player player) {
         World world = player.getWorld();
-        IArena arena = Arena.arenaByWorld.get(world);
+        IArena arena = ArenaRegistry.byWorld(world);
         if (arena == null) {
             msg.send(player, "NotInArena");
         }

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.join;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
@@ -12,8 +13,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -40,11 +41,11 @@ public final class ArenaJoinService {
         if (party != null && !party.isAdmin(p.getUniqueId())) {
             Player admin = Bukkit.getPlayer(party.getAdmin());
             String adminName = admin != null ? admin.getName() : "?";
-            msg.send(p, "PartyOnlyAdminCanJoin", new HashMap<>() {{ put("/player/", adminName); }});
+            msg.send(p, "PartyOnlyAdminCanJoin", Map.of("/player/", adminName));
             return false;
         }
         IArena current = pendingArena(p);
-        if (current != null && Arena.arenaByWorld.get(p.getWorld()) == current) {
+        if (current != null && ArenaRegistry.byWorld(p.getWorld()) == current) {
             msg.send(p, "ArenaJoinError");
             return false;
         }
@@ -55,7 +56,7 @@ public final class ArenaJoinService {
     public static void joinArena(Player p, IArena arena) {
         Messages msg = NewBedwars.plugin.getMessages();
         if (!arena.isEnabled()) {
-            msg.send(p, "ArenaNotEnabled", new HashMap<>() {{ put("/arenaname/", arena.getArenaName()); }});
+            msg.send(p, "ArenaNotEnabled", Map.of("/arenaname/", arena.getArenaName()));
             return;
         }
         // Joining the arena you can rejoin rejoins it; joining another one gives that place up (in Arena.join).
@@ -74,7 +75,7 @@ public final class ArenaJoinService {
             if (party != null && arena.getGamerules().AllowParties) {
                 List<Player> members = pm.getOnlineMembers(party);
                 if (members.size() > arena.getMaxInTeam()) {
-                    msg.send(p, "PartyTooBig", new HashMap<>() {{ put("/maxteam/", String.valueOf(arena.getMaxInTeam())); }});
+                    msg.send(p, "PartyTooBig", Map.of("/maxteam/", String.valueOf(arena.getMaxInTeam())));
                     return;
                 }
                 if (!arena.joinParty(members)) {
@@ -109,7 +110,7 @@ public final class ArenaJoinService {
      */
     public static IArena findBest(Collection<IArena> arenas, Predicate<IArena> filter, int needed) {
         return arenas.stream()
-                .filter(a -> Boolean.TRUE.equals(a.isEnabled()))
+                .filter(a -> a.isEnabled())
                 .filter(filter)
                 .filter(a -> a.status() == GameStatus.waiting || a.status() == GameStatus.starting)
                 .filter(a -> freeSlots(a) >= needed)
@@ -119,29 +120,14 @@ public final class ArenaJoinService {
                 .orElse(null);
     }
 
-    public static int maxPlayers(IArena arena) {
-        return arena.getTeams().size() * arena.getMaxInTeam();
-    }
-
     public static int freeSlots(IArena arena) {
-        return maxPlayers(arena) - arena.getActivePlayerCount();
-    }
-
-    /** Looks an arena up by exact name, then ignoring case. */
-    public static IArena arenaByName(String name) {
-        if (name == null) return null;
-        IArena arena = Arena.arenaByName.get(name);
-        if (arena != null) return arena;
-        for (IArena a : Arena.arenaByName.values()) {
-            if (a.getArenaName().equalsIgnoreCase(name)) return a;
-        }
-        return null;
+        return arena.getMaxPlayers() - arena.getActivePlayerCount();
     }
 
     /** The arena that still holds {@code p} as a player (in game or waiting for a rejoin), or null. */
     private static IArena pendingArena(Player p) {
-        for (IArena existing : Arena.arenaByName.values()) {
-            if (Boolean.TRUE.equals(existing.isPlayerInArena(p))) return existing;
+        for (IArena existing : ArenaRegistry.all()) {
+            if (existing.isPlayerInArena(p)) return existing;
         }
         return null;
     }

@@ -1,20 +1,14 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SetMaxInTeamCommand extends SubCommand {
-    private final Messages msg;
+public class SetMaxInTeamCommand extends BwCommand {
 
-    public SetMaxInTeamCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
     @Override
     public String getName() {
         return "setMaxInTeam";
@@ -42,10 +36,10 @@ public class SetMaxInTeamCommand extends SubCommand {
                 arena.setMaxInTeam(Integer.parseInt(args[1]));
                 player.sendMessage(msg.getMsg(player, "setMaxInTeamSuccess") + arena.getMaxInTeam());
             }catch (Exception e) {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
             }
         }else {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
         }
 
     }

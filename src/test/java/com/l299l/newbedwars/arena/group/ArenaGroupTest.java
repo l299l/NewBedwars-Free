@@ -23,6 +23,7 @@ class ArenaGroupTest {
         for (int i = 0; i < teams; i++) teamMap.put("t" + i, mock(Team.class));
         when(arena.getTeams()).thenReturn(teamMap);
         when(arena.getMaxInTeam()).thenReturn(maxInTeam);
+        when(arena.getMaxPlayers()).thenCallRealMethod();
         return arena;
     }
 

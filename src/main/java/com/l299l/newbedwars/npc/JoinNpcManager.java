@@ -1,9 +1,10 @@
 package com.l299l.newbedwars.npc;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.config.data.IOExecutor;
 import com.l299l.newbedwars.config.properties.Properties;
+import com.l299l.newbedwars.extensions.PluginDetector;
 import com.l299l.newbedwars.npc.fallback.FallbackNpc;
 import com.l299l.newbedwars.npc.fallback.FallbackNpcStore;
 import com.l299l.newbedwars.utils.holograms.Hologram;
@@ -71,7 +72,7 @@ public final class JoinNpcManager implements Listener {
         } catch (IOException | RuntimeException e) {
             NewBedwars.plugin.getLogger().warning("Could not read data/npcs.json: " + e.getMessage());
         }
-        if (Bukkit.getPluginManager().isPluginEnabled(CITIZENS)) hookCitizens();
+        if (PluginDetector.isCitizensPresent()) hookCitizens();
         restartTask();
     }
 
@@ -266,7 +267,7 @@ public final class JoinNpcManager implements Listener {
             if (loc == null || loc.getWorld() == null || template == null) continue;
             seen.add(npc.key());
             Location base = loc.clone().add(0, npc.height() - BASE_BELOW_TOP + Properties.JoinNpcHologramOffset, 0);
-            HashMap<String, String> replacements = NpcHologramText.replacements(npc.action(), Arena.arenaByName.values());
+            HashMap<String, String> replacements = NpcHologramText.replacements(npc.action(), ArenaRegistry.all());
             ShownHologram shown = holograms.get(npc.key());
             if (shown != null && shown.type() == npc.action().getType() && sameSpot(shown.base(), base) && isAlive(shown.hologram())) {
                 shown.hologram().reload(replacements);

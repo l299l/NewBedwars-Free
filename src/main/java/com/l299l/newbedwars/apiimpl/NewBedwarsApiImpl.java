@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.apiimpl.view.ApiArena;
 import com.l299l.newbedwars.apiimpl.edit.ApiEditor;
 import com.l299l.newbedwars.apiimpl.adapter.ApiShopLogic;
@@ -25,7 +26,6 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.NewBedwarsAPI;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -50,26 +50,26 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     @Override
     public Collection<ArenaView> getArenas() {
         Collection<ArenaView> result = new ArrayList<>();
-        for (IArena arena : Arena.arenaByName.values()) result.add(new ApiArena(arena));
+        for (IArena arena : ArenaRegistry.all()) result.add(new ApiArena(arena));
         return result;
     }
 
     @Override
     public Optional<ArenaView> getArena(String name) {
-        IArena arena = Arena.arenaByName.get(name);
+        IArena arena = ArenaRegistry.byName(name);
         return arena == null ? Optional.empty() : Optional.of(new ApiArena(arena));
     }
 
     @Override
     public Optional<ArenaView> getArena(World world) {
-        IArena arena = Arena.arenaByWorld.get(world);
+        IArena arena = ArenaRegistry.byWorld(world);
         return arena == null ? Optional.empty() : Optional.of(new ApiArena(arena));
     }
 
     @Override
     public Optional<ArenaView> getArena(Player player) {
-        for (IArena arena : Arena.arenaByName.values()) {
-            if (Boolean.TRUE.equals(arena.isPlayerInArena(player)) || arena.getSpectators().contains(player)) {
+        for (IArena arena : ArenaRegistry.all()) {
+            if (arena.isPlayerInArena(player) || arena.getSpectators().contains(player)) {
                 return Optional.of(new ApiArena(arena));
             }
         }
@@ -94,7 +94,7 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
 
     @Override
     public ArenaEditor edit(ArenaView arena) {
-        IArena internal = Arena.arenaByName.get(arena.getName());
+        IArena internal = ArenaRegistry.byName(arena.getName());
         if (internal == null) throw new IllegalArgumentException("arena " + arena.getName() + " does not exist (any more)");
         return new ApiEditor(internal);
     }

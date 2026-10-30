@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Messages {
     private final LangMessages langMessages;
@@ -26,7 +27,7 @@ public class Messages {
         p.sendMessage(langMessages.getMsg(lang, text));
     }
 
-    public void send(Player p, String text, HashMap<String, String> replace) {
+    public void send(Player p, String text, Map<String, String> replace) {
         Language lang = playerLanguage(p);
         String message = langMessages.getMsg(lang, text);
         for (String key : replace.keySet()) {

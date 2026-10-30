@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.group;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.join.ArenaJoinService;
@@ -111,6 +112,6 @@ public final class ArenaGroupManager {
 
     /** Arenas of the group that exist. */
     public static List<IArena> arenas(ArenaGroup group) {
-        return group.resolve(ArenaJoinService::arenaByName);
+        return group.resolve(ArenaRegistry::find);
     }
 }

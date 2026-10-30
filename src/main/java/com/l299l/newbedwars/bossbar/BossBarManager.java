@@ -1,5 +1,7 @@
 package com.l299l.newbedwars.bossbar;
 
+import com.l299l.newbedwars.text.TextAnimator;
+import com.l299l.newbedwars.text.TextEffect;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.properties.Properties;
@@ -13,12 +15,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class BossBarManager {
     private final HashMap<String, BossBarSave> bossBars;
@@ -110,174 +110,16 @@ public class BossBarManager {
         bossBar.setVisible(false);
     }
 
-    /** Leading color code of {@code text}, or {@code null} when it does not start with one. */
-    private static ChatColor leadingColor(String text) {
-        if (text.length() < 2 || (text.charAt(0) != '\u00a7' && text.charAt(0) != '&')) return null;
-        return ChatColor.getByChar(text.charAt(1));
-    }
-
     /** Starts the effect for {@code template}; the title is rebuilt on every tick so placeholders stay current. */
     private BukkitTask setEffect(BossBar bossBar, String template, TextEffect effect, IArena arena) {
-        switch (effect) {
-            case GOING_CHANGING -> {
-                return new BukkitRunnable() {
-                    int i = 0;
-                    final ChatColor secondColor = getRandomColor();
-
-                    @Override
-                    public void run() {
-                        String text = addInfo(template, arena);
-                        StringBuilder newText = new StringBuilder();
-                        ChatColor color = leadingColor(text);
-                        int j = 2;
-                        if (color == null) {
-                            color = ChatColor.WHITE;
-                            j = 0;
-                        }
-                        newText.append(secondColor);
-                        for (; j < text.length(); j++) {
-                            if (j <= i) {
-                                newText.append(secondColor.toString()).append(text.charAt(j));
-                            } else {
-                                newText.append(color).append(text.charAt(j));
-                            }
-                        }
-                        bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', newText.toString()));
-                        i++;
-                        if (i >= text.length()) {
-                            i = 0;
-                        }
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 1);
+        TextAnimator animator = new TextAnimator(effect, addInfo(template, arena), null);
+        long period = animator.period(1);
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                bossBar.setTitle(animator.next(addInfo(template, arena)));
             }
-            case RAINBOW -> {
-                return new BukkitRunnable() {
-                    int i = 0;
-
-                    @Override
-                    public void run() {
-                        String text = addInfo(template, arena);
-                        StringBuilder newText = new StringBuilder();
-                        ChatColor color = leadingColor(text);
-                        int j = 2;
-                        if (color == null) {
-                            color = ChatColor.WHITE;
-                            j = 0;
-                        }
-                        for (; j < text.length(); j++) {
-                            if ((text.charAt(j) == '\u00a7' || text.charAt(j) == '&') && j + 1 < text.length()) {
-                                newText.append(text.charAt(j)).append(text.charAt(j + 1));
-                                j++;
-                                ChatColor code = ChatColor.getByChar(text.charAt(j));
-                                if (code != null) color = code;
-                                continue;
-                            }
-                            if (j == i) {
-                                newText.append(getRandomColor()).append(text.charAt(j));
-                            } else {
-                                newText.append(color).append(text.charAt(j));
-                            }
-                        }
-                        bossBar.setTitle(ChatColor.translateAlternateColorCodes('&', newText.toString()));
-                        i++;
-                        if (i >= text.length()) {
-                            i = 0;
-                        }
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 1);
-            }
-            case PULSING -> {
-                ChatColor leading = leadingColor(addInfo(template, arena));
-                ChatColor color = leading != null ? leading : getRandomColor();
-                ChatColor secondColor = getSecondColor(color);
-                return new BukkitRunnable() {
-                    boolean up = true;
-                    @Override
-                    public void run() {
-                        String text = addInfo(template, arena);
-                        if (up) {
-                            bossBar.setTitle(secondColor + text.replaceAll("[&\u00a7]" + color.getChar(), ""));
-                        } else {
-                            bossBar.setTitle(text);
-                        }
-                        up = !up;
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 15);
-            }
-            case RAINBOW_PULSING -> {
-                return new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        bossBar.setTitle(getRandomColor() + addInfo(template, arena));
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 5);
-            }
-            default -> {
-                return new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        bossBar.setTitle(addInfo(template, arena));
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 20, 20);
-            }
-        }
-    }
-
-    private ChatColor getSecondColor(ChatColor color) {
-        switch (color) {
-            case GREEN -> {
-                return ChatColor.DARK_GREEN;
-            }
-            case DARK_GREEN -> {
-                return ChatColor.GREEN;
-            }
-            case RED -> {
-                return ChatColor.DARK_RED;
-            }
-            case DARK_RED -> {
-                return ChatColor.RED;
-            }
-            case BLUE -> {
-                return ChatColor.DARK_BLUE;
-            }
-            case DARK_BLUE -> {
-                return ChatColor.BLUE;
-            }
-            case AQUA -> {
-                return ChatColor.DARK_AQUA;
-            }
-            case DARK_AQUA -> {
-                return ChatColor.AQUA;
-            }
-            case YELLOW -> {
-                return ChatColor.GOLD;
-            }
-            case GOLD -> {
-                return ChatColor.YELLOW;
-            }
-            case WHITE -> {
-                return ChatColor.GRAY;
-            }
-            case DARK_GRAY -> {
-                return ChatColor.BLACK;
-            }
-            case BLACK -> {
-                return ChatColor.DARK_GRAY;
-            }
-            default -> {
-                return ChatColor.WHITE;
-            }
-        }
-    }
-
-    private ChatColor getRandomColor() {
-        List<ChatColor> colors = Arrays.asList(ChatColor.values());
-        ChatColor color = colors.get(ThreadLocalRandom.current().nextInt(colors.size()));
-        if (color == ChatColor.MAGIC || color == ChatColor.BOLD || color == ChatColor.STRIKETHROUGH || color == ChatColor.UNDERLINE || color == ChatColor.ITALIC
-        || color == ChatColor.RESET) {
-            return getRandomColor();
-        }
-        return color;
+        }.runTaskTimer(NewBedwars.plugin, animator.getEffect() == TextEffect.NONE ? 20 : 0, period);
     }
 
     private String addInfo(String text, IArena arena) {
@@ -285,7 +127,7 @@ public class BossBarManager {
                 .replace("/server_name/", Properties.ServerName)
                 .replace("/arena_name/", arena.getArenaName())
                 .replace("/players/", String.valueOf(arena.getActivePlayerCount()))
-                .replace("/max_players/", arena.getTeams() == null ? "0" : String.valueOf(arena.getMaxInTeam() * arena.getTeams().size()))
+                .replace("/max_players/", String.valueOf(arena.getMaxPlayers()))
                 .replace("/phase/", arena.getCurrentGamePhase()));
     }
 

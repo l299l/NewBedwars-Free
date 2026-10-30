@@ -65,7 +65,7 @@ public class PartyManager {
                     pendingInvites.remove(invitee.getUniqueId());
                     if (invitee.isOnline()) {
                         messages.send(invitee, "PartyInviteExpired",
-                                new HashMap<>() {{ put("/player/", inviter.getName()); }});
+                                Map.of("/player/", inviter.getName()));
                     }
                 }
             }

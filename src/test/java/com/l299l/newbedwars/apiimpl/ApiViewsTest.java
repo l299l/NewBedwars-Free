@@ -1,11 +1,11 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.apiimpl.view.ApiArena;
 import com.l299l.newbedwars.apiimpl.view.ApiTeam;
 import com.l299l.newbedwars.api.view.ArenaState;
 import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.view.TeamView;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.GamePlayer;
@@ -44,13 +44,12 @@ class ApiViewsTest {
         when(arena.getTeams()).thenReturn(teams);
         when(arena.getTeam("Red")).thenReturn(red);
         when(arena.getSpectators()).thenReturn(new ArrayList<>());
-        Arena.arenaByName.put("A1", arena);
+        ArenaRegistry.register("A1", arena);
     }
 
     @AfterEach
     void tearDown() {
-        Arena.arenaByName.clear();
-        Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
     }
 
     @Test
@@ -78,19 +77,6 @@ class ApiViewsTest {
         assertEquals(4, view.getMaxInTeam());
         assertEquals(90, view.getGameTime());
         assertEquals("Diamond 2", view.getCurrentPhase());
-    }
-
-    @Test
-    void nullNumbersBecomeZero() {
-        when(arena.getMinPlayers()).thenReturn(null);
-        when(arena.getMaxInTeam()).thenReturn(null);
-        when(arena.getGameTime()).thenReturn(null);
-        when(arena.isEnabled()).thenReturn(null);
-        ArenaView view = new ApiArena(arena);
-        assertEquals(0, view.getMinPlayers());
-        assertEquals(0, view.getMaxInTeam());
-        assertEquals(0, view.getGameTime());
-        assertFalse(view.isEnabled());
     }
 
     @Test
@@ -163,7 +149,7 @@ class ApiViewsTest {
         Player inArena = mock(Player.class);
         Player spectator = mock(Player.class);
         Player outsider = mock(Player.class);
-        Arena.arenaByWorld.put(world, arena);
+        ArenaRegistry.bindWorld(world, arena);
         when(arena.isPlayerInArena(inArena)).thenReturn(true);
         when(arena.isPlayerInArena(spectator)).thenReturn(false);
         when(arena.isPlayerInArena(outsider)).thenReturn(false);

@@ -1,5 +1,7 @@
 package com.l299l.newbedwars.config.data.json.arenas;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -227,8 +229,7 @@ public class ArenaDataJson {
         } catch (Exception e) {
             NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not load arena " + loadingArena + ": " + e, e);
             if (loadingArena != null) {
-                Arena.arenaByName.remove(loadingArena);
-                if (loadingWorld != null) Arena.arenaByWorld.remove(loadingWorld);
+                ArenaRegistry.unregister(loadingArena, loadingWorld);
             }
         }
     }

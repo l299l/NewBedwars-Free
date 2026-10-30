@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.scoreboard;
 
-import com.l299l.newbedwars.bossbar.TextEffect;
+import com.l299l.newbedwars.text.TextEffect;
 
 import java.util.List;
 

@@ -1,6 +1,5 @@
 package com.l299l.newbedwars.arena;
 
-import com.l299l.newbedwars.api.events.ArenaResetEvent;
 import com.l299l.newbedwars.api.events.LeaveReason;
 import com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
@@ -15,32 +14,25 @@ import com.l299l.newbedwars.arena.generators.GeneratorType;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
 import com.l299l.newbedwars.arena.phases.GamePhases;
 import com.l299l.newbedwars.arena.player.GamePlayer;
+import com.l299l.newbedwars.arena.player.PlayerStateResetter;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
-import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.IronGolemLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.SilverfishLogic;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.config.data.json.arenas.ArenaMigrator;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.arena.CountdownTimer;
 import com.l299l.newbedwars.arena.group.MapVoteManager;
 import com.l299l.newbedwars.arena.setup.DecoUtils;
-import com.l299l.newbedwars.config.data.json.JsonUtils;
 import com.l299l.newbedwars.scoreboard.NScoreboard;
 import com.l299l.newbedwars.scoreboard.ScoreboardManager;
-import com.l299l.newbedwars.version.VersionCompat;
-import com.l299l.newbedwars.world.chunkgenerators.VoidGenerator;
 import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.world.template.ArenaResetPipeline;
 import org.bukkit.*;
 import org.bukkit.boss.BossBar;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.DragonFireball;
-import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
@@ -55,16 +47,20 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Arena implements IArena {
-    public static HashMap<String, IArena> arenaByName = new HashMap<>();
-    public static HashMap<World, IArena> arenaByWorld = new HashMap<World, IArena>();
+    /** @deprecated the same map as {@link ArenaRegistry}; use its methods */
+    @Deprecated
+    public static final HashMap<String, IArena> arenaByName = ArenaRegistry.BY_NAME;
+    /** @deprecated the same map as {@link ArenaRegistry}; use its methods */
+    @Deprecated
+    public static final HashMap<World, IArena> arenaByWorld = ArenaRegistry.BY_WORLD;
 
     public static void updateTablist(Player player) {
         if (!Properties.TablistIsolationEnabled) return;
         if (!NewBedwars.plugin.isEnabled()) return;
-        IArena playerArena = arenaByWorld.get(player.getWorld());
+        IArena playerArena = ArenaRegistry.byWorld(player.getWorld());
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other.equals(player)) continue;
-            IArena otherArena = arenaByWorld.get(other.getWorld());
+            IArena otherArena = ArenaRegistry.byWorld(other.getWorld());
             if (playerArena == null && otherArena == null) {
                 player.showPlayer(NewBedwars.plugin, other);
                 other.showPlayer(NewBedwars.plugin, player);
@@ -79,26 +75,26 @@ public class Arena implements IArena {
             }
         }
     }
-    private final HashMap<String, Team> teams;
+    private final HashMap<String, Team> teams = new HashMap<>();
     private Gamerules gamerules;
-    private Boolean enabled;
-    private Setup setup;
+    private boolean enabled = false;
+    private Setup setup = Setup.NO_SETUP;
     private GameStatus gameStatus;
     private final String arenaName;
-    private final ArrayList<UUID> onSetupList;
-    private final ArrayList<Generator> generators;
+    private final ArrayList<UUID> onSetupList = new ArrayList<>();
+    private final ArrayList<Generator> generators = new ArrayList<>();
     private GeneratorLeveling generatorsLeveling;
-    private Integer minPlayers;
-    private Integer maxInTeam;
-    private final Map<UUID, BukkitTask> rejoinTasks = new HashMap<>();
-    private Integer waitingTime;
+    private int minPlayers;
+    private int maxInTeam;
+    private final RejoinManager rejoin = new RejoinManager();
+    private int waitingTime;
     private GamePhases gamePhases;
-    private Integer nextPhaseTime;
-    private Integer respawnTime;
+    private int nextPhaseTime = 0;
+    private int respawnTime;
     private World world;
-    private final ArrayList<Player> spectatorsList;
-    private final HashMap<UUID, GamePlayer> players;
-    private final HashMap<UUID, NScoreboard> scoreboards;
+    private final ArrayList<Player> spectatorsList = new ArrayList<>();
+    private final HashMap<UUID, GamePlayer> players = new HashMap<>();
+    private final HashMap<UUID, NScoreboard> scoreboards = new HashMap<>();
     private final String worldName;
     private Location waitingPos1;
     private Location waitingPos2;
@@ -107,19 +103,15 @@ public class Arena implements IArena {
     private CountdownTimer countdownTimer;
     private BukkitTask endingTimer;
     private final ScoreboardManager scoreboardManager;
-    private final HashMap<Team, EnderDragon> teamDragons = new HashMap<>();
-    private final HashMap<Team, BukkitTask> dragonTasks = new HashMap<>();
+    private final DragonController dragons = new DragonController(this);
+    private final ArenaResetCoordinator reset = new ArenaResetCoordinator(this);
     private final List<String> loadProblems = new ArrayList<>();
-    private static final int MAX_RESET_RETRIES = 6;
-    private static final long RESET_RETRY_TICKS = 200L;
-    private int resetRetries = 0;
     private JsonObject extra = new JsonObject();
     private JsonObject unknownFields = new JsonObject();
     private String unresolvedGamePhasesId;
     private String unresolvedGeneratorsLevelingId;
-    private final HashSet<String> placedBlocks;
-    private final HashSet<String> blastProtBlocks;
-    private final HashSet<UUID> playersWithResourcePack;
+    private final BlockTracker blocks = new BlockTracker();
+    private final HashSet<UUID> playersWithResourcePack = new HashSet<>();
     private String resourcePackUrl;
     private String resourcePackHash;
     private BukkitTask tntParticleTask;
@@ -132,7 +124,6 @@ public class Arena implements IArena {
         this.arenaName = arenaName;
         this.world = world;
         this.gameStatus = GameStatus.restarting;
-        players = new HashMap<>();
         worldName = world.getName();
         minPlayers = Properties.DefaultMinPlayers;
         maxInTeam = Properties.DefaultMaxInTeam;
@@ -142,23 +133,12 @@ public class Arena implements IArena {
         GamePhases defaultPhases = Properties.GamePhases.get(Properties.DefaultGamePhase);
         gamePhases = defaultPhases != null ? new GamePhases(defaultPhases) : null;
         respawnTime = Properties.DefaultRespawnTime;
-        nextPhaseTime = 0;
         gamerules = new Gamerules();
-        setup = Setup.NO_SETUP;
-        enabled = false;
         world.setAutoSave(false);
-        onSetupList = new ArrayList<>();
-        teams = new HashMap<String, Team>();
-        generators = new ArrayList<>();
-        spectatorsList = new ArrayList<Player>();
-        scoreboards = new HashMap<>();
-        placedBlocks = new HashSet<>();
-        blastProtBlocks = new HashSet<>();
-        playersWithResourcePack = new HashSet<>();
         shopGuiId = Properties.DefaultTeamShopGui;
         upgradeGuiId = Properties.DefaultUpgradeShopGui;
-        arenaByName.put(arenaName, this);
-        arenaByWorld.put(world, this);
+        ArenaRegistry.register(arenaName, this);
+        ArenaRegistry.bindWorld(world, this);
     }
 
     @Override
@@ -221,14 +201,26 @@ public class Arena implements IArena {
 
     @Override
     public void stop() {
+        shutdown(false);
+    }
+
+    @Override
+    public void forceShutdown() {
+        shutdown(true);
+    }
+
+    /**
+     * Ends the game and empties the arena. A normal stop resets the map; {@code force} (plugin disable or
+     * reload) kicks everyone and leaves the map to the dirty marker.
+     */
+    private void shutdown(boolean force) {
         gameStatus = GameStatus.restarting;
-        MapVoteManager.resetArena(this);
+        if (!force) MapVoteManager.resetArena(this);
 
         if (tntParticleTask != null) {
             tntParticleTask.cancel();
             tntParticleTask = null;
         }
-
         if (endingTimer != null) {
             endingTimer.cancel();
             endingTimer = null;
@@ -237,23 +229,23 @@ public class Arena implements IArena {
             countdownTimer.cancel();
             countdownTimer = null;
         }
-
         if (gamePhases != null) {
             gamePhases.stop();
         }
-        cancelAllRejoinTasks();
+        rejoin.cancelAll();
 
+        LeaveReason reason = force ? LeaveReason.KICKED : LeaveReason.OTHER;
         for (UUID playerId : new ArrayList<>(players.keySet())) {
             GamePlayer gp = players.get(playerId);
             if (gp != null) gp.cancelRespawnTask();
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
-                leave(player, LeaveReason.OTHER);
+                leave(player, reason);
             }
         }
         players.clear();
         for (Player spectator : new ArrayList<>(spectatorsList)) {
-            leave(spectator, LeaveReason.OTHER);
+            leave(spectator, reason);
         }
         spectatorsList.clear();
         nextPhaseTime = 0;
@@ -261,62 +253,30 @@ public class Arena implements IArena {
         for (Generator generator : generators) {
             generator.stop();
         }
-
         for (Team team : teams.values()) {
             team.stop();
         }
-
         discardBossBar();
-
         for (NScoreboard scoreboard : scoreboards.values()) {
             scoreboard.kill();
         }
         scoreboards.clear();
-        
         playersWithResourcePack.clear();
 
         IronGolemLogic.cleanupAllForArena(arenaName);
         SilverfishLogic.cleanupAllForArena(this);
 
+        if (force) {
+            dragons.removeAll();
+            return;
+        }
         boolean correctRollback = rollback();
         if (!correctRollback) {
             Bukkit.getServer().getLogger().severe("Could not rollback arena " + arenaName);
         }
-
         if (!ArenaMaps.isEnabled()) {
             gameStatus = GameStatus.waiting;
         }
-    }
-
-    public void forceShutdown() {
-        gameStatus = GameStatus.restarting;
-        if (tntParticleTask != null) { tntParticleTask.cancel(); tntParticleTask = null; }
-        if (endingTimer != null) { endingTimer.cancel(); endingTimer = null; }
-        if (countdownTimer != null) { countdownTimer.cancel(); countdownTimer = null; }
-        if (gamePhases != null) gamePhases.stop();
-        cancelAllRejoinTasks();
-        for (UUID id : new ArrayList<>(players.keySet())) {
-            GamePlayer gp = players.get(id);
-            if (gp != null) gp.cancelRespawnTask();
-            Player p = Bukkit.getPlayer(id);
-            if (p != null) leave(p, LeaveReason.KICKED);
-        }
-        players.clear();
-        for (Player spectator : new ArrayList<>(spectatorsList)) leave(spectator, LeaveReason.KICKED);
-        spectatorsList.clear();
-        nextPhaseTime = 0;
-        for (Generator generator : generators) generator.stop();
-        for (Team team : teams.values()) team.stop();
-        discardBossBar();
-        for (NScoreboard sb : scoreboards.values()) sb.kill();
-        scoreboards.clear();
-        playersWithResourcePack.clear();
-        for (BukkitTask task : new ArrayList<>(dragonTasks.values())) if (!task.isCancelled()) task.cancel();
-        dragonTasks.clear();
-        for (EnderDragon dragon : new ArrayList<>(teamDragons.values())) if (dragon != null && dragon.isValid()) dragon.remove();
-        teamDragons.clear();
-        IronGolemLogic.cleanupAllForArena(arenaName);
-        SilverfishLogic.cleanupAllForArena(this);
     }
 
     /**
@@ -327,40 +287,12 @@ public class Arena implements IArena {
      */
     @Override
     public boolean rollback() {
-        ApiEvents.arenaReset(this, ArenaResetEvent.Stage.PRE);
-        clearPlacedBlocks();
-        for (BukkitTask task : dragonTasks.values()) {
-            if (!task.isCancelled()) task.cancel();
-        }
-        dragonTasks.clear();
-        for (EnderDragon dragon : teamDragons.values()) {
-            if (dragon != null && dragon.isValid()) dragon.remove();
-        }
-        teamDragons.clear();
-        if (ArenaMaps.isEnabled()) {
-            if (ArenaMaps.hasTemplate(arenaName)) {
-                return ArenaResetPipeline.start(this);
-            }
-            NewBedwars.plugin.getLogger().warning("Arena " + arenaName + " has no map template; falling back to the legacy reload. "
-                    + "Use /bw save in setup mode to create one.");
-            boolean ok = legacyRollback();
-            gameStatus = GameStatus.waiting;
-            ApiEvents.arenaReset(this, ArenaResetEvent.Stage.POST);
-            return ok;
-        }
-        boolean ok = legacyRollback();
-        ApiEvents.arenaReset(this, ArenaResetEvent.Stage.POST);
-        return ok;
+        return reset.rollback();
     }
 
     /** Called by {@link ArenaResetPipeline} when the fresh world is loaded. */
     public void finishReset(World newWorld) {
-        resetRetries = 0;
-        rebindWorld(newWorld);
-        DecoUtils.removeAllArmorStands(this);
-        // a disabled arena keeps the "restarting" status that blocks joins
-        gameStatus = Boolean.TRUE.equals(enabled) ? GameStatus.waiting : GameStatus.restarting;
-        ApiEvents.arenaReset(this, ArenaResetEvent.Stage.POST);
+        reset.finishReset(newWorld);
     }
 
     /**
@@ -368,16 +300,7 @@ public class Arena implements IArena {
      * the arena. Returns false when the arena is busy.
      */
     public boolean resetMap() {
-        if (!players.isEmpty() || !spectatorsList.isEmpty()
-                || (gameStatus != GameStatus.waiting && Boolean.TRUE.equals(enabled))) {
-            return false;
-        }
-        gameStatus = GameStatus.restarting;
-        boolean started = rollback();
-        if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) {
-            gameStatus = Boolean.TRUE.equals(enabled) ? GameStatus.waiting : GameStatus.restarting;
-        }
-        return started;
+        return reset.resetMap();
     }
 
     /**
@@ -386,31 +309,27 @@ public class Arena implements IArena {
      * that keeps failing, or there is no template to restore, the arena is disabled.
      */
     public void failReset(String reason) {
-        gameStatus = GameStatus.restarting;
-        if (resetRetries < MAX_RESET_RETRIES && ArenaMaps.hasTemplate(arenaName)) {
-            resetRetries++;
-            NewBedwars.plugin.getLogger().warning("Reset of arena " + arenaName + " failed: " + reason + ". Retrying in "
-                    + RESET_RETRY_TICKS / 20 + "s (" + resetRetries + "/" + MAX_RESET_RETRIES + ")");
-            try {
-                Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> ArenaResetPipeline.retry(this), RESET_RETRY_TICKS);
-                return;
-            } catch (IllegalStateException | org.bukkit.plugin.IllegalPluginAccessException e) {
-                // plugin is disabling; the dirty marker makes the next start restore the map
-            }
-        }
-        NewBedwars.plugin.getLogger().severe("Arena " + arenaName + " was disabled: " + reason);
+        reset.failReset(reason);
+    }
+
+    void setStatus(GameStatus status) {
+        gameStatus = status;
+    }
+
+    /** A reset that keeps failing takes the arena out of use until an admin looks at it. */
+    void disableBroken(String reason) {
         enabled = false;
         setup = Setup.NO_SETUP;
         loadProblems.add(reason);
     }
 
     public void unbindWorld() {
-        arenaByWorld.remove(world);
+        ArenaRegistry.unbindWorld(world);
     }
 
     public void rebindWorld(World newWorld) {
         world = newWorld;
-        arenaByWorld.put(newWorld, this);
+        ArenaRegistry.bindWorld(newWorld, this);
         if (waitingSpawn != null) waitingSpawn.setWorld(newWorld);
         if (waitingPos1 != null) waitingPos1.setWorld(newWorld);
         if (waitingPos2 != null) waitingPos2.setWorld(newWorld);
@@ -445,37 +364,8 @@ public class Arena implements IArena {
     @Override
     public void setUnknownFields(JsonObject unknownFields) { this.unknownFields = unknownFields != null ? unknownFields : new JsonObject(); }
 
-    private boolean legacyRollback() {
-        try {
-            world.setKeepSpawnInMemory(false);
-            world.setAutoSave(false);
-            for (Chunk chunk : world.getLoadedChunks()) {
-                chunk.unload(true);
-            }
-        } catch (Exception e) {
-            NewBedwars.plugin.getLogger().warning("Failed to unload chunks for arena " + arenaName + ": " + e.getMessage());
-        }
-        arenaByWorld.remove(world);
-        boolean correct = Bukkit.getServer().unloadWorld(world, false);
-        if (!correct) {
-            Bukkit.getServer().getLogger().severe("Could not unload arena world " + worldName);
-            return false;
-        }
-        WorldCreator wc = new WorldCreator(worldName);
-        wc.generator(new VoidGenerator());
-        World newWorld = Bukkit.getServer().createWorld(wc);
-        if (newWorld == null) {
-            Bukkit.getServer().getLogger().severe("Could not recreate arena world " + worldName);
-            return false;
-        }
-        ArenaMaps.applyWorldRules(newWorld);
-        rebindWorld(newWorld);
-        DecoUtils.removeAllArmorStands(this);
-        return true;
-    }
-
     @Override
-    public Integer getGameTime() {
+    public int getGameTime() {
         if (gameStatus != GameStatus.playing || gameStartMillis == 0) return 0;
         return (int) ((System.currentTimeMillis() - gameStartMillis) / 1000);
     }
@@ -491,16 +381,7 @@ public class Arena implements IArena {
 
     private void applyJoinSetup(Player player) {
         player.teleport(waitingSpawn);
-        player.setGameMode(GameMode.ADVENTURE);
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
-        player.setExp(0);
-        player.setLevel(0);
-        player.setFireTicks(0);
-        player.setFlying(false);
-        player.setAllowFlight(false);
+        PlayerStateResetter.reset(player, GameMode.ADVENTURE);
         player.setInvulnerable(true);
         player.getInventory().setItem(8, NewBedwars.plugin.getGuiManager().getLeaveItem(player));
         addToBossBar(player);
@@ -517,25 +398,24 @@ public class Arena implements IArena {
     public boolean join(Player player) {
         if (players.containsKey(player.getUniqueId())) return false;
         if (playsInOtherArena(player)) return false;
-        if (players.size() >= teams.size() * maxInTeam) {
+        if (players.size() >= getMaxPlayers()) {
             return false;
         }
         if (!ApiEvents.playerJoin(this, player, false)) return false;
         forfeitOtherRejoins(player);
         applyJoinSetup(player);
-        broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
-            put("/player/", coloredName(player));
-            put("/players/", Integer.toString(players.size()));
-            put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
-        }});
+        broadcast("PlayerJoinedArena", Map.of(
+                "/player/", coloredName(player),
+                "/players/", Integer.toString(players.size()),
+                "/maxplayers/", Integer.toString(getMaxPlayers())));
         checkIfCanStart();
         return true;
     }
 
     /** True while the player is actually in another arena's world as one of its players. */
     private boolean playsInOtherArena(Player player) {
-        for (IArena other : arenaByName.values()) {
-            if (other != this && Boolean.TRUE.equals(other.isPlayerInArena(player))
+        for (IArena other : ArenaRegistry.all()) {
+            if (other != this && other.isPlayerInArena(player)
                     && player.getWorld() == other.getArenaWorld()) return true;
         }
         return false;
@@ -543,7 +423,7 @@ public class Arena implements IArena {
 
     /** Joining this arena gives up the player's place in any game they could still rejoin. */
     private void forfeitOtherRejoins(Player player) {
-        for (IArena other : new ArrayList<>(arenaByName.values())) {
+        for (IArena other : new ArrayList<>(ArenaRegistry.all())) {
             if (other != this) other.forfeitRejoin(player);
         }
     }
@@ -551,10 +431,10 @@ public class Arena implements IArena {
     @Override
     public boolean forfeitRejoin(Player player) {
         if (!players.containsKey(player.getUniqueId()) || player.getWorld() == world) return false;
-        cancelRejoinTask(player.getUniqueId());
+        rejoin.cancel(player.getUniqueId());
         GamePlayer gp = players.remove(player.getUniqueId());
         if (gp != null) gp.cancelRespawnTask();
-        NewBedwars.plugin.getMessages().send(player, "RejoinForfeited", new HashMap<>() {{ put("/arena/", arenaName); }});
+        NewBedwars.plugin.getMessages().send(player, "RejoinForfeited", Map.of("/arena/", arenaName));
         return true;
     }
 
@@ -562,7 +442,7 @@ public class Arena implements IArena {
     public boolean joinParty(List<Player> partyMembers) {
         if (partyMembers.isEmpty()) return false;
         int newTotal = players.size() + partyMembers.size();
-        if (newTotal > teams.size() * maxInTeam) return false;
+        if (newTotal > getMaxPlayers()) return false;
 
         List<Player> joined = new ArrayList<>();
         for (Player member : partyMembers) {
@@ -575,14 +455,13 @@ public class Arena implements IArena {
         }
 
         int currentSize = players.size();
-        int maxSize = teams.size() * maxInTeam;
+        int maxSize = getMaxPlayers();
         for (Player member : joined) {
             final String name = member.getName();
-            broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
-                put("/player/", name);
-                put("/players/", Integer.toString(currentSize));
-                put("/maxplayers/", Integer.toString(maxSize));
-            }});
+            broadcast("PlayerJoinedArena", Map.of(
+                    "/player/", name,
+                    "/players/", Integer.toString(currentSize),
+                    "/maxplayers/", Integer.toString(maxSize)));
         }
         checkIfCanStart();
         return true;
@@ -599,12 +478,12 @@ public class Arena implements IArena {
         GamePlayer gamePlayer = players.get(player.getUniqueId());
         Team team = gamePlayer.getTeam();
         if (!team.isAlive()) {
-            cancelRejoinTask(player.getUniqueId());
+            rejoin.cancel(player.getUniqueId());
             players.remove(player.getUniqueId());
             return false;
         }
         if (!ApiEvents.playerJoin(this, player, true)) return false;
-        cancelRejoinTask(player.getUniqueId());
+        rejoin.cancel(player.getUniqueId());
         team.addPlayer(player);
         addToBossBar(player);
         NScoreboard scoreboard = scoreboardManager.createPlayerScoreboard("InGameScoreboard", this, player);
@@ -625,17 +504,8 @@ public class Arena implements IArena {
         Location lobby = NewBedwars.plugin.getLobbyLocation();
         LobbyService.sendToLobby(player, PlayerSendToLobbyEvent.Reason.LEFT_ARENA);
         player.setInvulnerable(false);
-        player.setGameMode(GameMode.SURVIVAL);
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
-        player.setExp(0);
-        player.setLevel(0);
-        player.setFireTicks(0);
-        player.setFlying(false);
-        player.setAllowFlight(false);
-        player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
+        PlayerStateResetter.reset(player, GameMode.SURVIVAL);
+        PlayerStateResetter.clearEffects(player);
         player.setBedSpawnLocation(lobby, true);
         playersWithResourcePack.remove(player.getUniqueId());
         if (spectatorsList.contains(player)) {
@@ -661,27 +531,20 @@ public class Arena implements IArena {
             if (!checkWin()) {
                 if (Properties.RejoinTimeEnabled && leavingPlayer.getTeam().isAlive()) {
                     int displayCount = players.size() - 1;
-                    broadcast("PlayerLeftArenaGame", new HashMap<String, String>() {{
-                        put("/player/", playerName);
-                        put("/players/", Integer.toString(displayCount));
-                        put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
-                    }});
-                    cancelRejoinTask(player.getUniqueId());
-                    rejoinTasks.put(player.getUniqueId(), new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            rejoinTasks.remove(player.getUniqueId());
-                            players.remove(player.getUniqueId());
-                            NewBedwars.plugin.getMessages().send(player, "RejoinTimeOver");
-                        }
-                    }.runTaskLater(NewBedwars.plugin, 20L * 60 * Properties.RejoinTime));
+                    broadcast("PlayerLeftArenaGame", Map.of(
+                            "/player/", playerName,
+                            "/players/", Integer.toString(displayCount),
+                            "/maxplayers/", Integer.toString(getMaxPlayers())));
+                    rejoin.schedule(player.getUniqueId(), 20L * 60 * Properties.RejoinTime, () -> {
+                        players.remove(player.getUniqueId());
+                        NewBedwars.plugin.getMessages().send(player, "RejoinTimeOver");
+                    });
                 } else {
                     players.remove(player.getUniqueId());
-                    broadcast("PlayerLeftArenaGame", new HashMap<String, String>() {{
-                        put("/player/", playerName);
-                        put("/players/", Integer.toString(players.size()));
-                        put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
-                    }});
+                    broadcast("PlayerLeftArenaGame", Map.of(
+                            "/player/", playerName,
+                            "/players/", Integer.toString(players.size()),
+                            "/maxplayers/", Integer.toString(getMaxPlayers())));
                 }
             } else {
                 // the game just ended because of this departure
@@ -697,11 +560,10 @@ public class Arena implements IArena {
                 ? leavingPlayer.getTeam().colored(player.getName()) : player.getName();
         if (leavingPlayer.getTeam() != null) leavingPlayer.getTeam().removePlayer(player);
         players.remove(player.getUniqueId());
-        broadcast("PlayerLeftArena", new HashMap<String, String>() {{
-            put("/player/", playerName);
-            put("/players/", Integer.toString(players.size()));
-            put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
-        }});
+        broadcast("PlayerLeftArena", Map.of(
+                "/player/", playerName,
+                "/players/", Integer.toString(players.size()),
+                "/maxplayers/", Integer.toString(getMaxPlayers())));
         if (gameStatus == GameStatus.starting && (players.size() < minPlayers || !hasEnoughTeams())) {
             cancelStart();
         }
@@ -750,7 +612,7 @@ public class Arena implements IArena {
     }
 
     @Override
-    public Boolean isPlayerInArena(Player player) {
+    public boolean isPlayerInArena(Player player) {
         return players.containsKey(player.getUniqueId());
     }
 
@@ -763,7 +625,6 @@ public class Arena implements IArena {
     public int getActivePlayerCount() {
         // teams are only assigned when the game starts, so the lobby counts everyone who joined
         if (gameStatus == GameStatus.waiting || gameStatus == GameStatus.starting) return players.size();
-        if (teams == null) return 0;
         int count = 0;
         for (Team team : teams.values()) {
             count += team.getPlayers().size();
@@ -781,11 +642,10 @@ public class Arena implements IArena {
         if (countdownTimer != null) countdownTimer.cancel();
         gameStatus = GameStatus.waiting;
         broadcast("StartCanceled");
-        broadcast("NotEnoughPlayers", new HashMap<String, String>() {{
-            put("/arenaname/", arenaName);
-            put("/minplayers/", minPlayers.toString());
-            put("/players/", Integer.toString(players.size()));
-        }});
+        broadcast("NotEnoughPlayers", Map.of(
+                "/arenaname/", arenaName,
+                "/minplayers/", Integer.toString(minPlayers),
+                "/players/", Integer.toString(players.size())));
     }
 
     /** Everyone who should see arena messages: the players and the spectators who are not in the player list. */
@@ -809,7 +669,7 @@ public class Arena implements IArena {
     }
 
     @Override
-    public void broadcast(String message, HashMap<String, String> replace) {
+    public void broadcast(String message, Map<String, String> replace) {
         for (Player player : audience()) {
             String msg = NewBedwars.plugin.getMessages().getMsg(player, message);
             for (String key : replace.keySet()) {
@@ -901,12 +761,12 @@ public class Arena implements IArena {
         nextPhaseTime = time;
     }
 
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
     @Override
-    public Boolean canBeEnabled() {
+    public boolean canBeEnabled() {
         boolean canBeEnabled = (waitingPos1 != null && waitingPos2 != null && waitingSpawn != null &&
                 waitingPos1.getWorld().equals(world) && waitingPos2.getWorld().equals(world) &&
                 waitingSpawn.getWorld().equals(world) && teams.size() > 1 && !generators.isEmpty()
@@ -952,22 +812,22 @@ public class Arena implements IArena {
     }
 
     @Override
-    public Integer getMinPlayers() {
+    public int getMinPlayers() {
         return minPlayers;
     }
 
     @Override
-    public void setMinPlayers(Integer min) {
+    public void setMinPlayers(int min) {
         minPlayers = min;
     }
 
     @Override
-    public Integer getMaxInTeam() {
+    public int getMaxInTeam() {
         return maxInTeam;
     }
 
     @Override
-    public void setMaxInTeam(Integer max) {
+    public void setMaxInTeam(int max) {
         maxInTeam = max;
     }
 
@@ -982,8 +842,7 @@ public class Arena implements IArena {
     }
 
     public java.util.Map<String, Team> getTeams() {
-        // null while the arena is still being constructed (the boss bar reads it then)
-        return teams == null ? null : java.util.Collections.unmodifiableMap(teams);
+        return java.util.Collections.unmodifiableMap(teams);
     }
 
     @Override
@@ -1014,7 +873,7 @@ public class Arena implements IArena {
     }
 
     public java.util.List<Generator> getGenerators() {
-        return generators == null ? null : java.util.Collections.unmodifiableList(generators);
+        return java.util.Collections.unmodifiableList(generators);
     }
 
     @Override
@@ -1165,7 +1024,7 @@ public class Arena implements IArena {
     }
 
 
-    public void setWaitingTime(Integer time) {
+    public void setWaitingTime(int time) {
         waitingTime = time;
     }
 
@@ -1202,7 +1061,7 @@ public class Arena implements IArena {
     }
 
     @Override
-    public void setRespawnTime(Integer time) {
+    public void setRespawnTime(int time) {
         respawnTime = time;
     }
 
@@ -1212,7 +1071,7 @@ public class Arena implements IArena {
     }
 
     @Override
-    public Integer getWaitingTime() {
+    public int getWaitingTime() {
         return waitingTime;
     }
 
@@ -1273,88 +1132,12 @@ public class Arena implements IArena {
 
     @Override
     public void enderDragonEnd() {
-        for (BukkitTask task : new ArrayList<>(dragonTasks.values())) {
-            if (!task.isCancelled()) task.cancel();
-        }
-        dragonTasks.clear();
-        for (EnderDragon dragon : new ArrayList<>(teamDragons.values())) {
-            if (dragon != null && dragon.isValid()) dragon.remove();
-        }
-        teamDragons.clear();
+        dragons.removeAll();
     }
 
     @Override
     public void enderDragonStart() {
-        boolean anySpawned = false;
-        for (Team team : teams.values()) {
-            if (!team.isAlive()) continue;
-            TeamUpgrades tu = team.getTeamUpgrades();
-            if (tu == null) continue;
-            int dragonLevel = tu.getUpgradeLevel(Upgrade.DRAGONBUFF);
-            if (dragonLevel < 1) continue;
-
-            Location spawnLoc = team.getTeamSpawn().clone().add(0, Properties.DragonSpawnHeight, 0);
-            EnderDragon dragon = (EnderDragon) world.spawnEntity(spawnLoc, EntityType.ENDER_DRAGON);
-            dragon.setInvulnerable(true);
-            dragon.setPhase(EnderDragon.Phase.CIRCLING);
-            dragon.setCustomName(team.getColor() + team.getName() + " Dragon");
-            dragon.setCustomNameVisible(true);
-            teamDragons.put(team, dragon);
-            anySpawned = true;
-
-            final Team owningTeam = team;
-            final int level = dragonLevel;
-            final int fireballInterval = (level >= 2) ? 10 : 20;
-            BukkitTask task = new BukkitRunnable() {
-                int fireballTick = 0;
-
-                @Override
-                public void run() {
-                    EnderDragon d = teamDragons.get(owningTeam);
-                    if (d == null || !d.isValid()) {
-                        cancel();
-                        teamDragons.remove(owningTeam);
-                        dragonTasks.remove(owningTeam);
-                        return;
-                    }
-
-                    if (d.getPhase() == EnderDragon.Phase.STRAFING) {
-                        d.setPhase(EnderDragon.Phase.CHARGE_PLAYER);
-                    }
-
-                    List<Player> enemies = new ArrayList<>();
-                    for (Team t : teams.values()) {
-                        if (t == owningTeam || !t.isAlive()) continue;
-                        for (Player p : t.getPlayers()) {
-                            if (p.isOnline() && p.getWorld().equals(world)
-                                    && (p.getGameMode() == GameMode.SURVIVAL
-                                    || p.getGameMode() == GameMode.ADVENTURE)) {
-                                enemies.add(p);
-                            }
-                        }
-                    }
-
-                    fireballTick++;
-                    if (fireballTick >= fireballInterval && !enemies.isEmpty()) {
-                        fireballTick = 0;
-                        Player target = enemies.stream()
-                                .min(java.util.Comparator.comparingDouble(Player::getHealth))
-                                .orElse(null);
-                        if (target != null) {
-                            DragonFireball fireball = (DragonFireball) world.spawnEntity(
-                                    d.getLocation().clone().add(0, -1, 0), EntityType.DRAGON_FIREBALL);
-                            Vector fbDir = target.getLocation().toVector()
-                                    .subtract(d.getLocation().toVector()).normalize().multiply(0.5);
-                            fireball.setDirection(fbDir);
-                            fireball.setShooter(d);
-                        }
-                    }
-                }
-            }.runTaskTimer(NewBedwars.plugin, 0L, 20L);
-
-            dragonTasks.put(team, task);
-        }
-        if (anySpawned) {
+        if (dragons.spawn()) {
             broadcast("EnderDragonSpawned");
         }
     }
@@ -1376,32 +1159,34 @@ public class Arena implements IArena {
         broadcast("ForgeDisabled");
     }
 
+    @Override
     public void addPlacedBlock(Location loc) {
-        placedBlocks.add(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        blocks.addPlaced(loc);
     }
 
+    @Override
     public boolean isPlacedBlock(Location loc) {
-        return placedBlocks.contains(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        return blocks.isPlaced(loc);
     }
 
+    @Override
     public void clearPlacedBlocks() {
-        placedBlocks.clear();
-        blastProtBlocks.clear();
+        blocks.clear();
     }
 
     @Override
     public void addBlastProtBlock(Location loc) {
-        blastProtBlocks.add(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        blocks.addBlastProtected(loc);
     }
 
     @Override
     public boolean isBlastProtBlock(Location loc) {
-        return blastProtBlocks.contains(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        return blocks.isBlastProtected(loc);
     }
 
     @Override
     public void removeBlastProtBlock(Location loc) {
-        blastProtBlocks.remove(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        blocks.removeBlastProtected(loc);
     }
 
     private void sendResourcePack(Player player) {
@@ -1451,54 +1236,27 @@ public class Arena implements IArena {
 
     @Override
     public String toJson() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"schemaVersion\": ").append(ArenaMigrator.CURRENT_VERSION).append(",");
-        sb.append("\"arenaName\": ").append(JsonUtils.quote(arenaName)).append(",");
-        sb.append("\"worldName\": ").append(JsonUtils.quote(worldName)).append(",");
-        sb.append("\"minPlayers\": ").append(minPlayers).append(",");
-        sb.append("\"maxInTeam\": ").append(maxInTeam).append(",");
-        sb.append("\"waitingTime\": ").append(waitingTime).append(",");
-        sb.append("\"respawnTime\": ").append(respawnTime).append(",");
-        sb.append("\"setup\": \"").append(setup).append("\",");
-        sb.append("\"enabled\": ").append(enabled).append(",");
-        sb.append("\"quickVoidY\": ").append(quickVoidY == null ? "null" : quickVoidY).append(",");
-        sb.append("\"waitingPos1\": ").append(waitingPos1 == null ? "null" : JsonUtils.locationToJson(waitingPos1)).append(",");
-        sb.append("\"waitingPos2\": ").append(waitingPos2 == null ? "null" : JsonUtils.locationToJson(waitingPos2)).append(",");
-        sb.append("\"waitingSpawn\": ").append(waitingSpawn == null ? "null" : JsonUtils.locationToJson(waitingSpawn)).append(",");
-        sb.append("\"gamePhasesId\": ").append(JsonUtils.quote(gamePhases != null ? gamePhases.getID() : unresolvedGamePhasesId != null ? unresolvedGamePhasesId : "null")).append(",");
-        sb.append("\"generatorsLeveling\": ").append(JsonUtils.quote(generatorsLeveling != null ? generatorsLeveling.getId() : unresolvedGeneratorsLevelingId != null ? unresolvedGeneratorsLevelingId : "null")).append(",");
-        sb.append("\"gamerules\": ").append(gamerules.toJson()).append(",");
-        sb.append("\"teams\": [");
-        int i = 0;
-        for (Team team : teams.values()) {
-            sb.append(team.toJson());
-            if (i < teams.size() - 1) {
-                sb.append(",");
-            }
-            i++;
-        }
-        sb.append("],");
-        sb.append("\"generators\": [");
-        i = 0;
-        for (Generator generator : generators) {
-            sb.append(JsonUtils.generatorToJson(generator));
-            if (i < generators.size() - 1) {
-                sb.append(",");
-            }
-            i++;
-        }
-        sb.append("],");
-        sb.append("\"resourcePackUrl\": ").append(JsonUtils.quote(resourcePackUrl)).append(",");
-        sb.append("\"resourcePackHash\": ").append(JsonUtils.quote(resourcePackHash)).append(",");
-        sb.append("\"shopGuiId\": ").append(JsonUtils.quote(shopGuiId == null ? Properties.DefaultTeamShopGui : shopGuiId)).append(",");
-        sb.append("\"upgradeGuiId\": ").append(JsonUtils.quote(upgradeGuiId == null ? Properties.DefaultUpgradeShopGui : upgradeGuiId)).append(",");
-        sb.append("\"extra\": ").append(extra);
-        for (Map.Entry<String, com.google.gson.JsonElement> unknown : unknownFields.entrySet()) {
-            sb.append(",").append(JsonUtils.quote(unknown.getKey())).append(": ").append(unknown.getValue());
-        }
-        sb.append("}");
-        return sb.toString();
+        return ArenaSerializer.toJson(this);
+    }
+
+    String getWorldName() {
+        return worldName;
+    }
+
+    int getRespawnTime() {
+        return respawnTime;
+    }
+
+    GamePhases getGamePhases() {
+        return gamePhases;
+    }
+
+    String getUnresolvedGamePhasesId() {
+        return unresolvedGamePhasesId;
+    }
+
+    String getUnresolvedGeneratorsLevelingId() {
+        return unresolvedGeneratorsLevelingId;
     }
 
     private void checkIfCanStart() {
@@ -1640,14 +1398,7 @@ public class Arena implements IArena {
         if (player.isDead()) {
             player.spigot().respawn();
         }
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.getInventory().clear();
-        player.setGameMode(GameMode.ADVENTURE);
-        player.getInventory().setArmorContents(null);
-        player.setExp(0);
-        player.setLevel(0);
-        player.setFireTicks(0);
+        PlayerStateResetter.reset(player, GameMode.ADVENTURE);
         player.setFallDistance(0f);
         player.setVelocity(new Vector(0, 0, 0));
         player.setInvulnerable(true);
@@ -1689,9 +1440,7 @@ public class Arena implements IArena {
         spectatorsList.remove(player);
         player.setFallDistance(0f);
         player.teleport(team.getTeamSpawn());
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.getInventory().clear();
+        PlayerStateResetter.reset(player, GameMode.SURVIVAL);
         ArmorContents armorContents = team.getArmorContents(player);
         if (armorContents != null) {
             if (!gamerules.MakeSwordsPermanent) {
@@ -1699,14 +1448,8 @@ public class Arena implements IArena {
             }
             armorContents.loadPlayerArmorContents(player);
         }
-        player.setExp(0);
-        player.setLevel(0);
-        player.setFireTicks(0);
-        player.setFlying(false);
-        player.setAllowFlight(false);
         player.setInvulnerable(false);
-        player.setGameMode(GameMode.SURVIVAL);
-        player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
+        PlayerStateResetter.clearEffects(player);
         if (team.getTeamUpgrades() != null) team.getTeamUpgrades().applyPlayerUpgrades(player);
         for (UUID p : players.keySet()) {
             Player pl = Bukkit.getServer().getPlayer(p);
@@ -1717,21 +1460,12 @@ public class Arena implements IArena {
         }
     }
 
-    private void cancelRejoinTask(UUID id) {
-        BukkitTask task = rejoinTasks.remove(id);
-        if (task != null) task.cancel();
-    }
-
-    private void cancelAllRejoinTasks() {
-        for (UUID id : new ArrayList<>(rejoinTasks.keySet())) cancelRejoinTask(id);
-    }
-
     /** Offline players whose team has been eliminated can no longer rejoin. */
     private void dropRejoinOfDeadTeams() {
-        for (UUID id : new ArrayList<>(rejoinTasks.keySet())) {
+        for (UUID id : rejoin.waiting()) {
             GamePlayer gp = players.get(id);
             if (gp == null || (gp.getTeam() != null && !gp.getTeam().isAlive())) {
-                cancelRejoinTask(id);
+                rejoin.cancel(id);
                 players.remove(id);
             }
         }
@@ -1767,9 +1501,7 @@ public class Arena implements IArena {
     }
 
     private void sendWinMessage(Team team) {
-        broadcast("GameEnded", new HashMap<String, String>() {{
-            put("/team/", team.colored(team.getName()));
-        }});
+        broadcast("GameEnded", Map.of("/team/", team.colored(team.getName())));
         broadcastTitle("&6&lGame Ended!", "&e" + team.getColor() + team.getName() + " &fwins!", 10, 40, 10);
         Color teamColor = Color.WHITE;
         for (Player player : team.getPlayers()) {

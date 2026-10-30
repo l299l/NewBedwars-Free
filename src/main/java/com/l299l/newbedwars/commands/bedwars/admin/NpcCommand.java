@@ -1,11 +1,10 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.join.ArenaJoinService;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.npc.CitizensBridge;
 import com.l299l.newbedwars.npc.JoinNpc;
 import com.l299l.newbedwars.npc.JoinNpcAction;
@@ -16,19 +15,16 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 /** {@code /bw npc set|clear|info|list|create|remove}: lobby join NPCs (Citizens or fallback). */
-public class NpcCommand extends SubCommand {
+public class NpcCommand extends BwCommand {
     private static final List<String> SUBCOMMANDS = List.of("set", "clear", "info", "list", "create", "remove");
-    private final Messages msg;
 
-    public NpcCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -133,7 +129,7 @@ public class NpcCommand extends SubCommand {
             msg.send(p, "NpcListEmpty");
             return;
         }
-        msg.send(p, "NpcListHeader", new HashMap<>() {{ put("/count/", String.valueOf(npcs.size())); }});
+        msg.send(p, "NpcListHeader", Map.of("/count/", String.valueOf(npcs.size())));
         for (JoinNpc npc : npcs) {
             HashMap<String, String> r = replace(npc.displayName(), npc.action());
             Location loc = npc.location();
@@ -157,7 +153,7 @@ public class NpcCommand extends SubCommand {
             msg.send(p, "NpcInvalidEntity");
             return;
         }
-        if (Arena.arenaByWorld.get(p.getWorld()) != null) {
+        if (ArenaRegistry.byWorld(p.getWorld()) != null) {
             msg.send(p, "NpcNotInArenaWorld");
             return;
         }
@@ -177,7 +173,7 @@ public class NpcCommand extends SubCommand {
         FallbackNpc npc = fallback(p, args[2], manager);
         if (npc == null) return;
         manager.removeFallback(npc.id);
-        msg.send(p, "NpcRemoved", new HashMap<>() {{ put("/id/", String.valueOf(npc.id)); }});
+        msg.send(p, "NpcRemoved", Map.of("/id/", String.valueOf(npc.id)));
     }
 
     private CitizensBridge requireCitizens(Player p, JoinNpcManager manager) {
@@ -192,7 +188,7 @@ public class NpcCommand extends SubCommand {
             npc = manager.fallback(Integer.parseInt(id.replace("#", "")));
         } catch (NumberFormatException ignored) {
         }
-        if (npc == null) msg.send(p, "NpcNotFound", new HashMap<>() {{ put("/id/", id); }});
+        if (npc == null) msg.send(p, "NpcNotFound", Map.of("/id/", id));
         return npc;
     }
 
@@ -203,13 +199,13 @@ public class NpcCommand extends SubCommand {
             action = JoinNpcAction.parse(type, target);
         } catch (IllegalArgumentException e) {
             if ("target".equals(e.getMessage())) {
-                msg.send(p, "NpcTargetRequired", new HashMap<>() {{ put("/action/", type.toUpperCase(Locale.ROOT)); }});
+                msg.send(p, "NpcTargetRequired", Map.of("/action/", type.toUpperCase(Locale.ROOT)));
             } else {
                 msg.send(p, "NpcInvalidAction");
             }
             return null;
         }
-        if (action.getType() == JoinNpcAction.Type.ARENA && ArenaJoinService.arenaByName(action.getTarget()) == null) {
+        if (action.getType() == JoinNpcAction.Type.ARENA && ArenaRegistry.find(action.getTarget()) == null) {
             msg.send(p, "ArenaNotExists");
             return null;
         }
@@ -246,7 +242,7 @@ public class NpcCommand extends SubCommand {
                 }
             }
             if (type == JoinNpcAction.Type.ARENA || type == JoinNpcAction.Type.NETWORK) {
-                for (IArena a : Arena.arenaByName.values()) names.add(a.getArenaName());
+                for (IArena a : ArenaRegistry.all()) names.add(a.getArenaName());
             }
             return names;
         }

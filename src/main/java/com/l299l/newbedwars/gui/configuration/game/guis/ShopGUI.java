@@ -1,13 +1,14 @@
 package com.l299l.newbedwars.gui.configuration.game.guis;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
+
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.gui.BasicGUI;
 import com.l299l.newbedwars.gui.GUIManager;
 import com.l299l.newbedwars.gui.GUISave;
 import com.l299l.newbedwars.gui.model.GUICategory;
-import com.l299l.newbedwars.gui.model.GUIUpgrade;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -23,7 +24,7 @@ public class ShopGUI extends BasicGUI {
     private final List<GUICategory> categories;
     private final GUISave guiSave;
     private final GUICategory guiCategory;
-    private final List<Object> items;
+    private final List<GUIEntry> items;
 
     public ShopGUI(GUIManager guiManager, Player player, GUISave guiSave, GUICategory category) {
         super(guiManager, player);
@@ -40,20 +41,12 @@ public class ShopGUI extends BasicGUI {
         for (int i = 0; i < guiSave.getSize(); i++) {
             items.add(null);
         }
-        int headerSize = (int) guiSave.getGuiData("HeaderSize");
-        int footerSize = (int) guiSave.getGuiData("FooterSize");
+        int headerSize = guiSave.getHeaderSize();
+        int footerSize = guiSave.getFooterSize();
         int contentSize = guiSave.getSize() - headerSize - footerSize;
 
         for (int i = 0; i < headerSize; i++) {
-            Object item = guiSave.getItem(i);
-            if (item instanceof CustomItem customItem) {
-                inv.setItem(i, customItem.getIcon(getPlayer()));
-                items.set(i, customItem);
-            } else if (item instanceof GUICategory category) {
-                inv.setItem(i, category.getIcon(getPlayer()));
-                items.set(i, category);
-                categories.add(category);
-            }
+            render(i, guiSave.getItem(i));
         }
 
         boolean isHomePage = guiCategory == null || guiCategory.id().isEmpty()
@@ -61,7 +54,7 @@ public class ShopGUI extends BasicGUI {
 
         if (isHomePage) {
             // Determine if fast-buy customization applies (shop GUI only, not upgrade GUI)
-            IArena arena = Arena.arenaByWorld.get(getPlayer().getWorld());
+            IArena arena = ArenaRegistry.byWorld(getPlayer().getWorld());
             boolean isShopGui = arena != null && guiSave.getGuiId().equals(arena.getShopGuiId());
             com.l299l.newbedwars.player.PlayerProfile playerIns = isShopGui
                     ? NewBedwars.plugin.getPlayerManager().getPlayer(getPlayer().getName()) : null;
@@ -72,20 +65,7 @@ public class ShopGUI extends BasicGUI {
                 renderCustomFastBuy(headerSize, fastBuyPerCat);
                 renderFromSlot(headerSize + contentSize);
             } else {
-                for (int i = headerSize; i < guiSave.getItems().size(); i++) {
-                    Object item = guiSave.getItem(i);
-                    if (item instanceof CustomItem customItem) {
-                        inv.setItem(i, customItem.getIcon(getPlayer()));
-                        items.set(i, customItem);
-                    } else if (item instanceof GUICategory category) {
-                        inv.setItem(i, category.getIcon(getPlayer()));
-                        items.set(i, category);
-                        categories.add(category);
-                    } else if (item instanceof GUIUpgrade guiUpgrade) {
-                        inv.setItem(i, guiUpgrade.getIcon(getPlayer()));
-                        items.set(i, guiUpgrade);
-                    }
-                }
+                renderFromSlot(headerSize);
             }
 
         } else {
@@ -107,14 +87,7 @@ public class ShopGUI extends BasicGUI {
             for (int l = 0; l < lines && !end; l++) {
                 i += marginSize;
                 for (int k = 0; k < itemsInLine; k++) {
-                    Object itemO = guiCategory.items().get(j);
-                    if (itemO instanceof GUIUpgrade guiUpgrade) {
-                        inv.setItem(i, guiUpgrade.getIcon(getPlayer()));
-                        items.set(i, guiUpgrade);
-                    } else if (itemO instanceof CustomItem customItem) {
-                        inv.setItem(i, customItem.getIcon(getPlayer()));
-                        items.set(i, customItem);
-                    }
+                    render(i, guiCategory.items().get(j));
                     i++;
                     j++;
                     if (j >= itemsSize) {
@@ -132,19 +105,16 @@ public class ShopGUI extends BasicGUI {
     /** Renders the YAML-defined items from {@code start} to the end of the inventory (the footer). */
     private void renderFromSlot(int start) {
         for (int i = start; i < guiSave.getItems().size(); i++) {
-            Object item = guiSave.getItem(i);
-            if (item instanceof CustomItem customItem) {
-                inv.setItem(i, customItem.getIcon(getPlayer()));
-                items.set(i, customItem);
-            } else if (item instanceof GUICategory category) {
-                inv.setItem(i, category.getIcon(getPlayer()));
-                items.set(i, category);
-                categories.add(category);
-            } else if (item instanceof GUIUpgrade guiUpgrade) {
-                inv.setItem(i, guiUpgrade.getIcon(getPlayer()));
-                items.set(i, guiUpgrade);
-            }
+            render(i, guiSave.getItem(i));
         }
+    }
+
+    /** Puts a shop item, category or upgrade on {@code slot}; anything else leaves the slot empty. */
+    private void render(int slot, GUIEntry item) {
+        if (item == null) return;
+        inv.setItem(slot, item.getIcon(getPlayer()));
+        if (item instanceof GUICategory category) categories.add(category);
+        items.set(slot, item);
     }
 
     /**
@@ -156,7 +126,7 @@ public class ShopGUI extends BasicGUI {
     private void renderCustomFastBuy(int headerSize, Map<String, List<String>> fastBuyPerCat) {
         List<GUICategory> orderedCats = new ArrayList<>();
         for (int i = 0; i < headerSize; i++) {
-            Object o = guiSave.getItem(i);
+            GUIEntry o = guiSave.getItem(i);
             if (o instanceof GUICategory cat && !cat.id().equalsIgnoreCase("home")) {
                 orderedCats.add(cat);
             }
@@ -177,8 +147,7 @@ public class ShopGUI extends BasicGUI {
                 if (ci == null) continue;
                 int slot = headerSize + row * 9 + margin + col;
                 if (slot < guiSave.getSize()) {
-                    inv.setItem(slot, ci.getIcon(getPlayer()));
-                    items.set(slot, ci);
+                    render(slot, ci);
                 }
             }
         }
@@ -192,7 +161,7 @@ public class ShopGUI extends BasicGUI {
     public List<GUICategory> getCategories() { return categories; }
     public GUISave getGuiSave() { return guiSave; }
     public GUICategory getActualGuiCategory() { return guiCategory; }
-    public Object getItemOnSlot(int slot) { return items.get(slot); }
+    public GUIEntry getItemOnSlot(int slot) { return items.get(slot); }
     public void addCategory(GUICategory category) { categories.add(category); }
     public void removeCategory(GUICategory category) { categories.remove(category); }
 }

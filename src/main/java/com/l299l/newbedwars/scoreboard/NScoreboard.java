@@ -2,7 +2,8 @@ package com.l299l.newbedwars.scoreboard;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.bossbar.TextEffect;
+import com.l299l.newbedwars.text.TextAnimator;
+import com.l299l.newbedwars.text.TextEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -11,9 +12,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 public class NScoreboard {
     private final String id;
@@ -53,105 +52,16 @@ public class NScoreboard {
 
     private BukkitTask createEffectTask() {
         if (textEffect == null || textEffect == TextEffect.NONE) return null;
-        switch (textEffect) {
-            case RAINBOW: {
-                return new BukkitRunnable() {
-                    int i = 0;
-                    @Override
-                    public void run() {
-                        StringBuilder newText = new StringBuilder();
-                        ChatColor color = ChatColor.WHITE;
-                        for (int j = 0; j < rawTitle.length(); j++) {
-                            if (rawTitle.charAt(j) == '&' && j + 1 < rawTitle.length()) {
-                                ChatColor code = ChatColor.getByChar(rawTitle.charAt(j + 1));
-                                if (code != null) color = code;
-                                newText.append(rawTitle.charAt(j)).append(rawTitle.charAt(j + 1));
-                                j++;
-                                continue;
-                            }
-                            if (j == i) {
-                                newText.append(getRandomColor()).append(rawTitle.charAt(j));
-                            } else {
-                                newText.append(color).append(rawTitle.charAt(j));
-                            }
-                        }
-                        Objective obj = scoreboard.getObjective(id);
-                        if (obj != null) {
-                            obj.setDisplayName(ChatColor.translateAlternateColorCodes('&', newText.toString()));
-                        }
-                        i++;
-                        if (i >= rawTitle.length()) i = 0;
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 2);
-            }
-            case GOING_CHANGING: {
-                return new BukkitRunnable() {
-                    int i = 0;
-                    final ChatColor secondColor = getRandomColor();
-                    @Override
-                    public void run() {
-                        StringBuilder newText = new StringBuilder();
-                        ChatColor color = ChatColor.WHITE;
-                        int start = 0;
-                        if (rawTitle.startsWith("&") && rawTitle.length() > 1) {
-                            ChatColor code = ChatColor.getByChar(rawTitle.charAt(1));
-                            if (code != null) color = code;
-                            start = 2;
-                        }
-                        newText.append(secondColor);
-                        for (int j = start; j < rawTitle.length(); j++) {
-                            if (j <= i) {
-                                newText.append(secondColor).append(rawTitle.charAt(j));
-                            } else {
-                                newText.append(color).append(rawTitle.charAt(j));
-                            }
-                        }
-                        Objective obj = scoreboard.getObjective(id);
-                        if (obj != null) {
-                            obj.setDisplayName(ChatColor.translateAlternateColorCodes('&', newText.toString()));
-                        }
-                        i++;
-                        if (i >= rawTitle.length()) i = 0;
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 2);
-            }
-            case PULSING: {
-                ChatColor color = ChatColor.WHITE;
-                if (rawTitle.startsWith("&") && rawTitle.length() > 1) {
-                    ChatColor code = ChatColor.getByChar(rawTitle.charAt(1));
-                    if (code != null) color = code;
+        TextAnimator animator = new TextAnimator(textEffect, rawTitle, ChatColor.WHITE);
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                Objective obj = scoreboard.getObjective(id);
+                if (obj != null) {
+                    obj.setDisplayName(animator.next(rawTitle));
                 }
-                ChatColor secondColor = getPulseColor(color);
-                ChatColor finalColor = color;
-                return new BukkitRunnable() {
-                    boolean up = true;
-                    @Override
-                    public void run() {
-                        Objective obj = scoreboard.getObjective(id);
-                        if (obj != null) {
-                            if (up) {
-                                obj.setDisplayName(secondColor + ChatColor.translateAlternateColorCodes('&', rawTitle).replaceAll("[&§]" + finalColor.getChar(), ""));
-                            } else {
-                                obj.setDisplayName(ChatColor.translateAlternateColorCodes('&', rawTitle));
-                            }
-                        }
-                        up = !up;
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 15);
             }
-            case RAINBOW_PULSING: {
-                return new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Objective obj = scoreboard.getObjective(id);
-                        if (obj != null) {
-                            obj.setDisplayName(getRandomColor() + ChatColor.translateAlternateColorCodes('&', rawTitle));
-                        }
-                    }
-                }.runTaskTimer(NewBedwars.plugin, 0, 5);
-            }
-            default: return null;
-        }
+        }.runTaskTimer(NewBedwars.plugin, 0, animator.period(2));
     }
 
     public void kill() {
@@ -182,33 +92,5 @@ public class NScoreboard {
 
     public ScoreboardManager getScoreboardManager() {
         return scoreboardManager;
-    }
-
-    private ChatColor getRandomColor() {
-        List<ChatColor> colors = Arrays.asList(ChatColor.values());
-        ChatColor color = colors.get(new Random().nextInt(colors.size()));
-        if (color == ChatColor.MAGIC || color == ChatColor.BOLD || color == ChatColor.STRIKETHROUGH || color == ChatColor.UNDERLINE || color == ChatColor.ITALIC || color == ChatColor.RESET) {
-            return getRandomColor();
-        }
-        return color;
-    }
-
-    private ChatColor getPulseColor(ChatColor color) {
-        switch (color) {
-            case GREEN: return ChatColor.DARK_GREEN;
-            case DARK_GREEN: return ChatColor.GREEN;
-            case RED: return ChatColor.DARK_RED;
-            case DARK_RED: return ChatColor.RED;
-            case BLUE: return ChatColor.DARK_BLUE;
-            case DARK_BLUE: return ChatColor.BLUE;
-            case AQUA: return ChatColor.DARK_AQUA;
-            case DARK_AQUA: return ChatColor.AQUA;
-            case YELLOW: return ChatColor.GOLD;
-            case GOLD: return ChatColor.YELLOW;
-            case WHITE: return ChatColor.GRAY;
-            case DARK_GRAY: return ChatColor.BLACK;
-            case BLACK: return ChatColor.DARK_GRAY;
-            default: return ChatColor.WHITE;
-        }
     }
 }

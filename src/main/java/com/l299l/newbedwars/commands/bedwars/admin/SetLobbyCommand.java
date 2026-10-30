@@ -2,18 +2,13 @@ package com.l299l.newbedwars.commands.bedwars.admin;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SetLobbyCommand extends SubCommand {
-    private final Messages msg;
+public class SetLobbyCommand extends BwCommand {
 
-    public SetLobbyCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {

@@ -1,19 +1,13 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SetQuickVoidYCommand extends SubCommand {
-    private final Messages msg;
+public class SetQuickVoidYCommand extends BwCommand {
 
-    public SetQuickVoidYCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override public String getName() { return "setQuickVoidY"; }
     @Override public String getDescription() { return "Set the Y level at which players instantly die (quick void)."; }
@@ -27,7 +21,7 @@ public class SetQuickVoidYCommand extends SubCommand {
             try {
                 y = Integer.parseInt(args[1]);
             } catch (NumberFormatException ex) {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
                 return;
             }
         } else {

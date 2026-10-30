@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.config.data;
 
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.config.StorageType;
 import com.l299l.newbedwars.config.data.json.PlayerDataJson;
 import com.l299l.newbedwars.config.data.json.PlayerStatsDataJson;
@@ -64,7 +64,7 @@ public class DataManager {
     }
 
     public void unloadArenas() {
-        for (World arenaWorld : Arena.arenaByWorld.keySet()) {
+        for (World arenaWorld : ArenaRegistry.worlds()) {
             boolean correct = Bukkit.getServer().unloadWorld(arenaWorld, false);
             if (!correct) {
                 Bukkit.getServer().getLogger().severe("Could not unload arena world " + arenaWorld.getName());

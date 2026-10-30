@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -52,50 +53,31 @@ public class Updater extends PluginFiles {
 
     public void reloadLanguages() {
         for (Language lang : Language.values()) {
-            reloadLang(lang);
-            saveLang(lang);
-            FileConfiguration conf = langConfs.get(lang);
+            File file = langFiles.get(lang);
+            String resource = lang.getCode() + ".yml";
+            FileConfiguration conf = loadOrDefault(file, resource);
+            if (conf != null) langConfs.put(lang, conf);
+            save(conf, file);
             List<String> ignored = conf != null && conf.contains("CustomItemsNames")
                     ? Collections.singletonList("CustomItemsNames") : Collections.emptyList();
-            try {
-                ConfigUpdater.update(NewBedwars.plugin, lang.getCode() + ".yml", langFiles.get(lang), ignored);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            reloadLang(lang);
+            update(resource, file, ignored);
+            conf = loadOrDefault(file, resource);
+            if (conf != null) langConfs.put(lang, conf);
         }
     }
 
     public void reloadBossBars() {
-        reloadBossBarsInternal();
-        saveBossBars();
-        try {
-            ConfigUpdater.update(NewBedwars.plugin, "bossBars.yml", bossBarsFile, Collections.emptyList());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        reloadBossBarsInternal();
+        bossBarsConf = refresh("bossBars.yml", bossBarsFile, bossBarsConf);
     }
 
     public void reloadScoreboards() {
-        reloadScoreboardsInternal();
-        saveScoreboards();
-        try {
-            ConfigUpdater.update(NewBedwars.plugin, "scoreboards.yml", scoreboardFile, Collections.emptyList());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        reloadScoreboardsInternal();
+        scoreboardsConf = refresh("scoreboards.yml", scoreboardFile, scoreboardsConf);
     }
 
     public void reloadGeneratorsConfigurations() {
         reloadGenerators();
-        saveGenerators();
-        try {
-            ConfigUpdater.update(NewBedwars.plugin, "defaultGenerators.yml", generatorsFile, Collections.emptyList());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        save(defaultGeneratorsConf, generatorsFile);
+        update("defaultGenerators.yml", generatorsFile, Collections.emptyList());
         reloadGenerators();
     }
 
@@ -119,22 +101,27 @@ public class Updater extends PluginFiles {
         return generatorsConfigurations;
     }
 
-    private void reloadLang(Language lang) {
-        File file = langFiles.get(lang);
-        if (file != null && file.exists()) {
-            langConfs.put(lang, YamlConfiguration.loadConfiguration(file));
-        } else {
-            InputStream stream = getFilesResource(lang.getCode() + ".yml", getMessagesClassLoader());
-            if (stream != null) {
-                langConfs.put(lang, YamlConfiguration.loadConfiguration(new InputStreamReader(stream)));
-            }
-        }
+    /** Load, write back, add missing keys from the bundled resource, load again. Keeps {@code current} if nothing loads. */
+    private FileConfiguration refresh(String resource, File file, FileConfiguration current) {
+        FileConfiguration conf = loadOrDefault(file, resource);
+        if (conf == null) conf = current;
+        save(conf, file);
+        update(resource, file, Collections.emptyList());
+        FileConfiguration updated = loadOrDefault(file, resource);
+        return updated != null ? updated : conf;
     }
 
-    private void saveLang(Language lang) {
-        FileConfiguration conf = langConfs.get(lang);
+    /** The file if it exists, otherwise the bundled resource; {@code null} when neither is there. */
+    private FileConfiguration loadOrDefault(File file, String resource) {
+        if (file != null && file.exists()) {
+            return YamlConfiguration.loadConfiguration(file);
+        }
+        InputStream stream = getFilesResource(resource, getMessagesClassLoader());
+        return stream == null ? null : YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+    }
+
+    private void save(FileConfiguration conf, File file) {
         if (conf == null) return;
-        File file = langFiles.get(lang);
         try {
             conf.save(file);
         } catch (IOException e) {
@@ -142,39 +129,11 @@ public class Updater extends PluginFiles {
         }
     }
 
-    private void reloadBossBarsInternal() {
-        if (bossBarsFile.exists()) {
-            bossBarsConf = YamlConfiguration.loadConfiguration(bossBarsFile);
-        } else {
-            InputStream s = getFilesResource("bossBars.yml", getMessagesClassLoader());
-            if (s != null) bossBarsConf = YamlConfiguration.loadConfiguration(new InputStreamReader(s));
-        }
-    }
-
-    private void saveBossBars() {
-        if (bossBarsConf == null) return;
+    private void update(String resource, File file, List<String> ignoredSections) {
         try {
-            bossBarsConf.save(bossBarsFile);
-        } catch (IOException e) {
-            NewBedwars.plugin.getServer().getConsoleSender().sendMessage(error);
-        }
-    }
-
-    private void reloadScoreboardsInternal() {
-        if (scoreboardFile.exists()) {
-            scoreboardsConf = YamlConfiguration.loadConfiguration(scoreboardFile);
-        } else {
-            InputStream s = getFilesResource("scoreboards.yml", getMessagesClassLoader());
-            if (s != null) scoreboardsConf = YamlConfiguration.loadConfiguration(new InputStreamReader(s));
-        }
-    }
-
-    private void saveScoreboards() {
-        if (scoreboardsConf == null) return;
-        try {
-            scoreboardsConf.save(scoreboardFile);
-        } catch (IOException e) {
-            NewBedwars.plugin.getServer().getConsoleSender().sendMessage(error);
+            ConfigUpdater.update(NewBedwars.plugin, resource, file, ignoredSections);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -193,20 +152,10 @@ public class Updater extends PluginFiles {
                 }
             }
         } else {
-            InputStream s = getFilesResource("defaultGenerators.yml", getMessagesClassLoader());
-            if (s != null) generatorsConf = YamlConfiguration.loadConfiguration(new InputStreamReader(s));
+            generatorsConf = loadOrDefault(null, "defaultGenerators.yml");
         }
         defaultGeneratorsConf = generatorsConf;
         if (generatorsConf != null) generatorsConfigurations.add(generatorsConf);
-    }
-
-    private void saveGenerators() {
-        if (defaultGeneratorsConf == null) return;
-        try {
-            defaultGeneratorsConf.save(generatorsFile);
-        } catch (IOException e) {
-            NewBedwars.plugin.getServer().getConsoleSender().sendMessage(error);
-        }
     }
 
     protected final ClassLoader getMessagesClassLoader() {

@@ -9,12 +9,16 @@ All notable changes to NewBedwars are documented here.
 - **Map voting** - Put arenas with the same team size into groups (`/bw group`). Players can join a group with `/bw join <group>` or a join NPC. When a game in a grouped arena ends, everyone still there gets a vote item and votes for the next map among the group's other free arenas; when the after-game time is up, everyone joins the map with the most votes (ties are random, parties stay together). Turn it off for single arenas with the `MapVote` gamerule. New permission `newbedwars.bw.group`. The default `AfterGameWatchTime` is now 30 seconds
 - **Copy arenas** - `/bw arena copy <arena> <newName>` copies an arena with its settings and map, so one map can run several games at once. The copy joins the same group
 - **Lobby join NPCs** - Click an NPC in the lobby to join the fullest free arena of a group, join a specific arena or open the arena selector, with a live hologram above it showing players and free arenas. Make the NPC with Citizens and attach it with `/bw npc set`, or without Citizens spawn a simple one with `/bw npc create`. Parties follow the same rules as `/bw join`. New permission `newbedwars.bw.npc`, hologram lines under `JoinNpc` in `config.yml`
+- **More translated texts** - The setup info (`/bw arena` in setup mode and its menu), the arena selector, spectate selector, profile, fast-buy editor and upgrade menus, the party help and invite buttons, the `/bw game` messages and the reload kick message now use the language files (English and Polish included; other languages fall back to English)
 
 ### Fixed
 - **Leaving while respawning** - Leaving the game (lobby command, leave item, disconnect) while waiting to respawn no longer keeps the respawn countdown running and throws an error
 - **One game to rejoin** - Joining another arena while you could still rejoin a game now gives up that game (you get a message) instead of keeping both, so nobody ends up with several games to rejoin. The arena selector now uses the same checks as `/bw join`
 - **Broken arena maps after saving** - Saving or enabling an arena right after changes could copy half-written world data into its map copy ("Unexpected end of ZLIB input stream" after the next reset). Incomplete files are now copied again until they are complete
 - **Spectators falling into the void** - Spectators (during the end of a game) and players in the waiting lobby are sent back to the waiting spawn when they fall below the Quick Void level or the bottom of the world, instead of dying and breaking their state. Spectators can no longer take damage
+- **Team area setup commands** - `/bw setTeamBasePos1/2` and `/bw setTeamBuildProtAreaPos1/2` now accept `<x> <y> <z>` like the other position commands (tab completion already suggested them). The help of `/bw setWaitingPos1/2` and `/bw setWaitingSpawn` shows the right command name
+- **Arena info** - `/bw arena` in setup mode (chat view) now also lists the `MapVote` gamerule, like the GUI. Its "ready" hint now names the right command (`/bw arena enable <arena>`)
+- **Special characters in default files** - Bundled language, boss bar, scoreboard and generator files are read as UTF-8, so accents and symbols are no longer garbled on servers with another default charset
 
 ---
 

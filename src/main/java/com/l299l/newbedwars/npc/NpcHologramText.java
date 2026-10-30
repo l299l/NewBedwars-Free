@@ -18,7 +18,7 @@ public final class NpcHologramText {
      */
     public static HashMap<String, String> replacements(JoinNpcAction action, Collection<IArena> arenas) {
         List<IArena> matched = arenas.stream()
-                .filter(a -> Boolean.TRUE.equals(a.isEnabled()))
+                .filter(a -> a.isEnabled())
                 .filter(action::matches)
                 .toList();
         int playing = 0;
@@ -48,13 +48,13 @@ public final class NpcHologramText {
         r.put("/waiting/", String.valueOf(waiting));
         r.put("/arenas_free/", String.valueOf(free));
         r.put("/players/", shown != null ? String.valueOf(shown.getActivePlayerCount()) : "0");
-        r.put("/max/", shown != null ? String.valueOf(ArenaJoinService.maxPlayers(shown)) : "0");
+        r.put("/max/", shown != null ? String.valueOf(shown.getMaxPlayers()) : "0");
         r.put("/status/", shown != null ? statusName(shown) : "-");
         return r;
     }
 
     private static String statusName(IArena arena) {
-        if (!Boolean.TRUE.equals(arena.isEnabled())) return "Disabled";
+        if (!arena.isEnabled()) return "Disabled";
         String s = arena.status().name();
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }

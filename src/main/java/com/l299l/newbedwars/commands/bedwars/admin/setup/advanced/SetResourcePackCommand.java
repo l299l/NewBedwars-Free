@@ -1,20 +1,14 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.advanced;
 
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SetResourcePackCommand extends SubCommand {
+public class SetResourcePackCommand extends BwCommand {
     private static final int SHA1_HEX_LENGTH = 40;
-    private final Messages msg;
 
-    public SetResourcePackCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -39,7 +33,7 @@ public class SetResourcePackCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if (args.length < 2) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         String urlArg = args[1];

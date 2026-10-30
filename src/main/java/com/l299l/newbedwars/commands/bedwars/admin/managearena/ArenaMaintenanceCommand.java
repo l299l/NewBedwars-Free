@@ -1,14 +1,13 @@
 package com.l299l.newbedwars.commands.bedwars.admin.managearena;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.config.data.json.arenas.ArenaDataJson;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataManager;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaMigrator;
 import com.l299l.newbedwars.config.data.json.arenas.AtomicFileWriter;
@@ -25,8 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -35,83 +34,93 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * One class for the arena file/map maintenance commands, selected by {@code action}:
- * backup, backups, restore, export, import, resetmap.
+ * One class for the arena file/map maintenance commands, selected by {@link Action}:
+ * backup, backups, restore, export, import, copy, resetmap.
  */
-public class ArenaMaintenanceCommand extends SubCommand {
+public class ArenaMaintenanceCommand extends BwCommand {
     private static final Pattern SAFE_NAME = Pattern.compile("[A-Za-z0-9_\\-]{1,64}");
     private static final String ARENA_ENTRY = "arena.json";
     private static final String TEMPLATE_PREFIX = "template/";
 
-    private final Messages msg;
-    private final String action;
+    public enum Action {
+        BACKUP("backup", "Back up the arena file and map now.", "<arenaName>", "castle", 3, 3),
+        BACKUPS("backups", "List the backups of an arena.", "<arenaName>", "castle", 3, 3),
+        RESTORE("restore", "Restore an arena (file and map) from a backup.", "<arenaName> [backupId]", "castle", 3, 4),
+        EXPORT("export", "Export an arena (file and map) to a zip.", "<arenaName>", "castle", 3, 3),
+        IMPORT("import", "Import an arena from a zip in data/exports (loaded disabled).", "<fileName>", "castle-20261027.zip", 3, 3),
+        COPY("copy", "Copy an arena (settings and map) to a new arena; the copy joins the same group.", "<arenaName> <newArenaName>", "castle castle2", 4, 4),
+        RESETMAP("resetmap", "Put the arena map back to its saved state now.", "<arenaName>", "castle", 3, 3);
 
-    public ArenaMaintenanceCommand(String action) {
-        this.msg = NewBedwars.plugin.getMessages();
+        final String command;
+        final String description;
+        final String arguments;
+        final String example;
+        final int minArgs;
+        final int maxArgs;
+
+        Action(String command, String description, String arguments, String example, int minArgs, int maxArgs) {
+            this.command = command;
+            this.description = description;
+            this.arguments = arguments;
+            this.example = example;
+            this.minArgs = minArgs;
+            this.maxArgs = maxArgs;
+        }
+    }
+
+    private final Action action;
+
+    public ArenaMaintenanceCommand(Action action) {
         this.action = action;
     }
 
     @Override
     public String getName() {
-        return action;
+        return action.command;
     }
 
     @Override
     public String getDescription() {
-        return switch (action) {
-            case "backup" -> "Back up the arena file and map now.";
-            case "backups" -> "List the backups of an arena.";
-            case "restore" -> "Restore an arena (file and map) from a backup.";
-            case "export" -> "Export an arena (file and map) to a zip.";
-            case "import" -> "Import an arena from a zip in data/exports (loaded disabled).";
-            case "copy" -> "Copy an arena (settings and map) to a new arena; the copy joins the same group.";
-            default -> "Put the arena map back to its saved state now.";
-        };
+        return action.description;
     }
 
     @Override
     public String getSyntax() {
-        return switch (action) {
-            case "restore" -> "/bw arena restore <arenaName> [backupId]";
-            case "import" -> "/bw arena import <fileName>";
-            case "copy" -> "/bw arena copy <arenaName> <newArenaName>";
-            default -> "/bw arena " + action + " <arenaName>";
-        };
+        return "/bw arena " + action.command + " " + action.arguments;
     }
 
     @Override
     public String getExample() {
-        return "/bw arena " + action + (action.equals("import") ? " castle-20261027.zip" : action.equals("copy") ? " castle castle2" : " castle");
+        return "/bw arena " + action.command + " " + action.example;
     }
 
     @Override
     public void perform(Player player, String[] args, IArena old) {
-        if (!player.hasPermission("newbedwars.bw.arena." + action)) {
+        if (!player.hasPermission("newbedwars.bw.arena." + action.command)) {
             msg.send(player, "NoPermissions");
             return;
         }
-        int min = action.equals("copy") ? 4 : 3;
-        int max = action.equals("restore") || action.equals("copy") ? 4 : 3;
-        if (args.length < min || args.length > max) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+        if (args.length < action.minArgs || args.length > action.maxArgs) {
+            usage(player);
             return;
         }
-        if (action.equals("import")) {
+        if (action == Action.IMPORT) {
             doImport(player, args[2]);
             return;
         }
-        IArena arena = Arena.arenaByName.get(args[2]);
+        IArena arena = ArenaRegistry.byName(args[2]);
         if (arena == null) {
             msg.send(player, "ArenaNotExists");
             return;
         }
         switch (action) {
-            case "backup" -> doBackup(player, arena);
-            case "backups" -> doList(player, arena);
-            case "restore" -> doRestore(player, arena, args.length == 4 ? args[3] : null);
-            case "export" -> doExport(player, arena);
-            case "copy" -> doCopy(player, arena, args[3]);
-            default -> doResetMap(player, arena);
+            case BACKUP -> doBackup(player, arena);
+            case BACKUPS -> doList(player, arena);
+            case RESTORE -> doRestore(player, arena, args.length == 4 ? args[3] : null);
+            case EXPORT -> doExport(player, arena);
+            case COPY -> doCopy(player, arena, args[3]);
+            case RESETMAP -> doResetMap(player, arena);
+            default -> { }
         }
     }
 
@@ -119,14 +128,13 @@ public class ArenaMaintenanceCommand extends SubCommand {
         GameStatus s = arena.status();
         return !arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()
                 || s == GameStatus.playing || s == GameStatus.starting || s == GameStatus.ending
-                || (Boolean.TRUE.equals(arena.isEnabled()) && s != GameStatus.waiting);
+                || (arena.isEnabled() && s != GameStatus.waiting);
     }
 
     private void reply(Player player, String key, String arena, String extra) {
-        msg.send(player, key, new HashMap<>() {{
-            put("/arenaname/", arena);
-            put("/info/", extra == null ? "" : extra);
-        }});
+        msg.send(player, key, Map.of(
+                "/arenaname/", arena,
+                "/info/", extra == null ? "" : extra));
     }
 
 
@@ -282,7 +290,7 @@ public class ArenaMaintenanceCommand extends SubCommand {
             return;
         }
         Path arenaFile = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(newName + ".json");
-        if (com.l299l.newbedwars.arena.join.ArenaJoinService.arenaByName(newName) != null || Files.exists(arenaFile)
+        if (ArenaRegistry.find(newName) != null || Files.exists(arenaFile)
                 || Bukkit.getWorld(newName) != null || Files.exists(ArenaMaps.worldFolder(newName))
                 || MapTemplateManager.hasTemplate(ArenaMaps.mapsRoot(), newName)) {
             reply(player, "CopyFailed", newName, "an arena, map or world with that name already exists");
@@ -380,7 +388,7 @@ public class ArenaMaintenanceCommand extends SubCommand {
                 throw new IOException("the arena or world name contains illegal characters");
             }
             Path arenaFile = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(name + ".json");
-            if (Arena.arenaByName.containsKey(name) || Files.exists(arenaFile) || Files.exists(ArenaMaps.worldFolder(worldName))
+            if (ArenaRegistry.contains(name) || Files.exists(arenaFile) || Files.exists(ArenaMaps.worldFolder(worldName))
                     || Bukkit.getWorld(worldName) != null) {
                 throw new IOException("an arena or world named '" + name + "' / '" + worldName + "' already exists");
             }
@@ -440,19 +448,19 @@ public class ArenaMaintenanceCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 3) {
-            if (action.equals("import")) {
+            if (action == Action.IMPORT) {
                 try (Stream<Path> s = Files.isDirectory(exportsDir()) ? Files.list(exportsDir()) : Stream.<Path>empty()) {
                     return s.map(p -> p.getFileName().toString()).filter(n -> n.endsWith(".zip")).toList();
                 } catch (IOException e) {
                     return new ArrayList<>();
                 }
             }
-            return new ArrayList<>(Arena.arenaByName.keySet());
+            return new ArrayList<>(ArenaRegistry.names());
         }
-        if (args.length == 4 && action.equals("copy")) {
+        if (args.length == 4 && action == Action.COPY) {
             return List.of(args[2] + "2");
         }
-        if (args.length == 4 && action.equals("restore") && Arena.arenaByName.containsKey(args[2])) {
+        if (args.length == 4 && action == Action.RESTORE && ArenaRegistry.contains(args[2])) {
             try {
                 TreeSet<String> ids = new TreeSet<>(Comparator.reverseOrder());
                 for (Path p : MapTemplateManager.listBackups(ArenaMaps.arenaBackupDir(args[2]), ".json")) ids.add(baseName(p));

@@ -29,6 +29,7 @@ class PartyCommandTest {
     @BeforeEach
     void setUp() {
         mockMessages = mock(Messages.class);
+        when(mockMessages.getMsg(any(Player.class), anyString())).thenAnswer(inv -> inv.getArgument(1));
         Plugin plugin = mock(Plugin.class);
 
         pm = new PartyManager(plugin, mockMessages) {

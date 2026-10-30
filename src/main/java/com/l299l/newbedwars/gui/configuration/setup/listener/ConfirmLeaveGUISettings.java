@@ -1,8 +1,8 @@
 package com.l299l.newbedwars.gui.configuration.setup.listener;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.gui.configuration.setup.guis.ConfirmLeaveGUI;
@@ -33,7 +33,7 @@ public class ConfirmLeaveGUISettings implements Listener {
         Player player = (Player) e.getWhoClicked();
         try {
             if (e.getClickedInventory().getHolder() instanceof ConfirmLeaveGUI) {
-                IArena arena = Arena.arenaByWorld.get(player.getWorld());
+                IArena arena = ArenaRegistry.byWorld(player.getWorld());
                 if(!((ConfirmLeaveGUI) e.getClickedInventory().getHolder()).getAll()) {
                     if (e.getSlot() >= 0 && e.getSlot() < 4) {
                         leave(arena, player);

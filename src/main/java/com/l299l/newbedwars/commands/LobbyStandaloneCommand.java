@@ -1,9 +1,9 @@
 package com.l299l.newbedwars.commands;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.api.events.LeaveReason;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.config.properties.Properties;
@@ -30,7 +30,7 @@ public class LobbyStandaloneCommand implements CommandExecutor {
             msg.send(player, "NoPermissions");
             return true;
         }
-        IArena playerArena = Arena.arenaByWorld.get(player.getWorld());
+        IArena playerArena = ArenaRegistry.byWorld(player.getWorld());
         if (playerArena != null && (playerArena.isPlayerInArena(player) || playerArena.getSpectators().contains(player))) {
             playerArena.leave(player, LeaveReason.COMMAND);
             return true;

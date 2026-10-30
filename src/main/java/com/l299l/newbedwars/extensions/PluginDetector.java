@@ -10,4 +10,9 @@ public class PluginDetector {
     public static boolean isPlaceholderAPIPresent() {
         return Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
     }
+
+    public static boolean isCitizensPresent() {
+        return Bukkit.getPluginManager().getPlugin("Citizens") != null &&
+                Bukkit.getPluginManager().isPluginEnabled("Citizens");
+    }
 }

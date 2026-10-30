@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.generators;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -34,7 +35,7 @@ public class BasicGenerator implements Generator {
     public BasicGenerator(Location location) {
         level = 0;
         this.location = location;
-        IArena arena = Arena.arenaByWorld.get(location.getWorld());
+        IArena arena = ArenaRegistry.byWorld(location.getWorld());
         if (arena == null) {
             throw new RuntimeException("Arena not found");
         }
@@ -69,7 +70,7 @@ public class BasicGenerator implements Generator {
             return false;
         }
         level++;
-        IArena arena = Arena.arenaByWorld.get(location.getWorld());
+        IArena arena = ArenaRegistry.byWorld(location.getWorld());
         if (arena == null) {
             throw new RuntimeException("Arena not found");
         }

@@ -1,11 +1,9 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.TeamShop;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.arena.setup.DecoUtils;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.TabArgsUtils;
 import org.bukkit.Location;
@@ -14,12 +12,8 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SetTeamsShopCommand extends SubCommand {
-    private final Messages msg;
+public class SetTeamsShopCommand extends BwCommand {
 
-    public SetTeamsShopCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
     @Override
     public String getName() {
         return "setTeamShop";
@@ -57,16 +51,16 @@ public class SetTeamsShopCommand extends SubCommand {
                         player.sendMessage(msg.getMsg(player, "setTeamShopSuccess") + team.getTeamShop().getLocation().getBlockX() + " " + team.getTeamShop().getLocation().getBlockY() + " " + team.getTeamShop().getLocation().getBlockZ());
                         DecoUtils.summonSetupArmorStand(team.getTeamShop().getLocation(), team.getColor() + "Shop");
                     }else {
-                        player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                        usage(player);
                     }
                 } else {
-                    player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                    usage(player);
                 }
             }catch (Exception e) {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
             }
         }else {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
         }
     }
 

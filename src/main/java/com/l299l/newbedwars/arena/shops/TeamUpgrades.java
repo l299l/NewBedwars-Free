@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.arena.shops;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.team.Team;
@@ -156,7 +156,7 @@ public class TeamUpgrades {
     }
 
     public void open(Player player) {
-        IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
         ShopGUI gui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, arena.getPlayer(player.getUniqueId()).getPlayerUpgradesGui(), null);
         player.openInventory(gui.getInventory());
     }

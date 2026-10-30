@@ -1,17 +1,28 @@
 package com.l299l.newbedwars.config.data.yaml.guis;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.shops.Upgrade;
+import com.l299l.newbedwars.gui.model.GUIEntry;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.GUISave;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.configuration.game.guis.ShopGUI;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.model.GUICategory;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.model.GUIUpgrade;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.yaml.snakeyaml.DumperOptions;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.yaml.snakeyaml.Yaml;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.io.File;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.nio.file.Files;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.util.*;
 
 public class GUIDataYaml {
@@ -30,8 +41,8 @@ public class GUIDataYaml {
             String guiClass = guiSaveObject.get("GuiClass").toString();
             String guiId = guiSaveObject.get("GuiId").toString();
             String name = guiSaveObject.get("GuiName").toString();
-            Integer size = (Integer) guiSaveObject.get("Size");
-            Boolean closeOnTransaction = (Boolean) guiSaveObject.get("CloseOnTransaction");
+            int size = (Integer) guiSaveObject.get("Size");
+            boolean closeOnTransaction = Boolean.TRUE.equals(guiSaveObject.get("CloseOnTransaction"));
             Class<?> guiClassObj = null;
             if (guiClass.equalsIgnoreCase("ShopGui")) {
                 guiClassObj = ShopGUI.class;
@@ -39,7 +50,6 @@ public class GUIDataYaml {
             GUISave guiSave = new GUISave(guiClassObj, guiId, name, size, closeOnTransaction);
             LinkedHashMap<Integer, String> items = (LinkedHashMap<Integer, String>)guiSaveObject.get("Slots");
             List<Map<String, Object>> categories = (List<Map<String, Object>>) guiSaveObject.get("Categories");
-            HashMap<String, GUICategory> guiCategories = new HashMap<>();
             for (Map<String, Object> category: categories) {
                 String catId = category.get("ID").toString();
                 String catName = (category.get("Name") != null)
@@ -47,7 +57,7 @@ public class GUIDataYaml {
                         : catId.substring(0, 1).toUpperCase() + catId.substring(1).toLowerCase();
                 CustomItem catIcon = NewBedwars.plugin.getCustomItemManager().getCustomItem(category.get("Icon").toString());
                 List<String> catItemsNames = (List<String>) category.get("Items");
-                List<Object> catItems = new ArrayList<>();
+                List<GUIEntry> catItems = new ArrayList<>();
                 if (catItemsNames == null) catItemsNames = new ArrayList<>();
                 for (String catItemObj: catItemsNames) {
                     String[] catItemData = catItemObj.split(":");
@@ -68,9 +78,8 @@ public class GUIDataYaml {
                 }
                 String catDescription = category.containsKey("Description") ? category.get("Description").toString() : "";
                 GUICategory guiCategory = new GUICategory(catId, catName, catIcon, catItems, catDescription);
-                guiCategories.put(catId, guiCategory);
+                guiSave.addCategory(guiCategory);
             }
-            guiSave.setGuiData("Categories", guiCategories);
             String[] fill = guiSaveObject.get("Fill").toString().split(":");
             String fillType = fill[0];
             CustomItem fillItem = null;
@@ -85,10 +94,8 @@ public class GUIDataYaml {
                 String itemName = empty[1];
                 emptyItem = NewBedwars.plugin.getCustomItemManager().getCustomItem(itemName);
             }
-            Integer headerSize = (Integer) guiSaveObject.get("HeaderSize");
-            Integer footerSize = (Integer) guiSaveObject.get("FooterSize");
-            guiSave.setGuiData("HeaderSize", headerSize);
-            guiSave.setGuiData("FooterSize", footerSize);
+            guiSave.setHeaderSize(guiSaveObject.get("HeaderSize") instanceof Integer header ? header : 0);
+            guiSave.setFooterSize(guiSaveObject.get("FooterSize") instanceof Integer footer ? footer : 0);
             for (int key = 0; key < items.size(); key++) {
                 String item = items.get(key+1);
                 if (item.equalsIgnoreCase("fill")) {
@@ -104,7 +111,7 @@ public class GUIDataYaml {
                         guiSave.setItem(key, customItem);
                     }else if (type.equalsIgnoreCase("category") || type.equalsIgnoreCase("cat")) {
                         String catName = itemData[1];
-                        GUICategory guiCategory = guiCategories.get(catName);
+                        GUICategory guiCategory = guiSave.getCategories().get(catName);
                         if (guiCategory == null) {
                             throw new RuntimeException("Category " + catName + " not found!");
                         }

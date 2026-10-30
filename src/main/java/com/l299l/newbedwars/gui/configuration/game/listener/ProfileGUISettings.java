@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.gui.configuration.game.listener;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.gui.GUISave;
@@ -27,7 +27,7 @@ public class ProfileGUISettings implements Listener {
             player.closeInventory();
         } else if (slot == 22 && e.getCurrentItem().getType() == Material.CHEST) {
             if (player.equals(gui.getTarget())) {
-                IArena arena = Arena.arenaByWorld.get(player.getWorld());
+                IArena arena = ArenaRegistry.byWorld(player.getWorld());
                 String shopGuiId = arena != null ? arena.getShopGuiId() : Properties.DefaultTeamShopGui;
                 GUISave shopSave = shopGuiId != null
                         ? NewBedwars.plugin.getGuiManager().getGui(shopGuiId) : null;

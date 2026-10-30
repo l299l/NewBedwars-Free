@@ -1,21 +1,14 @@
 package com.l299l.newbedwars.commands.bedwars.main;
 
-import com.google.common.collect.Lists;
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class RejoinCommand extends SubCommand {
-    private final Messages msg;
+public class RejoinCommand extends BwCommand {
 
-    public RejoinCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -40,10 +33,10 @@ public class RejoinCommand extends SubCommand {
     @Override
     public void perform(Player p, String[] args, IArena arena) {
         if (args.length > 1) {
-            p.sendMessage(msg.getMsg(p, "CorrectUsage") + getSyntax());
+            usage(p);
             return;
         }
-        IArena physicalArena = Arena.arenaByWorld.get(p.getWorld());
+        IArena physicalArena = ArenaRegistry.byWorld(p.getWorld());
         if (physicalArena != null && physicalArena.isPlayerInArena(p)
                 && !physicalArena.getSpectators().contains(p)) {
             msg.send(p, "AlreadyInArena");
@@ -68,7 +61,7 @@ public class RejoinCommand extends SubCommand {
     }
 
     private IArena findRejoinArena(Player p) {
-        for (IArena arena : Arena.arenaByName.values()) {
+        for (IArena arena : ArenaRegistry.all()) {
             if (arena.isPlayerInArena(p)) {
                 return arena;
             }

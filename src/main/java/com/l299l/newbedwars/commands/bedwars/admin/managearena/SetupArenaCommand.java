@@ -1,11 +1,10 @@
 package com.l299l.newbedwars.commands.bedwars.admin.managearena;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.Setup;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.gui.configuration.setup.guis.BasicConfigurationGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -17,13 +16,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class SetupArenaCommand extends SubCommand {
+public class SetupArenaCommand extends BwCommand {
 
-    private final Messages msg;
 
-    public SetupArenaCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
 
     @Override
@@ -50,7 +45,7 @@ public class SetupArenaCommand extends SubCommand {
     public void perform(Player player, String[] args, IArena old) {
         if(args.length > 2) {
             try {
-                IArena arena = Arena.arenaByName.get(args[2]);
+                IArena arena = ArenaRegistry.byName(args[2]);
                 if(arena.getSetupMode() != Setup.READY) {
                     Location loc = new Location(arena.getArenaWorld(), 0, 100, 0);
                     if (args.length > 3) {
@@ -75,7 +70,7 @@ public class SetupArenaCommand extends SubCommand {
                                 }
                             }
                         } else {
-                            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                            usage(player);
                         }
                     }
                     player.teleport(loc);
@@ -102,7 +97,7 @@ public class SetupArenaCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if(args.length == 3) {
-            Set<String> arenaNames = Arena.arenaByName.keySet();
+            Set<String> arenaNames = ArenaRegistry.names();
             return new ArrayList<>(arenaNames);
         }else if(args.length == 4) {
             return Collections.singletonList("-l");

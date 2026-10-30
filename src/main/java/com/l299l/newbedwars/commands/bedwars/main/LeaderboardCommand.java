@@ -2,8 +2,7 @@ package com.l299l.newbedwars.commands.bedwars.main;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.player.PlayerStats;
 import org.bukkit.entity.Player;
 
@@ -12,12 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.ToIntFunction;
 
-public class LeaderboardCommand extends SubCommand {
-    private final Messages msg;
+public class LeaderboardCommand extends BwCommand {
 
-    public LeaderboardCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override public String getName() { return "leaderboard"; }
     @Override public String getDescription() { return "Show top 10 players by a stat."; }
@@ -58,7 +53,7 @@ public class LeaderboardCommand extends SubCommand {
             }
         }
 
-        msg.send(player, "LeaderboardHeader", new HashMap<>() {{ put("/category/", msg.getMsg(player, title)); }});
+        msg.send(player, "LeaderboardHeader", Map.of("/category/", msg.getMsg(player, title)));
         if (top.isEmpty()) {
             msg.send(player, "LeaderboardEmpty");
             return;
@@ -66,11 +61,10 @@ public class LeaderboardCommand extends SubCommand {
         for (int i = 0; i < top.size(); i++) {
             Map.Entry<String, PlayerStats> entry = top.get(i);
             int rankIndex = i;
-            msg.send(player, "LeaderboardEntry", new HashMap<>() {{
-                put("/rank/", String.valueOf(rankIndex + 1));
-                put("/player/", entry.getKey());
-                put("/value/", String.valueOf(valueFunc.applyAsInt(entry.getValue())));
-            }});
+            msg.send(player, "LeaderboardEntry", Map.of(
+                    "/rank/", String.valueOf(rankIndex + 1),
+                    "/player/", entry.getKey(),
+                    "/value/", String.valueOf(valueFunc.applyAsInt(entry.getValue()))));
         }
     }
 

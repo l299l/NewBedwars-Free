@@ -24,6 +24,11 @@ public abstract class BasicGUI implements InventoryHolder {
         return player;
     }
 
+    /** A message in the viewer's language. */
+    protected String text(String key) {
+        return getMsg().getMsg(getPlayer(), key);
+    }
+
     protected Messages getMsg() {
         return msg;
     }

@@ -1,30 +1,24 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.basic;
 
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.arena.setup.DecoUtils;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
-public class RemoveCommand extends SubCommand {
+public class RemoveCommand extends BwCommand {
 
     private static final List<String> TEAM_PROPS =
             Arrays.asList("bed", "spawn", "shop", "upgrades", "buildprotpos1", "buildprotpos2", "pos1", "pos2");
 
-    private final Messages msg;
 
-    public RemoveCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -49,14 +43,14 @@ public class RemoveCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if (args.length < 3) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
 
         switch (args[1].toLowerCase()) {
             case "team" -> handleTeam(player, args, arena);
             case "generator" -> handleGenerator(player, args, arena);
-            default -> player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            default -> usage(player);
         }
     }
 
@@ -70,9 +64,7 @@ public class RemoveCommand extends SubCommand {
 
         if (args.length == 3) {
             arena.removeTeam(teamName);
-            msg.send(player, "TeamRemoved", new HashMap<>() {{
-                put("/team/", teamName);
-            }});
+            msg.send(player, "TeamRemoved", Map.of("/team/", teamName));
             return;
         }
 
@@ -115,16 +107,15 @@ public class RemoveCommand extends SubCommand {
                 team.setTeamBasePos2(null);
             }
             default -> {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
                 return;
             }
         }
         final String finalProp = prop;
         final String finalTeam = teamName;
-        msg.send(player, "TeamPropertyCleared", new HashMap<>() {{
-            put("/property/", finalProp);
-            put("/team/", finalTeam);
-        }});
+        msg.send(player, "TeamPropertyCleared", Map.of(
+                "/property/", finalProp,
+                "/team/", finalTeam));
     }
 
     private void handleGenerator(Player player, String[] args, IArena arena) {
@@ -134,22 +125,19 @@ public class RemoveCommand extends SubCommand {
             if (removed != null) {
                 String typeName = removed.getType().name();
                 String displayIndex = args[2];
-                msg.send(player, "GeneratorRemoved", new HashMap<>() {{
-                    put("/type/", typeName);
-                    put("/index/", displayIndex);
-                }});
+                msg.send(player, "GeneratorRemoved", Map.of(
+                        "/type/", typeName,
+                        "/index/", displayIndex));
             } else {
                 msg.send(player, "GeneratorNotFound");
             }
         } catch (NumberFormatException e) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
         }
     }
 
     private void notSet(Player player, String teamName) {
-        msg.send(player, "TeamPropertyNotSet", new HashMap<>() {{
-            put("/team/", teamName);
-        }});
+        msg.send(player, "TeamPropertyNotSet", Map.of("/team/", teamName));
     }
 
     @Override
@@ -157,7 +145,7 @@ public class RemoveCommand extends SubCommand {
         if (args.length == 2) {
             return Arrays.asList("team", "generator");
         }
-        IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
         if (arena == null) return null;
 
         if (args.length == 3) {

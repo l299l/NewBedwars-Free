@@ -2,20 +2,16 @@ package com.l299l.newbedwars.commands.bedwars.main;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.config.Language;
-import com.l299l.newbedwars.config.Messages;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
-public class LangCommand extends SubCommand {
-    private final Messages msg;
+public class LangCommand extends BwCommand {
 
-    public LangCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override public String getName() { return "lang"; }
     @Override public String getDescription() { return "Change your language."; }
@@ -25,7 +21,7 @@ public class LangCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if (args.length < 2) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         Language lang = switch (args[1].toLowerCase()) {
@@ -43,9 +39,7 @@ public class LangCommand extends SubCommand {
         }
         NewBedwars.plugin.getPlayerManager().updatePlayerLanguage(player.getName(), lang);
         NewBedwars.plugin.getPlayerManager().save();
-        msg.send(player, "LanguageChanged", new HashMap<>() {{
-            put("/lang/", lang.name());
-        }});
+        msg.send(player, "LanguageChanged", Map.of("/lang/", lang.name()));
     }
 
     @Override

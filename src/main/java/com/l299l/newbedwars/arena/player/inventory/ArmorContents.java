@@ -1,8 +1,8 @@
 package com.l299l.newbedwars.arena.player.inventory;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.Upgrade;
@@ -48,7 +48,7 @@ public class ArmorContents {
     public void applyArmor(Player player) {
         this.player = player;
         ItemStack[] armorToSet = getArmorContents();
-        IArena armorArena = Arena.arenaByWorld.get(player.getWorld());
+        IArena armorArena = ArenaRegistry.byWorld(player.getWorld());
         if (armorArena != null) armorToSet = ApiEvents.armorEquip(armorArena, player, armorToSet);
         player.getInventory().setArmorContents(armorToSet);
     }

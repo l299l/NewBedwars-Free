@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.placeholder;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.GamePlayer;
 import com.l299l.newbedwars.arena.team.Team;
@@ -81,7 +81,7 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
             return resolveStatParam(player, params.substring("stat_".length()));
         }
 
-        IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
 
         switch (params) {
             case "arena":
@@ -123,7 +123,7 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
             case "players":
                 return arena != null ? String.valueOf(arena.getActivePlayerCount()) : "0";
             case "max_players":
-                return arena != null ? String.valueOf(arena.getTeams().size() * arena.getMaxInTeam()) : "0";
+                return arena != null ? String.valueOf(arena.getMaxPlayers()) : "0";
             case "is_spectator":
                 return arena != null ? String.valueOf(arena.getSpectators().contains(player)) : "false";
             case "phase":
@@ -145,12 +145,12 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
             if (rest.endsWith(suffix)) {
                 String arenaName = rest.substring(0, rest.length() - suffix.length());
                 if (arenaName.isEmpty()) return null;
-                IArena arena = Arena.arenaByName.get(arenaName);
+                IArena arena = ArenaRegistry.byName(arenaName);
                 if (arena == null) return "";
                 return switch (suffix) {
                     case "_status"      -> arena.status().name().toLowerCase();
                     case "_players"     -> String.valueOf(arena.getActivePlayerCount());
-                    case "_max_players" -> String.valueOf(arena.getTeams().size() * arena.getMaxInTeam());
+                    case "_max_players" -> String.valueOf(arena.getMaxPlayers());
                     case "_phase"       -> arena.getCurrentGamePhase();
                     default             -> null;
                 };

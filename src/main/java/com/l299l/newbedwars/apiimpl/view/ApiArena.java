@@ -44,7 +44,7 @@ public final class ApiArena implements ArenaView {
 
     @Override
     public boolean isEnabled() {
-        return Boolean.TRUE.equals(arena.isEnabled());
+        return arena.isEnabled();
     }
 
     @Override
@@ -54,14 +54,12 @@ public final class ApiArena implements ArenaView {
 
     @Override
     public int getMinPlayers() {
-        Integer min = arena.getMinPlayers();
-        return min == null ? 0 : min;
+        return arena.getMinPlayers();
     }
 
     @Override
     public int getMaxInTeam() {
-        Integer max = arena.getMaxInTeam();
-        return max == null ? 0 : max;
+        return arena.getMaxInTeam();
     }
 
     @Override
@@ -105,8 +103,7 @@ public final class ApiArena implements ArenaView {
 
     @Override
     public int getGameTime() {
-        Integer time = arena.getGameTime();
-        return time == null ? 0 : time;
+        return arena.getGameTime();
     }
 
     @Override

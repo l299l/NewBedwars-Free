@@ -1,13 +1,11 @@
 package com.l299l.newbedwars.commands.bedwars.admin;
 
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.group.ArenaGroup;
 import com.l299l.newbedwars.arena.group.ArenaGroupManager;
 import com.l299l.newbedwars.arena.join.ArenaJoinService;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -17,13 +15,9 @@ import java.util.List;
 import java.util.Locale;
 
 /** {@code /bw group create|delete|add|remove|list|info|setitem}: arena groups for map voting. */
-public class GroupCommand extends SubCommand {
+public class GroupCommand extends BwCommand {
     private static final List<String> SUBCOMMANDS = List.of("create", "delete", "add", "remove", "list", "info", "setitem");
-    private final Messages msg;
 
-    public GroupCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -83,7 +77,7 @@ public class GroupCommand extends SubCommand {
             return;
         }
         String name = args[2];
-        if (Arena.arenaByName.containsKey(name) || ArenaJoinService.arenaByName(name) != null) {
+        if (ArenaRegistry.contains(name) || ArenaRegistry.find(name) != null) {
             msg.send(p, "GroupNameIsArena", r("/group/", name));
             return;
         }
@@ -113,7 +107,7 @@ public class GroupCommand extends SubCommand {
         }
         ArenaGroup group = group(p, args, groups);
         if (group == null) return;
-        IArena arena = ArenaJoinService.arenaByName(args[3]);
+        IArena arena = ArenaRegistry.find(args[3]);
         if (arena == null) {
             msg.send(p, "ArenaNotExists");
             return;
@@ -127,7 +121,7 @@ public class GroupCommand extends SubCommand {
             msg.send(p, "GroupArenaInOtherGroup", r2(current, arena.getArenaName()));
             return;
         }
-        String reason = group.incompatibility(arena, ArenaJoinService::arenaByName);
+        String reason = group.incompatibility(arena, ArenaRegistry::find);
         if (reason != null) {
             HashMap<String, String> r = r2(group, arena.getArenaName());
             r.put("/reason/", reason);
@@ -163,7 +157,7 @@ public class GroupCommand extends SubCommand {
         for (ArenaGroup group : groups.getGroups()) {
             HashMap<String, String> r = r("/group/", group.getName());
             r.put("/arenas/", group.getArenas().isEmpty() ? "-" : String.join(", ", group.getArenas()));
-            r.put("/problems/", String.valueOf(group.problems(ArenaJoinService::arenaByName).size()));
+            r.put("/problems/", String.valueOf(group.problems(ArenaRegistry::find).size()));
             msg.send(p, "GroupListEntry", r);
         }
     }
@@ -175,7 +169,7 @@ public class GroupCommand extends SubCommand {
         r.put("/arenas/", group.getArenas().isEmpty() ? "-" : String.join(", ", group.getArenas()));
         r.put("/item/", group.getDisplayItem());
         msg.send(p, "GroupInfo", r);
-        for (String problem : group.problems(ArenaJoinService::arenaByName)) {
+        for (String problem : group.problems(ArenaRegistry::find)) {
             msg.send(p, "GroupProblem", r("/problem/", problem));
         }
     }
@@ -237,7 +231,7 @@ public class GroupCommand extends SubCommand {
         }
         if (args.length == 4 && sub.equals("add") && groups != null) {
             List<String> names = new ArrayList<>();
-            for (IArena a : Arena.arenaByName.values()) {
+            for (IArena a : ArenaRegistry.all()) {
                 if (groups.groupOf(a) == null) names.add(a.getArenaName());
             }
             return names;

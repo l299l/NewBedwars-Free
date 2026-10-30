@@ -63,7 +63,7 @@ public final class ArenaGroup {
         for (String other : getArenas()) {
             IArena a = lookup.apply(other);
             if (a == null || a == candidate) continue;
-            if (a.getTeams().size() != candidate.getTeams().size() || !a.getMaxInTeam().equals(candidate.getMaxInTeam())) {
+            if (a.getTeams().size() != candidate.getTeams().size() || a.getMaxInTeam() != candidate.getMaxInTeam()) {
                 return a.getArenaName() + " has " + size(a) + ", " + candidate.getArenaName() + " has " + size(candidate);
             }
         }
@@ -82,7 +82,7 @@ public final class ArenaGroup {
             }
             if (first == null) {
                 first = a;
-            } else if (a.getTeams().size() != first.getTeams().size() || !a.getMaxInTeam().equals(first.getMaxInTeam())) {
+            } else if (a.getTeams().size() != first.getTeams().size() || a.getMaxInTeam() != first.getMaxInTeam()) {
                 problems.add(a.getArenaName() + " has " + size(a) + " but " + first.getArenaName() + " has " + size(first));
             }
         }

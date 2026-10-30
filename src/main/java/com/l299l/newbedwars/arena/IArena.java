@@ -35,7 +35,7 @@ public interface IArena {
     void setUnknownFields(JsonObject unknownFields);
     /** IDs from the arena file that did not resolve; saved back unchanged so a missing config does not erase them. */
     void setUnresolvedIds(String gamePhasesId, String generatorsLevelingId);
-    Integer getGameTime();
+    int getGameTime();
     void upgradeGenerators(GeneratorType type, Integer level);
     boolean join(Player player);
     boolean joinParty(List<Player> partyMembers);
@@ -45,7 +45,7 @@ public interface IArena {
     default void leave(Player player) {
         leave(player, com.l299l.newbedwars.api.events.LeaveReason.OTHER);
     }
-    Boolean isPlayerInArena(Player player);
+    boolean isPlayerInArena(Player player);
     Set<UUID> getPlayers();
     int getActivePlayerCount();
     GamePlayer getPlayer(UUID player);
@@ -58,7 +58,7 @@ public interface IArena {
      */
     boolean forfeitRejoin(Player player);
     void broadcast(String message);
-    void broadcast(String message, HashMap<String, String> replace);
+    void broadcast(String message, java.util.Map<String, String> replace);
     void broadcastTitle(String title, String subtitle, Integer fadeIn, Integer stay, Integer fadeOut);
     World getArenaWorld();
     void enable();
@@ -70,17 +70,22 @@ public interface IArena {
     void advancePhase();
     int getPhaseTime();
     void setPhaseTime(int time);
-    Boolean isEnabled();
-    Boolean canBeEnabled();
+    boolean isEnabled();
+    boolean canBeEnabled();
     GameStatus status();
-    Integer getMinPlayers();
+    int getMinPlayers();
     Gamerules getGamerules();
     GeneratorLeveling getGeneratorsLeveling();
     void setGeneratorsLeveling(GeneratorLeveling generatorLeveling);
     void setGamerules(Gamerules gamerules);
     /** Unmodifiable view; use {@link #createTeam} and {@link #removeTeam} to change the teams. */
     java.util.Map<String, Team> getTeams();
-    Integer getMaxInTeam();
+    int getMaxInTeam();
+
+    /** Teams times players per team. */
+    default int getMaxPlayers() {
+        return getTeams().size() * getMaxInTeam();
+    }
     /** Unmodifiable view; use {@link #addGenerator} and {@link #removeGenerator} to change the generators. */
     java.util.List<Generator> getGenerators();
     void addGenerator(Generator generator);
@@ -107,15 +112,15 @@ public interface IArena {
     Setup getSetupMode();
     ArrayList<UUID> getPlayersOnSetup();
     String getArenaName();
-    void setMaxInTeam(Integer max);
-    void setMinPlayers(Integer min);
+    void setMaxInTeam(int max);
+    void setMinPlayers(int min);
     void setWaitingPos1(Location waitingPos1);
     void setWaitingPos2(Location waitingPos2);
     void setWaitingSpawn(Location waitingSpawn);
-    void setWaitingTime(Integer time);
-    void setRespawnTime(Integer time);
+    void setWaitingTime(int time);
+    void setRespawnTime(int time);
     Location getWaitingSpawn();
-    Integer getWaitingTime();
+    int getWaitingTime();
     Location getWaitingPos1();
     Location getWaitingPos2();
     void setQuickVoidY(int y);

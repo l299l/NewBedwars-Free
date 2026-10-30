@@ -44,10 +44,10 @@ public final class GroupPlaceholders {
         List<IArena> arenas = ArenaGroupManager.arenas(group);
         int players = 0, playing = 0, waiting = 0, max = 0, free = 0;
         for (IArena a : arenas) {
-            if (!Boolean.TRUE.equals(a.isEnabled())) continue;
+            if (!a.isEnabled()) continue;
             int count = a.getActivePlayerCount();
             players += count;
-            max += ArenaJoinService.maxPlayers(a);
+            max += a.getMaxPlayers();
             GameStatus status = a.status();
             if (status == GameStatus.playing || status == GameStatus.ending) {
                 playing += count;

@@ -3,21 +3,17 @@ package com.l299l.newbedwars.commands.bedwars.admin.setup.advanced;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataJson;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
-public class SetGeneratorLevelingCommand extends SubCommand {
-    private final Messages msg;
+public class SetGeneratorLevelingCommand extends BwCommand {
 
-    public SetGeneratorLevelingCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -42,22 +38,21 @@ public class SetGeneratorLevelingCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if (args.length != 2) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         String configId = args[1];
         GeneratorLeveling leveling = NewBedwars.plugin.getGeneratorLeveling().get(configId);
         if (leveling == null) {
             String available = String.join(", ", NewBedwars.plugin.getGeneratorLeveling().keySet());
-            msg.send(player, "GeneratorLevelingInvalid", new HashMap<>() {{
-                put("/configId/", configId);
-                put("/available/", available);
-            }});
+            msg.send(player, "GeneratorLevelingInvalid", Map.of(
+                    "/configId/", configId,
+                    "/available/", available));
             return;
         }
         arena.setGeneratorsLeveling(leveling);
         new ArenaDataJson(arena).save();
-        msg.send(player, "GeneratorLevelingSet", new HashMap<>() {{ put("/configId/", configId); }});
+        msg.send(player, "GeneratorLevelingSet", Map.of("/configId/", configId));
     }
 
     @Override

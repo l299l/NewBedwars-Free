@@ -1,13 +1,11 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.*;
 import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.arena.setup.DecoUtils;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.TabArgsUtils;
 import org.bukkit.ChatColor;
@@ -18,13 +16,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SetGeneratorCommand extends SubCommand {
+public class SetGeneratorCommand extends BwCommand {
 
-    private final Messages msg;
 
-    public SetGeneratorCommand() {
-        this.msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -49,7 +43,7 @@ public class SetGeneratorCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if (args.length < 2) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         try {
@@ -62,7 +56,7 @@ public class SetGeneratorCommand extends SubCommand {
                     return;
                 }
                 if (args.length < 5) {
-                    player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                    usage(player);
                     return;
                 }
                 try {
@@ -73,7 +67,7 @@ public class SetGeneratorCommand extends SubCommand {
                     player.sendMessage(msg.getMsg(player, "setGeneratorSuccess") + type.name() + " " + x + " " + y + " " + z);
                     DecoUtils.summonSetupArmorStand(new Location(player.getWorld(), x, y, z), (type == GeneratorType.EMERALD ? ChatColor.GREEN : ChatColor.BLUE)+ "Generator");
                 } catch (Exception e) {
-                    player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                    usage(player);
                 }
             } else if (type == GeneratorType.BASIC) {
                 if (args.length == 3) {
@@ -107,25 +101,25 @@ public class SetGeneratorCommand extends SubCommand {
                         player.sendMessage(msg.getMsg(player, "setGeneratorSuccess") + type.name() + " " + x + " " + y + " " + z);
                         DecoUtils.summonSetupArmorStand(team.getGenerator().getLocation(), team.getColor() + "Generator");
                     } catch (Exception e) {
-                        player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                        usage(player);
                     }
                 }else {
-                    player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                    usage(player);
                 }
             }else {
                 if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {
                 }else {
-                    player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                    usage(player);
                 }
             }
         } catch(Exception e){
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
         }
     }
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        IArena arena = Arena.arenaByWorld.get(player.getWorld());
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
         if (arena == null) return new ArrayList<>();
         if (args.length == 2) {
             if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {

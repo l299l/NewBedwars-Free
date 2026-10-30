@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.group;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.arena.Arena;
@@ -120,7 +121,7 @@ public final class MapVoteManager implements Listener {
         if (group == null) return options;
         int moving = voters(ended).size();
         for (IArena a : ArenaGroupManager.arenas(group)) {
-            if (a == ended || !Boolean.TRUE.equals(a.isEnabled())) continue;
+            if (a == ended || !a.isEnabled()) continue;
             if (a.status() != GameStatus.waiting && a.status() != GameStatus.starting) continue;
             if (ArenaJoinService.freeSlots(a) < moving) continue;
             options.add(a);
@@ -174,14 +175,14 @@ public final class MapVoteManager implements Listener {
         }
         List<IArena> options = options(ended);
         String winnerName = v.winner(names(options), random);
-        IArena winner = winnerName == null ? null : ArenaJoinService.arenaByName(winnerName);
+        IArena winner = winnerName == null ? null : ArenaRegistry.find(winnerName);
         if (winner == null || movers.isEmpty()) {
             ended.broadcast("MapVoteNoArena");
             return null;
         }
         ApiEvents.mapChosen(ended, group, winner);
         final String chosen = winner.getArenaName();
-        ended.broadcast("MapVoteChosen", new HashMap<>() {{ put("/arena/", chosen); }});
+        ended.broadcast("MapVoteChosen", Map.of("/arena/", chosen));
         return () -> moveAll(movers, winner);
     }
 
@@ -226,11 +227,10 @@ public final class MapVoteManager implements Listener {
         if (!ApiEvents.mapVote(ended, player, choice)) return;
         v.vote(player.getUniqueId(), choice.getArenaName());
         int count = v.votes(choice.getArenaName());
-        ended.broadcast("MapVoted", new HashMap<>() {{
-            put("/player/", player.getName());
-            put("/arena/", choice.getArenaName());
-            put("/votes/", String.valueOf(count));
-        }});
+        ended.broadcast("MapVoted", Map.of(
+                "/player/", player.getName(),
+                "/arena/", choice.getArenaName(),
+                "/votes/", String.valueOf(count)));
         refreshMenus(ended);
     }
 
@@ -276,7 +276,7 @@ public final class MapVoteManager implements Listener {
         if (e.getHand() != EquipmentSlot.HAND) return;
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Player p = e.getPlayer();
-        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        IArena arena = ArenaRegistry.byWorld(p.getWorld());
         if (arena == null || !arena.getSpectators().contains(p) || !isOpen(arena)) return;
         if (p.getInventory().getItemInMainHand().getType() != itemMaterial()) return;
         e.setCancelled(true);

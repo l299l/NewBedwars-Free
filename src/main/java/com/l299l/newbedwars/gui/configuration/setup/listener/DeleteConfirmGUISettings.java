@@ -1,9 +1,9 @@
 package com.l299l.newbedwars.gui.configuration.setup.listener;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.world.template.ArenaMaps;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
@@ -20,7 +20,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 
 public class DeleteConfirmGUISettings implements Listener {
     private final Messages msg;
@@ -47,7 +47,7 @@ public class DeleteConfirmGUISettings implements Listener {
     }
 
     private void deleteArena(String arenaName, Player player) {
-        IArena arena = Arena.arenaByName.get(arenaName);
+        IArena arena = ArenaRegistry.byName(arenaName);
         if (arena == null) {
             msg.send(player, "ArenaNotExists");
             return;
@@ -55,9 +55,7 @@ public class DeleteConfirmGUISettings implements Listener {
 
         GameStatus status = arena.status();
         if (status == GameStatus.playing || status == GameStatus.starting || status == GameStatus.ending) {
-            msg.send(player, "ArenaCannotBeDeleted", new HashMap<>() {{
-                put("/arenaname/", arenaName);
-            }});
+            msg.send(player, "ArenaCannotBeDeleted", Map.of("/arenaname/", arenaName));
             return;
         }
 
@@ -86,8 +84,7 @@ public class DeleteConfirmGUISettings implements Listener {
             msg.send(player, "ArenaDeleteFailed");
             return;
         }
-        Arena.arenaByName.remove(arenaName);
-        Arena.arenaByWorld.remove(arenaWorld);
+        ArenaRegistry.unregister(arenaName, arenaWorld);
 
         com.l299l.newbedwars.config.data.IOExecutor.flush();
         deleteFolder(worldFolder);
@@ -95,9 +92,7 @@ public class DeleteConfirmGUISettings implements Listener {
         // The template goes with the arena; backups in data/backups are intentionally kept.
         deleteFolder(ArenaMaps.mapsRoot().resolve(arenaName).toFile());
 
-        msg.send(player, "ArenaDeleted", new HashMap<>() {{
-            put("/arenaname/", arenaName);
-        }});
+        msg.send(player, "ArenaDeleted", Map.of("/arenaname/", arenaName));
     }
 
     private void deleteFolder(File folder) {

@@ -4,6 +4,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.gui.GUISave;
 import com.l299l.newbedwars.gui.model.GUICategory;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.model.GUIUpgrade;
 import com.tchristofferson.configupdater.ConfigUpdater;
 import org.apache.commons.io.FileUtils;
@@ -66,15 +67,13 @@ public class GUIDataManager {
                 fileWriter.write("GuiName: " + guiSave.getName() + "\n");
                 fileWriter.write("Size: " + guiSave.getSize() + "\n");
                 fileWriter.write("CloseOnTransaction: " + guiSave.getCloseOnTransaction() + "\n");
-                fileWriter.write("HeaderSize: " + guiSave.getGuiData("HeaderSize") + "\n");
-                fileWriter.write("FooterSize: " + guiSave.getGuiData("FooterSize") + "\n");
+                fileWriter.write("HeaderSize: " + guiSave.getHeaderSize() + "\n");
+                fileWriter.write("FooterSize: " + guiSave.getFooterSize() + "\n");
                 fileWriter.write("Slots:\n");
                 for (int i = 0; i < guiSave.getSize(); i++) {
-                    Object item = guiSave.getItem(i);
+                    GUIEntry item = guiSave.getItem(i);
                     if (item == null) {
                         fileWriter.write("  " + (i+1) + ": empty\n");
-                    }else if (item instanceof String) {
-                        fileWriter.write("  " + (i+1) + ": " + item + "\n");
                     }else if (item instanceof CustomItem customItem){
                         fileWriter.write("  " + (i+1) + ": ci:" + customItem.getName() + "\n");
                     }else if (item instanceof GUICategory guiCategory) {
@@ -84,13 +83,12 @@ public class GUIDataManager {
                     }
                 }
                 fileWriter.write("Categories:\n");
-                HashMap<String, GUICategory> guiCategories = (HashMap<String, GUICategory>) guiSave.getGuiData("Categories");
-                for (GUICategory guiCategory: guiCategories.values()) {
+                for (GUICategory guiCategory: guiSave.getCategories().values()) {
                     fileWriter.write("  - ID: " + guiCategory.id() + "\n");
                     fileWriter.write("    Name: " + guiCategory.name() + "\n");
                     fileWriter.write("    Icon: " + guiCategory.icon().getName() + "\n");
                     fileWriter.write("    Items:\n");
-                    for (Object catObj: guiCategory.items()) {
+                    for (GUIEntry catObj: guiCategory.items()) {
                         if (catObj instanceof CustomItem customItem) {
                             fileWriter.write("      - ci:" + customItem.getName() + "\n");
                         }else if (catObj instanceof GUIUpgrade guiUpgrade) {

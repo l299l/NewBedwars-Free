@@ -1,5 +1,8 @@
 package com.l299l.newbedwars.gui.configuration.game.listener;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
+
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.NewBedwars;
@@ -22,7 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class ShopGUISettings implements Listener {
     private final Messages msg;
@@ -43,25 +46,23 @@ public class ShopGUISettings implements Listener {
         e.setCancelled(true);
 
         int slot = e.getSlot();
-        Object item = gui.getItemOnSlot(slot);
+        GUIEntry item = gui.getItemOnSlot(slot);
         if (item == null) return;
 
         if (item instanceof CustomItem it) {
             Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
                 if (it.buyItem(player)) {
-                    msg.send(player, "BoughtItem", new HashMap<>() {{
-                        put("/item/", it.getName());
-                        put("/price/", String.valueOf(it.getPrice()));
-                        put("/priceType/", it.getPriceType().toString());
-                        put("/amount/", String.valueOf(it.getAmount()));
-                    }});
+                    msg.send(player, "BoughtItem", Map.of(
+                            "/item/", it.getName(),
+                            "/price/", String.valueOf(it.getPrice()),
+                            "/priceType/", it.getPriceType().toString(),
+                            "/amount/", String.valueOf(it.getAmount())));
                 } else {
-                    msg.send(player, "NotEnoughMoney", new HashMap<>() {{
-                        put("/item/", it.getName());
-                        put("/price/", String.valueOf(it.getPrice()));
-                        put("/priceType/", it.getPriceType().toString());
-                        put("/amount/", String.valueOf(it.getAmount()));
-                    }});
+                    msg.send(player, "NotEnoughMoney", Map.of(
+                            "/item/", it.getName(),
+                            "/price/", String.valueOf(it.getPrice()),
+                            "/priceType/", it.getPriceType().toString(),
+                            "/amount/", String.valueOf(it.getAmount())));
                 }
             });
         } else if (item instanceof GUICategory cat) {
@@ -71,7 +72,7 @@ public class ShopGUISettings implements Listener {
             ShopGUI newGui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, gui.getGuiSave(), target);
             player.openInventory(newGui.getInventory());
         } else if (item instanceof GUIUpgrade guiUpgrade) {
-            Arena arena = (Arena) Arena.arenaByWorld.get(player.getWorld());
+            Arena arena = (Arena) ArenaRegistry.byWorld(player.getWorld());
             if (arena == null) return;
             Team team = arena.getTeam(player);
             if (team == null) return;
@@ -86,12 +87,11 @@ public class ShopGUISettings implements Listener {
             Material mat = Properties.getMaterialForPriceType(priceType);
             CustomItem icon = guiUpgrade.icon();
             if (!player.getInventory().contains(mat, price)) {
-                msg.send(player, "NotEnoughMoney", new HashMap<>() {{
-                    put("/item/", icon.getName());
-                    put("/price/", String.valueOf(price));
-                    put("/priceType/", priceType.name());
-                    put("/amount/", "1");
-                }});
+                msg.send(player, "NotEnoughMoney", Map.of(
+                        "/item/", icon.getName(),
+                        "/price/", String.valueOf(price),
+                        "/priceType/", priceType.name(),
+                        "/amount/", "1"));
                 return;
             }
             if (!ApiEvents.shopPurchase(arena, player, icon.getName(), ShopPurchaseEvent.Kind.UPGRADE, priceType.name(), price)
@@ -101,12 +101,11 @@ public class ShopGUISettings implements Listener {
                 if (tu.getUpgradeLevel(upgrade) != currentLevel || !player.getInventory().contains(mat, price)) return;
                 player.getInventory().removeItem(new ItemStack(mat, price));
                 tu.upgrade(upgrade);
-                msg.send(player, "BoughtItem", new HashMap<>() {{
-                    put("/item/", icon.getName());
-                    put("/price/", String.valueOf(price));
-                    put("/priceType/", priceType.name());
-                    put("/amount/", "1");
-                }});
+                msg.send(player, "BoughtItem", Map.of(
+                        "/item/", icon.getName(),
+                        "/price/", String.valueOf(price),
+                        "/priceType/", priceType.name(),
+                        "/amount/", "1"));
                 tu.open(player);
             });
         }

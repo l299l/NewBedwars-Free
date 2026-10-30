@@ -1,5 +1,6 @@
-package com.l299l.newbedwars.events;
+package com.l299l.newbedwars.events.lifecycle;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
@@ -27,10 +28,10 @@ public class ChatEvent implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent event) {
         Player sender = event.getPlayer();
-        IArena arena = Arena.arenaByWorld.get(sender.getWorld());
+        IArena arena = ArenaRegistry.byWorld(sender.getWorld());
 
         if (arena == null) {
-            event.getRecipients().removeIf(p -> Arena.arenaByWorld.get(p.getWorld()) != null);
+            event.getRecipients().removeIf(p -> ArenaRegistry.byWorld(p.getWorld()) != null);
             return;
         }
 
@@ -81,7 +82,7 @@ public class ChatEvent implements Listener {
         Arena.updateTablist(joined);
         String msg = ChatColor.YELLOW + joined.getName() + " joined the game";
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (Arena.arenaByWorld.get(p.getWorld()) == null) {
+            if (ArenaRegistry.byWorld(p.getWorld()) == null) {
                 p.sendMessage(msg);
             }
         }
@@ -93,7 +94,7 @@ public class ChatEvent implements Listener {
         Player quitting = event.getPlayer();
         String msg = ChatColor.YELLOW + quitting.getName() + " left the game";
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (!p.equals(quitting) && Arena.arenaByWorld.get(p.getWorld()) == null) {
+            if (!p.equals(quitting) && ArenaRegistry.byWorld(p.getWorld()) == null) {
                 p.sendMessage(msg);
             }
         }

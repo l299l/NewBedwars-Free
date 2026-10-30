@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.apiimpl.view;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.api.view.ArenaGroupView;
 import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.arena.IArena;
@@ -30,7 +31,7 @@ public final class ApiArenaGroup implements ArenaGroupView {
     @Override
     public List<ArenaView> getArenas() {
         List<ArenaView> result = new ArrayList<>();
-        for (IArena a : group.resolve(ArenaJoinService::arenaByName)) result.add(new ApiArena(a));
+        for (IArena a : group.resolve(ArenaRegistry::find)) result.add(new ApiArena(a));
         return result;
     }
 
@@ -42,7 +43,7 @@ public final class ApiArenaGroup implements ArenaGroupView {
 
     @Override
     public List<String> getProblems() {
-        return group.problems(ArenaJoinService::arenaByName);
+        return group.problems(ArenaRegistry::find);
     }
 
     @Override

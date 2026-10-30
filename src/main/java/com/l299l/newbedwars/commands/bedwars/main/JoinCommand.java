@@ -1,25 +1,19 @@
 package com.l299l.newbedwars.commands.bedwars.main;
 
-import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.group.ArenaGroup;
 import com.l299l.newbedwars.arena.group.ArenaGroupManager;
 import com.l299l.newbedwars.arena.join.ArenaJoinService;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.gui.configuration.game.guis.ArenaSelectGUI;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class JoinCommand extends SubCommand {
-    private final Messages msg;
+public class JoinCommand extends BwCommand {
 
-    public JoinCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -45,7 +39,7 @@ public class JoinCommand extends SubCommand {
     public void perform(Player p, String[] args, IArena old) {
         if (!ArenaJoinService.mayJoin(p)) return;
         if (args.length > 1) {
-            IArena arena = Arena.arenaByName.get(args[1]);
+            IArena arena = ArenaRegistry.byName(args[1]);
             if (arena == null) {
                 ArenaGroup group = ArenaGroupManager.lookup(args[1]);
                 if (group == null) {
@@ -69,8 +63,8 @@ public class JoinCommand extends SubCommand {
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 2) {
             List<String> completions = new ArrayList<>();
-            for (String arenaName : Arena.arenaByName.keySet()) {
-                IArena arena = Arena.arenaByName.get(arenaName);
+            for (String arenaName : ArenaRegistry.names()) {
+                IArena arena = ArenaRegistry.byName(arenaName);
                 if (arena != null && arena.isEnabled()) {
                     completions.add(arena.getArenaName());
                 }

@@ -11,7 +11,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public record GUICategory(String id, String name, CustomItem icon, List<Object> items, String description) {
+public record GUICategory(String id, String name, CustomItem icon, List<GUIEntry> items, String description) implements GUIEntry {
+    @Override
     public ItemStack getIcon(Player player) {
         ItemStack item = icon.getIcon(player);
         ItemMeta meta = item.getItemMeta();

@@ -1,8 +1,8 @@
 package com.l299l.newbedwars.config.data.json.arenas;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.PluginFiles;
 
@@ -10,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.io.*;
-import java.util.HashMap;
 
 public class ArenaDataManager {
     public ArenaDataManager() {
@@ -44,7 +43,7 @@ public class ArenaDataManager {
      * {@code null} when the world could not be unloaded (the arena is then left registered).
      */
     public String unloadArena(String name) {
-        IArena old = Arena.arenaByName.get(name);
+        IArena old = ArenaRegistry.byName(name);
         if (old == null) return null;
         World world = old.getArenaWorld();
         String worldName = world.getName();
@@ -53,8 +52,7 @@ public class ArenaDataManager {
         }
         world.setAutoSave(false);
         if (!Bukkit.unloadWorld(world, false)) return null;
-        Arena.arenaByName.remove(name);
-        Arena.arenaByWorld.remove(world);
+        ArenaRegistry.unregister(name, world);
         return worldName;
     }
 
@@ -63,13 +61,11 @@ public class ArenaDataManager {
         File file = new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + name + ".json");
         if (!file.isFile()) return null;
         new ArenaDataJson(PluginFiles.readFileContent(file));
-        return Arena.arenaByName.get(name);
+        return ArenaRegistry.byName(name);
     }
 
     public void save() {
-        HashMap<String, IArena> arenas = Arena.arenaByName;
-        for (String key : arenas.keySet()) {
-            IArena arena = arenas.get(key);
+        for (IArena arena : ArenaRegistry.all()) {
             ArenaDataJson arenaDataJson = new ArenaDataJson(arena);
             arenaDataJson.save();
         }

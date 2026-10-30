@@ -75,7 +75,7 @@ public final class MapVoteGUI implements InventoryHolder {
         return text.replace("/arena/", arena.getArenaName())
                 .replace("/votes/", String.valueOf(vote.votes(arena.getArenaName())))
                 .replace("/players/", String.valueOf(arena.getActivePlayerCount()))
-                .replace("/max/", String.valueOf(ArenaJoinService.maxPlayers(arena)));
+                .replace("/max/", String.valueOf(arena.getMaxPlayers()));
     }
 
     public IArena arenaAt(int slot) {

@@ -1,10 +1,8 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.normal;
 
-import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.arena.setup.DecoUtils;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.TabArgsUtils;
 import org.bukkit.Location;
@@ -12,12 +10,8 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SetTeamBedCommand extends SubCommand {
-    private final Messages msg;
+public class SetTeamBedCommand extends BwCommand {
 
-    public SetTeamBedCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
     @Override
     public String getName() {
         return "setTeamBed";
@@ -41,12 +35,12 @@ public class SetTeamBedCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if(args.length < 2) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         Team team = arena.getTeams().get(args[1]);
         if (team == null || (args.length != 2 && args.length != 5)) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
         Location location = player.getLocation();
@@ -54,7 +48,7 @@ public class SetTeamBedCommand extends SubCommand {
             try {
                 location = new Location(player.getWorld(), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]));
             } catch (NumberFormatException e) {
-                player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+                usage(player);
                 return;
             }
         }

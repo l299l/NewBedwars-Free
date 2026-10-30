@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.npc;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
@@ -41,19 +41,17 @@ class JoinNpcExecutorTest {
         player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
         Properties.RequireJoinPermission = false;
-        Arena.arenaByName.clear();
-        Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
     }
 
     @AfterEach
     void tearDown() {
-        Arena.arenaByName.clear();
-        Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
         NewBedwars.plugin = null;
     }
 
     private void put(IArena arena) {
-        Arena.arenaByName.put(arena.getArenaName(), arena);
+        ArenaRegistry.register(arena.getArenaName(), arena);
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.placeholder;
 
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.group.ArenaGroup;
@@ -29,7 +29,8 @@ class GroupPlaceholdersTest {
         for (int i = 0; i < 4; i++) teams.put("t" + i, mock(Team.class));
         when(a.getTeams()).thenReturn(teams);
         when(a.getMaxInTeam()).thenReturn(1);
-        Arena.arenaByName.put(name, a);
+        when(a.getMaxPlayers()).thenCallRealMethod();
+        ArenaRegistry.register(name, a);
         return a;
     }
 
@@ -37,7 +38,7 @@ class GroupPlaceholdersTest {
 
     @BeforeEach
     void setUp() {
-        Arena.arenaByName.clear();
+        ArenaRegistry.clear();
         castle = arena("castle", GameStatus.playing, 3);
         arena("ruins", GameStatus.waiting, 2);
         arena("desert", GameStatus.starting, 4);   // full
@@ -52,7 +53,7 @@ class GroupPlaceholdersTest {
     @AfterEach
     void tearDown() {
         new ArenaGroupManager();
-        Arena.arenaByName.clear();
+        ArenaRegistry.clear();
     }
 
     @Test

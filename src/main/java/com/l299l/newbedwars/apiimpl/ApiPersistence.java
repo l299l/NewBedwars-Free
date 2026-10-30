@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataJson;
 import org.bukkit.Bukkit;
@@ -23,7 +23,7 @@ public final class ApiPersistence {
         try {
             Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> {
                 PENDING.remove(name);
-                if (Arena.arenaByName.get(name) == arena) saveNow(arena);
+                if (ArenaRegistry.byName(name) == arena) saveNow(arena);
             }, DELAY_TICKS);
         } catch (IllegalStateException | IllegalPluginAccessException e) {
             PENDING.remove(name);

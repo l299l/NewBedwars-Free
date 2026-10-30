@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.apiimpl;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.apiimpl.edit.ApiEditor;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.api.edit.ArenaEditor;
@@ -65,14 +66,14 @@ class ApiEditorTest {
             int i = inv.getArgument(0);
             return i >= 0 && i < generators.size() ? generators.remove(i) : null;
         });
-        com.l299l.newbedwars.arena.Arena.arenaByWorld.put(world, arena);
+        com.l299l.newbedwars.arena.ArenaRegistry.bindWorld(world, arena);
         editor = new ApiEditor(arena);
     }
 
     @AfterEach
     void tearDown() {
         NewBedwars.plugin = null;
-        com.l299l.newbedwars.arena.Arena.arenaByWorld.clear();
+        ArenaRegistry.clear();
         bukkit.close();
     }
 

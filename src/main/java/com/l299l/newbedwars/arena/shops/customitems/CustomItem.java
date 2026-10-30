@@ -1,37 +1,66 @@
 package com.l299l.newbedwars.arena.shops.customitems;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
+import com.l299l.newbedwars.arena.ArenaRegistry;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.utils.TeamColor;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.player.inventory.ArmorTier;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.Upgrade;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.team.Team;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.config.Language;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.GUIManager;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.version.VersionCompat;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.ChatColor;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.Material;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.NamespacedKey;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.enchantments.Enchantment;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.entity.Player;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.ItemFlag;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.ItemStack;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.meta.ItemMeta;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.meta.PotionMeta;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.persistence.PersistentDataType;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.potion.PotionType;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.util.*;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.util.stream.Collectors;
 
-public class CustomItem {
+public class CustomItem implements GUIEntry {
     private final UUID uuid = UUID.randomUUID();
     private final Messages msg;
     private final GUIManager guiManager;
@@ -86,7 +115,7 @@ public class CustomItem {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
         Material resolvedMaterial = material;
         if (TeamColor.undyedKind(material) != null) {
-            Team team = Arena.arenaByWorld.get(player.getWorld()).getTeam(player);
+            Team team = ArenaRegistry.byWorld(player.getWorld()).getTeam(player);
             resolvedMaterial = TeamColor.recolor(material, team.getColor());
         }
         ItemStack item = new ItemStack(resolvedMaterial, amount);
@@ -138,7 +167,7 @@ public class CustomItem {
             return false;
         }
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
-            ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
+            ArmorContents armorContents = ArenaRegistry.byWorld(player.getWorld()).getTeam(player).getArmorContents(player);
             ArmorTier newType = ArmorTier.getArmorTier(material);
             // a material no armor tier knows cannot be equipped; refuse before taking the payment
             if (newType == ArmorTier.OTHER || armorContents.getArmor().rank() >= newType.rank()) {
@@ -148,7 +177,7 @@ public class CustomItem {
         if (onBuyEvent == OnBuyEvent.COMMANDS || onBuyEvent == OnBuyEvent.OPEN_GUI || onBuyEvent == OnBuyEvent.GIVE_PERM) {
             return false;
         }
-        IArena shopArena = Arena.arenaByWorld.get(player.getWorld());
+        IArena shopArena = ArenaRegistry.byWorld(player.getWorld());
         Material priceMaterial = priceMaterial();
         if (priceMaterial != null && !player.getInventory().contains(priceMaterial, price)) {
             return false;
@@ -185,18 +214,18 @@ public class CustomItem {
             case GIVE_ITEM -> {
                 ArmorContents.giveOrDrop(player, getItem(player));
                 if (isPermanent) {
-                    Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player).addOther(this);
+                    ArenaRegistry.byWorld(player.getWorld()).getTeam(player).getArmorContents(player).addOther(this);
                 }
                 return true;
             }
             case GIVE_ARMOR -> {
-                ArmorContents armorContents = Arena.arenaByWorld.get(player.getWorld()).getTeam(player).getArmorContents(player);
+                ArmorContents armorContents = ArenaRegistry.byWorld(player.getWorld()).getTeam(player).getArmorContents(player);
                 armorContents.setArmor(ArmorTier.getArmorTier(material));
                 armorContents.applyArmor(player);
                 return true;
             }
             case GIVE_TOOL -> {
-                Team toolTeam = Arena.arenaByWorld.get(player.getWorld()).getTeam(player);
+                Team toolTeam = ArenaRegistry.byWorld(player.getWorld()).getTeam(player);
                 ArmorContents armorContents = toolTeam.getArmorContents(player);
                 boolean isSword = material.name().endsWith("_SWORD");
                 if (isSword && armorContents.hasBoughtSword()) {
@@ -271,11 +300,12 @@ public class CustomItem {
         return buildIcon(language, material);
     }
 
+    @Override
     public ItemStack getIcon(Player player) {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
         Material iconMaterial = material;
         if (TeamColor.undyedKind(material) != null) {
-            IArena arena = Arena.arenaByWorld.get(player.getWorld());
+            IArena arena = ArenaRegistry.byWorld(player.getWorld());
             if (arena != null) {
                 Team team = arena.getTeam(player);
                 if (team != null) iconMaterial = TeamColor.recolor(material, team.getColor());
@@ -435,7 +465,7 @@ public class CustomItem {
 
     private boolean buyUpgrade(Player p) {
         Upgrade upgrade = Upgrade.valueOf(name.toUpperCase());
-        Team team = Arena.arenaByWorld.get(p.getWorld()).getTeam(p);
+        Team team = ArenaRegistry.byWorld(p.getWorld()).getTeam(p);
         if (team.getTeamUpgrades().getUpgradeLevel(upgrade) >= upgrade.maxLevel) {
             return false;
         }

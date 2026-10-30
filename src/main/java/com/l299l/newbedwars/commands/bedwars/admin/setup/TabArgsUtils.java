@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup;
 
-import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -24,77 +24,46 @@ public class TabArgsUtils {
         return null;
     }
 
+    /** Team names at {@code args.length == start}, then the player's block coordinates. */
     public static List<String> getTabCordsWithTeam(Player player, String[] args, int start) {
-        if(args.length == start) {
-            IArena arena = Arena.arenaByWorld.get(player.getWorld());
-            return arena == null ? new ArrayList<>() : new ArrayList<>(arena.getTeams().keySet());
-        }else if(args.length >= start + 1) {
-            int x = player.getLocation().getBlockX();
-            int y = player.getLocation().getBlockY();
-            int z = player.getLocation().getBlockZ();
-            if (args.length == start + 1) {
-                String string = x + " " + y + " " + z;
-                return Collections.singletonList(string);
-            } else if (args.length == start + 2) {
-                String string = y + " " + z;
-                return Collections.singletonList(string);
-            } else if (args.length == start + 3) {
-                String string = Integer.toString(z);
-                return Collections.singletonList(string);
-            }
-        }
-        return null;
+        if (args.length == start) return teamNames(player);
+        return coords(player, args.length - start - 1);
     }
 
+    /** The player's block coordinates, the x one at {@code args.length == start}. */
     public static List<String> getTabCords(Player player, String[] args, int start) {
-        if(args.length == start) {
-            int x = player.getLocation().getBlockX();
-            int y = player.getLocation().getBlockY();
-            int z = player.getLocation().getBlockZ();
-            String string = x + " " + y + " " + z;
-            return Collections.singletonList(string);
-        }else if(args.length == start + 1){
-            int y = player.getLocation().getBlockY();
-            int z = player.getLocation().getBlockZ();
-            String string = y + " " + z;
-            return Collections.singletonList(string);
-        }else if(args.length == start + 2){
-            int z = player.getLocation().getBlockZ();
-            String string = Integer.toString(z);
-            return Collections.singletonList(string);
-        }
-        return null;
+        return coords(player, args.length - start);
     }
 
+    /** Team names, then the shop/upgrade entity types, then the player's block coordinates. */
     public static List<String> getTabEntities(Player player, String[] args) {
-        if(args.length == 2) {
-            IArena arena = Arena.arenaByWorld.get(player.getWorld());
-            return arena == null ? new ArrayList<>() : new ArrayList<>(arena.getTeams().keySet());
-        }else if(args.length == 3) {
-            EntityType[] values = EntityType.values();
-            ArrayList<String> arrayList = new ArrayList<>();
-            for (EntityType value : values) {
-                if (!(TabArgsUtils.wrongEntities().contains(value))) {
-                    arrayList.add(value.name());
-                }
+        if (args.length == 2) return teamNames(player);
+        if (args.length == 3) {
+            List<EntityType> wrong = wrongEntities();
+            List<String> names = new ArrayList<>();
+            for (EntityType value : EntityType.values()) {
+                if (!wrong.contains(value)) names.add(value.name());
             }
-            return arrayList;
-        }else if(args.length >= 4) {
-            int x = player.getLocation().getBlockX();
-            int y = player.getLocation().getBlockY();
-            int z = player.getLocation().getBlockZ();
-            if (args.length == 4) {
-                String string = x + " " + y + " " + z;
-                return Collections.singletonList(string);
-            } else if (args.length == 5) {
-                String string = y + " " + z;
-                return Collections.singletonList(string);
-            } else if (args.length == 6) {
-                String string = Integer.toString(z);
-                return Collections.singletonList(string);
-            }
+            return names;
         }
-        return null;
+        return coords(player, args.length - 4);
+    }
+
+    private static List<String> teamNames(Player player) {
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
+        return arena == null ? new ArrayList<>() : new ArrayList<>(arena.getTeams().keySet());
+    }
+
+    /** "x y z", "y z" or "z" of the player's block position for coordinate {@code index} 0, 1 or 2; otherwise {@code null}. */
+    private static List<String> coords(Player player, int index) {
+        if (index < 0 || index > 2) return null;
+        int[] xyz = {player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ()};
+        StringBuilder sb = new StringBuilder();
+        for (int i = index; i < 3; i++) {
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(xyz[i]);
+        }
+        return Collections.singletonList(sb.toString());
     }
 
     private static final Set<String> EXCLUDED_LIVING = Set.of(

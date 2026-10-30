@@ -1,48 +1,71 @@
 package com.l299l.newbedwars.gui;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import com.l299l.newbedwars.gui.model.GUICategory;
+import com.l299l.newbedwars.gui.model.GUIEntry;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/** A shop GUI loaded from {@code data/guis/*.yml}: slot entries, categories and the header/footer layout. */
 public class GUISave {
     private final Class<?> guiClass;
-    private final List<Object> items;
-    private final HashMap<String, Object> guiData;
+    private final List<GUIEntry> items;
+    private final Map<String, GUICategory> categories = new LinkedHashMap<>();
     private String guiId;
     private String name;
-    private Integer size;
-    private Boolean closeOnTransaction;
+    private int size;
+    private boolean closeOnTransaction;
+    private int headerSize;
+    private int footerSize;
 
-    public GUISave(Class<?> guiClass, String id, String name, Integer size, Boolean closeOnTransaction) {
+    public GUISave(Class<?> guiClass, String id, String name, int size, boolean closeOnTransaction) {
         this.guiClass = guiClass;
         this.guiId = id;
         this.name = name;
         this.size = size;
         this.closeOnTransaction = closeOnTransaction;
-        guiData = new HashMap<>();
-        items = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            items.add(null);
-        }
+        items = new ArrayList<>(Collections.nCopies(size, (GUIEntry) null));
     }
-    
-    public void setGuiData(String key, Object value) {
-        guiData.put(key, value);
-    }
-    
-    public Object getGuiData(String key) {
-        return guiData.get(key);
-    }
-    public void setItem(int slot, Object item) {
+
+    public void setItem(int slot, GUIEntry item) {
         items.set(slot, item);
     }
 
-    public Object getItem(int slot) {
+    /** The entry on a slot, or null when it is empty. */
+    public GUIEntry getItem(int slot) {
         return items.get(slot);
     }
 
-    public List<Object> getItems() {
+    public List<GUIEntry> getItems() {
         return items;
+    }
+
+    /** Categories by id, in file order. */
+    public Map<String, GUICategory> getCategories() {
+        return categories;
+    }
+
+    public void addCategory(GUICategory category) {
+        categories.put(category.id(), category);
+    }
+
+    public int getHeaderSize() {
+        return headerSize;
+    }
+
+    public void setHeaderSize(int headerSize) {
+        this.headerSize = headerSize;
+    }
+
+    public int getFooterSize() {
+        return footerSize;
+    }
+
+    public void setFooterSize(int footerSize) {
+        this.footerSize = footerSize;
     }
 
     public Class<?> getGuiClass() {
@@ -61,15 +84,15 @@ public class GUISave {
         return name;
     }
 
-    public Integer getSize() {
+    public int getSize() {
         return size;
     }
 
-    public Boolean getCloseOnTransaction() {
+    public boolean getCloseOnTransaction() {
         return closeOnTransaction;
     }
 
-    public void setCloseOnTransaction(Boolean closeOnTransaction) {
+    public void setCloseOnTransaction(boolean closeOnTransaction) {
         this.closeOnTransaction = closeOnTransaction;
     }
 
@@ -77,7 +100,7 @@ public class GUISave {
         this.name = name;
     }
 
-    public void setSize(Integer size) {
+    public void setSize(int size) {
         this.size = size;
     }
 }

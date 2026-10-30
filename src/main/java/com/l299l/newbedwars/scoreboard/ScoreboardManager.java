@@ -5,7 +5,7 @@ import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.GamePlayer;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.bossbar.TextEffect;
+import com.l299l.newbedwars.text.TextEffect;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.utils.TimeUtils;
 import org.bukkit.Bukkit;
@@ -117,7 +117,7 @@ public class ScoreboardManager {
         if (arena != null) {
             line = line.replace("/map/", arena.getArenaName());
             line = line.replace("/players/", String.valueOf(arena.getActivePlayerCount()));
-            line = line.replace("/maxplayers/", arena.getTeams() == null ? "0" : String.valueOf(arena.getMaxInTeam() * arena.getTeams().size()));
+            line = line.replace("/maxplayers/", String.valueOf(arena.getMaxPlayers()));
             line = line.replace("/minplayers/", String.valueOf(arena.getMinPlayers()));
             line = line.replace("/status/", getInteractiveStatus(arena.status(), arena));
             line = line.replace("/gameTime/", TimeUtils.formatTime(arena.getGameTime()));

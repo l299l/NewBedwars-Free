@@ -1,30 +1,35 @@
 package com.l299l.newbedwars.gui.configuration.setup.guis;
 
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.setup.ArenaInfo;
 import com.l299l.newbedwars.arena.setup.Setup;
+import com.l299l.newbedwars.gui.ItemBuilder;
 import com.l299l.newbedwars.arena.team.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ArenaInfoTeamGUI implements InventoryHolder {
     private final Inventory inv;
     private final Team team;
     private final IArena arena;
+    private final Player viewer;
 
-    public ArenaInfoTeamGUI(IArena arena, Team team) {
+    public ArenaInfoTeamGUI(Player viewer, IArena arena, Team team) {
+        this.viewer = viewer;
         this.arena = arena;
         this.team = team;
-        inv = Bukkit.createInventory(this, 27, team.getColor() + "" + ChatColor.BOLD + team.getName() + ChatColor.GRAY + " - Details");
+        inv = Bukkit.createInventory(this, 27, team.getColor() + "" + ChatColor.BOLD + team.getName()
+                + ChatColor.GRAY + " - " + ArenaInfo.text(viewer, "Info-TeamDetails"));
         init();
     }
 
@@ -39,79 +44,23 @@ public class ArenaInfoTeamGUI implements InventoryHolder {
 
         int slot = 10;
 
-        slot = addSetting(slot, Material.RED_BED, "Bed", team.isBedSet(),
-                team.isBedSet() ? locStr(team.getTeamBed().getLocation()) : null);
-
-        slot = addSetting(slot, Material.BEDROCK, "Spawn", team.isSpawnSet(),
-                team.isSpawnSet() ? locStr(team.getTeamSpawn()) : null);
-
-        slot = addSetting(slot, Material.CHEST, "Shop", team.isShopSet(),
-                team.isShopSet() ? locStr(team.getTeamShop().getLocation()) : null);
-
-        slot = addSetting(slot, Material.ANVIL, "Upgrades", team.isUpgradesSet(),
-                team.isUpgradesSet() ? locStr(team.getTeamUpgrades().getLocation()) : null);
-
-        slot = addSetting(slot, Material.DROPPER, "Generator", team.isGeneratorSet(),
-                team.isGeneratorSet() ? locStr(team.getGenerator().getLocation()) : null);
-
-        slot = addAreaSetting(slot, Material.RED_CONCRETE, "BuildProt",
-                team.isBuildProtAreaPosSet(),
-                team.getTeamBuildProtAreaPos1(), team.getTeamBuildProtAreaPos2());
-
-        slot = addAreaSetting(slot, Material.RED_STAINED_GLASS, "BaseArea",
-                team.isBasePosSet(),
-                team.getTeamBasePos1(), team.getTeamBasePos2());
-
-        if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {
-            slot = addSetting(slot, Material.DIAMOND_HORSE_ARMOR, "Accessories", team.isAccessoriesSet(),
-                    team.isAccessoriesSet() ? locStr(team.getTeamAccessories()) : null);
+        for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team, arena.getSetupMode() == Setup.ADVANCED_SETUP)) {
+            if (slot >= 27) break;
+            List<String> lore = !setting.set() ? List.of(ChatColor.RED + ArenaInfo.text(viewer, "Info-NotSet"))
+                    : setting.area() ? List.of(ChatColor.GRAY + "Pos1: " + ArenaInfo.loc(viewer, setting.pos1()),
+                            ChatColor.GRAY + "Pos2: " + ArenaInfo.loc(viewer, setting.pos2()))
+                    : List.of(ChatColor.GRAY + ArenaInfo.text(viewer, "Info-Location") + ": " + ArenaInfo.loc(viewer, setting.pos1()));
+            inv.setItem(slot++, ItemBuilder.of(setting.icon())
+                    .name((setting.set() ? ChatColor.GREEN : ChatColor.RED) + setting.label(viewer) + " " + (setting.set() ? "✔" : "✘"))
+                    .lore(lore)
+                    .build());
         }
 
         ItemStack backItem = new ItemStack(Material.ARROW);
         ItemMeta backMeta = backItem.getItemMeta();
-        backMeta.setDisplayName(ChatColor.GRAY + "← Back to Arena Info");
+        backMeta.setDisplayName(ChatColor.GRAY + ArenaInfo.text(viewer, "Info-Back"));
         backItem.setItemMeta(backMeta);
         inv.setItem(22, backItem);
-    }
-
-    private int addSetting(int slot, Material material, String name, boolean isSet, String location) {
-        if (slot >= 27) return slot;
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((isSet ? ChatColor.GREEN : ChatColor.RED) + name + " " + (isSet ? "✔" : "✘"));
-        List<String> lore = new ArrayList<>();
-        if (isSet && location != null) {
-            lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE + location);
-        } else {
-            lore.add(ChatColor.RED + "Not set");
-        }
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        inv.setItem(slot, item);
-        return slot + 1;
-    }
-
-    private int addAreaSetting(int slot, Material material, String name, boolean isSet, Location pos1, Location pos2) {
-        if (slot >= 27) return slot;
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((isSet ? ChatColor.GREEN : ChatColor.RED) + name + " " + (isSet ? "✔" : "✘"));
-        List<String> lore = new ArrayList<>();
-        if (isSet) {
-            lore.add(ChatColor.GRAY + "Pos1: " + locStr(pos1));
-            lore.add(ChatColor.GRAY + "Pos2: " + locStr(pos2));
-        } else {
-            lore.add(ChatColor.RED + "Not set");
-        }
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        inv.setItem(slot, item);
-        return slot + 1;
-    }
-
-    private String locStr(Location loc) {
-        if (loc == null) return ChatColor.RED + "not set";
-        return ChatColor.WHITE + String.valueOf(loc.getBlockX()) + " " + loc.getBlockY() + " " + loc.getBlockZ();
     }
 
     public Team getTeam() {

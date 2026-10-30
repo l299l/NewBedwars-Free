@@ -1,4 +1,4 @@
-package com.l299l.newbedwars.events;
+package com.l299l.newbedwars.events.lifecycle;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.Language;

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.player;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.team.Team;
@@ -30,7 +31,7 @@ public class GamePlayer {
         this.team = team;
         this.inventory = new ArmorContents(player, team);
         GUIManager guiManager = NewBedwars.plugin.getGuiManager();
-        IArena arena = com.l299l.newbedwars.arena.Arena.arenaByWorld.get(player.getWorld());
+        IArena arena = com.l299l.newbedwars.arena.ArenaRegistry.byWorld(player.getWorld());
         String shopGuiId = arena != null ? arena.getShopGuiId() : Properties.DefaultTeamShopGui;
         String upgradesGuiId = arena != null ? arena.getUpgradeGuiId() : Properties.DefaultUpgradeShopGui;
         playerShopGui = guiManager.getGui(shopGuiId);

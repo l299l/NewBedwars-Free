@@ -1,5 +1,9 @@
 package com.l299l.newbedwars.gui.configuration.game.guis;
 
+import com.l299l.newbedwars.gui.model.GUIEntry;
+
+import com.l299l.newbedwars.gui.ItemBuilder;
+
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.gui.BasicGUI;
@@ -17,7 +21,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,9 +52,9 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         super(guiManager, player);
 
         categories = new ArrayList<>();
-        int headerSize = (int) shopGuiSave.getGuiData("HeaderSize");
+        int headerSize = shopGuiSave.getHeaderSize();
         for (int i = 0; i < headerSize; i++) {
-            Object o = shopGuiSave.getItem(i);
+            GUIEntry o = shopGuiSave.getItem(i);
             if (o instanceof GUICategory cat && !cat.id().equalsIgnoreCase("home") && categories.size() < MAX_CATEGORIES) {
                 categories.add(cat);
             }
@@ -66,7 +69,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
 
         inv = Bukkit.createInventory(this, 54,
-                ChatColor.AQUA + "" + ChatColor.BOLD + "Fast-Buy Customizer");
+                ChatColor.AQUA + "" + ChatColor.BOLD + text("GuiFastBuyTitle"));
         redraw();
     }
 
@@ -133,9 +136,9 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         inv.clear();
 
         ItemStack header = pane(Material.CYAN_STAINED_GLASS_PANE,
-                ChatColor.AQUA + "" + ChatColor.BOLD + "Fast-Buy Customizer",
-                ChatColor.GRAY + "Click a category icon to add items.",
-                ChatColor.GRAY + "Click a filled fast-buy slot to remove.");
+                ChatColor.AQUA + "" + ChatColor.BOLD + text("GuiFastBuyTitle"),
+                ChatColor.GRAY + text("GuiFastBuyInfo1"),
+                ChatColor.GRAY + text("GuiFastBuyInfo2"));
         for (int i = 0; i < 9; i++) inv.setItem(i, header);
 
         ItemStack sep = pane(Material.GRAY_STAINED_GLASS_PANE, ChatColor.DARK_GRAY + "───");
@@ -154,13 +157,13 @@ public class FastBuyCustomizerGUI extends BasicGUI {
                         ? new ArrayList<>(iconMeta.getLore()) : new ArrayList<>();
                 List<String> current = selection.getOrDefault(cat.id(), List.of());
                 lore.add("");
-                lore.add(ChatColor.YELLOW + "Fast-buy (" + current.size() + "/" + SLOTS_PER_CAT + "):");
+                lore.add(ChatColor.YELLOW + text("GuiFastBuyCount").replace("/count/", String.valueOf(current.size())).replace("/max/", String.valueOf(SLOTS_PER_CAT)));
                 for (int f = 0; f < SLOTS_PER_CAT; f++) {
                     String item = f < current.size() ? current.get(f) : null;
-                    lore.add("  " + (item != null ? ChatColor.GREEN + item : ChatColor.DARK_GRAY + "(empty)"));
+                    lore.add("  " + (item != null ? ChatColor.GREEN + item : ChatColor.DARK_GRAY + text("GuiFastBuyEmpty")));
                 }
                 lore.add("");
-                lore.add(ChatColor.GRAY + "Click to open item picker for this category.");
+                lore.add(ChatColor.GRAY + text("GuiFastBuyOpenPicker"));
                 iconMeta.setLore(lore);
                 icon.setItemMeta(iconMeta);
             }
@@ -176,7 +179,7 @@ public class FastBuyCustomizerGUI extends BasicGUI {
                         ItemMeta m = it.getItemMeta();
                         if (m != null) {
                             List<String> l = m.getLore() != null ? new ArrayList<>(m.getLore()) : new ArrayList<>();
-                            l.add(ChatColor.RED + "Click to remove");
+                            l.add(ChatColor.RED + text("GuiClickRemove"));
                             m.setLore(l);
                             it.setItemMeta(m);
                         }
@@ -195,14 +198,14 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         for (int i = 45; i < 53; i++) inv.setItem(i, rowSep);
 
         ItemStack reset = pane(Material.RED_STAINED_GLASS_PANE,
-                ChatColor.RED + "" + ChatColor.BOLD + "Reset All",
-                ChatColor.GRAY + "Clears every fast-buy slot.",
-                ChatColor.GRAY + "Remember to Save & Close after.");
+                ChatColor.RED + "" + ChatColor.BOLD + text("GuiFastBuyReset"),
+                ChatColor.GRAY + text("GuiFastBuyResetInfo1"),
+                ChatColor.GRAY + text("GuiFastBuyResetInfo2"));
         inv.setItem(resetSlot(), reset);
 
         ItemStack save = pane(Material.LIME_STAINED_GLASS_PANE,
-                ChatColor.GREEN + "" + ChatColor.BOLD + "Save & Close",
-                ChatColor.GRAY + "Saves your fast-buy preferences.");
+                ChatColor.GREEN + "" + ChatColor.BOLD + text("GuiFastBuySave"),
+                ChatColor.GRAY + text("GuiFastBuySaveInfo"));
         inv.setItem(53, save);
     }
 
@@ -270,19 +273,12 @@ public class FastBuyCustomizerGUI extends BasicGUI {
 
     private ItemStack emptySlot(int index) {
         return pane(Material.LIGHT_GRAY_STAINED_GLASS_PANE,
-                ChatColor.GRAY + "Slot " + (index + 1) + " — Empty",
-                ChatColor.DARK_GRAY + "Click the category icon to add.");
+                ChatColor.GRAY + text("GuiFastBuySlotEmpty").replace("/slot/", String.valueOf(index + 1)),
+                ChatColor.DARK_GRAY + text("GuiFastBuySlotEmptyInfo"));
     }
 
     private static ItemStack pane(Material mat, String name, String... lore) {
-        ItemStack item = new ItemStack(mat);
-        ItemMeta m = item.getItemMeta();
-        if (m != null) {
-            m.setDisplayName(name);
-            if (lore.length > 0) m.setLore(Arrays.asList(lore));
-            item.setItemMeta(m);
-        }
-        return item;
+        return ItemBuilder.of(mat).name(name).lore(lore).build();
     }
 
     @Override

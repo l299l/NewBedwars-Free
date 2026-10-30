@@ -1,24 +1,19 @@
 package com.l299l.newbedwars.commands.bedwars.admin.managearena;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import com.l299l.newbedwars.config.Messages;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.gui.configuration.setup.guis.DeleteConfirmGUI;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
-public class DeleteCommand extends SubCommand {
-    private final Messages msg;
+public class DeleteCommand extends BwCommand {
 
-    public DeleteCommand() {
-        msg = NewBedwars.plugin.getMessages();
-    }
 
     @Override
     public String getName() {
@@ -43,11 +38,11 @@ public class DeleteCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena old) {
         if (args.length != 3) {
-            player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
+            usage(player);
             return;
         }
 
-        IArena arena = Arena.arenaByName.get(args[2]);
+        IArena arena = ArenaRegistry.byName(args[2]);
         if (arena == null) {
             msg.send(player, "ArenaNotExists");
             return;
@@ -55,9 +50,7 @@ public class DeleteCommand extends SubCommand {
 
         GameStatus status = arena.status();
         if (status == GameStatus.playing || status == GameStatus.starting || status == GameStatus.ending) {
-            msg.send(player, "ArenaCannotBeDeleted", new HashMap<>() {{
-                put("/arenaname/", arena.getArenaName());
-            }});
+            msg.send(player, "ArenaCannotBeDeleted", Map.of("/arenaname/", arena.getArenaName()));
             return;
         }
 
@@ -68,7 +61,7 @@ public class DeleteCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 3) {
-            return new ArrayList<>(Arena.arenaByName.keySet());
+            return new ArrayList<>(ArenaRegistry.names());
         }
         return null;
     }

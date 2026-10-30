@@ -12,8 +12,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
+import java.util.function.ToIntFunction;
 
 public class PlayerManager {
     private final HashMap<String, PlayerProfile> players;
@@ -95,27 +95,26 @@ public class PlayerManager {
         return playerStats;
     }
 
-    public List<Map.Entry<String, PlayerStats>> getTopByWins(int limit) {
+    /** The {@code limit} players with the highest {@code stat}, highest first. */
+    public List<Map.Entry<String, PlayerStats>> getTopBy(ToIntFunction<PlayerStats> stat, int limit) {
         List<Map.Entry<String, PlayerStats>> list = new ArrayList<>(playerStats.entrySet());
-        list.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> e.getValue().wins()).reversed());
+        list.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> stat.applyAsInt(e.getValue())).reversed());
         return list.subList(0, Math.min(limit, list.size()));
+    }
+
+    public List<Map.Entry<String, PlayerStats>> getTopByWins(int limit) {
+        return getTopBy(PlayerStats::wins, limit);
     }
 
     public List<Map.Entry<String, PlayerStats>> getTopByKills(int limit) {
-        List<Map.Entry<String, PlayerStats>> list = new ArrayList<>(playerStats.entrySet());
-        list.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> e.getValue().kills()).reversed());
-        return list.subList(0, Math.min(limit, list.size()));
+        return getTopBy(PlayerStats::kills, limit);
     }
 
     public List<Map.Entry<String, PlayerStats>> getTopByBeds(int limit) {
-        List<Map.Entry<String, PlayerStats>> list = new ArrayList<>(playerStats.entrySet());
-        list.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> e.getValue().bedsBroken()).reversed());
-        return list.subList(0, Math.min(limit, list.size()));
+        return getTopBy(PlayerStats::bedsBroken, limit);
     }
 
     public List<Map.Entry<String, PlayerStats>> getTopByFinalKills(int limit) {
-        List<Map.Entry<String, PlayerStats>> list = new ArrayList<>(playerStats.entrySet());
-        list.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> e.getValue().finalKills()).reversed());
-        return list.subList(0, Math.min(limit, list.size()));
+        return getTopBy(PlayerStats::finalKills, limit);
     }
 }

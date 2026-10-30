@@ -18,8 +18,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -75,11 +75,11 @@ public class PartyCommand implements TabExecutor {
         }
         Player target = Bukkit.getPlayer(targetName);
         if (target == null) {
-            msg.send(p, "PartyPlayerNotFound", new HashMap<>() {{ put("/player/", targetName); }});
+            msg.send(p, "PartyPlayerNotFound", Map.of("/player/", targetName));
             return;
         }
         if (pm.isPlayerInParty(target)) {
-            msg.send(p, "PartyPlayerAlreadyInParty", new HashMap<>() {{ put("/player/", target.getName()); }});
+            msg.send(p, "PartyPlayerAlreadyInParty", Map.of("/player/", target.getName()));
             return;
         }
 
@@ -93,9 +93,9 @@ public class PartyCommand implements TabExecutor {
 
         final Party finalParty = party;
         pm.sendInvite(p, target, finalParty);
-        msg.send(p, "PartyInviteSent", new HashMap<>() {{ put("/player/", target.getName()); }});
+        msg.send(p, "PartyInviteSent", Map.of("/player/", target.getName()));
         final String inviterName = p.getName();
-        msg.send(target, "PartyInviteReceived", new HashMap<>() {{ put("/player/", inviterName); }});
+        msg.send(target, "PartyInviteReceived", Map.of("/player/", inviterName));
         sendInviteButtons(target);
     }
 
@@ -112,14 +112,14 @@ public class PartyCommand implements TabExecutor {
         }
         final String finalAdminName = adminName;
         pm.acceptInvite(p);
-        msg.send(p, "PartyAccepted", new HashMap<>() {{ put("/player/", finalAdminName); }});
+        msg.send(p, "PartyAccepted", Map.of("/player/", finalAdminName));
         if (party != null) {
             final String joinName = p.getName();
             for (UUID memberId : party.getMembers()) {
                 if (memberId.equals(p.getUniqueId())) continue;
                 Player member = Bukkit.getPlayer(memberId);
                 if (member != null) {
-                    msg.send(member, "PartyMemberJoined", new HashMap<>() {{ put("/player/", joinName); }});
+                    msg.send(member, "PartyMemberJoined", Map.of("/player/", joinName));
                 }
             }
         }
@@ -138,12 +138,12 @@ public class PartyCommand implements TabExecutor {
         }
         final String finalAdminName = adminName;
         pm.declineInvite(p);
-        msg.send(p, "PartyDenied", new HashMap<>() {{ put("/player/", finalAdminName); }});
+        msg.send(p, "PartyDenied", Map.of("/player/", finalAdminName));
         if (party != null) {
             Player admin = Bukkit.getPlayer(party.getAdmin());
             if (admin != null) {
                 final String denierName = p.getName();
-                msg.send(admin, "PartyMemberDenied", new HashMap<>() {{ put("/player/", denierName); }});
+                msg.send(admin, "PartyMemberDenied", Map.of("/player/", denierName));
             }
         }
     }
@@ -167,7 +167,7 @@ public class PartyCommand implements TabExecutor {
             if (memberId.equals(p.getUniqueId())) continue;
             Player member = Bukkit.getPlayer(memberId);
             if (member != null) {
-                msg.send(member, "PartyMemberLeft", new HashMap<>() {{ put("/player/", leaverName); }});
+                msg.send(member, "PartyMemberLeft", Map.of("/player/", leaverName));
             }
         }
 
@@ -187,15 +187,14 @@ public class PartyCommand implements TabExecutor {
             msg.send(p, "PartyNoParty");
             return;
         }
-        msg.send(p, "PartyList", new HashMap<>() {{ put("/size/", String.valueOf(party.size())); }});
+        msg.send(p, "PartyList", Map.of("/size/", String.valueOf(party.size())));
         for (UUID memberId : party.getMembers()) {
             Player member = Bukkit.getPlayer(memberId);
             String name = member != null ? member.getName() : memberId.toString().substring(0, 8) + "..";
             boolean isAdmin = party.isAdmin(memberId);
-            msg.send(p, "PartyListMember", new HashMap<>() {{
-                put("/player/", name);
-                put("/admin/", isAdmin ? msg.getMsg(p, "PartyListAdminTag") : "");
-            }});
+            msg.send(p, "PartyListMember", Map.of(
+                    "/player/", name,
+                    "/admin/", isAdmin ? msg.getMsg(p, "PartyListAdminTag") : ""));
         }
     }
 
@@ -227,14 +226,14 @@ public class PartyCommand implements TabExecutor {
             }
         }
         if (targetId == null) {
-            msg.send(p, "PartyNotFound", new HashMap<>() {{ put("/player/", targetName); }});
+            msg.send(p, "PartyNotFound", Map.of("/player/", targetName));
             return;
         }
         final UUID finalTargetId = targetId;
         final String finalTargetName = targetName;
         Player targetPlayer = Bukkit.getPlayer(targetId);
         pm.kickFromParty(party, targetId);
-        msg.send(p, "PartyKicked", new HashMap<>() {{ put("/player/", finalTargetName); }});
+        msg.send(p, "PartyKicked", Map.of("/player/", finalTargetName));
         if (targetPlayer != null) {
             msg.send(targetPlayer, "PartyYouWereKicked");
         }
@@ -242,7 +241,7 @@ public class PartyCommand implements TabExecutor {
             if (memberId.equals(p.getUniqueId())) continue;
             Player member = Bukkit.getPlayer(memberId);
             if (member != null) {
-                msg.send(member, "PartyKicked", new HashMap<>() {{ put("/player/", finalTargetName); }});
+                msg.send(member, "PartyKicked", Map.of("/player/", finalTargetName));
             }
         }
     }
@@ -271,13 +270,13 @@ public class PartyCommand implements TabExecutor {
             }
         }
         if (targetId == null) {
-            msg.send(p, "PartyNotFound", new HashMap<>() {{ put("/player/", targetName); }});
+            msg.send(p, "PartyNotFound", Map.of("/player/", targetName));
             return;
         }
         final UUID finalTargetId = targetId;
         final String finalTargetName = targetName;
         pm.transferAdmin(party, targetId);
-        msg.send(p, "PartyAdminTransferred", new HashMap<>() {{ put("/player/", finalTargetName); }});
+        msg.send(p, "PartyAdminTransferred", Map.of("/player/", finalTargetName));
         Player newAdmin = Bukkit.getPlayer(targetId);
         if (newAdmin != null) {
             msg.send(newAdmin, "PartyYouAreAdmin");
@@ -286,35 +285,29 @@ public class PartyCommand implements TabExecutor {
             if (memberId.equals(p.getUniqueId()) || memberId.equals(finalTargetId)) continue;
             Player member = Bukkit.getPlayer(memberId);
             if (member != null) {
-                msg.send(member, "PartyAdminTransferred", new HashMap<>() {{ put("/player/", finalTargetName); }});
+                msg.send(member, "PartyAdminTransferred", Map.of("/player/", finalTargetName));
             }
         }
     }
 
     private void sendInviteButtons(Player target) {
-        Component accept = Component.text("[Accept]")
+        Component accept = Component.text(msg.getMsg(target, "PartyButtonAccept"))
                 .color(NamedTextColor.GREEN)
                 .decorate(TextDecoration.BOLD)
                 .clickEvent(ClickEvent.runCommand("/party accept"))
-                .hoverEvent(HoverEvent.showText(Component.text("Click to accept the party invite")));
-        Component deny = Component.text(" [Deny]")
+                .hoverEvent(HoverEvent.showText(Component.text(msg.getMsg(target, "PartyButtonAcceptHover"))));
+        Component deny = Component.text(" " + msg.getMsg(target, "PartyButtonDeny"))
                 .color(NamedTextColor.RED)
                 .decorate(TextDecoration.BOLD)
                 .clickEvent(ClickEvent.runCommand("/party deny"))
-                .hoverEvent(HoverEvent.showText(Component.text("Click to deny the party invite")));
+                .hoverEvent(HoverEvent.showText(Component.text(msg.getMsg(target, "PartyButtonDenyHover"))));
         target.sendMessage(accept.append(deny));
     }
 
     private void sendHelp(Player p) {
-        p.sendMessage("§b§l=-= §fParty Commands §b§l=-=-");
-        p.sendMessage("§e/party invite §b<player>  §f- Invite a player to your party");
-        p.sendMessage("§e/party accept            §f- Accept a pending invite");
-        p.sendMessage("§e/party deny              §f- Deny a pending invite");
-        p.sendMessage("§e/party leave             §f- Leave your current party");
-        p.sendMessage("§e/party list              §f- List all party members");
-        p.sendMessage("§e/party kick §b<player>    §f- §cKick a member §7(admin only)");
-        p.sendMessage("§e/party admin §b<player>   §f- §cTransfer admin role §7(admin only)");
-        p.sendMessage("§7Tip: §fOnly the party admin can start a §e/bw join§f. Use §e/p§f as a shortcut.");
+        for (String line : msg.getMsg(p, "PartyHelp").split("\n")) {
+            p.sendMessage(line);
+        }
     }
 
     @Override

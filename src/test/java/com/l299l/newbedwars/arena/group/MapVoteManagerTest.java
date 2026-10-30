@@ -1,7 +1,7 @@
 package com.l299l.newbedwars.arena.group;
 
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
@@ -52,7 +52,7 @@ class MapVoteManagerTest {
         rules.AllowParties = true;
         when(a.getGamerules()).thenReturn(rules);
         when(a.getSpectators()).thenReturn(new ArrayList<>());
-        Arena.arenaByName.put(name, a);
+        ArenaRegistry.register(name, a);
         return a;
     }
 
@@ -83,7 +83,7 @@ class MapVoteManagerTest {
         when(plugin.getMessages()).thenReturn(messages);
         parties = mock(PartyManager.class);
         when(plugin.getPartyManager()).thenReturn(parties);
-        Arena.arenaByName.clear();
+        ArenaRegistry.clear();
 
         ended = arena("castle", GameStatus.ending, 2);
         ruins = arena("ruins", GameStatus.waiting, 0);
@@ -104,7 +104,7 @@ class MapVoteManagerTest {
     @AfterEach
     void tearDown() {
         new ArenaGroupManager();
-        Arena.arenaByName.clear();
+        ArenaRegistry.clear();
         NewBedwars.plugin = null;
         bukkit.close();
     }
