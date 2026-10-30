@@ -187,7 +187,9 @@ NewBedwars will leave beta once stable operation is verified across all supporte
 
 ## Screenshots
 
-### Joining & Waiting
+<details>
+<summary><b>Joining & Waiting</b></summary>
+
 <table>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110222.png" width="100%"/><br><sub>Arena selector GUI</sub></td>
@@ -195,7 +197,11 @@ NewBedwars will leave beta once stable operation is verified across all supporte
   </tr>
 </table>
 
-### In-Game HUD & Events
+</details>
+
+<details>
+<summary><b>In-Game HUD & Events</b></summary>
+
 <table>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114731.png" width="100%"/><br><sub>In-game HUD — scoreboard, phase info, NPC labels</sub></td>
@@ -211,7 +217,11 @@ NewBedwars will leave beta once stable operation is verified across all supporte
   </tr>
 </table>
 
-### Shop & Upgrades
+</details>
+
+<details>
+<summary><b>Shop & Upgrades</b></summary>
+
 <table>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114843.png" width="100%"/><br><sub>Shop GUI</sub></td>
@@ -223,7 +233,11 @@ NewBedwars will leave beta once stable operation is verified across all supporte
   </tr>
 </table>
 
-### Resource Generators
+</details>
+
+<details>
+<summary><b>Resource Generators</b></summary>
+
 <table>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_115559.png" width="100%"/><br><sub>Emerald Generator — hologram</sub></td>
@@ -231,7 +245,11 @@ NewBedwars will leave beta once stable operation is verified across all supporte
   </tr>
 </table>
 
-### Arena Setup
+</details>
+
+<details>
+<summary><b>Arena Setup</b></summary>
+
 <table>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121511.png" width="100%"/><br><sub>Help command output</sub></td>
@@ -243,7 +261,11 @@ NewBedwars will leave beta once stable operation is verified across all supporte
   </tr>
 </table>
 
-### Map & Environment
+</details>
+
+<details>
+<summary><b>Map & Environment</b></summary>
+
 <table>
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122307.png" width="100%"/><br><sub>Arena map — aerial overview</sub></td>
@@ -258,6 +280,8 @@ NewBedwars will leave beta once stable operation is verified across all supporte
     <td></td>
   </tr>
 </table>
+
+</details>
 
 ---
 
