@@ -26,6 +26,7 @@ import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaMigrator;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.utils.CountdownTimer;
+import com.l299l.newbedwars.arena.group.MapVoteManager;
 import com.l299l.newbedwars.utils.DecoUtils;
 import com.l299l.newbedwars.utils.JsonUtils;
 import com.l299l.newbedwars.scoreboard.NScoreboard;
@@ -221,6 +222,7 @@ public class Arena implements IArena {
     @Override
     public void stop() {
         gameStatus = GameStatus.restarting;
+        MapVoteManager.resetArena(this);
 
         if (tntParticleTask != null) {
             tntParticleTask.cancel();
@@ -514,10 +516,12 @@ public class Arena implements IArena {
     @Override
     public boolean join(Player player) {
         if (players.containsKey(player.getUniqueId())) return false;
+        if (playsInOtherArena(player)) return false;
         if (players.size() >= teams.size() * maxInTeam) {
             return false;
         }
         if (!ApiEvents.playerJoin(this, player, false)) return false;
+        forfeitOtherRejoins(player);
         applyJoinSetup(player);
         broadcast("PlayerJoinedArena", new HashMap<String, String>() {{
             put("/player/", coloredName(player));
@@ -525,6 +529,32 @@ public class Arena implements IArena {
             put("/maxplayers/", Integer.toString(teams.size() * maxInTeam));
         }});
         checkIfCanStart();
+        return true;
+    }
+
+    /** True while the player is actually in another arena's world as one of its players. */
+    private boolean playsInOtherArena(Player player) {
+        for (IArena other : arenaByName.values()) {
+            if (other != this && Boolean.TRUE.equals(other.isPlayerInArena(player))
+                    && player.getWorld() == other.getArenaWorld()) return true;
+        }
+        return false;
+    }
+
+    /** Joining this arena gives up the player's place in any game they could still rejoin. */
+    private void forfeitOtherRejoins(Player player) {
+        for (IArena other : new ArrayList<>(arenaByName.values())) {
+            if (other != this) other.forfeitRejoin(player);
+        }
+    }
+
+    @Override
+    public boolean forfeitRejoin(Player player) {
+        if (!players.containsKey(player.getUniqueId()) || player.getWorld() == world) return false;
+        cancelRejoinTask(player.getUniqueId());
+        GamePlayer gp = players.remove(player.getUniqueId());
+        if (gp != null) gp.cancelRespawnTask();
+        NewBedwars.plugin.getMessages().send(player, "RejoinForfeited", new HashMap<>() {{ put("/arena/", arenaName); }});
         return true;
     }
 
@@ -537,7 +567,9 @@ public class Arena implements IArena {
         List<Player> joined = new ArrayList<>();
         for (Player member : partyMembers) {
             if (players.containsKey(member.getUniqueId())) continue;
+            if (playsInOtherArena(member)) continue;
             if (!ApiEvents.playerJoin(this, member, false)) continue;
+            forfeitOtherRejoins(member);
             applyJoinSetup(member);
             joined.add(member);
         }
@@ -586,6 +618,7 @@ public class Arena implements IArena {
 
     @Override
     public void leave(Player player, LeaveReason reason) {
+        MapVoteManager.playerLeft(this, player);
         if (players.containsKey(player.getUniqueId()) || spectatorsList.contains(player)) {
             ApiEvents.playerLeave(this, player, reason);
         }
@@ -621,6 +654,7 @@ public class Arena implements IArena {
         }
         GamePlayer leavingPlayer = players.get(player.getUniqueId());
         if (leavingPlayer == null) return;
+        leavingPlayer.cancelRespawnTask();
         final String playerName = coloredName(player);
         if (gameStatus == GameStatus.playing) {
             leavingPlayer.getTeam().removePlayer(player);
@@ -694,7 +728,9 @@ public class Arena implements IArena {
                 int time = Math.max(1, respawnTime);
                 @Override
                 public void run() {
-                    if (gameStatus != GameStatus.playing || !isPlayerInArena(player)) {
+                    // Stop when the game ended or the player left (lobby, disconnect) while waiting to respawn.
+                    if (gameStatus != GameStatus.playing || !isPlayerInArena(player)
+                            || !player.isOnline() || !spectatorsList.contains(player)) {
                         cancel();
                         return;
                     }
@@ -1024,6 +1060,7 @@ public class Arena implements IArena {
         if (scoreboard != null) {
             scoreboards.put(player.getUniqueId(), scoreboard);
         }
+        MapVoteManager.spectatorJoined(this, player);
         return true;
     }
 
@@ -1599,7 +1636,7 @@ public class Arena implements IArena {
     }
 
     private void addSpectatorInternal(Player player, boolean canExit) {
-        spectatorsList.add(player);
+        if (!spectatorsList.contains(player)) spectatorsList.add(player);
         if (player.isDead()) {
             player.spigot().respawn();
         }
@@ -1791,7 +1828,8 @@ public class Arena implements IArena {
             Player p = Bukkit.getPlayer(uuid);
             if (p == null) {
                 players.remove(uuid);
-            } else if (!spectatorsList.contains(p)) {
+            } else if (!spectatorsList.contains(p) && p.getWorld() == world) {
+                // Players who already left (lobby, waiting for a rejoin) are not pulled back to watch the end.
                 addSpectatorInternal(p, true);
             }
         }
@@ -1823,13 +1861,16 @@ public class Arena implements IArena {
                 if (p != null && p.isOnline()) arenaBossBar.addPlayer(p);
             }
         }
+        MapVoteManager.gameEnded(this);
         endingTimer = new BukkitRunnable() {
             int timeLeft = Properties.AfterGameWatchTime;
             @Override
             public void run() {
                 if (timeLeft <= 0) {
                     cancel();
+                    Runnable moveToVotedArena = MapVoteManager.closeEndVote(Arena.this);
                     stop();
+                    if (moveToVotedArena != null) moveToVotedArena.run();
                     return;
                 }
                 if (timeLeft <= 5) {

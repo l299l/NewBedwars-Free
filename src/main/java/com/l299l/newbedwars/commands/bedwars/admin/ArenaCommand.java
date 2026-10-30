@@ -28,7 +28,7 @@ public class ArenaCommand extends SubCommand {
         disableArenaCommand = new DisableArenaCommand();
         setupCommand = new SetupArenaCommand();
         listArenaCommand = new ListArenaCommand();
-        maintenanceCommands = List.of("backup", "backups", "restore", "export", "import", "resetmap").stream()
+        maintenanceCommands = List.of("backup", "backups", "restore", "export", "import", "copy", "resetmap").stream()
                 .map(ArenaMaintenanceCommand::new).toList();
     }
 
@@ -48,7 +48,7 @@ public class ArenaCommand extends SubCommand {
 
     @Override
     public String getSyntax() {
-        return "/bw arena (<create|delete|enable|disable|setup|list|backup|backups|restore|export|import|resetmap>) <arenaName> (options of subcommands)";
+        return "/bw arena (<create|delete|enable|disable|setup|list|backup|backups|restore|export|import|copy|resetmap>) <arenaName> (options of subcommands)";
     }
 
     @Override
@@ -101,7 +101,7 @@ public class ArenaCommand extends SubCommand {
         }
         if (args.length == 2) {
             return List.of("create", "delete", "enable", "disable", "setup", "list",
-                    "backup", "backups", "restore", "export", "import", "resetmap");
+                    "backup", "backups", "restore", "export", "import", "copy", "resetmap");
         } else if (args.length >= 3) {
             return switch (args[1]) {
                 case "create" -> createCommand.getSubcommandArguments(player, args);

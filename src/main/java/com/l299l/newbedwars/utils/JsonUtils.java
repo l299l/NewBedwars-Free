@@ -44,4 +44,23 @@ public class JsonUtils {
     }
 
 
+
+    /** Replaces every {@code "world": oldWorld} (locations, at any depth) with {@code newWorld}. */
+    public static void renameWorld(com.google.gson.JsonElement element, String oldWorld, String newWorld) {
+        if (element == null) return;
+        if (element.isJsonArray()) {
+            for (com.google.gson.JsonElement e : element.getAsJsonArray()) renameWorld(e, oldWorld, newWorld);
+        } else if (element.isJsonObject()) {
+            com.google.gson.JsonObject obj = element.getAsJsonObject();
+            for (java.util.Map.Entry<String, com.google.gson.JsonElement> e : obj.entrySet()) {
+                com.google.gson.JsonElement v = e.getValue();
+                if (e.getKey().equals("world") && v.isJsonPrimitive() && v.getAsJsonPrimitive().isString()
+                        && v.getAsString().equals(oldWorld)) {
+                    e.setValue(new com.google.gson.JsonPrimitive(newWorld));
+                } else {
+                    renameWorld(v, oldWorld, newWorld);
+                }
+            }
+        }
+    }
 }

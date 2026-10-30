@@ -169,4 +169,36 @@ class ApiEventsTest {
         ArmorEquipEvent e = captured(ArmorEquipEvent.class);
         assertThrows(IllegalArgumentException.class, () -> e.setArmor(new ItemStack[3]));
     }
+
+    @Test
+    void mapVoteCarriesVoterAndChoiceAndCanBeCancelled() {
+        IArena voted = mock(IArena.class);
+        when(voted.getArenaName()).thenReturn("B2");
+        assertTrue(ApiEvents.mapVote(arena, player, voted));
+        com.l299l.newbedwars.api.events.MapVoteEvent e = captured(com.l299l.newbedwars.api.events.MapVoteEvent.class);
+        assertSame(player, e.getPlayer());
+        assertEquals("A1", e.getArena().getName());
+        assertEquals("B2", e.getVotedArena().getName());
+    }
+
+    @Test
+    void cancelledMapVoteIsReported() {
+        cancelEverything();
+        assertFalse(ApiEvents.mapVote(arena, player, arena));
+    }
+
+    @Test
+    void mapChosenCarriesGroupAndChosenArena() {
+        IArena chosen = mock(IArena.class);
+        when(chosen.getArenaName()).thenReturn("B2");
+        com.l299l.newbedwars.arena.group.ArenaGroup group = new com.l299l.newbedwars.arena.group.ArenaGroup("solo", null);
+        group.add("A1");
+        group.add("B2");
+        ApiEvents.mapChosen(arena, group, chosen);
+        com.l299l.newbedwars.api.events.MapChosenEvent e = captured(com.l299l.newbedwars.api.events.MapChosenEvent.class);
+        assertEquals("A1", e.getArena().getName());
+        assertEquals("B2", e.getChosenArena().getName());
+        assertEquals("solo", e.getGroup().getName());
+        assertEquals(java.util.List.of("A1", "B2"), e.getGroup().getArenaNames());
+    }
 }

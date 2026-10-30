@@ -31,6 +31,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Quick Void: instant death below a configurable Y level
 - Per-team build protection zones so the opposing side can't place blocks where they shouldn't
 - Rejoin system, so players can reconnect to a game if they get disconnected
+- Map voting: put arenas into groups; at the end of a game players vote for the next map and move there together. `/bw arena copy` clones an arena so one map can run several games
 - Party system: group up with `/party`, invite friends with clickable chat buttons, and let the party admin lead everyone into an arena together
 
 **Chat & visibility**
@@ -47,8 +48,9 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Per-arena resource packs, sent automatically on join and cleared on leave
 
 **Integrations**
-- PlaceholderAPI: 26 placeholders under `%newbedwars_*%` for scoreboards, chat formatters, and other plugins. Totally optional, the plugin loads fine without it
+- PlaceholderAPI: 34 placeholders under `%newbedwars_*%` (players, stats, arenas and arena groups) for scoreboards, chat formatters, and other plugins. Totally optional, the plugin loads fine without it
 - WorldEdit / FastAsyncWorldEdit: build an arena straight from a `.schem` file instead of placing blocks by hand. Also optional, manual setup works fine without it
+- Citizens: turn any Citizens NPC into a lobby join NPC with a live hologram (join a group or arena, or open the arena selector). Without Citizens, `/bw npc create` spawns a simple NPC instead
 
 ---
 
@@ -57,7 +59,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - **Server:** Paper 1.17 – 26.3 *(Spigot will probably work too, but it's untested, so Paper is recommended)*
 - **Java:** 16 or higher
 
-Optional: **PlaceholderAPI**, if you want `%newbedwars_*%` placeholders elsewhere on your server, and **WorldEdit** or **FastAsyncWorldEdit**, if you'd rather build arenas from a schematic than by hand. Neither is required, NewBedwars runs fine standalone.
+Optional: **PlaceholderAPI**, if you want `%newbedwars_*%` placeholders elsewhere on your server, **WorldEdit** or **FastAsyncWorldEdit**, if you'd rather build arenas from a schematic than by hand, and **Citizens**, for skinned lobby join NPCs. None of them is required, NewBedwars runs fine standalone.
 
 ---
 
@@ -177,8 +179,8 @@ NewBedwars will leave beta once stable operation is verified across all supporte
 - [x] Player profile GUI with stats history
 - [x] Improved help
 - [x] Addon API and events
-- [ ] Citizens2 support
-- [ ] In-game map voting system
+- [x] Citizens2 support (lobby join NPCs)
+- [x] In-game map voting system
 - [ ] More languages (full support)
 - [ ] Network / BungeeCord / Velocity mode
 - [ ] Website panel

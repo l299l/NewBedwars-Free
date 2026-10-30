@@ -2,6 +2,8 @@ package com.l299l.newbedwars;
 
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.group.ArenaGroupManager;
+import com.l299l.newbedwars.arena.group.MapVoteManager;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
 import com.l299l.newbedwars.extensions.ExtensionManager;
 import com.l299l.newbedwars.placeholder.NewBedwarsExpansion;
@@ -24,6 +26,7 @@ import com.l299l.newbedwars.events.ChatEvent;
 import com.l299l.newbedwars.events.InitializationEvent;
 import com.l299l.newbedwars.events.LanguageEvent;
 import com.l299l.newbedwars.gui.GuiManager;
+import com.l299l.newbedwars.npc.JoinNpcManager;
 import com.l299l.newbedwars.parties.PartyManager;
 import com.l299l.newbedwars.player.PlayerManager;
 import com.l299l.newbedwars.scoreboard.ScoreboardManager;
@@ -58,6 +61,9 @@ public final class NewBedwars extends JavaPlugin {
     private PartyManager partyManager;
     private BossBarManager bossBarManager;
     private ScoreboardManager scoreboardManager;
+    private final JoinNpcManager joinNpcManager;
+    private final ArenaGroupManager arenaGroupManager;
+    private final MapVoteManager mapVoteManager;
 
     public NewBedwars() {
         plugin = this;
@@ -66,6 +72,9 @@ public final class NewBedwars extends JavaPlugin {
         updater = new Updater();
         playerManager = new PlayerManager();
         generatorLeveling = new HashMap<>();
+        joinNpcManager = new JoinNpcManager();
+        arenaGroupManager = new ArenaGroupManager();
+        mapVoteManager = new MapVoteManager();
     }
 
     @Override
@@ -85,6 +94,7 @@ public final class NewBedwars extends JavaPlugin {
         if (ExtensionManager.isPlaceholderAPIPresent()) {
             new NewBedwarsExpansion(this).register();
         }
+        joinNpcManager.start();
         apiImpl = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
         getServer().getPluginManager().registerEvents(apiImpl, this);
         getServer().getServicesManager().register(com.l299l.newbedwars.api.NewBedwarsAPI.class, apiImpl, this, org.bukkit.plugin.ServicePriority.Normal);
@@ -94,6 +104,7 @@ public final class NewBedwars extends JavaPlugin {
     @Override
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
+        joinNpcManager.shutdown();
         int active = 0;
         for (IArena arena : Arena.arenaByName.values()) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
@@ -152,6 +163,8 @@ public final class NewBedwars extends JavaPlugin {
         properties = new Properties();
         dataManager = new DataManager();
         dataManager.load();
+        arenaGroupManager.load();
+        mapVoteManager.clear();
         partyManager = new PartyManager(this, messages);
         bossBarManager = new BossBarManager(updater.getBossBarsConf());
         bossBarManager.loadBossBars();
@@ -195,6 +208,18 @@ public final class NewBedwars extends JavaPlugin {
         return scoreboardManager;
     }
 
+    public ArenaGroupManager getArenaGroupManager() {
+        return arenaGroupManager;
+    }
+
+    public MapVoteManager getMapVoteManager() {
+        return mapVoteManager;
+    }
+
+    public JoinNpcManager getJoinNpcManager() {
+        return joinNpcManager;
+    }
+
     public MainCommand getMainCommand() {
         return mainCommand;
     }
@@ -228,6 +253,8 @@ public final class NewBedwars extends JavaPlugin {
         if (apiImpl != null) {
             getServer().getPluginManager().registerEvents(apiImpl, this);
         }
+        joinNpcManager.registerListeners();
+        getServer().getPluginManager().registerEvents(mapVoteManager, this);
         guiManager.reloadGuis();
     }
 

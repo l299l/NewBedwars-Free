@@ -51,6 +51,12 @@ public interface IArena {
     GamePlayer getPlayer(UUID player);
     void killPlayer(Player player);
     void cancelStart();
+
+    /**
+     * Gives up the player's place in this game when they are kept only for a rejoin (not in this arena's world).
+     * @return true when a place was removed
+     */
+    boolean forfeitRejoin(Player player);
     void broadcast(String message);
     void broadcast(String message, HashMap<String, String> replace);
     void broadcastTitle(String title, String subtitle, Integer fadeIn, Integer stay, Integer fadeOut);

@@ -30,6 +30,11 @@ import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.l299l.newbedwars.api.view.ArenaGroupView;
+import com.l299l.newbedwars.apiimpl.view.ApiArenaGroup;
+import com.l299l.newbedwars.arena.group.ArenaGroup;
+import com.l299l.newbedwars.arena.group.ArenaGroupManager;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -69,6 +74,22 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Collection<ArenaGroupView> getGroups() {
+        Collection<ArenaGroupView> result = new ArrayList<>();
+        ArenaGroupManager groups = ArenaGroupManager.get();
+        if (groups != null) {
+            for (ArenaGroup g : groups.getGroups()) result.add(new ApiArenaGroup(g));
+        }
+        return result;
+    }
+
+    @Override
+    public Optional<ArenaGroupView> getGroup(String name) {
+        ArenaGroup g = ArenaGroupManager.lookup(name);
+        return g == null ? Optional.empty() : Optional.of(new ApiArenaGroup(g));
     }
 
     @Override

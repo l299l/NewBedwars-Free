@@ -12,7 +12,7 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 
 | Command | Where | Description |
 |---|---|---|
-| `/bw join [arena]` | lobby | Open the arena selector or join a specific arena |
+| `/bw join [arena|group]` | lobby | Open the arena selector, join a specific arena, or join the fullest waiting arena of a group |
 | `/bw rejoin` | lobby | Rejoin the game you disconnected from |
 | `/bw spectate <arena>` | lobby | Join a running arena as a spectator |
 | `/bw lobby` | lobby, game | Leave the arena and return to the lobby |
@@ -54,10 +54,27 @@ Available outside arenas to players with the permission shown.
 | `/bw arena restore <name> [backupId]` | `newbedwars.bw.arena.restore` | Restore the arena file and map from a backup |
 | `/bw arena export <name>` | `newbedwars.bw.arena.export` | Export the arena (file and map) to a zip in `data/exports` |
 | `/bw arena import <file>` | `newbedwars.bw.arena.import` | Import an arena from a zip in `data/exports` (loaded disabled) |
+| `/bw arena copy <name> <newName>` | `newbedwars.bw.arena.copy` | Copy an arena (settings and map) to a new arena with the same state; it joins the same group |
 | `/bw arena resetmap <name>` | `newbedwars.bw.arena.resetmap` | Put the arena map back to its saved state now |
 | `/bw setlobby` | `newbedwars.bw.setlobby` | Set the lobby spawn |
+| `/bw group create <name> [item]` | `newbedwars.bw.group.create` | Create an arena group (players vote between its maps); `item` is the vote menu icon |
+| `/bw group delete <group>` | `newbedwars.bw.group.delete` | Delete a group |
+| `/bw group add <group> <arena>` | `newbedwars.bw.group.add` | Add an arena (all arenas of a group need the same team count and team size; one group per arena) |
+| `/bw group remove <group> <arena>` | `newbedwars.bw.group.remove` | Remove an arena from a group |
+| `/bw group list` / `info <group>` | `newbedwars.bw.group.list` / `.info` | List groups / show a group and its problems |
+| `/bw group setitem <group> <item>` | `newbedwars.bw.group.setitem` | Change the vote menu icon |
+| `/bw npc set <action> [target]` | `newbedwars.bw.npc` | Turn the Citizens NPC you selected (`/npc select`) into a join NPC |
+| `/bw npc clear` | `newbedwars.bw.npc` | Make the selected Citizens NPC a normal NPC again |
+| `/bw npc info [id]` | `newbedwars.bw.npc` | Show the action of the selected Citizens NPC, or of a simple NPC by id |
+| `/bw npc list` | `newbedwars.bw.npc` | List all join NPCs with their action and location |
+| `/bw npc create <entityType> <action> [target]` | `newbedwars.bw.npc` | Without Citizens: spawn a simple join NPC (e.g. a villager) where you stand |
+| `/bw npc remove <id>` | `newbedwars.bw.npc` | Remove a simple join NPC |
 | `/bw reload` | `newbedwars.bw.admin` | Save arenas, send everyone to the lobby and reload the configuration |
 | `/bw game <start\|forcestart\|stop\|forcestop\|nextPhase>` | `newbedwars.bw.managegame` | Manage the running game you are in or spectating (start, stop, skip a phase) |
+
+`/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
+
+Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, `SELECTOR [group]` opens the arena selector, and `NETWORK <group|arena>` is reserved for network mode (refused for now). A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
 
 ## Setup commands
 
@@ -115,12 +132,14 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 
 | Permission | Default | Description |
 |---|---|---|
-| `newbedwars.bw.admin` | op | All admin commands (grants `arena`, `setlobby`, `managegame`) |
+| `newbedwars.bw.admin` | op | All admin commands (grants `arena`, `setlobby`, `managegame`, `npc`, `group`) |
 | `newbedwars.bw.arena` | op | All `/bw arena ...` commands (grants the `arena.*` permissions) |
 | `newbedwars.bw.arena.create` / `.delete` / `.enable` / `.disable` / `.setup` / `.list` | op | The matching `/bw arena <action>` |
-| `newbedwars.bw.arena.backup` / `.backups` / `.restore` / `.export` / `.import` / `.resetmap` | op | The matching `/bw arena <action>` |
+| `newbedwars.bw.arena.backup` / `.backups` / `.restore` / `.export` / `.import` / `.copy` / `.resetmap` | op | The matching `/bw arena <action>` |
 | `newbedwars.bw.setlobby` | op | `/bw setlobby` |
 | `newbedwars.bw.managegame` | op | `/bw game ...` |
+| `newbedwars.bw.npc` | op | `/bw npc ...` |
+| `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`) |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions (for example entering setup worlds) |
 
 ### Player

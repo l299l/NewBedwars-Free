@@ -124,6 +124,34 @@ class JoinCommandTest {
         verify(mockMessages).send(eq(player), eq("ArenaNotEnabled"), any());
     }
 
+    @Test
+    void rejoinSlotInAnotherArena_doesNotBlockJoining() {
+        IArena old = mockArena(GameStatus.playing);
+        when(old.isPlayerInArena(player)).thenReturn(true);
+        IArena fresh = mockArena(GameStatus.waiting);
+        when(fresh.join(player)).thenReturn(true);
+        Arena.arenaByName.put("old", old);
+        Arena.arenaByName.put("fresh", fresh);
+
+        cmd.perform(player, new String[]{"join", "fresh"}, null);
+
+        verify(fresh).join(player);
+        verify(mockMessages, never()).send(player, "ArenaJoinError");
+    }
+
+    @Test
+    void joiningTheArenaYouCanRejoin_rejoinsIt() {
+        IArena old = mockArena(GameStatus.playing);
+        when(old.isPlayerInArena(player)).thenReturn(true);
+        when(old.rejoin(player)).thenReturn(true);
+        Arena.arenaByName.put("old", old);
+
+        cmd.perform(player, new String[]{"join", "old"}, null);
+
+        verify(old).rejoin(player);
+        verify(mockMessages).send(player, "Rejoined");
+    }
+
     private IArena mockArena(GameStatus status) {
         IArena arena = mock(IArena.class);
         when(arena.isEnabled()).thenReturn(true);

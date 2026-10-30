@@ -7,6 +7,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | Placeholder | Description |
 |---|---|
 | `%newbedwars_arena%` | Arena name the player is in, or `""` |
+| `%newbedwars_group%` | Group of the arena the player is in, or `""` |
 | `%newbedwars_status%` | Game status: `waiting` / `starting` / `playing` / `ending` / `restarting`, or `lobby` |
 | `%newbedwars_team%` | Team name, or `""` |
 | `%newbedwars_team_color%` | Team ChatColor code, or `""` |
@@ -42,3 +43,18 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_arena_<name>_players%` | Current player count |
 | `%newbedwars_arena_<name>_max_players%` | Max players |
 | `%newbedwars_arena_<name>_phase%` | Current phase name |
+
+**Per-group** (arena groups from `/bw group`; group names may contain `_`)
+
+| Placeholder | Description |
+|---|---|
+| `%newbedwars_group_<name>_players%` | Players in all enabled arenas of the group |
+| `%newbedwars_group_<name>_playing%` | Players in running games (playing / ending) |
+| `%newbedwars_group_<name>_waiting%` | Players waiting in lobbies (waiting / starting) |
+| `%newbedwars_group_<name>_max_players%` | Total slots of the group's enabled arenas |
+| `%newbedwars_group_<name>_arenas%` | Number of arenas in the group |
+| `%newbedwars_group_<name>_arenas_free%` | Waiting arenas that still have room |
+| `%newbedwars_group_<name>_best_arena%` | Arena `/bw join <group>` would pick now (fullest free one), or `""` |
+
+An unknown group returns `""`.
+

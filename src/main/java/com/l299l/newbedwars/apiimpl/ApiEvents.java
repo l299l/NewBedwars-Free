@@ -1,6 +1,10 @@
 package com.l299l.newbedwars.apiimpl;
 
 import com.l299l.newbedwars.apiimpl.view.ApiArena;
+import com.l299l.newbedwars.apiimpl.view.ApiArenaGroup;
+import com.l299l.newbedwars.api.events.MapChosenEvent;
+import com.l299l.newbedwars.api.events.MapVoteEvent;
+import com.l299l.newbedwars.arena.group.ArenaGroup;
 import com.l299l.newbedwars.apiimpl.view.ApiTeam;
 import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.view.TeamView;
@@ -55,6 +59,15 @@ public final class ApiEvents {
     /** @return false when a listener cancelled the join */
     public static boolean playerJoin(IArena arena, Player player, boolean rejoin) {
         return !call(new PlayerJoinArenaEvent(view(arena), player, rejoin)).isCancelled();
+    }
+
+    /** @return false when a listener cancelled the vote */
+    public static boolean mapVote(IArena host, Player player, IArena voted) {
+        return !call(new MapVoteEvent(view(host), player, view(voted))).isCancelled();
+    }
+
+    public static void mapChosen(IArena host, ArenaGroup group, IArena chosen) {
+        call(new MapChosenEvent(view(host), new ApiArenaGroup(group), view(chosen)));
     }
 
     public static void playerLeave(IArena arena, Player player, LeaveReason reason) {

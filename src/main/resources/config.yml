@@ -31,6 +31,19 @@ DefaultGamerules:
   # When all players would end up in a single team (e.g. one big party), true splits the
   # party over other teams so the game can start; false keeps waiting for more players.
   SplitPartiesToStart: true
+  # In a grouped arena, players vote for the next map at the end of the game (see MapVote below); false = no vote.
+  MapVote: true
+
+# ----- Map voting ---------------------------------
+# Arenas can be put into groups (/bw group). When a game in a grouped arena ends, everyone still there gets a
+# vote item and votes for the next map among the group's other free arenas during AfterGameWatchTime.
+# When the time is up, everyone joins the waiting lobby of the map with most votes (a tie or no votes picks
+# randomly). If no arena of the group is free, everyone goes to the lobby as usual.
+MapVote:
+  Item:
+    # Hotbar slot and material of the vote item. Slots 0, 4 and 8 hold spectator items, so they fall back to 2.
+    Slot: 2
+    Material: PAPER
 
 # ----- Language -----------------------------------
 # Supported: en (English), pl (Polish), de (German), es (Spanish), fr (French), ru (Russian)
@@ -74,7 +87,7 @@ BedLeaveConfirmEnabled: true
 BedLeaveConfirmDelay: 3
 
 # Seconds players can spectate after the game ends before the arena resets
-AfterGameWatchTime: 20
+AfterGameWatchTime: 30
 
 # Show red particles above players carrying TNT
 TntParticlesEnabled: true
@@ -116,6 +129,36 @@ Rollback:
 Backups:
   # How many automatic arena file / map backups are kept per arena.
   Keep: 5
+
+# ----- Join NPCs ----------------------------------
+# Lobby NPCs that join a game when clicked. Make one with Citizens (/npc create, /npc select)
+# and attach it with /bw npc set <GROUP|ARENA|SELECTOR|NETWORK> [target],
+# or without Citizens: /bw npc create <entityType> <action> [target].
+JoinNpc:
+  # How often (seconds) the holograms above the NPCs are updated.
+  UpdateSeconds: 2
+  # Also run the action on a left click (right click always works).
+  LeftClick: false
+  # Hologram lines per action (empty list = no hologram). Placeholders: /group/, /arena/, /playing/,
+  # /waiting/, /arenas_free/, /players/, /max/, /status/
+  Hologram:
+    # Move the hologram up (positive) or down (negative), e.g. -0.3 when the NPC name is hidden.
+    Offset: 0.0
+    GROUP:
+      - "&b&l/group/"
+      - "&7Playing: &f/playing/ &8| &7Waiting: &f/waiting/"
+      - "&eClick to play!"
+    ARENA:
+      - "&b&l/arena/"
+      - "&7Players: &f/players/&7/&f/max/ &8| &7/status/"
+      - "&eClick to join!"
+    SELECTOR:
+      - "&b&lBedWars"
+      - "&7Playing: &f/playing/ &8| &7Free arenas: &f/arenas_free/"
+      - "&eClick to choose an arena!"
+    NETWORK:
+      - "&b&l/group/"
+      - "&eClick to play!"
 
 # ----- Iron Golem Settings ------------------------
 # How long (seconds) iron golems stay alive before despawning

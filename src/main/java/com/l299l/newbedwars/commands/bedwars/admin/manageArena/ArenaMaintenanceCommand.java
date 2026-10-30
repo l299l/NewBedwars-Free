@@ -16,6 +16,7 @@ import com.l299l.newbedwars.utils.JsonUtils;
 import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.world.template.MapTemplateManager;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -63,6 +64,7 @@ public class ArenaMaintenanceCommand extends SubCommand {
             case "restore" -> "Restore an arena (file and map) from a backup.";
             case "export" -> "Export an arena (file and map) to a zip.";
             case "import" -> "Import an arena from a zip in data/exports (loaded disabled).";
+            case "copy" -> "Copy an arena (settings and map) to a new arena; the copy joins the same group.";
             default -> "Put the arena map back to its saved state now.";
         };
     }
@@ -72,13 +74,14 @@ public class ArenaMaintenanceCommand extends SubCommand {
         return switch (action) {
             case "restore" -> "/bw arena restore <arenaName> [backupId]";
             case "import" -> "/bw arena import <fileName>";
+            case "copy" -> "/bw arena copy <arenaName> <newArenaName>";
             default -> "/bw arena " + action + " <arenaName>";
         };
     }
 
     @Override
     public String getExample() {
-        return "/bw arena " + action + (action.equals("import") ? " castle-20261027.zip" : " castle");
+        return "/bw arena " + action + (action.equals("import") ? " castle-20261027.zip" : action.equals("copy") ? " castle castle2" : " castle");
     }
 
     @Override
@@ -87,7 +90,9 @@ public class ArenaMaintenanceCommand extends SubCommand {
             msg.send(player, "NoPermissions");
             return;
         }
-        if (args.length < 3 || args.length > (action.equals("restore") ? 4 : 3)) {
+        int min = action.equals("copy") ? 4 : 3;
+        int max = action.equals("restore") || action.equals("copy") ? 4 : 3;
+        if (args.length < min || args.length > max) {
             player.sendMessage(msg.getMsg(player, "CorrectUsage") + getSyntax());
             return;
         }
@@ -105,6 +110,7 @@ public class ArenaMaintenanceCommand extends SubCommand {
             case "backups" -> doList(player, arena);
             case "restore" -> doRestore(player, arena, args.length == 4 ? args[3] : null);
             case "export" -> doExport(player, arena);
+            case "copy" -> doCopy(player, arena, args[3]);
             default -> doResetMap(player, arena);
         }
     }
@@ -269,6 +275,93 @@ public class ArenaMaintenanceCommand extends SubCommand {
         });
     }
 
+    private void doCopy(Player player, IArena source, String newName) {
+        String name = source.getArenaName();
+        if (!SAFE_NAME.matcher(newName).matches()) {
+            reply(player, "CopyFailed", newName, "use only letters, digits, _ and -");
+            return;
+        }
+        Path arenaFile = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(newName + ".json");
+        if (com.l299l.newbedwars.arena.join.ArenaJoinService.arenaByName(newName) != null || Files.exists(arenaFile)
+                || Bukkit.getWorld(newName) != null || Files.exists(ArenaMaps.worldFolder(newName))
+                || MapTemplateManager.hasTemplate(ArenaMaps.mapsRoot(), newName)) {
+            reply(player, "CopyFailed", newName, "an arena, map or world with that name already exists");
+            return;
+        }
+        // The pristine template is copied when there is one; otherwise the saved world (only while nobody uses it).
+        Path mapSource;
+        if (ArenaMaps.hasTemplate(name)) {
+            mapSource = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name);
+        } else {
+            if (busy(source)) {
+                reply(player, "ArenaBusy", name, null);
+                return;
+            }
+            source.getArenaWorld().save();
+            mapSource = source.getArenaWorld().getWorldFolder().toPath();
+        }
+        String json;
+        try {
+            JsonObject obj = new Gson().fromJson(source.toJson(), JsonObject.class);
+            String oldWorld = obj.get("worldName").getAsString();
+            obj.addProperty("arenaName", newName);
+            obj.addProperty("worldName", newName);
+            JsonUtils.renameWorld(obj, oldWorld, newName);
+            json = JsonUtils.beautifyJson(obj.toString());
+        } catch (Exception e) {
+            reply(player, "CopyFailed", newName, e.getMessage());
+            return;
+        }
+        List<String> excludes = List.copyOf(com.l299l.newbedwars.config.properties.Properties.RollbackTemplateExcludes);
+        runAsync(() -> {
+            MapTemplateManager.createTemplate(ArenaMaps.mapsRoot(), newName, mapSource, excludes);
+            // Paper's world identity: a copy carrying it is refused as a duplicate of the source world.
+            Path template = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), newName);
+            Files.deleteIfExists(template.resolve("data").resolve("paper").resolve("metadata.dat"));
+            Files.deleteIfExists(template.resolve("uid.dat"));
+            AtomicFileWriter.write(arenaFile, json, null, 0);
+        }, error -> {
+            if (error != null) {
+                NewBedwars.plugin.getLogger().warning("Copy of arena " + name + " to " + newName + " failed: " + error);
+                removeCopy(newName, arenaFile);
+                reply(player, "CopyFailed", newName, error.getMessage());
+                return;
+            }
+            IArena loaded = null;
+            try {
+                ArenaMaps.restoreOffline(newName, newName);
+                loaded = NewBedwars.plugin.getDataManager().getArenaDataManager().loadArena(newName);
+            } catch (IOException e) {
+                NewBedwars.plugin.getLogger().warning("Copy of arena " + name + " to " + newName + " failed: " + e);
+            }
+            if (loaded == null) {
+                removeCopy(newName, arenaFile);
+                reply(player, "CopyFailed", newName, "the copy could not be loaded (see the console)");
+                return;
+            }
+            com.l299l.newbedwars.arena.group.ArenaGroupManager groups = com.l299l.newbedwars.arena.group.ArenaGroupManager.get();
+            com.l299l.newbedwars.arena.group.ArenaGroup group = groups == null ? null : groups.groupOf(name);
+            if (group != null) {
+                group.add(newName);
+                groups.changed();
+            }
+            reply(player, "CopyDone", newName, name + (group != null ? ", group " + group.getName() : ""));
+        });
+    }
+
+    /** Undoes a failed copy: arena file, map template and world folder of {@code newName}. */
+    private static void removeCopy(String newName, Path arenaFile) {
+        try {
+            World world = Bukkit.getWorld(newName);
+            if (world != null) Bukkit.unloadWorld(world, false);
+            Files.deleteIfExists(arenaFile);
+            MapTemplateManager.deleteTree(MapTemplateManager.arenaRoot(ArenaMaps.mapsRoot(), newName));
+            MapTemplateManager.deleteTree(ArenaMaps.worldFolder(newName));
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().warning("Could not clean up the failed copy " + newName + ": " + e.getMessage());
+        }
+    }
+
     private void doImport(Player player, String fileName) {
         Path zip = exportsDir().resolve(fileName).normalize();
         if (!zip.startsWith(exportsDir()) || !Files.isRegularFile(zip)) {
@@ -355,6 +448,9 @@ public class ArenaMaintenanceCommand extends SubCommand {
                 }
             }
             return new ArrayList<>(Arena.arenaByName.keySet());
+        }
+        if (args.length == 4 && action.equals("copy")) {
+            return List.of(args[2] + "2");
         }
         if (args.length == 4 && action.equals("restore") && Arena.arenaByName.containsKey(args[2])) {
             try {

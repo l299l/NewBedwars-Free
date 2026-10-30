@@ -85,6 +85,12 @@ public final class MapTemplateManager {
             throw new IOException("World folder " + worldFolder + " has no level.dat or region folder (was the world saved?)");
         }
         Path current = templateDir(mapsRoot, arena);
+        try {
+            repairIncompleteFiles(worldFolder, fresh, current);
+        } catch (IOException e) {
+            deleteTree(fresh);
+            throw e;
+        }
         deleteTree(current);
         Files.move(fresh, current);
         long files = countFiles(current);
@@ -92,6 +98,65 @@ public final class MapTemplateManager {
                 "{\n  \"created\": " + System.currentTimeMillis()
                         + ",\n  \"files\": " + files
                         + ",\n  \"bytes\": " + sizeOf(current) + "\n}\n", StandardCharsets.UTF_8);
+    }
+
+    private static final int REPAIR_ATTEMPTS = 50;
+    private static final long REPAIR_WAIT_MS = 100;
+
+    /**
+     * The server writes world data files ({@code *.dat}) in the background after a save, so a copy made right
+     * after {@code World.save()} can catch one half-written (seen on Paper 26.x: 10-byte gzip files, then
+     * "Unexpected end of ZLIB input stream" when the world loads). Copies every broken one again until it is
+     * complete (up to ~5 s), then falls back to the previous template's copy.
+     */
+    static void repairIncompleteFiles(Path source, Path copy, Path previous) throws IOException {
+        List<Path> broken = new ArrayList<>();
+        try (Stream<Path> s = Files.walk(copy)) {
+            s.filter(p -> p.getFileName().toString().endsWith(".dat")).filter(p -> !isCompleteDat(p)).forEach(broken::add);
+        }
+        for (Path file : broken) {
+            Path relative = copy.relativize(file);
+            Path from = source.resolve(relative.toString());
+            boolean fixed = false;
+            for (int i = 0; i < REPAIR_ATTEMPTS && !fixed; i++) {
+                if (i > 0) sleep();
+                if (Files.isRegularFile(from)) {
+                    Files.copy(from, file, StandardCopyOption.REPLACE_EXISTING);
+                    fixed = isCompleteDat(file);
+                }
+            }
+            Path old = previous == null ? null : previous.resolve(relative.toString());
+            if (!fixed && old != null && Files.isRegularFile(old) && isCompleteDat(old)) {
+                Files.copy(old, file, StandardCopyOption.REPLACE_EXISTING);
+                fixed = true;
+            }
+            if (!fixed) throw new IOException("World file " + relative + " is incomplete (still being written); try again");
+        }
+    }
+
+    /** False for a gzip file that ends early; true for complete gzip files and for files that are not gzip. */
+    static boolean isCompleteDat(Path file) {
+        try (java.io.InputStream raw = Files.newInputStream(file)) {
+            byte[] head = raw.readNBytes(2);
+            if (head.length < 2 || (head[0] & 0xff) != 0x1f || (head[1] & 0xff) != 0x8b) return true;
+        } catch (IOException e) {
+            return false;
+        }
+        try (java.util.zip.GZIPInputStream in = new java.util.zip.GZIPInputStream(Files.newInputStream(file))) {
+            in.transferTo(java.io.OutputStream.nullOutputStream());
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static void sleep() throws IOException {
+        try {
+            Thread.sleep(REPAIR_WAIT_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("interrupted while waiting for world files");
+        }
     }
 
     /** Deletes {@code worldFolder} and fills it with the template. The world must not be loaded. */

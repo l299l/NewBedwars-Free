@@ -71,6 +71,9 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
         if (params.startsWith("arena_")) {
             return resolveArenaParam(params.substring("arena_".length()));
         }
+        if (params.startsWith("group_")) {
+            return GroupPlaceholders.resolve(params.substring("group_".length()));
+        }
 
         if (player == null) return "";
 
@@ -83,6 +86,8 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
         switch (params) {
             case "arena":
                 return arena != null ? arena.getArenaName() : "";
+            case "group":
+                return GroupPlaceholders.groupOf(arena);
             case "status":
                 return arena != null ? arena.status().name().toLowerCase() : "lobby";
             case "team": {

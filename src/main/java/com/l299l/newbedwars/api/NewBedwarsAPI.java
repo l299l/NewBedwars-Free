@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.api;
 
 import com.l299l.newbedwars.api.view.ArenaView;
+import com.l299l.newbedwars.api.view.ArenaGroupView;
 import com.l299l.newbedwars.api.view.ArenaState;
 import com.l299l.newbedwars.api.edit.ArenaEditor;
 import com.l299l.newbedwars.api.command.AddonCommand;
@@ -46,6 +47,12 @@ public interface NewBedwarsAPI {
 
     /** The arena the player plays or spectates in. */
     Optional<ArenaView> getArena(Player player);
+
+    /** All arena groups (maps that are voted between), read-only. */
+    Collection<ArenaGroupView> getGroups();
+
+    /** The group with that name (case-insensitive). */
+    Optional<ArenaGroupView> getGroup(String name);
 
     /**
      * Changes the setup of an arena.

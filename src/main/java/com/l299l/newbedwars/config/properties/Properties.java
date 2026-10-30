@@ -59,6 +59,12 @@ public class Properties{
     public static Integer RollbackUnloadRetryTicks = 10;
     public static List<String> RollbackTemplateExcludes = new ArrayList<>();
     public static Integer BackupsKeep = 5;
+    public static Integer MapVoteItemSlot = 2;
+    public static String MapVoteItemMaterial = "PAPER";
+    public static Integer JoinNpcUpdateSeconds = 2;
+    public static Boolean JoinNpcLeftClick = false;
+    public static Double JoinNpcHologramOffset = 0.0;
+    public static Map<String, List<String>> JoinNpcHologram = new HashMap<>();
 
     public Properties() {
         NewBedwars.plugin.reloadConfig();
@@ -93,6 +99,8 @@ public class Properties{
         DefaultGamerules.put("MakeSwordsPermanent", (Boolean) get("DefaultGamerules.MakeSwordsPermanent"));
         DefaultGamerules.put("AllowMultipleGolems", (Boolean) get("DefaultGamerules.AllowMultipleGolems"));
         DefaultGamerules.put("SplitPartiesToStart", (Boolean) get("DefaultGamerules.SplitPartiesToStart"));
+        Object dmv = get("DefaultGamerules.MapVote");
+        DefaultGamerules.put("MapVote", dmv instanceof Boolean b ? b : true);
         DefaultLanguage = (String) get("DefaultLanguage");
         //Game
         RejoinTimeEnabled = (Boolean) get("RejoinTimeLimitEnabled");
@@ -104,7 +112,7 @@ public class Properties{
         Object blcd = get("BedLeaveConfirmDelay");
         BedLeaveConfirmDelay = blcd instanceof Integer i ? i : 3;
         Object agwt = get("AfterGameWatchTime");
-        AfterGameWatchTime = agwt instanceof Integer i ? i : 20;
+        AfterGameWatchTime = agwt instanceof Integer i ? i : 30;
         Object tpe = get("TntParticlesEnabled");
         TntParticlesEnabled = tpe instanceof Boolean b ? b : true;
         Object dsh = get("DragonSpawnHeight");
@@ -130,6 +138,27 @@ public class Properties{
         }
         Object bk = get("Backups.Keep");
         BackupsKeep = bk instanceof Integer i && i >= 0 ? i : 5;
+        //Map vote
+        Object mvs = get("MapVote.Item.Slot");
+        MapVoteItemSlot = mvs instanceof Integer i && i >= 0 && i <= 8 ? i : 2;
+        Object mvm = get("MapVote.Item.Material");
+        MapVoteItemMaterial = mvm instanceof String str ? str : "PAPER";
+        //Join NPCs
+        Object jnu = get("JoinNpc.UpdateSeconds");
+        JoinNpcUpdateSeconds = jnu instanceof Integer i && i > 0 ? i : 2;
+        Object jnl = get("JoinNpc.LeftClick");
+        JoinNpcLeftClick = jnl instanceof Boolean b ? b : false;
+        Object jno = get("JoinNpc.Hologram.Offset");
+        JoinNpcHologramOffset = jno instanceof Number n ? n.doubleValue() : 0.0;
+        JoinNpcHologram = new HashMap<>();
+        for (String type : new String[]{"GROUP", "ARENA", "SELECTOR", "NETWORK"}) {
+            Object lines = get("JoinNpc.Hologram." + type);
+            List<String> list = new ArrayList<>();
+            if (lines instanceof List<?> raw) {
+                for (Object line : raw) list.add(String.valueOf(line));
+            }
+            JoinNpcHologram.put(type, list);
+        }
         DragonIndestructibleBlocks.clear();
         Object dibRaw = get("DragonIndestructibleBlocks");
         if (dibRaw instanceof List<?> dibList) {

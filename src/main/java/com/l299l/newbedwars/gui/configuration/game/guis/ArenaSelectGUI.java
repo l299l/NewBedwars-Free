@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class ArenaSelectGUI implements InventoryHolder {
     private final Inventory inv;
@@ -24,9 +25,15 @@ public class ArenaSelectGUI implements InventoryHolder {
     private final Player viewer;
 
     public ArenaSelectGUI(Player player) {
+        this(player, a -> true);
+    }
+
+    /** Lists only the enabled arenas that match {@code filter}. */
+    public ArenaSelectGUI(Player player, Predicate<IArena> filter) {
         this.viewer = player;
         List<IArena> arenas = Arena.arenaByName.values().stream()
                 .filter(IArena::isEnabled)
+                .filter(filter)
                 .sorted((a, b) -> a.getArenaName().compareToIgnoreCase(b.getArenaName()))
                 .toList();
 

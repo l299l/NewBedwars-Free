@@ -28,6 +28,7 @@ import com.l299l.newbedwars.gui.configuration.game.guis.spectator.SpectatorPlaye
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import com.l299l.newbedwars.utils.DecoUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -689,13 +690,17 @@ public class ArenaGameplayEvents implements Listener {
         if (e.getTo() == null || e.getFrom().getBlockY() == e.getTo().getBlockY()) return;
         Player p = e.getPlayer();
         IArena arena = Arena.arenaByWorld.get(p.getWorld());
-        if (arena == null || arena.status() != GameStatus.playing) return;
-        Integer voidY = arena.getQuickVoidY();
-        if (voidY == null || e.getTo().getY() > voidY) return;
-        if (arena.getSpectators().contains(p)) {
-            p.teleport(arena.getWaitingSpawn());
+        if (arena == null) return;
+        GameStatus status = arena.status();
+        // Spectators (any phase) and waiting players never die in the void: back to the waiting spawn.
+        if (arena.getSpectators().contains(p)
+                || (arena.isPlayerInArena(p) && (status == GameStatus.waiting || status == GameStatus.starting))) {
+            if (e.getTo().getY() <= safeVoidY(arena, p.getWorld())) rescueFromVoid(p, arena);
             return;
         }
+        if (status != GameStatus.playing) return;
+        Integer voidY = arena.getQuickVoidY();
+        if (voidY == null || e.getTo().getY() > voidY) return;
         if (!arena.isPlayerInArena(p)) return;
         UUID attackerId = lastAttacker.get(p.getUniqueId());
         if (attackerId != null) {
@@ -707,6 +712,46 @@ public class ArenaGameplayEvents implements Listener {
         }
         quickVoidDeaths.add(p.getUniqueId());
         p.damage(p.getMaxHealth() * 1000);
+    }
+
+    /** Removes setup markers that were saved into an arena world (they are re-created when needed). */
+    @EventHandler
+    public void onArenaEntitiesLoad(org.bukkit.event.world.EntitiesLoadEvent e) {
+        if (Arena.arenaByWorld.get(e.getWorld()) == null) return;
+        for (org.bukkit.entity.Entity entity : e.getEntities()) {
+            if (entity.isPersistent() && DecoUtils.isSetupMarker(entity)) entity.remove();
+        }
+    }
+
+    /** Spectators can not be hurt; void damage (no Quick Void Y, or flying down fast) sends them back up. */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSpectatorDamage(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof Player p)) return;
+        IArena arena = Arena.arenaByWorld.get(p.getWorld());
+        if (arena == null) return;
+        boolean waiting = arena.isPlayerInArena(p)
+                && (arena.status() == GameStatus.waiting || arena.status() == GameStatus.starting);
+        if (!arena.getSpectators().contains(p) && !(waiting && e.getCause() == EntityDamageEvent.DamageCause.VOID)) return;
+        e.setCancelled(true);
+        if (e.getCause() == EntityDamageEvent.DamageCause.VOID) rescueFromVoid(p, arena);
+    }
+
+    /** The Y below which spectators and waiting players are rescued: the Quick Void Y, else the bottom of the world. */
+    private static double safeVoidY(IArena arena, org.bukkit.World world) {
+        Integer voidY = arena.getQuickVoidY();
+        return voidY != null ? voidY : world.getMinHeight();
+    }
+
+    private static void rescueFromVoid(Player p, IArena arena) {
+        Location spawn = arena.getWaitingSpawn();
+        if (spawn == null) return;
+        p.setFallDistance(0f);
+        p.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        p.teleport(spawn);
+        if (arena.getSpectators().contains(p)) {
+            p.setAllowFlight(true);
+            p.setFlying(true);
+        }
     }
 
     @EventHandler

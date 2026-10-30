@@ -16,6 +16,8 @@ public class Gamerules {
     public Boolean AllowMultipleGolems;
     /** true: split a party over other teams when it would be the only team; false: keep waiting for more players. */
     public Boolean SplitPartiesToStart;
+    /** true: grouped arenas let the waiting lobby vote for the map; false: always play this arena. */
+    public Boolean MapVote;
 
     public Gamerules() {
         HashMap<String, Boolean> gamerules = Properties.DefaultGamerules;
@@ -29,6 +31,7 @@ public class Gamerules {
         MakeSwordsPermanent = gamerules.get("MakeSwordsPermanent");
         AllowMultipleGolems = gamerules.get("AllowMultipleGolems");
         SplitPartiesToStart = gamerules.get("SplitPartiesToStart");
+        MapVote = gamerules.getOrDefault("MapVote", true);
     }
 
     public void setGamerule(String name, Boolean value) {
@@ -43,6 +46,7 @@ public class Gamerules {
             case "MakeSwordsPermanent" -> MakeSwordsPermanent = value;
             case "AllowMultipleGolems" -> AllowMultipleGolems = value;
             case "SplitPartiesToStart" -> SplitPartiesToStart = value;
+            case "MapVote" -> MapVote = value;
         }
     }
     public String toJson() {
@@ -57,6 +61,7 @@ public class Gamerules {
                 ", \"MakeSwordsPermanent\":" + MakeSwordsPermanent +
                 ", \"AllowMultipleGolems\":" + AllowMultipleGolems +
                 ", \"SplitPartiesToStart\":" + SplitPartiesToStart +
+                ", \"MapVote\":" + MapVote +
                 '}';
     }
 }

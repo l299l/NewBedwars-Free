@@ -2,6 +2,22 @@
 
 All notable changes to NewBedwars are documented here.
 
+## [2.6-beta] - Coming soon
+
+### Added
+- **Group placeholders** - `%newbedwars_group%` (group of the player's arena) and `%newbedwars_group_<name>_players|playing|waiting|max_players|arenas|arenas_free|best_arena%` for scoreboards, holograms and menus
+- **Map voting** - Put arenas with the same team size into groups (`/bw group`). Players can join a group with `/bw join <group>` or a join NPC. When a game in a grouped arena ends, everyone still there gets a vote item and votes for the next map among the group's other free arenas; when the after-game time is up, everyone joins the map with the most votes (ties are random, parties stay together). Turn it off for single arenas with the `MapVote` gamerule. New permission `newbedwars.bw.group`. The default `AfterGameWatchTime` is now 30 seconds
+- **Copy arenas** - `/bw arena copy <arena> <newName>` copies an arena with its settings and map, so one map can run several games at once. The copy joins the same group
+- **Lobby join NPCs** - Click an NPC in the lobby to join the fullest free arena of a group, join a specific arena or open the arena selector, with a live hologram above it showing players and free arenas. Make the NPC with Citizens and attach it with `/bw npc set`, or without Citizens spawn a simple one with `/bw npc create`. Parties follow the same rules as `/bw join`. New permission `newbedwars.bw.npc`, hologram lines under `JoinNpc` in `config.yml`
+
+### Fixed
+- **Leaving while respawning** - Leaving the game (lobby command, leave item, disconnect) while waiting to respawn no longer keeps the respawn countdown running and throws an error
+- **One game to rejoin** - Joining another arena while you could still rejoin a game now gives up that game (you get a message) instead of keeping both, so nobody ends up with several games to rejoin. The arena selector now uses the same checks as `/bw join`
+- **Broken arena maps after saving** - Saving or enabling an arena right after changes could copy half-written world data into its map copy ("Unexpected end of ZLIB input stream" after the next reset). Incomplete files are now copied again until they are complete
+- **Spectators falling into the void** - Spectators (during the end of a game) and players in the waiting lobby are sent back to the waiting spawn when they fall below the Quick Void level or the bottom of the world, instead of dying and breaking their state. Spectators can no longer take damage
+
+---
+
 ## [2.5-beta] - 30.10.2026
 
 ### Added
@@ -48,6 +64,8 @@ All notable changes to NewBedwars are documented here.
 
 ### Removed
 - **Lava bucket** - Removed from the default shop (Misc category). Servers that already have a shop file keep it until the item is removed from `data/guis/exampleShop.yml`
+
+---
 
 ## [2.4-beta] - 22.10.2026
 

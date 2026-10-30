@@ -80,6 +80,10 @@ public class Hologram {
         return armorStands.get(index);
     }
 
+    public List<ArmorStand> getArmorStands() {
+        return java.util.Collections.unmodifiableList(armorStands);
+    }
+
     public ArmorStand getArmorStand() {
         return armorStands.get(0);
     }
