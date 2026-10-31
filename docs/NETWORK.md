@@ -1,5 +1,7 @@
 # Network mode (Velocity)
 
+> **Note:** Network mode and the `NewBedwars-Proxy` plugin will be available from **2.6-beta**, which is not released yet. Version 2.5-beta and older can not run on a network.
+
 NewBedwars can run on a proxy network: **lobby servers** where players choose a game, and **game servers** that host the arenas. Players and parties are moved between them automatically.
 
 By default (`Network.Mode: NONE`) NewBedwars is a single server and nothing on this page applies.
