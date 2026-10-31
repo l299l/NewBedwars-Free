@@ -6,6 +6,10 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 > - `NewBedwarsAPI.getGroups()` and `NewBedwarsAPI.getGroup(String)`
 > - `ArenaGroupView` (`api.view`)
 > - `MapVoteEvent` and `MapChosenEvent` (`api.events`)
+> - Network mode (see [NETWORK.md](NETWORK.md)): `getNetworkMode()`, `getNetworkArenas()`, `getServerId()`, `requestNetworkJoin()`, `requestNetworkRejoin()`, `getNetworkRejoin()`, `NetworkMode`, `NetworkArenaView`, `NetworkArenasUpdateEvent`, `NetworkJoinRequestEvent`
+> - `getStats(String)` and `PlayerStatsView`
+>
+> The API is now its own Maven artifact: `com.github.l299l.NewBedwars-Free:newbedwars-api:<tag>` (JitPack).
 
 - [Setup](#setup)
 - [Reading data](#reading-data)
@@ -45,6 +49,11 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | `getArenas()` | all arenas |
 | `getArena(String name)` / `getArena(World)` / `getArena(Player)` | `Optional<ArenaView>` (the player variant also finds spectators) |
 | `getGroups()` / `getGroup(String name)` **(2.6-beta)** | arena groups (maps voted between), `Optional<ArenaGroupView>` |
+| `getNetworkMode()` **(2.6-beta)** | `NONE`, `GAME` or `LOBBY` (`Network.Mode`) |
+| `getNetworkArenas()` **(2.6-beta)** | on `LOBBY` and `GAME` servers: the arenas of all game servers (`NetworkArenaView`: server, name, group, state, players, `isJoinable()`, `getFreeSlots()`), empty otherwise |
+| `getServerId()` **(2.6-beta)** | this server's name in the proxy, empty when not in network mode |
+| `getNetworkRejoin(Player)` **(2.6-beta)** | on a `LOBBY` server: the network arena the player can still rejoin |
+| `getStats(String name)` **(2.6-beta)** | `PlayerStatsView` (wins, losses, kills, deaths, final kills, beds, games; zeros when unknown). With MySQL storage these are network-wide; only online/loaded players are known |
 
 **`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), `getGenerators`, `getExtra(Plugin)`.
 
@@ -72,11 +81,26 @@ Normal Bukkit events: register a `Listener` as usual. All arena events extend `A
 | `ShopPurchaseEvent` | yes | before a purchase is charged | `getPlayer()`, `getItemName()`, `getKind()` (`ITEM`, `ARMOR`, `TOOL`, `UPGRADE`), `getPriceType()`, `getPrice()` |
 | `TeamUpgradeEvent` | yes | before an upgrade or trap is bought | `getTeam()`, `getUpgrade()`, `getNewLevel()`, `getBuyer()` |
 | `ArmorEquipEvent` | no | before armor is applied (respawn, purchase) | `getPlayer()`, `setArmor(ItemStack[])` (boots, leggings, chestplate, helmet) |
-| `MapVoteEvent` **(2.6-beta)** | yes | during the after-game time, a player of the ended arena votes for the next map | `getPlayer()`, `getVotedArena()` |
-| `MapChosenEvent` **(2.6-beta)** | no | the after-game time is over and a next map won; the arena then stops and everyone joins the chosen arena | `getGroup()`, `getChosenArena()` |
+| `MapVoteEvent` **(2.6-beta)** | yes | during the after-game time, a player of the ended arena votes for the next map | `getPlayer()`, `getVotedArena()` (null when the arena is on another game server), `getVotedNetworkArena()` |
+| `MapChosenEvent` **(2.6-beta)** | no | the after-game time is over and a next map won; the arena then stops and everyone joins the chosen arena | `getGroup()`, `getChosenArena()` (null when on another game server), `getChosenNetworkArena()` |
 | `PlayerSendToLobbyEvent` | yes | whenever a player is sent to the lobby | `getPlayer()`, `getReason()`, `getTarget()`/`setTarget()` |
+| `NetworkJoinRequestEvent` **(2.6-beta)** | yes | on a `LOBBY` server, before a join or rejoin request goes to the proxy (`/bw join`, NPCs, selector, `/bw rejoin`, API); cancelled = nothing is sent and NewBedwars sends no message | `getPlayer()`, `getKind()` (`ANY`, `GROUP`, `ARENA`, `REJOIN`, `SPECTATE`), `getTarget()` |
+| `NetworkArenasUpdateEvent` **(2.6-beta)** | no | on a `LOBBY` server, when the network arena list changed (not an `ArenaEvent`) | `getArenas()` |
 
-`PlayerSendToLobbyEvent` is the hook for networks: cancel it and send the player to a lobby server yourself. Reasons: `LEFT_ARENA`, `LOBBY_COMMAND`, `JOINED_IN_ARENA_WORLD`, `MAP_RESET`, `ARENA_UNLOADED`, `ARENA_DELETED`, `SETUP_ENDED`, `SERVER_SHUTDOWN`, `RELOAD`.
+`PlayerSendToLobbyEvent` is the hook for custom networks: cancel it and send the player to a lobby server yourself (the built-in network mode already does this on `GAME` servers). Reasons: `LEFT_ARENA`, `LOBBY_COMMAND`, `JOINED_IN_ARENA_WORLD`, `MAP_RESET`, `ARENA_UNLOADED`, `ARENA_DELETED`, `SETUP_ENDED`, `SERVER_SHUTDOWN`, `RELOAD`.
+
+### Network actions (LOBBY servers) **(2.6-beta)**
+
+```java
+NewBedwarsAPI api = NewBedwarsAPI.get();
+if (api.getNetworkMode() == NetworkMode.LOBBY) {
+    // Same checks and messages as /bw join: permission, only the party admin, ...
+    api.requestNetworkJoin(player, "solo");      // group, arena name, or null for any arena
+    api.getNetworkRejoin(player).ifPresent(a -> api.requestNetworkRejoin(player));
+}
+```
+
+Both return `false` when this is not a lobby server, a check failed, a `NetworkJoinRequestEvent` listener cancelled it, or the proxy can not be reached.
 
 ## Registering your own content
 

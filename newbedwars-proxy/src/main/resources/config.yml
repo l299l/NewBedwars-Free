@@ -1,0 +1,28 @@
+# NewBedwars-Proxy: network mode for NewBedwars on Velocity. See docs/NETWORK.md in the NewBedwars repository.
+#
+# Server names are the names from velocity.toml [servers].
+# Game servers: NewBedwars with Network.Mode: GAME. Servers that send arenas are added automatically;
+# listing them here lets the proxy also try a game server it has not heard from yet (e.g. right after a restart).
+game-servers:
+  - game1
+# Lobby servers: NewBedwars with Network.Mode: LOBBY. Players are sent to the least full one after a game.
+lobby-servers:
+  - lobby
+
+# Seconds a player has to arrive on the game server and be put into the arena.
+ticket-timeout-seconds: 10
+# A game server's arena list counts as up to date for this many seconds after it was received.
+state-stale-seconds: 15
+# Seconds before a party invite expires.
+party-invite-seconds: 60
+
+# Optional: read the nbw_servers table that game servers write (Network.MySQL in their config.yml),
+# so empty game servers (no player online to carry plugin messages) are still seen.
+mysql:
+  enabled: false
+  host: "localhost"
+  port: 3306
+  database: "newbedwars"
+  user: "root"
+  password: ""
+  poll-seconds: 5

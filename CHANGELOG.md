@@ -5,6 +5,8 @@ All notable changes to NewBedwars are documented here.
 ## [2.6-beta] - Coming soon
 
 ### Added
+- <span style="color: yellow;">**Network mode (Velocity)** - Run lobby servers and game servers behind a Velocity proxy with the new `NewBedwars-Proxy` plugin. Lobby servers (`Network.Mode: LOBBY`) list the arenas of all game servers in `/bw join`, join NPCs and group placeholders, and send players and parties to the fullest free arena. Game servers (`Network.Mode: GAME`) put arriving players straight into their arena and send them back to a lobby after the game. Parties are handled by the proxy and survive server switches. Optional MySQL status table so empty game servers are still known, and `Network.RestartAfterGames` to restart game servers after a number of games. New permission `newbedwars.network.bypass`. See `docs/NETWORK.md`. Single servers (`Network.Mode: NONE`, the default) work as before </span>
+- **MySQL storage** - `Storage.Type: MYSQL` keeps player data (language, quick buy) and stats in a MySQL/MariaDB database (`MySQL` section in `config.yml`). Use it on every server of a network and stats, leaderboards and languages are shared everywhere; games on different servers never overwrite each other's results. On the first start with an empty database, the existing JSON data is imported
 - **Group placeholders** - `%newbedwars_group%` (group of the player's arena) and `%newbedwars_group_<name>_players|playing|waiting|max_players|arenas|arenas_free|best_arena%` for scoreboards, holograms and menus
 - **Map voting** - Put arenas with the same team size into groups (`/bw group`). Players can join a group with `/bw join <group>` or a join NPC. When a game in a grouped arena ends, everyone still there gets a vote item and votes for the next map among the group's other free arenas; when the after-game time is up, everyone joins the map with the most votes (ties are random, parties stay together). Turn it off for single arenas with the `MapVote` gamerule. New permission `newbedwars.bw.group`. The default `AfterGameWatchTime` is now 30 seconds
 - **Copy arenas** - `/bw arena copy <arena> <newName>` copies an arena with its settings and map, so one map can run several games at once. The copy joins the same group
@@ -19,6 +21,9 @@ All notable changes to NewBedwars are documented here.
 - **Team area setup commands** - `/bw setTeamBasePos1/2` and `/bw setTeamBuildProtAreaPos1/2` now accept `<x> <y> <z>` like the other position commands (tab completion already suggested them). The help of `/bw setWaitingPos1/2` and `/bw setWaitingSpawn` shows the right command name
 - **Arena info** - `/bw arena` in setup mode (chat view) now also lists the `MapVote` gamerule, like the GUI. Its "ready" hint now names the right command (`/bw arena enable <arena>`)
 - **Special characters in default files** - Bundled language, boss bar, scoreboard and generator files are read as UTF-8, so accents and symbols are no longer garbled on servers with another default charset
+
+### Removed
+- **`NETWORK` join NPC action** - `GROUP`, `ARENA` and `SELECTOR` NPCs now work on network lobby servers too. NPCs that still use `NETWORK` keep working as `GROUP` NPCs
 
 ---
 

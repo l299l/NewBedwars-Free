@@ -51,6 +51,8 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - PlaceholderAPI: 34 placeholders under `%newbedwars_*%` (players, stats, arenas and arena groups) for scoreboards, chat formatters, and other plugins. Totally optional, the plugin loads fine without it
 - WorldEdit / FastAsyncWorldEdit: build an arena straight from a `.schem` file instead of placing blocks by hand. Also optional, manual setup works fine without it
 - Citizens: turn any Citizens NPC into a lobby join NPC with a live hologram (join a group or arena, or open the arena selector). Without Citizens, `/bw npc create` spawns a simple NPC instead
+- Velocity network mode: lobby servers and game servers behind a Velocity proxy with the `NewBedwars-Proxy` plugin. Players and parties are sent to the fullest free arena, go back to the lobby after the game, and can rejoin a game they left from the lobby. See [docs/NETWORK.md](docs/NETWORK.md)
+- MySQL/MariaDB storage (optional): keep stats, leaderboards and player settings in a database, shared by every server of a network. JSON files are the default and need no setup
 
 ---
 
@@ -60,6 +62,8 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - **Java:** 16 or higher
 
 Optional: **PlaceholderAPI**, if you want `%newbedwars_*%` placeholders elsewhere on your server, **WorldEdit** or **FastAsyncWorldEdit**, if you'd rather build arenas from a schematic than by hand, and **Citizens**, for skinned lobby join NPCs. None of them is required, NewBedwars runs fine standalone.
+
+**MySQL/MariaDB is optional too.** One server never needs it (data is kept in JSON files), but it can be handy for website/Discord leaderboards, stats shared between separate servers or many players: see [docs/STORAGE.md](docs/STORAGE.md). On a Velocity network it is only needed for stats/leaderboards shared by all servers and for the proxy to see game servers nobody is online on; everything else works without it. Details: [docs/NETWORK.md](docs/NETWORK.md#is-mysql-required).
 
 ---
 
@@ -117,8 +121,8 @@ NewBedwars has a small API with events, so other plugins can hook into it withou
 
 <dependencies>
     <dependency>
-        <groupId>com.github.l299l</groupId>
-        <artifactId>NewBedwars-Free</artifactId>
+        <groupId>com.github.l299l.NewBedwars-Free</groupId>
+        <artifactId>newbedwars-api</artifactId>
         <version>v2.5-beta</version> <!-- a release tag -->
         <scope>provided</scope>
     </dependency>
@@ -181,8 +185,7 @@ NewBedwars will leave beta once stable operation is verified across all supporte
 - [x] Addon API and events
 - [x] Citizens2 support (lobby join NPCs)
 - [x] In-game map voting system
-- [ ] More languages (full support)
-- [ ] Network / BungeeCord / Velocity mode
+- [x] Network (Velocity) mode
 - [ ] Website panel
 
 ---

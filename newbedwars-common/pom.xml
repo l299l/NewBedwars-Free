@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.l299l</groupId>
+        <artifactId>newbedwars-parent</artifactId>
+        <version>2.5-beta</version>
+    </parent>
+
+    <artifactId>newbedwars-common</artifactId>
+    <name>NewBedwars Common</name>
+    <description>Network protocol shared by the NewBedwars plugin and the proxy plugin (plain Java, no Bukkit/Velocity).</description>
+
+    <dependencies>
+        <!-- Provided at runtime by both Paper and Velocity. -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+    </dependencies>
+</project>

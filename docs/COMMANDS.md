@@ -12,7 +12,7 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 
 | Command | Where | Description |
 |---|---|---|
-| `/bw join [arena|group]` | lobby | Open the arena selector, join a specific arena, or join the fullest waiting arena of a group |
+| `/bw join [arena\|group]` | lobby | Open the arena selector, join a specific arena, or join the fullest waiting arena of a group. On a network lobby server `<server>:<arena>` joins that server's arena |
 | `/bw rejoin` | lobby | Rejoin the game you disconnected from |
 | `/bw spectate <arena>` | lobby | Join a running arena as a spectator |
 | `/bw lobby` | lobby, game | Leave the arena and return to the lobby |
@@ -26,7 +26,7 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 
 ## Party commands
 
-`/party` (alias `/p`). All of them need `newbedwars.party`.
+`/party` (alias `/p`). All of them need `newbedwars.party`. In network mode (see [NETWORK.md](NETWORK.md)) the same commands are handled by the NewBedwars-Proxy plugin on Velocity.
 
 | Command | Description |
 |---|---|
@@ -59,10 +59,11 @@ Available outside arenas to players with the permission shown.
 | `/bw setlobby` | `newbedwars.bw.setlobby` | Set the lobby spawn |
 | `/bw group create <name> [item]` | `newbedwars.bw.group.create` | Create an arena group (players vote between its maps); `item` is the vote menu icon |
 | `/bw group delete <group>` | `newbedwars.bw.group.delete` | Delete a group |
-| `/bw group add <group> <arena>` | `newbedwars.bw.group.add` | Add an arena (all arenas of a group need the same team count and team size; one group per arena) |
+| `/bw group add <group> <arena>` | `newbedwars.bw.group.add` | Add an arena (all arenas of a group need the same team count and team size; one group per arena). On a network lobby server: `<arena>` = that arena on every game server, `<server>:<arena>` = only that one; game servers can only list groups |
 | `/bw group remove <group> <arena>` | `newbedwars.bw.group.remove` | Remove an arena from a group |
 | `/bw group list` / `info <group>` | `newbedwars.bw.group.list` / `.info` | List groups / show a group and its problems |
 | `/bw group setitem <group> <item>` | `newbedwars.bw.group.setitem` | Change the vote menu icon |
+| `/bw arena info` | `newbedwars.bw.arena` | Lobby server of a network only: how to set arenas up on the game servers (`/bw arena list` shows all servers' arenas there) |
 | `/bw npc set <action> [target]` | `newbedwars.bw.npc` | Turn the Citizens NPC you selected (`/npc select`) into a join NPC |
 | `/bw npc clear` | `newbedwars.bw.npc` | Make the selected Citizens NPC a normal NPC again |
 | `/bw npc info [id]` | `newbedwars.bw.npc` | Show the action of the selected Citizens NPC, or of a simple NPC by id |
@@ -74,7 +75,7 @@ Available outside arenas to players with the permission shown.
 
 `/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
 
-Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, `SELECTOR [group]` opens the arena selector, and `NETWORK <group|arena>` is reserved for network mode (refused for now). A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
+Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, and `SELECTOR [group]` opens the arena selector. On a network lobby server all three send players to the game servers. A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
 
 ## Setup commands
 
@@ -139,6 +140,8 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.bw.setlobby` | op | `/bw setlobby` |
 | `newbedwars.bw.managegame` | op | `/bw game ...` |
 | `newbedwars.bw.npc` | op | `/bw npc ...` |
+| `newbedwars.network.bypass` | op | Network GAME mode: stay on a game server without a join request (staff, setup) |
+| `newbedwars.proxy.admin` | - | Velocity: `/nbwproxy` (list the game servers and arenas the proxy knows) |
 | `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`) |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions (for example entering setup worlds) |
 
