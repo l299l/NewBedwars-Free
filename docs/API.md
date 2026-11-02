@@ -2,15 +2,6 @@
 
 Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`) is the stable contract for addons. All other packages are internal and can change in any update.
 
-> **Not in 2.5-beta.** The parts marked **(2.6-beta)** below were added in 2.6-beta and are not available in 2.5-beta or older. Do not use them if your addon must work with 2.5-beta:
-> - `NewBedwarsAPI.getGroups()` and `NewBedwarsAPI.getGroup(String)`
-> - `ArenaGroupView` (`api.view`)
-> - `MapVoteEvent` and `MapChosenEvent` (`api.events`)
-> - Network mode (see [NETWORK.md](NETWORK.md)): `getNetworkMode()`, `getNetworkArenas()`, `getServerId()`, `requestNetworkJoin()`, `requestNetworkRejoin()`, `getNetworkRejoin()`, `NetworkMode`, `NetworkArenaView`, `NetworkArenasUpdateEvent`, `NetworkJoinRequestEvent`
-> - `getStats(String)` and `PlayerStatsView`
->
-> The API is now its own Maven artifact: `com.github.l299l.NewBedwars-Free:newbedwars-api:<tag>` (JitPack).
-
 - [Setup](#setup)
 - [Reading data](#reading-data)
 - [Events](#events)
