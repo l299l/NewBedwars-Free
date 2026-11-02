@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.logging.Level;
 
 public class GUIDataManager {
     List<GUISave> guiSaves;
@@ -101,7 +102,7 @@ public class GUIDataManager {
                 fileWriter.close();
                 ConfigUpdater.update(NewBedwars.plugin, "exampleShop.yml", guiFile, Collections.singletonList("Slots"));
             } catch (Exception e) {
-                e.printStackTrace();
+                NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not write " + guiFile.getPath(), e);
             }
 
         }
@@ -130,7 +131,7 @@ public class GUIDataManager {
             files.add(file2);
             return files;
         } catch (Exception e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not copy the default GUI files", e);
         }
         return null;
     }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/** A named set of arenas (maps) players vote between in the waiting lobby. Saved in {@code data/groups.json}. */
+/** A named set of arenas (maps) players vote between at the end of a game. Saved in {@code data/groups.json}. */
 public final class ArenaGroup {
     public static final String DEFAULT_ITEM = "PAPER";
 

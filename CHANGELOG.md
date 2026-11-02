@@ -2,18 +2,32 @@
 
 All notable changes to NewBedwars are documented here.
 
-## [2.6-beta] - Coming soon
+## [2.6-beta] - 02.11.2026
 
 ### Added
 - <span style="color: yellow;">**Network mode (Velocity)** - Run lobby servers and game servers behind a Velocity proxy with the new `NewBedwars-Proxy` plugin. Lobby servers (`Network.Mode: LOBBY`) list the arenas of all game servers in `/bw join`, join NPCs and group placeholders, and send players and parties to the fullest free arena. Game servers (`Network.Mode: GAME`) put arriving players straight into their arena and send them back to a lobby after the game. Parties are handled by the proxy and survive server switches. Optional MySQL status table so empty game servers are still known, and `Network.RestartAfterGames` to restart game servers after a number of games. New permission `newbedwars.network.bypass`. See `docs/NETWORK.md`. Single servers (`Network.Mode: NONE`, the default) work as before </span>
 - **MySQL storage** - `Storage.Type: MYSQL` keeps player data (language, quick buy) and stats in a MySQL/MariaDB database (`MySQL` section in `config.yml`). Use it on every server of a network and stats, leaderboards and languages are shared everywhere; games on different servers never overwrite each other's results. On the first start with an empty database, the existing JSON data is imported
 - **Group placeholders** - `%newbedwars_group%` (group of the player's arena) and `%newbedwars_group_<name>_players|playing|waiting|max_players|arenas|arenas_free|best_arena%` for scoreboards, holograms and menus
 - **Map voting** - Put arenas with the same team size into groups (`/bw group`). Players can join a group with `/bw join <group>` or a join NPC. When a game in a grouped arena ends, everyone still there gets a vote item and votes for the next map among the group's other free arenas; when the after-game time is up, everyone joins the map with the most votes (ties are random, parties stay together). Turn it off for single arenas with the `MapVote` gamerule. New permission `newbedwars.bw.group`. The default `AfterGameWatchTime` is now 30 seconds
+- **MakeToolsPermanent gamerule** - New arena gamerule (default `true`, also under `DefaultGamerules` in `config.yml`). With `false`, pickaxe, axe and shears are lost on death and must be bought again. Tools were rebalanced: the stone and gold pickaxes are gone from the default shop and the iron pickaxe costs 7 gold
 - **Copy arenas** - `/bw arena copy <arena> <newName>` copies an arena with its settings and map, so one map can run several games at once. The copy joins the same group
 - **Lobby join NPCs** - Click an NPC in the lobby to join the fullest free arena of a group, join a specific arena or open the arena selector, with a live hologram above it showing players and free arenas. Make the NPC with Citizens and attach it with `/bw npc set`, or without Citizens spawn a simple one with `/bw npc create`. Parties follow the same rules as `/bw join`. New permission `newbedwars.bw.npc`, hologram lines under `JoinNpc` in `config.yml`
 - **More translated texts** - The setup info (`/bw arena` in setup mode and its menu), the arena selector, spectate selector, profile, fast-buy editor and upgrade menus, the party help and invite buttons, the `/bw game` messages and the reload kick message now use the language files (English and Polish included; other languages fall back to English)
 
 ### Fixed
+- **Stats for eliminated and timed-out players** - Players who were eliminated, or whose rejoin time ran out, now get their kills, deaths, losses and games played saved when the game ends
+- **Players who already left no longer get pulled back** - Players waiting to rejoin a game that ends are no longer sent to the lobby a second time or have their inventory cleared; spectating another arena also gives up their rejoin slot
+- **Player data is no longer overwritten after a failed load** - If the player data file (or database) cannot be read, the broken file is moved aside and saves are paused for that player instead of replacing the real data. Failures are logged
+- **Chat and colour codes** - Arena chat respects mutes from other plugins, and players can only use `&` colour codes in arena and team chat with the new permission `newbedwars.chat.color`
+- **Party invites** - Accepting an invite while already in a party is refused, an invite to a party that no longer exists fails cleanly, and one party can have at most 10 pending invites
+- **Language changes** - `/bw lang` has a short cooldown, and player data is saved in the background without rewriting the file when nothing changed
+- **Schematic names** - `/bw arena create ... -sche` only accepts plain schematic names (letters, digits, `_`, `-`, `.`)
+- **Deleting an arena** - If some files cannot be deleted, the admin is told and the problem is logged instead of reporting success
+- **Arena import limits** - `/bw arena import` refuses archives that would unpack to more than 2 GB or that contain files outside the arena folder
+- **Safe loading of item and GUI files** - `items.yml` and the GUI files in `data/guis/` can no longer run code through special YAML tags; a file that contains them fails to load with a logged error
+- **Imported arenas** - Importing an arena no longer leaves half-imported files behind when it fails, and imported maps no longer cause duplicate-world errors on Paper
+- **Texts in your language** - The game start countdown, respawn, bed destroyed, draw, game ended and arena reset titles, plus several setup messages, now use the language files. Win fireworks use the winning team's color
+- **Leave item missing after a game ends** - A player who was waiting to respawn when the game ended now also gets the leave item (bed)
 - **Leaving while respawning** - Leaving the game (lobby command, leave item, disconnect) while waiting to respawn no longer keeps the respawn countdown running and throws an error
 - **One game to rejoin** - Joining another arena while you could still rejoin a game now gives up that game (you get a message) instead of keeping both, so nobody ends up with several games to rejoin. The arena selector now uses the same checks as `/bw join`
 - **Broken arena maps after saving** - Saving or enabling an arena right after changes could copy half-written world data into its map copy ("Unexpected end of ZLIB input stream" after the next reset). Incomplete files are now copied again until they are complete

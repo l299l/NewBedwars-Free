@@ -4,7 +4,7 @@ import java.util.UUID;
 
 /** A game server could not put a ticketed player into an arena. */
 public class JoinReject {
-    /** Why: the arena was full, not joinable, unknown, or the ticket expired. */
+    /** Why the ticket could not be honoured. */
     public enum Reason { FULL, NOT_JOINABLE, NO_ARENA, PARTY_NOT_ALLOWED, EXPIRED, OTHER }
 
     public String requestId;

@@ -4,11 +4,11 @@ import com.l299l.newbedwars.common.protocol.payload.*;
 
 /** Every message of the network protocol and the class of its payload. */
 public enum MessageType {
-    /** backend -> proxy: a server announces itself (sent on the first player join and after reloads). */
+    /** backend -> proxy: a server announces itself (sent through each player that joins). */
     HELLO(Hello.class),
     /** game server -> proxy: the full list of its arenas. */
     SERVER_STATE(ServerState.class),
-    /** proxy -> lobby server: the states of all game servers. */
+    /** proxy -> lobby and game servers: the states of all game servers. */
     NETWORK_STATE(NetworkState.class),
     /** lobby server -> proxy: a player (party admin) wants to join a game. */
     JOIN_REQUEST(JoinRequest.class),

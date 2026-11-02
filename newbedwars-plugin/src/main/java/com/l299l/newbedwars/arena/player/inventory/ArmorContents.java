@@ -124,6 +124,13 @@ public class ArmorContents {
         sword = getBasicSword();
     }
 
+    /** Drops pickaxe, axe and shears (they must be bought again). */
+    public void resetTools() {
+        pickaxe = null;
+        axe = null;
+        shears = null;
+    }
+
     public boolean hasBoughtSword() {
         if (sword == null) return false;
         CustomItem basic = getBasicSword();

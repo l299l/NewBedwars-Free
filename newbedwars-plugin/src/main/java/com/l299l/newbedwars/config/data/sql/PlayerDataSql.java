@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -36,6 +38,7 @@ public final class PlayerDataSql implements Listener {
 
     private final NewBedwars plugin;
     private final Database db;
+    private final Set<String> loaded = ConcurrentHashMap.newKeySet();
     private BukkitTask leaderboardTask;
 
     public PlayerDataSql(NewBedwars plugin) {
@@ -91,11 +94,28 @@ public final class PlayerDataSql implements Listener {
     void loadPlayer(Player player) {
         String name = player.getName();
         UUID id = player.getUniqueId();
+        loaded.remove(name);
         db.submit("Loading " + name, c -> {
-            PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, name);
-            PlayerStats stats = PlayerSqlRepo.loadStats(c, name);
-            Bukkit.getScheduler().runTask(plugin, () -> apply(name, id, row, stats));
+            try {
+                PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, name);
+                PlayerStats stats = PlayerSqlRepo.loadStats(c, name);
+                Bukkit.getScheduler().runTask(plugin, () -> apply(name, id, row, stats));
+            } catch (SQLException | RuntimeException e) {
+                plugin.getLogger().log(Level.SEVERE, "[MySQL] Could not load the data of " + name + "; it will not be saved until it loads (retrying in 30s)", e);
+                Bukkit.getScheduler().runTask(plugin, () -> scheduleRetry(name));
+            }
         });
+    }
+
+    private void scheduleRetry(String name) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player online = Bukkit.getPlayerExact(name);
+            if (online != null && !loaded.contains(name)) loadPlayer(online);
+        }, 20L * 30);
+    }
+
+    boolean isLoaded(String name) {
+        return loaded.contains(name);
     }
 
     private void refreshStats(String name) {
@@ -105,7 +125,8 @@ public final class PlayerDataSql implements Listener {
         });
     }
 
-    private void apply(String name, UUID id, PlayerSqlRepo.PlayerRow row, PlayerStats stats) {
+    void apply(String name, UUID id, PlayerSqlRepo.PlayerRow row, PlayerStats stats) {
+        loaded.add(name);
         pm().addStats(name, stats != null ? stats : PlayerStats.empty());
         if (row == null) {
             // New in the database: store what this server set up on join (default language).
@@ -121,6 +142,7 @@ public final class PlayerDataSql implements Listener {
 
     /** Stores the player's current profile (language, quick buy) in the background. */
     public void savePlayer(String name) {
+        if (!loaded.contains(name)) return;
         PlayerProfile p = pm().getPlayer(name);
         if (p == null) return;
         PlayerSqlRepo.PlayerRow row = row(p);

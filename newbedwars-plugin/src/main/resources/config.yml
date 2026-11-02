@@ -1,6 +1,5 @@
 # =====================================================
 #  NewBedwars — Main Configuration
-#  Plugin version: 2.5-beta
 # =====================================================
 
 ServerName: "&6&lExample&f&lServer.com"
@@ -27,6 +26,8 @@ DefaultGamerules:
   AllowPrivateChat: true
   AllowTeamDamage: false
   MakeSwordsPermanent: false
+  # true: pickaxe, axe and shears are kept after death; false: they are lost on respawn.
+  MakeToolsPermanent: true
   AllowMultipleGolems: false
   # When all players would end up in a single team (e.g. one big party), true splits the
   # party over other teams so the game can start; false keeps waiting for more players.
@@ -66,6 +67,10 @@ MySQL:
   Database: "newbedwars"
   User: "root"
   Password: ""
+  # DISABLED, PREFERRED (encrypt when the server supports it), REQUIRED, VERIFY_CA or VERIFY_IDENTITY.
+  SslMode: PREFERRED
+  # Only needed for MySQL 8 accounts with caching_sha2_password on a connection without SSL. Less secure.
+  AllowPublicKeyRetrieval: false
 
 # ----- Chat / Tab Settings ------------------------
 # When false, players inside arenas cannot send any chat messages.

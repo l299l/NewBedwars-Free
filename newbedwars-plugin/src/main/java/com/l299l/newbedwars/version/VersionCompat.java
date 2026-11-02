@@ -1,9 +1,12 @@
 package com.l299l.newbedwars.version;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.GameRule;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -39,6 +42,8 @@ public final class VersionCompat {
     public static final PotionType POTION_JUMP;        // was JUMP   → LEAPING
     public static final PotionType POTION_INVISIBILITY;// stable in all versions
 
+    public static final Particle DUST;                  // was REDSTONE
+
     static {
         IS_1_20_5_PLUS = isAtLeast(1, 20, 5);
 
@@ -58,6 +63,8 @@ public final class VersionCompat {
         POTION_SPEED       = potionType("SWIFTNESS",   "SPEED");
         POTION_JUMP        = potionType("LEAPING",     "JUMP");
         POTION_INVISIBILITY= potionType("INVISIBILITY","INVISIBILITY");
+
+        DUST = particle("DUST", "REDSTONE");
     }
 
     private VersionCompat() {}
@@ -100,6 +107,24 @@ public final class VersionCompat {
         }
     }
 
+
+    private static Particle particle(String modern, String legacy) {
+        try {
+            return Particle.valueOf(modern);
+        } catch (IllegalArgumentException e) {
+            try {
+                return Particle.valueOf(legacy);
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }
+    }
+
+    public static void spawnDust(World world, Location at, int count, double spreadX, double spreadY, double spreadZ,
+                                 Color color, float size) {
+        if (DUST == null) return;
+        world.spawnParticle(DUST, at, count, spreadX, spreadY, spreadZ, 0, new Particle.DustOptions(color, size));
+    }
 
     @SuppressWarnings("deprecation")
     public static void setSkullOwner(SkullMeta meta, String playerName) {

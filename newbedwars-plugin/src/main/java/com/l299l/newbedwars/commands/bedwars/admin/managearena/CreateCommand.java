@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public class CreateCommand extends BwCommand {
 
@@ -78,6 +79,10 @@ public class CreateCommand extends BwCommand {
             msg.send(player, "WorldEditNotFound");
             return;
         }
+        if (schematic != null && !SchematicManager.isValidName(schematic)) {
+            player.sendMessage(msg.getMsg(player, "SchematicInvalidName").replace("/name/", schematic));
+            return;
+        }
 
         if (createArena(arenaName, schematic)) {
             player.sendMessage(msg.getMsg(player, "ArenaCreated").replace("/arenaname/", arenaName));
@@ -90,6 +95,7 @@ public class CreateCommand extends BwCommand {
                 arena.getPlayersOnSetup().add(player.getUniqueId());
                 player.openInventory(new BasicConfigurationGUI(NewBedwars.plugin.getGuiManager(), player).getInventory());
             } catch (Exception e) {
+                NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not finish creating arena " + arenaName, e);
                 msg.send(player, "ErrorOnCreate");
             }
         } else {
@@ -152,6 +158,7 @@ public class CreateCommand extends BwCommand {
             new Arena(arenaName, Objects.requireNonNull(Bukkit.getWorld(arenaName)));
             return true;
         } catch (Exception e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not create arena " + arenaName, e);
             return false;
         }
     }

@@ -144,6 +144,7 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.proxy.admin` | - | Velocity: `/nbwproxy` (list the game servers and arenas the proxy knows) |
 | `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`) |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions (for example entering setup worlds) |
+| `newbedwars.chat.color` | op | Use `&` colour codes in arena and team chat messages (others have them stripped) |
 
 ### Player
 

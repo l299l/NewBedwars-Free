@@ -18,7 +18,7 @@ public final class NetworkDatabase {
     }
 
     public void publish(ServerState state) {
-        db.submit("Writing the server status", c -> {
+        db.submitLatest("server-status", "Writing the server status", c -> {
             if (!tableReady) {
                 ServerStatusRepo.createTable(c);
                 tableReady = true;

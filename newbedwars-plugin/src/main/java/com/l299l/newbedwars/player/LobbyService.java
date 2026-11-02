@@ -10,13 +10,14 @@ import org.bukkit.entity.Player;
 public final class LobbyService {
     private LobbyService() {}
 
-    /** @return true when the player was teleported by the plugin, false when a listener took over. */
+    /** @return true when the player was teleported, false when a listener took over or the teleport failed. */
     public static boolean sendToLobby(Player player, PlayerSendToLobbyEvent.Reason reason) {
         PlayerSendToLobbyEvent event = new PlayerSendToLobbyEvent(player, reason, NewBedwars.plugin.getLobbyLocation());
         Bukkit.getPluginManager().callEvent(event);
         Location target = event.getTarget();
         if (event.isCancelled() || target == null) return false;
-        player.teleport(target);
-        return true;
+        if (player.teleport(target)) return true;
+        NewBedwars.plugin.getLogger().warning("Could not teleport " + player.getName() + " to the lobby (" + reason + ")");
+        return false;
     }
 }

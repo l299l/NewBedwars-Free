@@ -13,6 +13,8 @@ public class Gamerules {
     public Boolean AllowPrivateChat;
     public Boolean AllowTeamDamage;
     public Boolean MakeSwordsPermanent;
+    /** true: pickaxe, axe and shears are kept after death; false: they are lost on respawn and must be rebought. */
+    public Boolean MakeToolsPermanent;
     public Boolean AllowMultipleGolems;
     /** true: split a party over other teams when it would be the only team; false: keep waiting for more players. */
     public Boolean SplitPartiesToStart;
@@ -29,6 +31,7 @@ public class Gamerules {
         AllowPrivateChat = gamerules.get("AllowPrivateChat");
         AllowTeamDamage = gamerules.get("AllowTeamDamage");
         MakeSwordsPermanent = gamerules.get("MakeSwordsPermanent");
+        MakeToolsPermanent = gamerules.getOrDefault("MakeToolsPermanent", true);
         AllowMultipleGolems = gamerules.get("AllowMultipleGolems");
         SplitPartiesToStart = gamerules.get("SplitPartiesToStart");
         MapVote = gamerules.getOrDefault("MapVote", true);
@@ -44,6 +47,7 @@ public class Gamerules {
             case "AllowPrivateChat" -> AllowPrivateChat = value;
             case "AllowTeamDamage" -> AllowTeamDamage = value;
             case "MakeSwordsPermanent" -> MakeSwordsPermanent = value;
+            case "MakeToolsPermanent" -> MakeToolsPermanent = value;
             case "AllowMultipleGolems" -> AllowMultipleGolems = value;
             case "SplitPartiesToStart" -> SplitPartiesToStart = value;
             case "MapVote" -> MapVote = value;
@@ -59,6 +63,7 @@ public class Gamerules {
                 ", \"AllowPrivateChat\":" + AllowPrivateChat +
                 ", \"AllowTeamDamage\":" + AllowTeamDamage +
                 ", \"MakeSwordsPermanent\":" + MakeSwordsPermanent +
+                ", \"MakeToolsPermanent\":" + MakeToolsPermanent +
                 ", \"AllowMultipleGolems\":" + AllowMultipleGolems +
                 ", \"SplitPartiesToStart\":" + SplitPartiesToStart +
                 ", \"MapVote\":" + MapVote +

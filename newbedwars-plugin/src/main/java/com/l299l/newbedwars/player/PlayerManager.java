@@ -66,6 +66,7 @@ public class PlayerManager {
     public void updateFastBuy(String name, Map<String, List<String>> fastBuyPerCategory) {
         PlayerProfile player = players.get(name);
         if (player == null) return;
+        if (player.fastBuyPerCategory().equals(fastBuyPerCategory)) return;
         players.put(name, new PlayerProfile(player.id(), player.name(), player.language(), fastBuyPerCategory));
         save();
     }

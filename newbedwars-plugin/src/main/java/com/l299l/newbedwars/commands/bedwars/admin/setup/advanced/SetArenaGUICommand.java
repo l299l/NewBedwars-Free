@@ -2,15 +2,15 @@ package com.l299l.newbedwars.commands.bedwars.admin.setup.advanced;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataJson;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class SetArenaGUICommand extends SubCommand {
+public class SetArenaGUICommand extends BwCommand {
 
     @Override
     public String getName() {
@@ -35,25 +35,25 @@ public class SetArenaGUICommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         if (args.length < 3) {
-            player.sendMessage(ChatColor.RED + "Usage: " + getSyntax());
+            usage(player);
             return;
         }
         String type = args[1].toLowerCase();
         String guiId = args[2];
         if (!type.equals("shop") && !type.equals("upgrade")) {
-            player.sendMessage(ChatColor.RED + "Type must be 'shop' or 'upgrade'.");
+            msg.send(player, "SetGuiTypeInvalid");
             return;
         }
         if (NewBedwars.plugin.getGuiManager().getGui(guiId) == null) {
-            player.sendMessage(ChatColor.RED + "GUI '" + guiId + "' not found.");
+            msg.send(player, "SetGuiNotFound", Map.of("/gui/", guiId));
             return;
         }
         if (type.equals("shop")) {
             arena.setShopGuiId(guiId);
-            player.sendMessage(ChatColor.GREEN + "Shop GUI set to '" + guiId + "'.");
+            msg.send(player, "SetGuiShopSet", Map.of("/gui/", guiId));
         } else {
             arena.setUpgradeGuiId(guiId);
-            player.sendMessage(ChatColor.GREEN + "Upgrade GUI set to '" + guiId + "'.");
+            msg.send(player, "SetGuiUpgradeSet", Map.of("/gui/", guiId));
         }
         new ArenaDataJson(arena).save();
     }

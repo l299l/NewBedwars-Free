@@ -38,7 +38,7 @@
         <dependency>
             <groupId>com.github.l299l.NewBedwars-Free</groupId>
             <artifactId>newbedwars-api</artifactId>
-            <version>v2.5-beta</version>
+            <version>v2.6-beta</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

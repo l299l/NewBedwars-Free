@@ -47,8 +47,8 @@ public class ArenaInfoTeamGUI implements InventoryHolder {
         for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team, arena.getSetupMode() == Setup.ADVANCED_SETUP)) {
             if (slot >= 27) break;
             List<String> lore = !setting.set() ? List.of(ChatColor.RED + ArenaInfo.text(viewer, "Info-NotSet"))
-                    : setting.area() ? List.of(ChatColor.GRAY + "Pos1: " + ArenaInfo.loc(viewer, setting.pos1()),
-                            ChatColor.GRAY + "Pos2: " + ArenaInfo.loc(viewer, setting.pos2()))
+                    : setting.area() ? List.of(ChatColor.GRAY + ArenaInfo.text(viewer, "Info-Pos1") + ": " + ArenaInfo.loc(viewer, setting.pos1()),
+                            ChatColor.GRAY + ArenaInfo.text(viewer, "Info-Pos2") + ": " + ArenaInfo.loc(viewer, setting.pos2()))
                     : List.of(ChatColor.GRAY + ArenaInfo.text(viewer, "Info-Location") + ": " + ArenaInfo.loc(viewer, setting.pos1()));
             inv.setItem(slot++, ItemBuilder.of(setting.icon())
                     .name((setting.set() ? ChatColor.GREEN : ChatColor.RED) + setting.label(viewer) + " " + (setting.set() ? "✔" : "✘"))

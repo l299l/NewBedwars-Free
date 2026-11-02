@@ -16,23 +16,19 @@ public class ArenaInfoGUISettings implements Listener {
             return;
         }
         Player player = (Player) e.getWhoClicked();
-        try {
-            if (e.getClickedInventory().getHolder() instanceof ArenaInfoGUI gui) {
-                e.setCancelled(true);
-                Team team = gui.getTeam(e.getSlot());
-                if (team != null) {
-                    player.openInventory(new ArenaInfoTeamGUI(player, gui.getArena(), team).getInventory());
-                } else if (e.getSlot() == 34 && gui.getPage() > 0) {
-                    player.openInventory(new ArenaInfoGUI(player, gui.getArena(), gui.getPage() - 1).getInventory());
-                } else if (e.getSlot() == 35 && gui.getPage() < gui.getTotalPages() - 1) {
-                    player.openInventory(new ArenaInfoGUI(player, gui.getArena(), gui.getPage() + 1).getInventory());
-                }
-            } else if (e.getClickedInventory().getHolder() instanceof ArenaInfoTeamGUI gui) {
-                e.setCancelled(true);
-                player.openInventory(new ArenaInfoGUI(player, gui.getArena()).getInventory());
-            }
-        } catch (Exception exception) {
+        if (e.getClickedInventory().getHolder() instanceof ArenaInfoGUI gui) {
             e.setCancelled(true);
+            Team team = gui.getTeam(e.getSlot());
+            if (team != null) {
+                player.openInventory(new ArenaInfoTeamGUI(player, gui.getArena(), team).getInventory());
+            } else if (e.getSlot() == 34 && gui.getPage() > 0) {
+                player.openInventory(new ArenaInfoGUI(player, gui.getArena(), gui.getPage() - 1).getInventory());
+            } else if (e.getSlot() == 35 && gui.getPage() < gui.getTotalPages() - 1) {
+                player.openInventory(new ArenaInfoGUI(player, gui.getArena(), gui.getPage() + 1).getInventory());
+            }
+        } else if (e.getClickedInventory().getHolder() instanceof ArenaInfoTeamGUI gui) {
+            e.setCancelled(true);
+            player.openInventory(new ArenaInfoGUI(player, gui.getArena()).getInventory());
         }
     }
 }

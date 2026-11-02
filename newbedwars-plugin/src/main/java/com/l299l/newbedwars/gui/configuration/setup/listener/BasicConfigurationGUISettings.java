@@ -26,26 +26,23 @@ public class BasicConfigurationGUISettings implements Listener {
             return;
         }
         Player player = (Player) e.getWhoClicked();
-        try {
-            if (e.getClickedInventory().getHolder() instanceof BasicConfigurationGUI) {
-                IArena arena = ArenaRegistry.byWorld(player.getWorld());
-                if (e.getSlot() == 11) {
-                    arena.changeSetup(Setup.NORMAL_SETUP);
-                    msg.sendConf(player, Setup.NORMAL_SETUP);
-                    player.closeInventory();
-                } else if (e.getSlot() == 13) {
-                    arena.changeSetup(Setup.ADVANCED_SETUP);
-                    msg.sendConf(player, Setup.ADVANCED_SETUP);
-                    player.closeInventory();
-                } else if (e.getSlot() == 15) {
-                    // Automatic setup is not yet implemented
-                    NewBedwars.plugin.getMessages().send(player, "SetupModeNotImplemented");
-                }
-                e.setCancelled(true);
-            }
-        }catch (Exception exeption) {
+        if (!(e.getClickedInventory().getHolder() instanceof BasicConfigurationGUI)) return;
+        e.setCancelled(true);
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
+        if (arena == null) {
             msg.send(player, "ArenaNotExists");
-            e.setCancelled(true);
+            return;
+        }
+        if (e.getSlot() == 11) {
+            arena.changeSetup(Setup.NORMAL_SETUP);
+            msg.sendConf(player, Setup.NORMAL_SETUP);
+            player.closeInventory();
+        } else if (e.getSlot() == 13) {
+            arena.changeSetup(Setup.ADVANCED_SETUP);
+            msg.sendConf(player, Setup.ADVANCED_SETUP);
+            player.closeInventory();
+        } else if (e.getSlot() == 15) {
+            msg.send(player, "SetupModeNotImplemented");
         }
     }
 

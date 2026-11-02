@@ -8,9 +8,13 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Writes files so a crash mid-write can never leave a half-written (corrupt) file behind. */
 public final class AtomicFileWriter {
+    private static final Logger LOG = Logger.getLogger("NewBedwars");
+
     private AtomicFileWriter() {}
 
     /**
@@ -39,6 +43,7 @@ public final class AtomicFileWriter {
         try {
             return Files.readString(target, StandardCharsets.UTF_8).equals(content);
         } catch (IOException e) {
+            LOG.log(Level.WARNING, "Could not compare " + target + " with the new content", e);
             return false;
         }
     }

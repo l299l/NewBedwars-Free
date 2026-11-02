@@ -169,7 +169,9 @@ public class IronGolemLogic implements CustomLogic {
         try {
             Entity e = Bukkit.getEntity(UUID.fromString(golemUuid));
             if (e != null && e.isValid()) e.remove();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException e) {
+            NewBedwars.plugin.getLogger().warning("Invalid golem id '" + golemUuid + "': " + e.getMessage());
+        }
     }
 
     public static void cleanupAllForArena(String arenaName) {
@@ -187,7 +189,9 @@ public class IronGolemLogic implements CustomLogic {
                 if (key != null && key.startsWith(prefix)) {
                     cleanupGolem(uuid);
                 }
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException e) {
+                NewBedwars.plugin.getLogger().warning("Invalid golem id '" + uuid + "': " + e.getMessage());
+            }
         });
 
         // Cleanup team tracking entries for this arena

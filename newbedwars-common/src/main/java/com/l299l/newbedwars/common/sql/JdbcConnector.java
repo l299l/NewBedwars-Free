@@ -3,6 +3,8 @@ package com.l299l.newbedwars.common.sql;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -13,6 +15,9 @@ import java.util.Properties;
 public final class JdbcConnector implements AutoCloseable {
     private static final String[] DRIVERS = {"com.mysql.cj.jdbc.Driver", "com.mysql.jdbc.Driver", "org.mariadb.jdbc.Driver"};
 
+    public static final String DEFAULT_SSL_MODE = "PREFERRED";
+    public static final List<String> SSL_MODES = List.of("DISABLED", "PREFERRED", "REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY");
+
     private final String url;
     private final Properties props = new Properties();
     private final ClassLoader loader;
@@ -20,11 +25,31 @@ public final class JdbcConnector implements AutoCloseable {
     private Connection connection;
 
     public JdbcConnector(String host, int port, String database, String user, String password, ClassLoader loader) {
-        this.url = "jdbc:mysql://" + host + ":" + port + "/" + database
-                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectTimeout=5000&socketTimeout=10000";
+        this(host, port, database, user, password, DEFAULT_SSL_MODE, false, loader);
+    }
+
+    public JdbcConnector(String host, int port, String database, String user, String password,
+                         String sslMode, boolean allowPublicKeyRetrieval, ClassLoader loader) {
+        this.url = url(host, port, database, sslMode, allowPublicKeyRetrieval);
         props.setProperty("user", user == null ? "" : user);
         props.setProperty("password", password == null ? "" : password);
         this.loader = loader;
+    }
+
+    static String url(String host, int port, String database, String sslMode, boolean allowPublicKeyRetrieval) {
+        return "jdbc:mysql://" + host + ":" + port + "/" + database
+                + "?sslMode=" + normalizeSslMode(sslMode)
+                + (allowPublicKeyRetrieval ? "&allowPublicKeyRetrieval=true" : "")
+                + "&serverTimezone=UTC&connectTimeout=5000&socketTimeout=10000";
+    }
+
+    /** One of {@link #SSL_MODES} (case-insensitive), else {@link #DEFAULT_SSL_MODE}. */
+    public static String normalizeSslMode(String mode) {
+        if (mode != null) {
+            String m = mode.trim().toUpperCase(Locale.ROOT);
+            if (SSL_MODES.contains(m)) return m;
+        }
+        return DEFAULT_SSL_MODE;
     }
 
     /** The open connection, reconnecting when it was closed or broke. */

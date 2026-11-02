@@ -64,4 +64,24 @@ class PlayerManagerTest {
         pm.addPlayer(ins("Alice"));
         assertEquals(1, pm.getPlayers().size());
     }
+
+    @Test
+    void unchangedFastBuyIsNotSaved() {
+        com.l299l.newbedwars.NewBedwars saved = com.l299l.newbedwars.NewBedwars.plugin;
+        com.l299l.newbedwars.NewBedwars plugin = org.mockito.Mockito.mock(com.l299l.newbedwars.NewBedwars.class);
+        com.l299l.newbedwars.config.data.DataManager data = org.mockito.Mockito.mock(com.l299l.newbedwars.config.data.DataManager.class);
+        org.mockito.Mockito.when(plugin.getDataManager()).thenReturn(data);
+        com.l299l.newbedwars.NewBedwars.plugin = plugin;
+        try {
+            PlayerManager pm = new PlayerManager();
+            pm.addPlayer(new PlayerProfile(UUID.randomUUID(), "Alice", Language.English,
+                    new java.util.HashMap<>(java.util.Map.of("blocks", java.util.List.of("wool")))));
+            pm.updateFastBuy("Alice", new java.util.HashMap<>(java.util.Map.of("blocks", new java.util.ArrayList<>(java.util.List.of("wool")))));
+            org.mockito.Mockito.verifyNoInteractions(data);
+            pm.updateFastBuy("Alice", new java.util.HashMap<>(java.util.Map.of("blocks", java.util.List.of("stone"))));
+            org.mockito.Mockito.verify(data).savePlayerData();
+        } finally {
+            com.l299l.newbedwars.NewBedwars.plugin = saved;
+        }
+    }
 }

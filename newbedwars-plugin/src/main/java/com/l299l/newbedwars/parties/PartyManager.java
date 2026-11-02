@@ -14,6 +14,7 @@ import java.util.UUID;
 
 public class PartyManager {
     private static final int INVITE_EXPIRY_SECONDS = 60;
+    private static final int MAX_PENDING_INVITES = 10;
     private final Plugin plugin;
     private final Messages messages;
     private final Map<UUID, Party> playerToParty = new HashMap<>();
@@ -54,6 +55,10 @@ public class PartyManager {
         return pendingInvites.containsKey(player.getUniqueId());
     }
 
+    public boolean canSendInvite(Party party) {
+        return pendingInvites.values().stream().filter(p -> p == party).count() < MAX_PENDING_INVITES;
+    }
+
     public void sendInvite(Player inviter, Player invitee, Party party) {
         pendingInvites.put(invitee.getUniqueId(), party);
         scheduleInviteExpiry(inviter, invitee, party);
@@ -78,6 +83,7 @@ public class PartyManager {
     public boolean acceptInvite(Player player) {
         Party party = pendingInvites.remove(player.getUniqueId());
         if (party == null || party.size() == 0) return false;
+        if (playerToParty.containsKey(player.getUniqueId())) return false;
         party.addMember(player.getUniqueId());
         playerToParty.put(player.getUniqueId(), party);
         return true;

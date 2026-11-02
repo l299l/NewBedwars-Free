@@ -12,6 +12,8 @@ import org.bukkit.entity.Player;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import com.l299l.newbedwars.player.PlayerProfile;
 
 public class Messages {
     private final LangMessages langMessages;
@@ -86,11 +88,8 @@ public class Messages {
     }
 
     private Language playerLanguage(Player p) {
-        try {
-            return NewBedwars.plugin.getPlayerManager().getPlayer(p.getName()).language();
-        } catch (Exception e) {
-            return Language.English;
-        }
+        PlayerProfile profile = NewBedwars.plugin.getPlayerManager().getPlayer(p.getName());
+        return profile == null || profile.language() == null ? Language.English : profile.language();
     }
 
     private void addToFile(String name, java.io.File file, String suffix) {
@@ -102,7 +101,7 @@ public class Messages {
                 config.save(file);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not add " + name + suffix + " to " + file.getPath(), e);
         }
     }
 }

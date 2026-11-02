@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/** LOBBY mode: the arenas of all game servers, as last sent by the proxy. */
+/** LOBBY and GAME mode: the arenas of all game servers, as last sent by the proxy. */
 public final class RemoteArenaRegistry {
     private volatile List<RemoteArena> arenas = List.of();
 

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.proxy.core.routing;
 
+import com.l299l.newbedwars.common.routing.ServerSelector;
 import com.l299l.newbedwars.proxy.core.FakePlatform;
 import com.l299l.newbedwars.proxy.core.party.PartyService;
 
@@ -190,18 +191,6 @@ class RouterTest {
     }
 
     @Test
-    void databaseStatesMergeWhenNewer() {
-        state("game1", 1000, arena("a", 1, 8, 1));
-        ServerState older = new ServerState("game1", "GAME", false, 500, List.of(arena("a", 7, 8, 1)));
-        ServerState db2 = new ServerState("game3", "GAME", false, 900, List.of(arena("c", 2, 8, 1)));
-        servers.mergeFromDatabase(List.of(older, db2));
-        NetworkState snap = servers.snapshot(1000);
-        assertEquals(2, snap.servers.size());
-        assertEquals(1, snap.servers.get(0).arenas.get(0).players, "older DB row does not overwrite");
-        assertTrue(servers.isGame("game3"));
-    }
-
-    @Test
     void tickDropsOldRequests() {
         state("game1", 0, arena("a", 0, 8, 1));
         request(leo, TargetKind.ANY, null, 0);
@@ -374,5 +363,244 @@ class RouterTest {
         state("game2", 0, arena("castle", 1, 8, 1));
         router.handle("lobby", leo, NetMessage.of("lobby", new JoinRequest(leo, TargetKind.ARENA, "castle", "game2", null)), 0);
         assertEquals(List.of("Leo->game2"), pf.connects);
+    }
+
+    // ----- hostile or broken messages -----
+
+    @Test
+    void joinRequestMustComeFromTheRequestedPlayersOwnConnection() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        router.handle("lobby", bot, NetMessage.of("lobby", new JoinRequest(leo, TargetKind.ANY, null)), 0);
+        router.handle("lobby", null, NetMessage.of("lobby", new JoinRequest(leo, TargetKind.ANY, null)), 0);
+        router.handle("lobby", bot, NetMessage.of("lobby", new JoinRequest(leo, TargetKind.REJOIN, null)), 0);
+        router.handle("lobby", bot, NetMessage.of("lobby", new JoinRequest(leo, TargetKind.SPECTATE, "a")), 0);
+        assertTrue(pf.connects.isEmpty());
+        assertTrue(pf.messages.isEmpty());
+        assertEquals(0, router.pendingCount());
+    }
+
+    @Test
+    void malformedJoinRequestsAreIgnored() {
+        router.onJoinRequest("lobby", leo, null, 0);
+        router.onJoinRequest("lobby", leo, new JoinRequest(), 0);
+        JoinRequest noKind = new JoinRequest(leo, null, null);
+        noKind.players = null;
+        state("game1", 0, arena("a", 0, 8, 1));
+        router.onJoinRequest("lobby", leo, noKind, 0);
+        assertEquals(List.of("Leo->game1"), pf.connects, "no kind means any");
+    }
+
+    @Test
+    void tooLongTargetIsIgnored() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.GROUP, "*".repeat(ServerSelector.MAX_TARGET_LENGTH + 1), 0);
+        assertTrue(pf.connects.isEmpty());
+        request(leo, TargetKind.GROUP, "*".repeat(ServerSelector.MAX_TARGET_LENGTH), 0);
+        assertEquals(List.of("Leo->game1"), pf.connects);
+    }
+
+    @Test
+    void voteListFromALobbyOrWithForeignPlayersIsIgnored() {
+        UUID g1 = pf.add("G1", "game1");
+        UUID other = pf.add("Other", "game2");
+        state("game2", 0, arena("TestArena", 0, 8, 1));
+        router.handle("lobby", leo, NetMessage.of("lobby",
+                new JoinRequest(leo, TargetKind.ARENA, "TestArena", "game2", List.of(leo, bot))), 1);
+        assertTrue(pf.connects.isEmpty(), "lobbies never choose players");
+        router.handle("game1", g1, NetMessage.of("game1",
+                new JoinRequest(g1, TargetKind.ARENA, "TestArena", "game2", List.of(other))), 1);
+        assertTrue(pf.connects.isEmpty(), "other is not on game1");
+        router.handle("game1", g1, NetMessage.of("game1",
+                new JoinRequest(g1, TargetKind.ARENA, "TestArena", "game2", List.of(g1, other))), 1);
+        assertEquals(List.of("G1->game2"), pf.connects);
+    }
+
+    @Test
+    void malformedRejectsAreIgnored() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        router.onReject("game1", null, 1);
+        router.onReject("game1", new JoinReject(), 1);
+        router.onReject("game1", new JoinReject("nope", leo, "a", JoinReject.Reason.FULL), 1);
+        assertEquals(1, pf.connects.size());
+        assertEquals(1, router.pendingCount());
+    }
+
+    @Test
+    void helloWithoutPlayerConnectionDoesNothing() {
+        router.handle("game1", null, NetMessage.of("game1", new Hello()), 0);
+        router.handle("game1", leo, NetMessage.of("game1", new Hello()), 0);
+        assertEquals(1, pf.toPlayerServer.size(), "only the connected player is answered");
+        assertEquals(leo, pf.toPlayerServerVia.get(0));
+    }
+
+    @Test
+    void serverStateIsStoredUnderTheSendersIdNotThePayloads() {
+        router.handle("game1", null, NetMessage.of("game1",
+                new ServerState("game2", "GAME", false, 0, List.of(arena("a", 0, 8, 1)))), 0);
+        var snap = servers.snapshot(0).servers;
+        assertEquals(1, snap.size());
+        assertEquals("game1", snap.get(0).serverId);
+        assertFalse(servers.isFresh("game2", 0));
+    }
+
+    @Test
+    void serverStateFromALobbyIsIgnored() {
+        router.handle("lobby", leo, NetMessage.of("lobby",
+                new ServerState("lobby", "GAME", false, 0, List.of(arena("a", 0, 8, 1)))), 0);
+        assertTrue(servers.snapshot(0).servers.isEmpty());
+        assertFalse(servers.isGame("lobby"));
+    }
+
+    @Test
+    void serverStateWithNullArenasOrNamesDoesNotBreakRouting() {
+        ServerState bad = new ServerState("game1", "GAME", false, 0, null);
+        router.handle("game1", null, NetMessage.of("game1", bad), 0);
+        ServerState noName = new ServerState("game2", "GAME", false, 0, java.util.Arrays.asList(null, arena(null, 0, 8, 1), arena("ok", 0, 8, 1)));
+        router.handle("game2", null, NetMessage.of("game2", noName), 0);
+        request(leo, TargetKind.GROUP, "o*", 1);
+        assertEquals(List.of("Leo->game2"), pf.connects);
+    }
+
+    @Test
+    void groupsFromAGameServerAreIgnored() {
+        groups("game1", 9);
+        assertTrue(pf.toServer.isEmpty());
+        assertNull(router.groups().current());
+    }
+
+    @Test
+    void sendToLobbyIgnoresNullPlayersAndPlayersOnOtherServers() {
+        UUID g = pf.add("Gamer", "game1");
+        UUID h = pf.add("Hiker", "game2");
+        router.handle("game1", g, NetMessage.of("game1", new SendToLobby(null)), 0);
+        router.handle("game1", g, NetMessage.of("game1", new SendToLobby(java.util.Arrays.asList(null, h, bot))), 0);
+        assertTrue(pf.connects.isEmpty());
+        router.handle("game1", g, NetMessage.of("game1", new SendToLobby(java.util.Arrays.asList(null, g))), 0);
+        assertEquals(List.of("Gamer->lobby2"), pf.connects);
+    }
+
+    // ----- reservations, cooldown, group revisions -----
+
+    private int playersIn(String server, long now) {
+        return servers.snapshot(now).servers.stream().filter(x -> x.serverId.equals(server)).findFirst()
+                .orElseThrow().arenas.get(0).players;
+    }
+
+    private void longLivedRegistry() {
+        servers = new ServerRegistry(List.of("game1", "game2"), List.of("lobby", "lobby2"), 1_000_000);
+        router = new Router(pf, servers, parties, 10_000);
+    }
+
+    @Test
+    void rejectedJoinReleasesItsReservationBeforeTryingElsewhere() {
+        state("game1", 0, arena("a", 3, 8, 1));
+        state("game2", 0, arena("b", 1, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        assertEquals(4, playersIn("game1", 0));
+        router.handle("game1", leo, NetMessage.of("game1", new JoinReject("r1-0", leo, "a", JoinReject.Reason.FULL)), 1);
+        assertEquals(3, playersIn("game1", 1));
+        assertEquals(2, playersIn("game2", 1));
+    }
+
+    @Test
+    void failedAndExpiredJoinsReleaseTheirReservation() {
+        longLivedRegistry();
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        assertEquals(1, playersIn("game1", 0));
+        router.tick(20_001);
+        assertEquals(0, router.pendingCount());
+        assertEquals(0, playersIn("game1", 20_001));
+
+        pf.servers.put(leo, "lobby");
+        pf.failing.addAll(List.of("game1", "game2"));
+        request(leo, TargetKind.ANY, null, 30_000);
+        assertEquals(0, playersIn("game1", 30_000), "no server could be reached: nothing stays reserved");
+    }
+
+    @Test
+    void aFreshStateReplacesTheReservationAndLaterReleaseDoesNotDoubleCount() {
+        longLivedRegistry();
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        state("game1", 100, arena("a", 1, 8, 1));
+        assertEquals(1, playersIn("game1", 100));
+        router.tick(20_001);
+        assertEquals(1, playersIn("game1", 20_001), "the real player must stay counted");
+    }
+
+    @Test
+    void newJoinReplacesOldPendingAndItsReservation() {
+        longLivedRegistry();
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        request(leo, TargetKind.ANY, null, Router.REQUEST_COOLDOWN_MILLIS);
+        assertEquals(1, router.pendingCount());
+        assertEquals(1, playersIn("game1", Router.REQUEST_COOLDOWN_MILLIS));
+    }
+
+    @Test
+    void disconnectedPlayerReleasesTheirReservation() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        router.onDisconnect(leo);
+        assertEquals(0, router.pendingCount());
+        assertEquals(0, playersIn("game1", 0));
+    }
+
+    @Test
+    void repeatedJoinRequestsWithinTheCooldownAreIgnored() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 0);
+        request(leo, TargetKind.ANY, null, 100);
+        request(leo, TargetKind.GROUP, "solo", Router.REQUEST_COOLDOWN_MILLIS - 1);
+        assertEquals(List.of("Leo->game1"), pf.connects);
+        assertEquals(1, playersIn("game1", 0));
+        pf.servers.put(leo, "lobby");
+        request(leo, TargetKind.ANY, null, Router.REQUEST_COOLDOWN_MILLIS);
+        assertEquals(2, pf.connects.size());
+    }
+
+    @Test
+    void rejoinAndSpectateAreNotHeldBackByTheCooldown() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        runningWithSlot("game2", leo, 60_000);
+        request(leo, TargetKind.ANY, null, 0);
+        request(leo, TargetKind.REJOIN, null, 10);
+        assertEquals(List.of("Leo->game1", "Leo->game2"), pf.connects);
+        assertEquals(0, playersIn("game1", 10), "the replaced join gave its place back");
+    }
+
+    @Test
+    void ticketCarriesRelativeTtl() {
+        state("game1", 0, arena("a", 0, 8, 1));
+        request(leo, TargetKind.ANY, null, 1_000);
+        router.onServerConnected(leo, "game1", 3_000);
+        JoinTicket t = tickets().get(0);
+        assertEquals(11_000, t.expiresAt);
+        assertEquals(8_000, t.ttlMillis);
+    }
+
+    @Test
+    void groupsWithARevisionFarInTheFutureAreIgnored() {
+        router.handle("lobby", leo, NetMessage.of("lobby", new NetworkGroups(Long.MAX_VALUE, List.of())), 1_000);
+        assertNull(router.groups().current());
+        assertTrue(pf.toServer.isEmpty());
+        router.handle("lobby", leo, NetMessage.of("lobby",
+                new NetworkGroups(1_000 + 2L * 24 * 60 * 60 * 1000, List.of())), 1_000);
+        assertNull(router.groups().current());
+        router.handle("lobby", leo, NetMessage.of("lobby", new NetworkGroups(1_000 + 60_000, List.of())), 1_000);
+        assertNotNull(router.groups().current());
+        router.handle("lobby", leo, NetMessage.of("lobby", new NetworkGroups(Long.MAX_VALUE, List.of())), 1_000);
+        assertEquals(1_000 + 60_000, router.groups().current().revision);
+    }
+
+    @Test
+    void stateFromAnUnconfiguredServerIsIgnored() {
+        state("evil", 0, arena("a", 0, 8, 1));
+        assertFalse(servers.isGame("evil"));
+        assertTrue(servers.snapshot(0).servers.isEmpty());
+        assertEquals(0, pf.toServer.size());
     }
 }

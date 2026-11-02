@@ -64,6 +64,7 @@ public final class BukkitMessenger implements Messenger, PluginMessageListener {
         }
     }
 
+    private boolean warnedUnreadable;
     private long lastWarn;
 
     private void warnOnce(String text) {
@@ -86,7 +87,10 @@ public final class BukkitMessenger implements Messenger, PluginMessageListener {
         if (!NetChannel.MAIN.equals(channel)) return;
         NetMessage msg = NetCodec.decode(message);
         if (msg == null) {
-            plugin.getLogger().warning("[Network] Dropped an unreadable message (other protocol version?)");
+            if (!warnedUnreadable) {
+                warnedUnreadable = true;
+                plugin.getLogger().warning("[Network] Dropped an unreadable message (other protocol version? Further ones are not logged)");
+            }
             return;
         }
         handler.accept(player, msg);

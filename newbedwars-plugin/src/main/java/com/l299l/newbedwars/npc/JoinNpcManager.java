@@ -5,6 +5,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.data.IOExecutor;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.extensions.PluginDetector;
+import com.l299l.newbedwars.network.NetworkManager;
 import com.l299l.newbedwars.npc.fallback.FallbackNpc;
 import com.l299l.newbedwars.npc.fallback.FallbackNpcStore;
 import com.l299l.newbedwars.utils.holograms.Hologram;
@@ -261,14 +262,15 @@ public final class JoinNpcManager implements Listener {
     private void refresh() {
         for (FallbackNpc npc : fallbackNpcs) spawn(npc);
         Set<String> seen = new HashSet<>();
+        NetworkManager network = NetworkManager.get();
+        boolean useRemote = network != null && NetworkManager.isLobby();
         for (JoinNpc npc : allNpcs()) {
             Location loc = npc.location();
             String template = hologramTemplate(npc.action().getType());
             if (loc == null || loc.getWorld() == null || template == null) continue;
             seen.add(npc.key());
             Location base = loc.clone().add(0, npc.height() - BASE_BELOW_TOP + Properties.JoinNpcHologramOffset, 0);
-            com.l299l.newbedwars.network.NetworkManager network = com.l299l.newbedwars.network.NetworkManager.get();
-            HashMap<String, String> replacements = network != null && com.l299l.newbedwars.network.NetworkManager.isLobby()
+            HashMap<String, String> replacements = useRemote
                     ? NpcHologramText.remoteReplacements(npc.action(), network.getRemoteArenas())
                     : NpcHologramText.replacements(npc.action(), ArenaRegistry.all());
             ShownHologram shown = holograms.get(npc.key());

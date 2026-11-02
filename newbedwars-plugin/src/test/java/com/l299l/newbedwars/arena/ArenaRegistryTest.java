@@ -55,11 +55,4 @@ class ArenaRegistryTest {
         assertTrue(ArenaRegistry.names().contains("Castle"));
         assertThrows(UnsupportedOperationException.class, () -> all.clear());
     }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    void deprecatedMapsAreTheSameMaps() {
-        ArenaRegistry.register("Castle", arena("Castle"));
-        assertTrue(Arena.arenaByName.containsKey("Castle"));
-    }
 }

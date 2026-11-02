@@ -91,7 +91,7 @@ public final class MapVoteManager implements Listener {
         return arena.getArenaName().toLowerCase(Locale.ROOT);
     }
 
-    /** The group of {@code arena} when it votes (in a group of 2+ arenas and gamerule {@code MapVote} on), else null. */
+    /** The group of {@code arena} when it votes (in a group of 2+ arenas, or a single-arena group on a network game server, and gamerule {@code MapVote} on), else null. */
     public ArenaGroup votingGroup(IArena arena) {
         ArenaGroupManager groups = ArenaGroupManager.get();
         if (groups == null) return null;
@@ -113,7 +113,7 @@ public final class MapVoteManager implements Listener {
     }
 
     /**
-     * Arenas the players of {@code ended} can vote for: the other enabled, waiting arenas of the group with room
+     * Arenas the players of {@code ended} can vote for: the other enabled arenas of the group that are waiting or starting, with room
      * for everyone who would move. The ended arena itself is not offered (its map is reset).
      */
     public List<IArena> options(IArena ended) {

@@ -156,6 +156,24 @@ class JoinTicketHandlerTest {
     }
 
     @Test
+    void relativeTtlWinsOverAnAbsoluteTimeFromAnotherClock() {
+        when(duo.join(a)).thenReturn(true);
+        handler.onTicket(a, new JoinTicket("r4", a.getUniqueId(), TargetKind.ARENA, "duo", "duo", null, List.of(), 1, 10_000));
+        verify(duo).join(a);
+        verifyNoInteractions(messenger);
+    }
+
+    @Test
+    void deadlineUsesTtlFromArrivalThenExpiresAtThenNever() {
+        JoinTicket t = new JoinTicket("r5", a.getUniqueId(), TargetKind.ARENA, "duo", "duo", null, List.of(), 500, 2_000);
+        assertEquals(12_000, JoinTicketHandler.deadlineOf(t, 10_000));
+        t.ttlMillis = 0;
+        assertEquals(500, JoinTicketHandler.deadlineOf(t, 10_000));
+        t.expiresAt = 0;
+        assertEquals(Long.MAX_VALUE, JoinTicketHandler.deadlineOf(t, 10_000));
+    }
+
+    @Test
     void rejoinTicketRejoinsOrRejects() {
         IArena running = NetTestArenas.arena("run", GameStatus.playing, 2, 1, 1, true);
         ArenaRegistry.register("run", running);

@@ -2,27 +2,15 @@ package com.l299l.newbedwars.config.data.yaml.guis;
 
 import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.gui.model.GUIEntry;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.GUISave;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.configuration.game.guis.ShopGUI;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.model.GUICategory;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.model.GUIUpgrade;
-import com.l299l.newbedwars.gui.model.GUIEntry;
-import org.yaml.snakeyaml.DumperOptions;
-import com.l299l.newbedwars.gui.model.GUIEntry;
+import com.l299l.newbedwars.config.data.yaml.SafeYaml;
 import org.yaml.snakeyaml.Yaml;
-
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.io.File;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.nio.file.Files;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.util.*;
 
 public class GUIDataYaml {
@@ -34,9 +22,7 @@ public class GUIDataYaml {
 
     public GUIDataYaml(File gui) {
         try {
-            DumperOptions options = new DumperOptions();
-            options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-            Yaml yaml = new Yaml(options);
+            Yaml yaml = SafeYaml.create();
             HashMap<String, Object> guiSaveObject = yaml.load(Files.newInputStream(gui.toPath()));
             String guiClass = guiSaveObject.get("GuiClass").toString();
             String guiId = guiSaveObject.get("GuiId").toString();
@@ -125,7 +111,7 @@ public class GUIDataYaml {
             }
             this.guiSave = guiSave;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not load GUI file " + gui.getName() + ": " + e.getMessage(), e);
         }
     }
 

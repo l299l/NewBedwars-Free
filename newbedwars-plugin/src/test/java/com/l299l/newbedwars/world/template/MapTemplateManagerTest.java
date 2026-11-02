@@ -105,4 +105,32 @@ class MapTemplateManagerTest {
         assertFalse(Files.exists(dir.resolve("20260101.zip")));
         assertTrue(Files.exists(dir.resolve("20260103.zip")));
     }
+
+    @Test
+    void unzipRejectsEntriesLargerThanTheLimit() throws IOException {
+        Path zip = tmp.resolve("big.zip");
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip))) {
+            out.putNextEntry(new java.util.zip.ZipEntry("a.bin"));
+            out.write(new byte[600]);
+            out.closeEntry();
+            out.putNextEntry(new java.util.zip.ZipEntry("b.bin"));
+            out.write(new byte[600]);
+            out.closeEntry();
+        }
+        assertThrows(IOException.class, () -> MapTemplateManager.unzip(zip, tmp.resolve("out-small"), 1000));
+        MapTemplateManager.unzip(zip, tmp.resolve("out-ok"), 1200);
+        assertEquals(600, Files.size(tmp.resolve("out-ok").resolve("b.bin")));
+    }
+
+    @Test
+    void unzipRejectsPathTraversal() throws IOException {
+        Path zip = tmp.resolve("evil.zip");
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip))) {
+            out.putNextEntry(new java.util.zip.ZipEntry("../escape.txt"));
+            out.write(1);
+            out.closeEntry();
+        }
+        assertThrows(IOException.class, () -> MapTemplateManager.unzip(zip, tmp.resolve("out")));
+        assertFalse(Files.exists(tmp.resolve("escape.txt")));
+    }
 }

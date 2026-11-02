@@ -6,6 +6,7 @@ import com.l299l.newbedwars.arena.phases.Phase;
 import com.l299l.newbedwars.arena.phases.PhaseAction;
 import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.PriceType;
+import com.l299l.newbedwars.common.sql.JdbcConnector;
 import com.l299l.newbedwars.config.StorageType;
 import org.bukkit.Material;
 
@@ -52,6 +53,8 @@ public class Properties{
     public static String MySQLPassword;
     public static String MySQLDatabase;
     public static Integer MySQLPort;
+    public static String MySQLSslMode = "PREFERRED";
+    public static Boolean MySQLAllowPublicKeyRetrieval = false;
     public static Integer IronGolemLifetime;
     public static Boolean RollbackLegacySystem = false;
     public static Boolean RollbackAsyncCopy = true;
@@ -88,6 +91,8 @@ public class Properties{
         MySQLDatabase = get("MySQL.Database") instanceof String str ? str : "newbedwars";
         MySQLUser = get("MySQL.User") instanceof String str ? str : "root";
         MySQLPassword = get("MySQL.Password") != null ? String.valueOf(get("MySQL.Password")) : "";
+        MySQLSslMode = JdbcConnector.normalizeSslMode(get("MySQL.SslMode") instanceof String str ? str : null);
+        MySQLAllowPublicKeyRetrieval = get("MySQL.AllowPublicKeyRetrieval") instanceof Boolean b && b;
         Object ace = get("ArenaChatEnabled");
         ArenaChatEnabled = ace instanceof Boolean b ? b : true;
         Object tie = get("TablistIsolationEnabled");
@@ -115,6 +120,8 @@ public class Properties{
         DefaultGamerules.put("AllowPrivateChat", (Boolean) get("DefaultGamerules.AllowPrivateChat"));
         DefaultGamerules.put("AllowTeamDamage", (Boolean) get("DefaultGamerules.AllowTeamDamage"));
         DefaultGamerules.put("MakeSwordsPermanent", (Boolean) get("DefaultGamerules.MakeSwordsPermanent"));
+        Object dmt = get("DefaultGamerules.MakeToolsPermanent");
+        DefaultGamerules.put("MakeToolsPermanent", dmt instanceof Boolean b ? b : true);
         DefaultGamerules.put("AllowMultipleGolems", (Boolean) get("DefaultGamerules.AllowMultipleGolems"));
         DefaultGamerules.put("SplitPartiesToStart", (Boolean) get("DefaultGamerules.SplitPartiesToStart"));
         Object dmv = get("DefaultGamerules.MapVote");

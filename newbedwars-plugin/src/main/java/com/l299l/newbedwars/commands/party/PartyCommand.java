@@ -91,6 +91,11 @@ public class PartyCommand implements TabExecutor {
             return;
         }
 
+        if (!pm.canSendInvite(party)) {
+            msg.send(p, "PartyTooManyInvites");
+            return;
+        }
+
         final Party finalParty = party;
         pm.sendInvite(p, target, finalParty);
         msg.send(p, "PartyInviteSent", Map.of("/player/", target.getName()));
@@ -104,6 +109,11 @@ public class PartyCommand implements TabExecutor {
             msg.send(p, "PartyNoPendingInvite");
             return;
         }
+        if (pm.isPlayerInParty(p)) {
+            pm.declineInvite(p);
+            msg.send(p, "PartyAlreadyInParty");
+            return;
+        }
         Party party = pm.getPendingInvite(p);
         String adminName = "?";
         if (party != null) {
@@ -111,7 +121,10 @@ public class PartyCommand implements TabExecutor {
             if (admin != null) adminName = admin.getName();
         }
         final String finalAdminName = adminName;
-        pm.acceptInvite(p);
+        if (!pm.acceptInvite(p)) {
+            msg.send(p, "PartyNoPendingInvite");
+            return;
+        }
         msg.send(p, "PartyAccepted", Map.of("/player/", finalAdminName));
         if (party != null) {
             final String joinName = p.getName();

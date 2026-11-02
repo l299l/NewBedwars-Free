@@ -145,9 +145,9 @@ public class ArenaInfoGUI implements InventoryHolder {
             
             List<String> rpLore = new ArrayList<>();
             if (arena.getResourcePackUrl() != null) {
-                rpLore.add(ChatColor.GRAY + "URL: " + ChatColor.WHITE + arena.getResourcePackUrl());
+                rpLore.add(ChatColor.GRAY + text("Info-Url") + ": " + ChatColor.WHITE + arena.getResourcePackUrl());
                 if (arena.getResourcePackHash() != null) {
-                    rpLore.add(ChatColor.GRAY + "Hash: " + ChatColor.WHITE + arena.getResourcePackHash());
+                    rpLore.add(ChatColor.GRAY + text("Info-Hash") + ": " + ChatColor.WHITE + arena.getResourcePackHash());
                 }
             } else {
                 rpLore.add(ChatColor.RED + text("Info-NotSet"));

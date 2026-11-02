@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.gui.configuration.setup.listener;
 
+import com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
@@ -15,7 +16,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public class ConfirmLeaveGUISettings implements Listener {
 
@@ -31,51 +31,29 @@ public class ConfirmLeaveGUISettings implements Listener {
             return;
         }
         Player player = (Player) e.getWhoClicked();
-        try {
-            if (e.getClickedInventory().getHolder() instanceof ConfirmLeaveGUI) {
-                IArena arena = ArenaRegistry.byWorld(player.getWorld());
-                if(!((ConfirmLeaveGUI) e.getClickedInventory().getHolder()).getAll()) {
-                    if (e.getSlot() >= 0 && e.getSlot() < 4) {
-                        leave(arena, player);
-                        msg.send(player, "SuccessfullyLeave");
-                    } else {
-                        if (e.getSlot() != 4) {
-                            e.setCancelled(true);
-                            player.closeInventory();
-                        }
-                        e.setCancelled(true);
-                    }
-                    e.setCancelled(true);
-                }else {
-                    if (e.getSlot() >= 0 && e.getSlot() < 4) {
-                        Collection<? extends Player> cAllPlayers = Bukkit.getServer().getOnlinePlayers();
-                        ArrayList<Player> allPlayers = new ArrayList<>(cAllPlayers);
-                        for (Player allPlayer : allPlayers) {
-                            if (arena.getArenaWorld() == allPlayer.getWorld()) {
-                                if (arena.getPlayersOnSetup().contains(allPlayer.getUniqueId())) {
-                                    if (!allPlayer.hasPermission("newbedwars.bw.bypass") || allPlayer == player) {
-                                        leave(arena, allPlayer);
-                                        msg.send(allPlayer, "KickedByOtherAdmin");
-                                    } else {
-                                        player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", allPlayer.getName()));
-                                    }
-                                }
-                            }
-                        }
-                    }else {
-                        if (e.getSlot() != 4) {
-                            e.setCancelled(true);
-                            player.closeInventory();
-                        }
-                        e.setCancelled(true);
-                    }
-                    e.setCancelled(true);
-                }
-
-            }
-        }catch (Exception exeption) {
+        if (!(e.getClickedInventory().getHolder() instanceof ConfirmLeaveGUI gui)) return;
+        e.setCancelled(true);
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
+        if (arena == null) {
             msg.send(player, "ArenaNotExists");
-            e.setCancelled(true);
+            return;
+        }
+        boolean confirm = e.getSlot() >= 0 && e.getSlot() < 4;
+        if (!confirm) {
+            if (e.getSlot() != 4) player.closeInventory();
+        } else if (!gui.getAll()) {
+            leave(arena, player);
+            msg.send(player, "SuccessfullyLeave");
+        } else {
+            for (Player allPlayer : new ArrayList<>(Bukkit.getServer().getOnlinePlayers())) {
+                if (arena.getArenaWorld() != allPlayer.getWorld() || !arena.getPlayersOnSetup().contains(allPlayer.getUniqueId())) continue;
+                if (!allPlayer.hasPermission("newbedwars.bw.bypass") || allPlayer == player) {
+                    leave(arena, allPlayer);
+                    msg.send(allPlayer, "KickedByOtherAdmin");
+                } else {
+                    player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", allPlayer.getName()));
+                }
+            }
         }
     }
 
@@ -84,7 +62,7 @@ public class ConfirmLeaveGUISettings implements Listener {
         if (arena.getPlayersOnSetup().isEmpty()) {
             DecoUtils.removeAllArmorStands(arena);
         }
-        LobbyService.sendToLobby(player, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SETUP_ENDED);
+        LobbyService.sendToLobby(player, PlayerSendToLobbyEvent.Reason.SETUP_ENDED);
         player.closeInventory();
         player.setGameMode(GameMode.SURVIVAL);
     }

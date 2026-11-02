@@ -1,11 +1,15 @@
 package com.l299l.newbedwars.world;
 
+import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.version.VersionCompat;
 import com.l299l.newbedwars.world.chunkgenerators.VoidGenerator;
 import com.l299l.newbedwars.world.schematic.SchematicManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
+
+import java.util.logging.Level;
 
 public class MainWorldCreator implements ArenaWorldCreator {
 
@@ -14,7 +18,7 @@ public class MainWorldCreator implements ArenaWorldCreator {
         try {
             World w = Bukkit.getWorld(worldName);
             if (w == null) {
-                org.bukkit.WorldCreator wc = new org.bukkit.WorldCreator(worldName);
+                WorldCreator wc = new WorldCreator(worldName);
                 wc.generator(new VoidGenerator());
                 w = wc.createWorld();
                 assert w != null;
@@ -32,6 +36,7 @@ public class MainWorldCreator implements ArenaWorldCreator {
             }
             return true;
         } catch (Exception e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not create world " + worldName, e);
             return false;
         }
     }
@@ -45,7 +50,7 @@ public class MainWorldCreator implements ArenaWorldCreator {
             SchematicManager.pasteIntoWorld(w, schematicName);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not create world " + worldName + " from schematic " + schematicName, e);
             return false;
         }
     }

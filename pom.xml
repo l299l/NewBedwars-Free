@@ -6,7 +6,7 @@
 
     <groupId>com.l299l</groupId>
     <artifactId>newbedwars-parent</artifactId>
-    <version>2.5-beta</version>
+    <version>2.6-beta</version>
     <packaging>pom</packaging>
 
     <name>NewBedwars (parent)</name>
@@ -45,7 +45,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
                     <configuration>
-                        <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                        <argLine>-Dnet.bytebuddy.experimental=true -XX:+EnableDynamicAgentLoading</argLine>
                     </configuration>
                 </plugin>
                 <plugin>

@@ -242,4 +242,42 @@ class PartyManagerTest {
         assertTrue(party.isAdmin(admin.getUniqueId()));
         assertEquals(1, party.size());
     }
+
+    @Test
+    void acceptInviteRejectedWhenAlreadyInAnotherParty() {
+        Player admin = mockPlayer("Alice");
+        Player other = mockPlayer("Dave");
+        Player invitee = mockPlayer("Bob");
+        Party first = pm.createParty(admin);
+        Party second = pm.createParty(other);
+        pm.sendInvite(admin, invitee, first);
+        pm.acceptInvite(invitee);
+        pm.sendInvite(other, invitee, second);
+        assertFalse(pm.acceptInvite(invitee));
+        assertEquals(first, pm.getParty(invitee));
+        assertEquals(1, second.size());
+        assertFalse(pm.hasPendingInvite(invitee));
+    }
+
+    @Test
+    void acceptInviteRejectedWhenPartyIsEmpty() {
+        Player admin = mockPlayer("Alice");
+        Player invitee = mockPlayer("Bob");
+        Party party = pm.createParty(admin);
+        pm.sendInvite(admin, invitee, party);
+        party.getMembers().clear();
+        assertFalse(pm.acceptInvite(invitee));
+        assertFalse(pm.isPlayerInParty(invitee));
+    }
+
+    @Test
+    void pendingInvitesPerPartyAreCapped() {
+        Player admin = mockPlayer("Alice");
+        Party party = pm.createParty(admin);
+        for (int i = 0; i < 10; i++) {
+            assertTrue(pm.canSendInvite(party));
+            pm.sendInvite(admin, mockPlayer("P" + i), party);
+        }
+        assertFalse(pm.canSendInvite(party));
+    }
 }

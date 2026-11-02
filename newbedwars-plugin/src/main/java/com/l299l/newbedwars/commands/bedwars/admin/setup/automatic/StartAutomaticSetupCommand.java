@@ -1,13 +1,12 @@
 package com.l299l.newbedwars.commands.bedwars.admin.setup.automatic;
 
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.commands.bedwars.SubCommand;
-import org.bukkit.ChatColor;
+import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class StartAutomaticSetupCommand extends SubCommand {
+public class StartAutomaticSetupCommand extends BwCommand {
     @Override
     public String getName() {
         return "startAutomaticSetup";
@@ -30,7 +29,7 @@ public class StartAutomaticSetupCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena arena) {
-        player.sendMessage(ChatColor.YELLOW + "Automatic setup is not available yet.");
+        msg.send(player, "AutomaticSetupUnavailable");
     }
 
     @Override

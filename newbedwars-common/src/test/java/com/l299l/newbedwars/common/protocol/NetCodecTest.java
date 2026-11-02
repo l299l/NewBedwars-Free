@@ -145,4 +145,134 @@ class NetCodecTest {
         assertThrows(IllegalArgumentException.class, () -> new NetMessage(MessageType.HELLO, "x", new SendToLobby()));
         assertThrows(IllegalArgumentException.class, () -> NetMessage.of("x", "a string"));
     }
+
+    private static <T> T decode(String type, String payload, Class<T> cls) {
+        NetMessage m = NetCodec.fromJson("{\"v\":1,\"type\":\"" + type + "\",\"from\":\"x\",\"payload\":" + payload + "}");
+        assertNotNull(m);
+        return m.payload(cls);
+    }
+
+    @Test
+    void missingAndNullListsBecomeEmpty() {
+        ServerState s = decode("SERVER_STATE", "{\"serverId\":\"g\"}", ServerState.class);
+        assertNotNull(s.arenas);
+        assertTrue(s.arenas.isEmpty());
+        assertTrue(decode("SERVER_STATE", "{\"arenas\":null}", ServerState.class).arenas.isEmpty());
+        assertTrue(decode("NETWORK_STATE", "{}", NetworkState.class).servers.isEmpty());
+        assertTrue(decode("NETWORK_STATE", "{\"servers\":null}", NetworkState.class).servers.isEmpty());
+        assertTrue(decode("SEND_TO_LOBBY", "{\"players\":null}", SendToLobby.class).players.isEmpty());
+        JoinRequest r = decode("JOIN_REQUEST", "{\"players\":null}", JoinRequest.class);
+        assertTrue(r.players.isEmpty());
+        PartySync p = decode("PARTY_SYNC", "{\"members\":null,\"removed\":null}", PartySync.class);
+        assertTrue(p.members.isEmpty());
+        assertTrue(p.removed.isEmpty());
+        assertTrue(decode("JOIN_TICKET", "{}", JoinTicket.class).party.isEmpty());
+        assertTrue(decode("GROUPS", "{\"groups\":null}", NetworkGroups.class).groups.isEmpty());
+    }
+
+    @Test
+    void nullElementsAndUnnamedEntriesAreDropped() {
+        ServerState s = decode("SERVER_STATE", "{\"arenas\":[null,{},{\"name\":\"a\",\"rejoin\":null},"
+                + "{\"name\":\"b\",\"rejoin\":[null,{\"player\":\"" + A + "\"}]}]}", ServerState.class);
+        assertEquals(2, s.arenas.size());
+        assertTrue(s.arenas.get(0).rejoin.isEmpty());
+        assertEquals(1, s.arenas.get(1).rejoin.size());
+
+        NetworkState n = decode("NETWORK_STATE", "{\"servers\":[null,{\"arenas\":[{\"name\":\"x\"}]},"
+                + "{\"serverId\":\"g\",\"arenas\":[null,{\"name\":\"y\"}]}]}", NetworkState.class);
+        assertEquals(1, n.servers.size());
+        assertEquals(1, n.servers.get(0).arenas.size());
+
+        SendToLobby l = decode("SEND_TO_LOBBY", "{\"players\":[null,\"" + A + "\"]}", SendToLobby.class);
+        assertEquals(List.of(A), l.players);
+        PartySync p = decode("PARTY_SYNC", "{\"members\":[null,{\"name\":\"nouuid\"},{\"uuid\":\"" + B
+                + "\"}],\"removed\":[null]}", PartySync.class);
+        assertEquals(1, p.members.size());
+        assertTrue(p.removed.isEmpty());
+        NetworkGroups g = decode("GROUPS", "{\"groups\":[null,{\"arenas\":[\"a\"]},{\"name\":\"s\",\"arenas\":[null,\"a\"]}]}",
+                NetworkGroups.class);
+        assertEquals(1, g.groups.size());
+        assertEquals(List.of("a"), g.groups.get(0).arenas);
+    }
+
+    @Test
+    void payloadFromJsonNormalizesToo() {
+        ServerState s = NetCodec.payloadFromJson("{\"arenas\":[null,{\"name\":\"a\"}]}", ServerState.class);
+        assertEquals(1, s.arenas.size());
+        assertTrue(s.arenas.get(0).rejoin.isEmpty());
+        assertTrue(NetCodec.payloadFromJson("{}", ServerState.class).arenas.isEmpty());
+        assertNull(NetCodec.payloadFromJson("garbage", ServerState.class));
+        assertNull(NetCodec.payloadFromJson(null, ServerState.class));
+    }
+
+    @Test
+    void oversizedServerStateIsCut() {
+        List<ArenaInfo> arenas = new java.util.ArrayList<>();
+        for (int i = 0; i < Limits.MAX_ARENAS_PER_SERVER + 30; i++) {
+            ArenaInfo a = new ArenaInfo("a" + i, "g", ArenaInfo.State.WAITING, 0, 8, 1, 8, true);
+            for (int j = 0; j < Limits.MAX_REJOIN_PER_ARENA + 10; j++) a.rejoin.add(new RejoinSlot(UUID.randomUUID(), 1));
+            arenas.add(a);
+        }
+        arenas.add(new ArenaInfo("n".repeat(Limits.MAX_NAME_LENGTH + 1), null, ArenaInfo.State.WAITING, 0, 8, 1, 8, true));
+        ServerState back = roundTrip(new ServerState("game1", "GAME", false, 0, arenas)).payload(ServerState.class);
+        assertEquals(Limits.MAX_ARENAS_PER_SERVER, back.arenas.size());
+        assertTrue(back.arenas.stream().allMatch(a -> a.rejoin.size() <= Limits.MAX_REJOIN_PER_ARENA));
+        assertEquals(Limits.MAX_REJOIN_PER_SERVER, back.arenas.stream().mapToInt(a -> a.rejoin.size()).sum());
+    }
+
+    @Test
+    void longNamesAreDropped() {
+        String longName = "x".repeat(Limits.MAX_NAME_LENGTH + 1);
+        ArenaInfo ok = new ArenaInfo("ok", longName, ArenaInfo.State.WAITING, 0, 8, 1, 8, true);
+        ArenaInfo bad = new ArenaInfo(longName, null, ArenaInfo.State.WAITING, 0, 8, 1, 8, true);
+        ServerState s = new ServerState("game1", "GAME", false, 0, List.of(ok, bad));
+        ServerState back = roundTrip(s).payload(ServerState.class);
+        assertEquals(1, back.arenas.size());
+        assertNull(back.arenas.get(0).group);
+        NetworkState n = roundTrip(new NetworkState(List.of(new ServerState(longName, "GAME", false, 0, List.of()), s)))
+                .payload(NetworkState.class);
+        assertEquals(1, n.servers.size());
+        NetworkGroups g = roundTrip(new NetworkGroups(1, List.of(new NetworkGroups.Group(longName, null, List.of("a")),
+                new NetworkGroups.Group("g", "PAPER", List.of("a", longName + ":" + longName + "x"))))).payload(NetworkGroups.class);
+        assertEquals(1, g.groups.size());
+        assertEquals(List.of("a"), g.groups.get(0).arenas);
+    }
+
+    @Test
+    void networkStateServerCountAndGroupSizesAreCapped() {
+        List<ServerState> servers = new java.util.ArrayList<>();
+        for (int i = 0; i < Limits.MAX_SERVERS + 10; i++) servers.add(new ServerState("s" + i, "GAME", false, 0, List.of()));
+        assertEquals(Limits.MAX_SERVERS, roundTrip(new NetworkState(servers)).payload(NetworkState.class).servers.size());
+        List<String> entries = new java.util.ArrayList<>();
+        for (int i = 0; i < Limits.MAX_GROUP_ENTRIES + 10; i++) entries.add("a" + i);
+        NetworkGroups g = roundTrip(new NetworkGroups(1, List.of(new NetworkGroups.Group("g", null, entries)))).payload(NetworkGroups.class);
+        assertEquals(Limits.MAX_GROUP_ENTRIES, g.groups.get(0).arenas.size());
+    }
+
+    @Test
+    void ticketTtlIsAdditive() {
+        JoinTicket t = roundTrip(new JoinTicket("r1", A, TargetKind.ANY, null, null, null, List.of(A), 99L, 1234L)).payload(JoinTicket.class);
+        assertEquals(1234L, t.ttlMillis);
+        JoinTicket old = decode("JOIN_TICKET", "{\"requestId\":\"r\",\"expiresAt\":5}", JoinTicket.class);
+        assertEquals(0L, old.ttlMillis);
+        assertEquals(5L, old.expiresAt);
+    }
+
+    @Test
+    void stateFitDropsRejoinThenArenas() {
+        List<ArenaInfo> arenas = new java.util.ArrayList<>();
+        for (int i = 0; i < 40; i++) {
+            ArenaInfo a = new ArenaInfo("arena" + i, "g", i < 20 ? ArenaInfo.State.PLAYING : ArenaInfo.State.WAITING, i, 16, 2, 8, true);
+            for (int j = 0; j < 30; j++) a.rejoin.add(new RejoinSlot(UUID.randomUUID(), 1));
+            arenas.add(a);
+        }
+        NetworkState small = new NetworkState(new java.util.ArrayList<>(List.of(new ServerState("s", "GAME", false, 0, new java.util.ArrayList<>(arenas)))));
+        assertEquals(StateFit.Result.UNCHANGED, StateFit.fit(new NetworkState(), 100));
+        assertEquals(StateFit.Result.REJOIN_DROPPED, StateFit.fit(small, 8_000));
+        assertEquals(40, small.servers.get(0).arenas.size());
+        NetworkState tight = new NetworkState(new java.util.ArrayList<>(List.of(new ServerState("s", "GAME", false, 0, new java.util.ArrayList<>(arenas)))));
+        assertEquals(StateFit.Result.ARENAS_TRUNCATED, StateFit.fit(tight, 2_000));
+        assertTrue(StateFit.size(tight) <= 2_000);
+        assertTrue(tight.servers.get(0).arenas.stream().allMatch(ArenaInfo::isJoinable), "running arenas are cut first");
+    }
 }

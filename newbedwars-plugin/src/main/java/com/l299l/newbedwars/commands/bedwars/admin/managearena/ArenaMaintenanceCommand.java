@@ -7,11 +7,14 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.group.ArenaGroup;
+import com.l299l.newbedwars.arena.group.ArenaGroupManager;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
+import com.l299l.newbedwars.config.data.IOExecutor;
 import com.l299l.newbedwars.config.data.json.arenas.ArenaDataManager;
-import com.l299l.newbedwars.config.data.json.arenas.ArenaMigrator;
 import com.l299l.newbedwars.config.data.json.arenas.AtomicFileWriter;
 import com.l299l.newbedwars.config.data.json.JsonUtils;
+import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.world.template.MapTemplateManager;
 import org.bukkit.Bukkit;
@@ -24,22 +27,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
+import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * One class for the arena file/map maintenance commands, selected by {@link Action}:
- * backup, backups, restore, export, import, copy, resetmap.
- */
 public class ArenaMaintenanceCommand extends BwCommand {
-    private static final Pattern SAFE_NAME = Pattern.compile("[A-Za-z0-9_\\-]{1,64}");
-    private static final String ARENA_ENTRY = "arena.json";
     private static final String TEMPLATE_PREFIX = "template/";
 
     public enum Action {
@@ -137,7 +136,6 @@ public class ArenaMaintenanceCommand extends BwCommand {
                 "/info/", extra == null ? "" : extra));
     }
 
-
     private void doBackup(Player player, IArena arena) {
         String name = arena.getArenaName();
         if (busy(arena)) {
@@ -159,9 +157,7 @@ public class ArenaMaintenanceCommand extends BwCommand {
             return;
         }
         Path zip = ArenaMaps.mapBackupDir(name).resolve(id + ".zip");
-        runAsync(() -> {
-            MapTemplateManager.zipTemplate(ArenaMaps.mapsRoot(), name, zip);
-        }, error -> {
+        runAsync(() -> MapTemplateManager.zipTemplate(ArenaMaps.mapsRoot(), name, zip), error -> {
             if (error == null) reply(player, "BackupCreated", name, id);
             else reply(player, "BackupFailed", name, error.getMessage());
         });
@@ -170,9 +166,7 @@ public class ArenaMaintenanceCommand extends BwCommand {
     private void doList(Player player, IArena arena) {
         String name = arena.getArenaName();
         try {
-            TreeSet<String> ids = new TreeSet<>(Comparator.reverseOrder());
-            for (Path p : MapTemplateManager.listBackups(ArenaMaps.arenaBackupDir(name), ".json")) ids.add(baseName(p));
-            for (Path p : MapTemplateManager.listBackups(ArenaMaps.mapBackupDir(name), ".zip")) ids.add(baseName(p));
+            Set<String> ids = backupIds(name);
             if (ids.isEmpty()) {
                 reply(player, "BackupListEmpty", name, null);
                 return;
@@ -189,7 +183,6 @@ public class ArenaMaintenanceCommand extends BwCommand {
         }
     }
 
-
     private void doRestore(Player player, IArena arena, String requestedId) {
         String name = arena.getArenaName();
         if (busy(arena)) {
@@ -204,17 +197,15 @@ public class ArenaMaintenanceCommand extends BwCommand {
                 return;
             }
             ArenaDataManager manager = NewBedwars.plugin.getDataManager().getArenaDataManager();
-            com.l299l.newbedwars.config.data.IOExecutor.flush();
+            IOExecutor.flush();
             String worldName = manager.unloadArena(name);
             if (worldName == null) {
                 reply(player, "RestoreFailed", name, "the arena world could not be unloaded");
                 return;
             }
             if (json != null) {
-                Path target = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(name + ".json");
-                // the current file is kept as a normal backup
-                AtomicFileWriter.write(target, Files.readString(json, StandardCharsets.UTF_8),
-                        ArenaMaps.arenaBackupDir(name), Math.max(1, com.l299l.newbedwars.config.properties.Properties.BackupsKeep));
+                AtomicFileWriter.write(arenaFile(name), Files.readString(json, StandardCharsets.UTF_8),
+                        ArenaMaps.arenaBackupDir(name), Math.max(1, Properties.BackupsKeep));
             }
             if (zip != null) {
                 MapTemplateManager.restoreTemplateFromZip(ArenaMaps.mapsRoot(), name, zip);
@@ -224,10 +215,12 @@ public class ArenaMaintenanceCommand extends BwCommand {
             }
             IArena loaded = manager.loadArena(name);
             reply(player, loaded != null ? "RestoreDone" : "RestoreFailed", name, loaded != null ? null : "the restored arena could not be loaded");
-        } catch (IOException e) {
-            NewBedwars.plugin.getLogger().warning("Restore of arena " + name + " failed: " + e);
+        } catch (Exception e) {
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Restore of arena " + name + " failed", e);
             reply(player, "RestoreFailed", name, e.getMessage());
-            NewBedwars.plugin.getDataManager().getArenaDataManager().loadArena(name);
+            if (NewBedwars.plugin.getDataManager().getArenaDataManager().loadArena(name) == null) {
+                NewBedwars.plugin.getLogger().severe("Arena " + name + " could not be loaded again after the failed restore");
+            }
         }
     }
 
@@ -236,11 +229,10 @@ public class ArenaMaintenanceCommand extends BwCommand {
             List<Path> all = MapTemplateManager.listBackups(dir, extension);
             return all.isEmpty() ? null : all.get(0);
         }
-        if (!SAFE_NAME.matcher(id).matches()) return null;
+        if (!ArenaTransfer.isSafeName(id)) return null;
         Path file = dir.resolve(id + extension);
         return Files.isRegularFile(file) ? file : null;
     }
-
 
     private void doResetMap(Player player, IArena iArena) {
         String name = iArena.getArenaName();
@@ -250,7 +242,6 @@ public class ArenaMaintenanceCommand extends BwCommand {
         }
         reply(player, "ResetMapStarted", name, null);
     }
-
 
     private void doExport(Player player, IArena arena) {
         String name = arena.getArenaName();
@@ -270,7 +261,7 @@ public class ArenaMaintenanceCommand extends BwCommand {
         runAsync(() -> {
             Files.createDirectories(target.getParent());
             try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(target))) {
-                zip.putNextEntry(new ZipEntry(ARENA_ENTRY));
+                zip.putNextEntry(new ZipEntry(ArenaTransfer.ARENA_ENTRY));
                 zip.write(json.getBytes(StandardCharsets.UTF_8));
                 zip.closeEntry();
                 if (ArenaMaps.hasTemplate(name)) {
@@ -285,11 +276,11 @@ public class ArenaMaintenanceCommand extends BwCommand {
 
     private void doCopy(Player player, IArena source, String newName) {
         String name = source.getArenaName();
-        if (!SAFE_NAME.matcher(newName).matches()) {
+        if (!ArenaTransfer.isSafeName(newName)) {
             reply(player, "CopyFailed", newName, "use only letters, digits, _ and -");
             return;
         }
-        Path arenaFile = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(newName + ".json");
+        Path arenaFile = arenaFile(newName);
         if (ArenaRegistry.find(newName) != null || Files.exists(arenaFile)
                 || Bukkit.getWorld(newName) != null || Files.exists(ArenaMaps.worldFolder(newName))
                 || MapTemplateManager.hasTemplate(ArenaMaps.mapsRoot(), newName)) {
@@ -320,18 +311,15 @@ public class ArenaMaintenanceCommand extends BwCommand {
             reply(player, "CopyFailed", newName, e.getMessage());
             return;
         }
-        List<String> excludes = List.copyOf(com.l299l.newbedwars.config.properties.Properties.RollbackTemplateExcludes);
+        List<String> excludes = List.copyOf(Properties.RollbackTemplateExcludes);
         runAsync(() -> {
             MapTemplateManager.createTemplate(ArenaMaps.mapsRoot(), newName, mapSource, excludes);
-            // Paper's world identity: a copy carrying it is refused as a duplicate of the source world.
-            Path template = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), newName);
-            Files.deleteIfExists(template.resolve("data").resolve("paper").resolve("metadata.dat"));
-            Files.deleteIfExists(template.resolve("uid.dat"));
+            ArenaTransfer.stripWorldIdentity(MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), newName));
             AtomicFileWriter.write(arenaFile, json, null, 0);
         }, error -> {
             if (error != null) {
                 NewBedwars.plugin.getLogger().warning("Copy of arena " + name + " to " + newName + " failed: " + error);
-                removeCopy(newName, arenaFile);
+                removeFiles(newName, newName, arenaFile);
                 reply(player, "CopyFailed", newName, error.getMessage());
                 return;
             }
@@ -343,12 +331,12 @@ public class ArenaMaintenanceCommand extends BwCommand {
                 NewBedwars.plugin.getLogger().warning("Copy of arena " + name + " to " + newName + " failed: " + e);
             }
             if (loaded == null) {
-                removeCopy(newName, arenaFile);
+                removeFiles(newName, newName, arenaFile);
                 reply(player, "CopyFailed", newName, "the copy could not be loaded (see the console)");
                 return;
             }
-            com.l299l.newbedwars.arena.group.ArenaGroupManager groups = com.l299l.newbedwars.arena.group.ArenaGroupManager.get();
-            com.l299l.newbedwars.arena.group.ArenaGroup group = groups == null ? null : groups.groupOf(name);
+            ArenaGroupManager groups = ArenaGroupManager.get();
+            ArenaGroup group = groups == null ? null : groups.groupOf(name);
             if (group != null) {
                 group.add(newName);
                 groups.changed();
@@ -357,63 +345,75 @@ public class ArenaMaintenanceCommand extends BwCommand {
         });
     }
 
-    /** Undoes a failed copy: arena file, map template and world folder of {@code newName}. */
-    private static void removeCopy(String newName, Path arenaFile) {
+    private static void removeFiles(String name, String worldName, Path arenaFile) {
         try {
-            World world = Bukkit.getWorld(newName);
+            World world = Bukkit.getWorld(worldName);
             if (world != null) Bukkit.unloadWorld(world, false);
             Files.deleteIfExists(arenaFile);
-            MapTemplateManager.deleteTree(MapTemplateManager.arenaRoot(ArenaMaps.mapsRoot(), newName));
-            MapTemplateManager.deleteTree(ArenaMaps.worldFolder(newName));
+            MapTemplateManager.deleteTree(MapTemplateManager.arenaRoot(ArenaMaps.mapsRoot(), name));
+            MapTemplateManager.deleteTree(ArenaMaps.worldFolder(worldName));
         } catch (IOException e) {
-            NewBedwars.plugin.getLogger().warning("Could not clean up the failed copy " + newName + ": " + e.getMessage());
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not clean up the failed arena " + name, e);
         }
     }
 
-    private void doImport(Player player, String fileName) {
-        Path zip = exportsDir().resolve(fileName).normalize();
-        if (!zip.startsWith(exportsDir()) || !Files.isRegularFile(zip)) {
+    void doImport(Player player, String fileName) {
+        Path zip = ArenaTransfer.resolveExport(exportsDir(), fileName);
+        if (zip == null) {
             reply(player, "ImportFailed", fileName, "file not found in data/exports");
             return;
         }
         Path tmp = exportsDir().resolve(".import-" + MapTemplateManager.timestamp());
+        String createdName = null;
+        String createdWorld = null;
         try {
             MapTemplateManager.unzip(zip, tmp);
-            Path jsonFile = tmp.resolve(ARENA_ENTRY);
-            if (!Files.isRegularFile(jsonFile)) throw new IOException("the zip has no " + ARENA_ENTRY);
-            JsonObject json = ArenaMigrator.migrate(new Gson().fromJson(Files.readString(jsonFile, StandardCharsets.UTF_8), JsonObject.class));
-            String name = json.get("arenaName").getAsString();
-            String worldName = json.get("worldName").getAsString();
-            if (!SAFE_NAME.matcher(name).matches() || !SAFE_NAME.matcher(worldName).matches()) {
-                throw new IOException("the arena or world name contains illegal characters");
-            }
-            Path arenaFile = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(name + ".json");
+            ArenaTransfer.Imported imported = ArenaTransfer.readImport(tmp);
+            String name = imported.name();
+            String worldName = imported.worldName();
+            Path arenaFile = arenaFile(name);
             if (ArenaRegistry.contains(name) || Files.exists(arenaFile) || Files.exists(ArenaMaps.worldFolder(worldName))
-                    || Bukkit.getWorld(worldName) != null) {
+                    || Bukkit.getWorld(worldName) != null || ArenaMaps.hasTemplate(name)) {
                 throw new IOException("an arena or world named '" + name + "' / '" + worldName + "' already exists");
             }
-            Path template = tmp.resolve("template");
-            if (!MapTemplateManager.isWorldFolder(template)) throw new IOException("the zip has no map");
-            json.addProperty("enabled", false);
-            json.addProperty("setup", "NO_SETUP");
+            createdName = name;
+            createdWorld = worldName;
             Path mapTemplate = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name);
             Files.createDirectories(mapTemplate.getParent());
-            MapTemplateManager.copyTree(template, mapTemplate, List.of());
-            AtomicFileWriter.write(arenaFile, JsonUtils.beautifyJson(json.toString()), null, 0);
+            MapTemplateManager.copyTree(imported.template(), mapTemplate, List.of());
+            ArenaTransfer.stripWorldIdentity(mapTemplate);
+            AtomicFileWriter.write(arenaFile, JsonUtils.beautifyJson(imported.json().toString()), null, 0);
             ArenaMaps.restoreOffline(name, worldName);
             IArena loaded = NewBedwars.plugin.getDataManager().getArenaDataManager().loadArena(name);
-            reply(player, loaded != null ? "ImportDone" : "ImportFailed", name, loaded != null ? null : "the imported arena could not be loaded");
+            if (loaded == null) {
+                removeFiles(name, worldName, arenaFile);
+                reply(player, "ImportFailed", name, "the imported arena could not be loaded");
+                return;
+            }
+            reply(player, "ImportDone", name, null);
         } catch (Exception e) {
-            NewBedwars.plugin.getLogger().warning("Import of " + fileName + " failed: " + e);
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Import of " + fileName + " failed", e);
+            if (createdName != null) removeFiles(createdName, createdWorld, arenaFile(createdName));
             reply(player, "ImportFailed", fileName, e.getMessage());
         } finally {
             try {
                 MapTemplateManager.deleteTree(tmp);
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not delete " + tmp, e);
             }
         }
     }
 
+    private static Path arenaFile(String name) {
+        return NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(name + ".json");
+    }
+
+    private static Set<String> backupIds(String name) throws IOException {
+        TreeSet<String> ids = new TreeSet<>(Comparator.reverseOrder());
+        for (Path p : MapTemplateManager.listBackups(ArenaMaps.arenaBackupDir(name), ".json")) ids.add(baseName(p));
+        for (Path p : MapTemplateManager.listBackups(ArenaMaps.mapBackupDir(name), ".zip")) ids.add(baseName(p));
+        return ids;
+    }
 
     private static Path exportsDir() {
         return NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("exports").toAbsolutePath().normalize();
@@ -429,7 +429,7 @@ public class ArenaMaintenanceCommand extends BwCommand {
     }
 
     /** Runs {@code task} off the main thread, then {@code done} on it ({@code null} = success). */
-    private static void runAsync(IoTask task, java.util.function.Consumer<Exception> done) {
+    private static void runAsync(IoTask task, Consumer<Exception> done) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -462,11 +462,9 @@ public class ArenaMaintenanceCommand extends BwCommand {
         }
         if (args.length == 4 && action == Action.RESTORE && ArenaRegistry.contains(args[2])) {
             try {
-                TreeSet<String> ids = new TreeSet<>(Comparator.reverseOrder());
-                for (Path p : MapTemplateManager.listBackups(ArenaMaps.arenaBackupDir(args[2]), ".json")) ids.add(baseName(p));
-                for (Path p : MapTemplateManager.listBackups(ArenaMaps.mapBackupDir(args[2]), ".zip")) ids.add(baseName(p));
-                return new ArrayList<>(ids);
-            } catch (IOException ignored) {
+                return new ArrayList<>(backupIds(args[2]));
+            } catch (IOException e) {
+                NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not list the backups of " + args[2], e);
             }
         }
         return null;

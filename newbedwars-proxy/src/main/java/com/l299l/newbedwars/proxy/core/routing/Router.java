@@ -7,11 +7,11 @@ import com.l299l.newbedwars.proxy.core.party.ProxyParty;
 
 import com.l299l.newbedwars.common.protocol.NetMessage;
 import com.l299l.newbedwars.common.routing.ServerSelector;
-import com.l299l.newbedwars.common.protocol.payload.Hello;
 import com.l299l.newbedwars.common.protocol.payload.JoinReject;
 import com.l299l.newbedwars.common.protocol.payload.JoinRequest;
 import com.l299l.newbedwars.common.protocol.payload.JoinTicket;
 import com.l299l.newbedwars.common.protocol.payload.NetworkGroups;
+import com.l299l.newbedwars.common.protocol.payload.SendToLobby;
 import com.l299l.newbedwars.common.protocol.payload.ServerState;
 import com.l299l.newbedwars.common.protocol.payload.TargetKind;
 
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Handles messages from backends: server states, join requests (pick a server with {@link ServerSelector},
@@ -32,14 +33,16 @@ import java.util.UUID;
 public final class Router {
     /** How many servers one request may try before the players go back to the lobby. */
     static final int MAX_TRIES = 2;
+    /** A player who just asked to join cannot start another join this soon. */
+    static final long REQUEST_COOLDOWN_MILLIS = 2000L;
 
     private final ProxyPlatform platform;
     private final ServerRegistry servers;
     private final PartyService parties;
     private final GroupRelay groups;
     private final long ticketMillis;
+    private Consumer<String> log = text -> {};
     private final Map<String, Pending> byRequest = new HashMap<>();
-    private java.util.function.Consumer<String> log = text -> {};
     private final Map<UUID, Pending> byPlayer = new HashMap<>();
     private int nextId;
 
@@ -55,9 +58,13 @@ public final class Router {
         String onlyServer;
         ServerSelector.Choice current;
         long expiresAt;
+        final long createdAt;
+        /** The players counted into the chosen arena until a fresh state replaces them or the request ends. */
+        ServerRegistry.Reservation reservation;
 
-        Pending(String id, List<UUID> players, String partyId, TargetKind kind, String target) {
+        Pending(String id, List<UUID> players, String partyId, TargetKind kind, String target, long createdAt) {
             this.id = id;
+            this.createdAt = createdAt;
             this.players = players;
             this.partyId = partyId;
             this.kind = kind;
@@ -73,7 +80,7 @@ public final class Router {
         this.ticketMillis = ticketMillis;
     }
 
-    public void setLogger(java.util.function.Consumer<String> log) {
+    public void setLogger(Consumer<String> log) {
         this.log = log;
     }
 
@@ -88,22 +95,18 @@ public final class Router {
     /** A message from backend {@code server}, received through {@code via}. */
     public void handle(String server, UUID via, NetMessage msg, long now) {
         switch (msg.type()) {
-            case HELLO -> onHello(server, via, msg.payload(Hello.class));
+            case HELLO -> onHello(server, via, now);
             case SERVER_STATE -> servers.update(server, msg.payload(ServerState.class), now);
-            case JOIN_REQUEST -> onJoinRequest(server, msg.payload(JoinRequest.class), now);
+            case JOIN_REQUEST -> onJoinRequest(server, via, msg.payload(JoinRequest.class), now);
             case JOIN_REJECT -> onReject(server, msg.payload(JoinReject.class), now);
             case GROUPS -> {
                 // Only lobby servers define groups.
                 if (servers.isLobby(server)
-                        && groups.onGroups(server, msg.payload(NetworkGroups.class), servers.lobbyServers(), servers.gameServers())) {
+                        && groups.onGroups(server, msg.payload(NetworkGroups.class), servers.lobbyServers(), servers.gameServers(), now)) {
                     servers.setGroups(groups.current());
                 }
             }
-            case SEND_TO_LOBBY -> {
-                for (UUID p : msg.payload(com.l299l.newbedwars.common.protocol.payload.SendToLobby.class).players) {
-                    sendToLobby(p);
-                }
-            }
+            case SEND_TO_LOBBY -> onSendToLobby(server, msg.payload(SendToLobby.class));
             default -> {
                 // NETWORK_STATE, JOIN_TICKET and PARTY_SYNC only go from the proxy to backends.
             }
@@ -112,8 +115,17 @@ public final class Router {
 
     // ----- joining -----
 
-    void onJoinRequest(String server, JoinRequest r, long now) {
-        if (r == null || r.player == null) return;
+    /** Only players that are on the sending server can be moved by it. */
+    private void onSendToLobby(String server, SendToLobby toLobby) {
+        if (toLobby == null || toLobby.players == null) return;
+        for (UUID p : toLobby.players) {
+            if (p != null && server.equals(platform.currentServer(p))) sendToLobby(p);
+        }
+    }
+
+    void onJoinRequest(String server, UUID via, JoinRequest r, long now) {
+        if (r == null || r.player == null || !r.player.equals(via)) return;
+        if (r.target != null && r.target.length() > ServerSelector.MAX_TARGET_LENGTH) return;
         UUID requester = r.player;
         if (r.kind == TargetKind.REJOIN) {
             onRejoinRequest(requester, now);
@@ -125,9 +137,18 @@ public final class Router {
         }
         List<UUID> group = new ArrayList<>();
         String partyId = null;
-        if (r.players != null && !r.players.isEmpty()) {
-            // A game server chose who moves together (map vote): no party-admin rule.
-            for (UUID u : r.players) if (u != null && platform.isOnline(u) && !group.contains(u)) group.add(u);
+        boolean voteMove = r.players != null && !r.players.isEmpty();
+        if (!voteMove) {
+            // A repeated click or a flood of requests: the first one is still being handled.
+            Pending running = byPlayer.get(requester);
+            if (running != null && now - running.createdAt < REQUEST_COOLDOWN_MILLIS) return;
+        }
+        if (voteMove) {
+            // A game server chose who moves together (map vote): no party-admin rule, but only its own players.
+            if (!servers.isGame(server)) return;
+            for (UUID u : r.players) {
+                if (u != null && server.equals(platform.currentServer(u)) && !group.contains(u)) group.add(u);
+            }
             if (group.isEmpty()) return;
         } else {
             ProxyParty party = parties.partyOf(requester);
@@ -150,7 +171,7 @@ public final class Router {
         cancel(group);
         String id = "r" + (++nextId) + "-" + Long.toHexString(now);
         if (partyId == null && group.size() > 1) partyId = id;
-        Pending p = new Pending(id, group, partyId, r.kind == null ? TargetKind.ANY : r.kind, r.target);
+        Pending p = new Pending(id, group, partyId, r.kind == null ? TargetKind.ANY : r.kind, r.target, now);
         p.onlyServer = r.server;
         byRequest.put(p.id, p);
         for (UUID u : group) byPlayer.put(u, p);
@@ -183,7 +204,7 @@ public final class Router {
     private void routeDirect(UUID player, ServerSelector.Choice where, TargetKind kind, long now) {
         cancel(List.of(player));
         Pending p = new Pending("r" + (++nextId) + "-" + Long.toHexString(now), new ArrayList<>(List.of(player)), null,
-                kind, where.arena);
+                kind, where.arena, now);
         byRequest.put(p.id, p);
         byPlayer.put(player, p);
         p.current = where;
@@ -191,16 +212,14 @@ public final class Router {
         p.expiresAt = now + ticketMillis;
         log.accept(kind + " " + p.id + " -> " + platform.nameOf(player) + " to " + where);
         if (where.serverId.equals(platform.currentServer(player))) {
-            sendTicket(p, player);
+            sendTicket(p, player, now);
             return;
         }
-        String server = where.serverId;
-        platform.connect(player, server, ok -> {
-            if (!ok) onConnectFailed(p, server);
-        });
+        connect(p, player, where.serverId);
     }
 
     private void route(Pending p, long now) {
+        releaseReservation(p);
         List<ServerSelector.Candidate> candidates = servers.candidates(now);
         if (p.onlyServer != null) candidates.removeIf(c -> !c.serverId.equalsIgnoreCase(p.onlyServer));
         List<ServerSelector.Choice> choices = ServerSelector.choose(candidates, p.kind, p.target,
@@ -215,46 +234,55 @@ public final class Router {
         p.current = choice;
         p.tried.add(choice.serverId);
         p.expiresAt = now + ticketMillis;
-        if (!choice.isBlind()) servers.reserve(choice.serverId, choice.arena, p.players.size());
-        for (UUID u : p.players) {
+        if (!choice.isBlind()) p.reservation = servers.reserve(choice.serverId, choice.arena, p.players.size());
+        for (UUID u : new ArrayList<>(p.players)) {
             if (choice.serverId.equals(platform.currentServer(u))) {
-                // Already there (e.g. a retry on the same server): the ticket can go right away.
-                sendTicket(p, u);
+                // Already on that server (e.g. a map vote won by an arena here): the ticket can go right away.
+                sendTicket(p, u, now);
                 continue;
             }
-            String server = choice.serverId;
-            platform.connect(u, server, ok -> {
-                if (!ok) onConnectFailed(p, server);
-            });
+            connect(p, u, choice.serverId);
         }
+    }
+
+    private void connect(Pending p, UUID player, String server) {
+        platform.connect(player, server, ok -> {
+            if (!ok) {
+                log.accept("Could not connect " + platform.nameOf(player) + " to " + server);
+                onConnectFailed(p, server);
+            }
+        });
     }
 
     /** The player arrived on {@code server} (connection switch done): give them their ticket. */
     public void onServerConnected(UUID player, String server, long now) {
         parties.onServerSwitch(player);
-        Pending p = byPlayer.get(player);
-        if (p != null && p.current != null && server.equals(p.current.serverId)) sendTicket(p, player);
+        sendTicketIfArrived(player, server, now);
         if (servers.isLobby(server) || servers.isGame(server)) {
             platform.sendToPlayerServer(player, NetMessage.of(PartyService.FROM, servers.snapshot(now)));
         }
     }
 
-    private void onHello(String server, UUID via, Hello h) {
+    private void onHello(String server, UUID via, long now) {
         if (via == null) return;
         // The backend is ready for messages now: resend what it may have missed while the player was connecting.
         parties.onServerSwitch(via);
-        Pending p = byPlayer.get(via);
-        if (p != null && p.current != null && server.equals(p.current.serverId)) sendTicket(p, via);
+        sendTicketIfArrived(via, server, now);
         if (servers.isLobby(server) || servers.isGame(server)) {
             platform.sendToPlayerServer(via, NetMessage.of(PartyService.FROM, servers.snapshot(System.currentTimeMillis())));
             groups.onHello(via);
         }
     }
 
-    private void sendTicket(Pending p, UUID player) {
+    private void sendTicketIfArrived(UUID player, String server, long now) {
+        Pending p = byPlayer.get(player);
+        if (p != null && p.current != null && server.equals(p.current.serverId)) sendTicket(p, player, now);
+    }
+
+    private void sendTicket(Pending p, UUID player, long now) {
         if (p.ticketsSent.add(player)) log.accept("Ticket " + p.id + " -> " + platform.nameOf(player) + " on " + p.current.serverId);
         JoinTicket t = new JoinTicket(p.id, player, p.kind, p.target, p.current.arena, p.partyId,
-                new ArrayList<>(p.players), p.expiresAt);
+                new ArrayList<>(p.players), p.expiresAt, Math.max(1L, p.expiresAt - now));
         platform.sendToPlayerServer(player, NetMessage.of(PartyService.FROM, t));
     }
 
@@ -264,22 +292,23 @@ public final class Router {
         // Only the first reject of the current try counts (a party sends one per member).
         if (p == null || p.current == null || !server.equals(p.current.serverId)) return;
         log.accept("Join " + p.id + " rejected by " + server + ": " + r.reason);
+        retryOrFail(p, now);
+    }
+
+    private void onConnectFailed(Pending p, String server) {
+        if (p.current == null || !server.equals(p.current.serverId)) return;
+        retryOrFail(p, System.currentTimeMillis());
+    }
+
+    /** Rejoin and spectate are never retried elsewhere; a join looks for another server. */
+    private void retryOrFail(Pending p, long now) {
         p.current = null;
+        releaseReservation(p);
         if (p.kind == TargetKind.REJOIN || p.kind == TargetKind.SPECTATE) {
             fail(p, p.kind == TargetKind.REJOIN ? "NetworkRejoinFailed" : "NetworkSpectateFailed");
             return;
         }
         route(p, now);
-    }
-
-    private void onConnectFailed(Pending p, String server) {
-        if (p.current == null || !server.equals(p.current.serverId)) return;
-        p.current = null;
-        if (p.kind == TargetKind.REJOIN || p.kind == TargetKind.SPECTATE) {
-            fail(p, p.kind == TargetKind.REJOIN ? "NetworkRejoinFailed" : "NetworkSpectateFailed");
-            return;
-        }
-        route(p, System.currentTimeMillis());
     }
 
     private void fail(Pending p, String key) {
@@ -291,8 +320,9 @@ public final class Router {
         }
     }
 
-    /** A ticket was used (the player is in the arena) or the request is over. */
+    /** The request is over (failed, replaced or expired). */
     private void remove(Pending p) {
+        releaseReservation(p);
         byRequest.remove(p.id);
         for (UUID u : p.players) byPlayer.remove(u, p);
     }
@@ -304,20 +334,30 @@ public final class Router {
         }
     }
 
-    public void onDisconnect(UUID player) {
-        Pending p = byPlayer.remove(player);
-        if (p != null) p.players.remove(player);
+    private void releaseReservation(Pending p) {
+        servers.release(p.reservation, p.players.size());
+        p.reservation = null;
     }
 
-    /** Drops requests whose ticket time is over (they joined, or the game server sent them back). */
+    public void onDisconnect(UUID player) {
+        Pending p = byPlayer.remove(player);
+        if (p == null) return;
+        if (p.reservation != null) servers.release(p.reservation, 1);
+        p.players.remove(player);
+        if (p.players.isEmpty()) remove(p);
+    }
+
+    /** Drops requests whose ticket time (twice over) has passed. */
     public void tick(long now) {
         for (Iterator<Pending> it = byRequest.values().iterator(); it.hasNext(); ) {
             Pending p = it.next();
             if (p.expiresAt > 0 && p.expiresAt + ticketMillis < now) {
                 it.remove();
+                releaseReservation(p);
                 for (UUID u : p.players) byPlayer.remove(u, p);
             }
         }
+        servers.prune(now);
     }
 
     // ----- lobby -----
@@ -335,7 +375,11 @@ public final class Router {
                 bestCount = count;
             }
         }
-        if (best != null) platform.connect(player, best, ok -> {});
+        if (best == null) return;
+        String lobby = best;
+        platform.connect(player, lobby, ok -> {
+            if (!ok) log.accept("Could not send " + platform.nameOf(player) + " to lobby " + lobby);
+        });
     }
 
     /** Pushes the network state to every lobby server when it changed. */

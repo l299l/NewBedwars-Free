@@ -31,6 +31,7 @@ class LobbyServiceTest {
         lobby = mock(Location.class);
         when(NewBedwars.plugin.getLobbyLocation()).thenReturn(lobby);
         player = mock(Player.class);
+        when(player.teleport(any(Location.class))).thenReturn(true);
     }
 
     @AfterEach
@@ -74,5 +75,14 @@ class LobbyServiceTest {
         }).when(pm).callEvent(any(Event.class));
         assertFalse(LobbyService.sendToLobby(player, PlayerSendToLobbyEvent.Reason.RELOAD));
         verify(player, never()).teleport(any(Location.class));
+    }
+
+    @Test
+    void failedTeleportIsLoggedAndReported() {
+        when(player.teleport(lobby)).thenReturn(false);
+        when(player.getName()).thenReturn("Leo");
+        when(NewBedwars.plugin.getLogger()).thenReturn(java.util.logging.Logger.getAnonymousLogger());
+        assertFalse(LobbyService.sendToLobby(player, PlayerSendToLobbyEvent.Reason.LEFT_ARENA));
+        verify(NewBedwars.plugin).getLogger();
     }
 }

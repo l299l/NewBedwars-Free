@@ -17,7 +17,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -33,6 +36,8 @@ public final class MapTemplateManager {
     public static final String DIRTY_MARKER = ".nbw-dirty";
     public static final String META_FILE = "template.json";
     public static final String TEMPLATE_DIR = "template";
+    public static final long MAX_UNZIPPED_BYTES = 2L * 1024 * 1024 * 1024;
+    private static final Logger LOG = Logger.getLogger("NewBedwars");
 
     private MapTemplateManager() {}
 
@@ -136,16 +141,18 @@ public final class MapTemplateManager {
 
     /** False for a gzip file that ends early; true for complete gzip files and for files that are not gzip. */
     static boolean isCompleteDat(Path file) {
-        try (java.io.InputStream raw = Files.newInputStream(file)) {
+        try (InputStream raw = Files.newInputStream(file)) {
             byte[] head = raw.readNBytes(2);
             if (head.length < 2 || (head[0] & 0xff) != 0x1f || (head[1] & 0xff) != 0x8b) return true;
         } catch (IOException e) {
+            LOG.log(Level.WARNING, "Could not read " + file, e);
             return false;
         }
-        try (java.util.zip.GZIPInputStream in = new java.util.zip.GZIPInputStream(Files.newInputStream(file))) {
-            in.transferTo(java.io.OutputStream.nullOutputStream());
+        try (GZIPInputStream in = new GZIPInputStream(Files.newInputStream(file))) {
+            in.transferTo(OutputStream.nullOutputStream());
             return true;
         } catch (IOException e) {
+            LOG.log(Level.FINE, "Incomplete world file " + file + ": " + e.getMessage());
             return false;
         }
     }
@@ -271,6 +278,12 @@ public final class MapTemplateManager {
 
     /** Extracts {@code zip} into {@code target}; entries escaping {@code target} are rejected. */
     public static void unzip(Path zip, Path target) throws IOException {
+        unzip(zip, target, MAX_UNZIPPED_BYTES);
+    }
+
+    static void unzip(Path zip, Path target, long maxBytes) throws IOException {
+        long total = 0;
+        byte[] buffer = new byte[8192];
         Path normalizedTarget = target.toAbsolutePath().normalize();
         Files.createDirectories(normalizedTarget);
         try (InputStream in = Files.newInputStream(zip); ZipInputStream zis = new ZipInputStream(in)) {
@@ -285,7 +298,12 @@ public final class MapTemplateManager {
                 } else {
                     Files.createDirectories(out.getParent());
                     try (OutputStream os = Files.newOutputStream(out)) {
-                        zis.transferTo(os);
+                        int read;
+                        while ((read = zis.read(buffer)) > 0) {
+                            total += read;
+                            if (total > maxBytes) throw new IOException("Zip " + zip.getFileName() + " is larger than " + maxBytes + " bytes unpacked");
+                            os.write(buffer, 0, read);
+                        }
                     }
                 }
             }

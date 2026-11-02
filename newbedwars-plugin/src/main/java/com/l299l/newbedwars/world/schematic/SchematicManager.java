@@ -20,12 +20,16 @@ import org.bukkit.World;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class SchematicManager {
+    private static final Pattern NAME = Pattern.compile("[A-Za-z0-9_.\\-]{1,64}");
 
     public static File getSchematicsDir() {
         File dir = new File(NewBedwars.plugin.getDataFolder(), "schematics");
@@ -59,14 +63,26 @@ public class SchematicManager {
         }
     }
 
+    public static boolean isValidName(String name) {
+        return name != null && NAME.matcher(name).matches() && !name.contains("..");
+    }
+
     /** Finds a schematic file by name, checking the plugin folder then the WorldEdit folder. */
     private static File findSchematicFile(String name) {
+        if (!isValidName(name)) return null;
         for (File dir : new File[]{getSchematicsDir(), getWorldEditSchematicsDir()}) {
-            if (dir == null) continue;
-            File f = new File(dir, name + ".schem");
-            if (f.exists()) return f;
-            f = new File(dir, name + ".schematic");
-            if (f.exists()) return f;
+            File f = findIn(dir, name);
+            if (f != null) return f;
+        }
+        return null;
+    }
+
+    static File findIn(File dir, String name) {
+        if (dir == null || !isValidName(name)) return null;
+        Path root = dir.toPath().toAbsolutePath().normalize();
+        for (String ext : new String[]{".schem", ".schematic"}) {
+            Path candidate = root.resolve(name + ext).normalize();
+            if (candidate.startsWith(root) && Files.isRegularFile(candidate)) return candidate.toFile();
         }
         return null;
     }

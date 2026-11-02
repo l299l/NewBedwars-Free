@@ -1,6 +1,6 @@
 # Network mode (Velocity)
 
-> **Note:** Network mode and the `NewBedwars-Proxy` plugin will be available from **2.6-beta**, which is not released yet. Version 2.5-beta and older can not run on a network.
+> **Note:** Network mode and the `NewBedwars-Proxy` plugin will be available from **2.6-beta**. Version 2.5-beta and older can not run on a network.
 
 NewBedwars can run on a proxy network: **lobby servers** where players choose a game, and **game servers** that host the arenas. Players and parties are moved between them automatically.
 
@@ -58,6 +58,8 @@ MySQL:
   Database: "newbedwars"
   User: "root"
   Password: ""
+  SslMode: PREFERRED              # DISABLED, PREFERRED, REQUIRED, VERIFY_CA or VERIFY_IDENTITY
+  AllowPublicKeyRetrieval: false  # only for MySQL 8 without SSL; less secure
 ```
 
 ### Game servers (`Mode: GAME`)
@@ -92,11 +94,17 @@ mysql:
   database: "newbedwars"
   user: "root"
   password: ""
+  ssl-mode: PREFERRED              # DISABLED, PREFERRED, REQUIRED, VERIFY_CA or VERIFY_IDENTITY
+  allow-public-key-retrieval: false
   poll-seconds: 5
 ```
 
 - The proxy picks the fullest arena that still has room (the same rule as `/bw join` on one server). If the game server refuses (the arena filled up in the meantime), the proxy tries one other server. If that fails too, the players go back to the lobby.
 - Game servers can only report their arenas while a player is online on them. A game server the proxy has not heard from recently is still tried, and it then picks an arena itself. With MySQL enabled on the game servers and on the proxy, the proxy always knows every server's arenas.
+- If `game-servers` is not empty, the proxy only accepts arena states (plugin messages and MySQL rows) from those servers; anything else is ignored and logged once. With an empty list the proxy learns game servers from what they report (at most 128). A server that has been silent for ten times `state-stale-seconds` is forgotten until it reports again.
+- MySQL rows carry the game server's own clock, so the proxy never compares it with its clock: a server counts as alive when its row's heartbeat changes between two polls.
+- Incoming data is size-limited (64 arenas per server, names up to 64 characters, 256 rejoin places per server, 128 servers). When the network state for the lobbies would not fit one plugin message, rejoin data is left out first, then the least useful arenas (running and empty ones) are cut, and the proxy logs it once.
+- A player who just sent a join request cannot start another one for about 2 seconds (lobby servers also wait 1 second between requests). Join tickets carry a relative lifetime, so differing clocks between proxy and game servers do not matter.
 - `/nbwproxy` (permission `newbedwars.proxy.admin`) lists the game servers and arenas the proxy knows.
 - Proxy texts are in `plugins/newbedwars-proxy/lang/en.yml` and `pl.yml` and are chosen by the player's client language.
 
@@ -108,6 +116,13 @@ When a player leaves a running game while their team is still playing (disconnec
 
 ## Parties
 In network mode, `/party` (alias `/p`) is handled by the proxy, so parties survive server switches. The commands are the same as on a single server.
+
+## Security
+- Firewall your backend servers (lobby and game) from the internet and only let the proxy reach them. With Velocity modern forwarding the forwarding secret is the only thing that stops someone from connecting to a backend directly and claiming any identity. Keep `forwarding.secret` private and never expose backend ports.
+- The proxy never forwards the `newbedwars:main` plugin channel from players to servers, so clients cannot forge join tickets or party data. Messages from a backend are checked against the sending player's connection, the sender's role (only lobbies define groups) and the size limits above.
+- MySQL: `ssl-mode` defaults to `PREFERRED` (encrypt when the server supports it, no certificate check). For a database on another machine use `REQUIRED`, or `VERIFY_CA` / `VERIFY_IDENTITY` with a trusted certificate, and a dedicated database user that only has access to the NewBedwars database. Only game servers and the proxy need the `nbw_servers` table; treat the credentials in `config.yml` as secrets.
+- Hardening added in 2.6-beta: a join request is only accepted for the player who sent it (target at most 64 characters); a game server can only move players that are on it; join tickets expire and a lobby allows one join request per player per second; the proxy drops oversized or malformed messages and reserves arena slots only until the real state arrives; when `game-servers` is set in the proxy config, states from other servers are ignored (and logged once); the proxy only reads the first 256 `nbw_servers` rows. The proxy config and item/GUI YAML are loaded with a safe loader (no `!!java` tags), and `/bw arena import` limits unpacked size to 2 GB.
+- MySQL: `MySQL.AllowPublicKeyRetrieval` (proxy: `allow-public-key-retrieval`) defaults to `false`. If the connection fails after updating with a `caching_sha2_password` user and no SSL, set it to `true` or use `ssl-mode: REQUIRED`.
 
 ## Limits
 - BungeeCord is not supported yet (Velocity only).

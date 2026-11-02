@@ -10,7 +10,7 @@ import java.util.List;
 public class GameruleCommand extends BwCommand {
     private static final List<String> GAMERULE_NAMES = Arrays.asList(
             "RandomTeams", "AllowParties", "AllowSpectators", "AllowTeamChat",
-            "AllowGlobalChat", "AllowPrivateChat", "AllowTeamDamage", "MakeSwordsPermanent", "AllowMultipleGolems", "SplitPartiesToStart", "MapVote"
+            "AllowGlobalChat", "AllowPrivateChat", "AllowTeamDamage", "MakeSwordsPermanent", "MakeToolsPermanent", "AllowMultipleGolems", "SplitPartiesToStart", "MapVote"
     );
 
 

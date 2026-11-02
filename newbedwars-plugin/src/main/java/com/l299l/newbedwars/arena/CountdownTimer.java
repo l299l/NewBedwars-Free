@@ -1,13 +1,13 @@
 package com.l299l.newbedwars.arena;
 
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,13 +32,13 @@ public class CountdownTimer {
                 if (i == 0) {
                     cancel();
                     arena.start();
-                }else {
+                } else {
                     arena.setPhaseTime(i);
                     for (UUID uuid : players) {
                         Player p = Bukkit.getPlayer(uuid);
                         if (p != null) {
                             p.sendTitle(ChatColor.RED + "" + i, "", 0, 20, 0);
-                            p.sendMessage(ChatColor.RED + "Game starting in " + i);
+                            NewBedwars.plugin.getMessages().send(p, "GameStartingCountdown", Map.of("/time/", Integer.toString(i)));
                             p.playSound(p.getLocation(), "block.note_block.pling", 1, 1);
                         }
                     }

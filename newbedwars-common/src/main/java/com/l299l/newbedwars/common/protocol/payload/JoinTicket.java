@@ -22,6 +22,8 @@ public class JoinTicket {
     public List<UUID> party = new ArrayList<>();
     /** Epoch millis after which the ticket is void. */
     public long expiresAt;
+    /** Millis the ticket stays valid from its arrival (clock independent); 0 = an older proxy, use {@link #expiresAt}. */
+    public long ttlMillis;
 
     public JoinTicket() {}
 
@@ -35,5 +37,11 @@ public class JoinTicket {
         this.partyId = partyId;
         this.party = party == null ? new ArrayList<>() : party;
         this.expiresAt = expiresAt;
+    }
+
+    public JoinTicket(String requestId, UUID player, TargetKind kind, String target, String arena,
+                      String partyId, List<UUID> party, long expiresAt, long ttlMillis) {
+        this(requestId, player, kind, target, arena, partyId, party, expiresAt);
+        this.ttlMillis = ttlMillis;
     }
 }

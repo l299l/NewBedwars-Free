@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 /**
  * GAME mode: "send to lobby" means the lobby server. The local teleport still happens (so the arena code
  * keeps working as on a single server, e.g. the map vote moves players on right after it), and one second
- * later the player goes to the lobby server unless they are in an arena again by then.
+ * later (2 ticks without a local lobby) the player goes to the lobby server unless they are in an arena again by then.
  */
 public final class NetworkLobbyHandler implements Listener {
     static final long DELAY_TICKS = 20L;

@@ -6,6 +6,8 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import com.l299l.newbedwars.NewBedwars;
+import java.util.logging.Level;
 
 public class PluginFiles {
 
@@ -21,7 +23,7 @@ public class PluginFiles {
                 contentBuilder.append(sCurrentLine).append("\n");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not read " + file.getPath(), e);
         }
 
         fileContent = contentBuilder.toString();
@@ -38,7 +40,8 @@ public class PluginFiles {
                 connection.setUseCaches(false);
                 return connection.getInputStream();
             }
-        } catch (IOException var4) {
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not open the bundled resource " + filename, e);
             return null;
         }
     }

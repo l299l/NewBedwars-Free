@@ -1,6 +1,8 @@
 package com.l299l.newbedwars.proxy.core.group;
 
+import com.l299l.newbedwars.common.protocol.Limits;
 import com.l299l.newbedwars.common.protocol.NetMessage;
+import com.l299l.newbedwars.common.protocol.StateFit;
 import com.l299l.newbedwars.common.protocol.payload.NetworkGroups;
 import com.l299l.newbedwars.proxy.core.ProxyPlatform;
 import com.l299l.newbedwars.proxy.core.party.PartyService;
@@ -15,6 +17,9 @@ import java.util.UUID;
  * Not thread-safe.
  */
 public final class GroupRelay {
+    /** A revision this far ahead of the proxy clock is not a real edit time. */
+    static final long MAX_FUTURE_MILLIS = 24L * 60 * 60 * 1000;
+
     private final ProxyPlatform platform;
     private NetworkGroups current;
 
@@ -27,9 +32,12 @@ public final class GroupRelay {
         return current;
     }
 
-    /** Groups sent by lobby {@code from}; older or equal revisions are ignored. @return whether they were taken */
-    public boolean onGroups(String from, NetworkGroups groups, Set<String> lobbies, Set<String> games) {
+    /** Groups sent by lobby {@code from}; older or equal revisions, revisions more than a day ahead of
+     * {@code now} and sets too big for one message are ignored. @return whether they were taken */
+    public boolean onGroups(String from, NetworkGroups groups, Set<String> lobbies, Set<String> games, long now) {
         if (groups == null || (current != null && groups.revision <= current.revision)) return false;
+        if (groups.revision > now + MAX_FUTURE_MILLIS) return false;
+        if (StateFit.size(groups) > Limits.MAX_PAYLOAD_BYTES) return false;
         current = groups;
         Set<String> targets = new LinkedHashSet<>(lobbies);
         targets.addAll(games);

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -17,9 +18,12 @@ import java.util.Set;
  * server decides (and rejects when nothing fits).
  */
 public final class ServerSelector {
+    /** Longest group/arena target a request may carry. */
+    public static final int MAX_TARGET_LENGTH = 64;
+
     private ServerSelector() {}
 
-    /** A game server known to the proxy (or a lobby). {@code state} may be null. */
+    /** A game server known to the proxy. {@code state} may be null. */
     public static final class Candidate {
         public final String serverId;
         public final ServerState state;
@@ -70,6 +74,7 @@ public final class ServerSelector {
                 continue;
             }
             if (c.state.restarting) continue;
+            if (c.state.arenas == null) continue;
             for (ArenaInfo a : c.state.arenas) {
                 if (a == null || a.name == null) continue;
                 if (matchesTarget(a, kind, target) && a.fits(n)) matches.add(new Match(c.serverId, a));
@@ -133,14 +138,33 @@ public final class ServerSelector {
                 // not a size, fall through to the pattern
             }
         }
-        // Same glob rule as local join NPCs: '*' = any characters, everything else literal.
-        StringBuilder sb = new StringBuilder();
-        for (String part : target.split("\\*", -1)) {
-            if (sb.length() > 0) sb.append(".*");
-            sb.append(java.util.regex.Pattern.quote(part));
+        return glob(target, a.name);
+    }
+
+    /** Same glob rule as local join NPCs: '*' = any characters, everything else literal, case-insensitive. */
+    static boolean glob(String pattern, String text) {
+        String p = pattern.toLowerCase(Locale.ROOT);
+        String t = text.toLowerCase(Locale.ROOT);
+        int pi = 0;
+        int ti = 0;
+        int star = -1;
+        int mark = 0;
+        while (ti < t.length()) {
+            if (pi < p.length() && p.charAt(pi) == '*') {
+                star = pi++;
+                mark = ti;
+            } else if (pi < p.length() && p.charAt(pi) == t.charAt(ti)) {
+                pi++;
+                ti++;
+            } else if (star >= 0) {
+                pi = star + 1;
+                ti = ++mark;
+            } else {
+                return false;
+            }
         }
-        return java.util.regex.Pattern.compile(sb.toString(), java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(a.name).matches();
+        while (pi < p.length() && p.charAt(pi) == '*') pi++;
+        return pi == p.length();
     }
 
     private static final class Match {

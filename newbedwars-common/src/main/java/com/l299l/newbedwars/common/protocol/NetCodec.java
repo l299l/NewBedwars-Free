@@ -6,7 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import com.l299l.newbedwars.common.protocol.payload.*;
+
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * JSON encoding of {@link NetMessage}s: {@code {"v":1,"type":"...","from":"...","id":"...","payload":{...}}}.
@@ -48,6 +53,7 @@ public final class NetCodec {
             if (payloadJson == null || !payloadJson.isJsonObject()) return null;
             Object payload = GSON.fromJson(payloadJson, type.payloadClass());
             if (payload == null) return null;
+            normalize(payload);
             String from = o.has("from") ? o.get("from").getAsString() : null;
             String id = o.has("id") ? o.get("id").getAsString() : null;
             return new NetMessage(NetMessage.VERSION, type, from, id, payload);
@@ -63,9 +69,63 @@ public final class NetCodec {
 
     public static <T> T payloadFromJson(String json, Class<T> cls) {
         try {
-            return GSON.fromJson(json, cls);
+            T payload = GSON.fromJson(json, cls);
+            if (payload != null) normalize(payload);
+            return payload;
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /** Gson leaves missing lists null and keeps null elements: make every payload safe to iterate and bounded in size. */
+    private static void normalize(Object payload) {
+        if (payload instanceof ServerState s) {
+            normalizeState(s);
+        } else if (payload instanceof NetworkState n) {
+            n.servers = clean(n.servers, s -> s != null && validName(s.serverId), Limits.MAX_SERVERS);
+            n.servers.forEach(NetCodec::normalizeState);
+        } else if (payload instanceof PartySync p) {
+            p.members = clean(p.members, m -> m != null && m.uuid != null, Limits.MAX_PLAYERS_PER_MESSAGE);
+            p.removed = clean(p.removed, u -> u != null, Limits.MAX_PLAYERS_PER_MESSAGE);
+        } else if (payload instanceof JoinRequest r) {
+            r.players = clean(r.players, u -> u != null, Limits.MAX_PLAYERS_PER_MESSAGE);
+        } else if (payload instanceof SendToLobby l) {
+            l.players = clean(l.players, u -> u != null, Limits.MAX_PLAYERS_PER_MESSAGE);
+        } else if (payload instanceof JoinTicket t) {
+            t.party = clean(t.party, u -> u != null, Limits.MAX_PLAYERS_PER_MESSAGE);
+        } else if (payload instanceof NetworkGroups g) {
+            g.groups = clean(g.groups, x -> x != null && validName(x.name), Limits.MAX_GROUPS);
+            for (NetworkGroups.Group x : g.groups) {
+                x.arenas = clean(x.arenas, a -> a != null && a.length() <= Limits.MAX_ENTRY_LENGTH, Limits.MAX_GROUP_ENTRIES);
+                if (x.displayItem != null && x.displayItem.length() > Limits.MAX_NAME_LENGTH) x.displayItem = null;
+            }
+        }
+    }
+
+    private static void normalizeState(ServerState s) {
+        s.arenas = clean(s.arenas, a -> a != null && validName(a.name), Limits.MAX_ARENAS_PER_SERVER);
+        if (s.serverId != null && s.serverId.length() > Limits.MAX_NAME_LENGTH) s.serverId = null;
+        if (s.mode != null && s.mode.length() > Limits.MAX_NAME_LENGTH) s.mode = null;
+        int rejoinLeft = Limits.MAX_REJOIN_PER_SERVER;
+        for (ArenaInfo a : s.arenas) {
+            if (a.group != null && a.group.length() > Limits.MAX_NAME_LENGTH) a.group = null;
+            a.rejoin = clean(a.rejoin, r -> r != null, Math.min(Limits.MAX_REJOIN_PER_ARENA, rejoinLeft));
+            rejoinLeft -= a.rejoin.size();
+        }
+    }
+
+    private static boolean validName(String name) {
+        return name != null && name.length() <= Limits.MAX_NAME_LENGTH;
+    }
+
+    private static <T> List<T> clean(List<T> list, Predicate<T> keep, int max) {
+        List<T> out = new ArrayList<>();
+        if (list != null) {
+            for (T t : list) {
+                if (out.size() >= max) break;
+                if (keep.test(t)) out.add(t);
+            }
+        }
+        return out;
     }
 }

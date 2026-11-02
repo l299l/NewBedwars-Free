@@ -30,7 +30,6 @@ public class MapVoteEvent extends CancellableArenaEvent {
         return player;
     }
 
-    /** The arena (map) the player voted for. */
     /** Network mode: the voted arena when it is on another game server ({@link #getVotedArena()} is null then). */
     public java.util.Optional<com.l299l.newbedwars.api.view.NetworkArenaView> getVotedNetworkArena() {
         return java.util.Optional.ofNullable(votedNetwork);

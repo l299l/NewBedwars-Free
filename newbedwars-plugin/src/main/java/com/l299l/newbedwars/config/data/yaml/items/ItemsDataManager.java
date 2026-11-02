@@ -10,6 +10,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.yaml.snakeyaml.DumperOptions;
+import com.l299l.newbedwars.config.data.yaml.SafeYaml;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 
 public class ItemsDataManager {
     private final String ItemsDataPath = new File(NewBedwars.plugin.getDataFolder(), "data/items.yml").getPath();
@@ -31,9 +33,7 @@ public class ItemsDataManager {
         File itemsDataFile = new File(ItemsDataPath);
         if (itemsDataFile.exists()) {
             try {
-                DumperOptions options = new DumperOptions();
-                options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-                Yaml yaml = new Yaml(options);
+                Yaml yaml = SafeYaml.create();
                 HashMap<String, HashMap<String, Object>> customItems = yaml.load(Files.newInputStream(itemsDataFile.toPath()));
                 for (String key: customItems.keySet()) {
                     HashMap<String, Object> item = customItems.get(key);
@@ -55,7 +55,7 @@ public class ItemsDataManager {
                     NewBedwars.plugin.getLangMessages().addCustomItemProperty(key, "-name");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not load " + itemsDataFile.getPath(), e);
             }
         } else {
             customItemManager.createDefaults();
@@ -68,14 +68,13 @@ public class ItemsDataManager {
         File itemsDataFile = new File(ItemsDataPath);
         try {
             HashMap<String, HashMap<String, Object>> customItems = customItemManager.getCustomItemsAsHashMap();
-            PrintWriter writer = new PrintWriter(itemsDataFile);
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-            Yaml yaml = new Yaml(options);
-            yaml.dump(customItems, writer);
-            writer.close();
+            try (PrintWriter writer = new PrintWriter(itemsDataFile)) {
+                new Yaml(options).dump(customItems, writer);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not save " + itemsDataFile.getPath(), e);
         }
 
     }

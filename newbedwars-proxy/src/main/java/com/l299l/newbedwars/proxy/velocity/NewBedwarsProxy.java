@@ -29,9 +29,11 @@ import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "newbedwars-proxy", name = "NewBedwars-Proxy", version = "2.5-beta",
+@Plugin(id = "newbedwars-proxy", name = "NewBedwars-Proxy", version = "2.6-beta",
         description = "Network mode for NewBedwars: routing, server states and parties", authors = {"l299l"})
 public final class NewBedwarsProxy {
     static final MinecraftChannelIdentifier CHANNEL = MinecraftChannelIdentifier.from(NetChannel.MAIN);
@@ -46,6 +48,7 @@ public final class NewBedwarsProxy {
     private PartyService parties;
     private Router router;
     private JdbcConnector database;
+    private final Set<String> warnedServers = ConcurrentHashMap.newKeySet();
     private long lastDbError;
 
     @Inject
@@ -67,6 +70,7 @@ public final class NewBedwarsProxy {
         parties = new PartyService(platform, config.partyInviteSeconds * 1000L);
         router = new Router(platform, servers, parties, config.ticketTimeoutSeconds * 1000L);
         router.setLogger(logger::info);
+        servers.setLogger(logger::warn);
 
         proxy.getChannelRegistrar().register(CHANNEL);
         var cm = proxy.getCommandManager();
@@ -81,7 +85,7 @@ public final class NewBedwarsProxy {
         }).repeat(5, TimeUnit.SECONDS).schedule();
         if (config.mysqlEnabled) {
             database = new JdbcConnector(config.mysqlHost, config.mysqlPort, config.mysqlDatabase, config.mysqlUser,
-                    config.mysqlPassword, NewBedwarsProxy.class.getClassLoader());
+                    config.mysqlPassword, config.mysqlSslMode, config.mysqlAllowPublicKeyRetrieval, NewBedwarsProxy.class.getClassLoader());
             proxy.getScheduler().buildTask(this, this::pollDatabase).repeat(config.mysqlPollSeconds, TimeUnit.SECONDS).schedule();
         }
         logger.info("NewBedwars-Proxy enabled: game servers {}, lobby servers {}, MySQL {}",
@@ -107,9 +111,10 @@ public final class NewBedwarsProxy {
     private void pollDatabase() {
         try {
             var c = database.get();
-            List<ServerState> states = ServerStatusRepo.readFresh(c, System.currentTimeMillis() - config.stateStaleSeconds * 1000L);
+            long now = System.currentTimeMillis();
+            List<ServerState> states = ServerStatusRepo.readAll(c);
             synchronized (lock) {
-                servers.mergeFromDatabase(states);
+                servers.mergeFromDatabase(states, now);
             }
         } catch (Exception ex) {
             long now = System.currentTimeMillis();
@@ -128,7 +133,10 @@ public final class NewBedwarsProxy {
         if (!(e.getSource() instanceof ServerConnection conn)) return;
         NetMessage msg = NetCodec.decode(e.getData());
         if (msg == null) {
-            logger.warn("Dropped an unreadable message from {} (different NewBedwars version?)", conn.getServerInfo().getName());
+            if (warnedServers.add(conn.getServerInfo().getName())) {
+                logger.warn("Dropped an unreadable message from {} (different NewBedwars version? Further ones from it are not logged)",
+                        conn.getServerInfo().getName());
+            }
             return;
         }
         synchronized (lock) {

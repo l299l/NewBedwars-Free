@@ -129,4 +129,46 @@ class ServerSelectorTest {
         assertNull(ServerSelector.findRunning(List.of(fresh), null));
         assertTrue(ServerSelector.choose(List.of(fresh), TargetKind.SPECTATE, "x", 1, Set.of()).isEmpty());
     }
+
+    @Test
+    void globSupportsStarsLiterallyAndCaseInsensitive() {
+        assertTrue(ServerSelector.glob("solo*", "Solo_12"));
+        assertTrue(ServerSelector.glob("*_2", "solo_2"));
+        assertTrue(ServerSelector.glob("s*o*2", "solo_2"));
+        assertTrue(ServerSelector.glob("*", ""));
+        assertTrue(ServerSelector.glob("**a**", "a"));
+        assertTrue(ServerSelector.glob("a.c", "A.C"));
+        assertFalse(ServerSelector.glob("a.c", "abc"), "dots are literal");
+        assertFalse(ServerSelector.glob("solo", "solo_2"));
+        assertFalse(ServerSelector.glob("solo*x", "solo_2"));
+        assertFalse(ServerSelector.glob("a(b", "ab"));
+        assertTrue(ServerSelector.glob("a(b", "a(b"));
+    }
+
+    @Test
+    void manyStarsAreLinearNotCatastrophic() {
+        String pattern = "*a".repeat(5_000) + "b";
+        assertTimeoutPreemptively(java.time.Duration.ofSeconds(2), () ->
+                assertFalse(ServerSelector.glob(pattern, "a".repeat(200))));
+        List<Candidate> s = List.of(server("g1", arena("a".repeat(200), null, ArenaInfo.State.WAITING, 0, 8, 1, true)));
+        assertTimeoutPreemptively(java.time.Duration.ofSeconds(2), () ->
+                assertTrue(ServerSelector.choose(s, TargetKind.GROUP, pattern, 1, Set.of()).isEmpty()));
+    }
+
+    @Test
+    void sizePatternsStillWorkAndNonSizesFallBackToGlob() {
+        List<Candidate> s = List.of(server("g1",
+                arena("quad", null, ArenaInfo.State.WAITING, 0, 16, 4, true),
+                arena("2x3_map", null, ArenaInfo.State.WAITING, 0, 6, 3, true)));
+        assertEquals(List.of("g1/quad"), ids(ServerSelector.choose(s, TargetKind.GROUP, "4x4", 1, Set.of())));
+        assertEquals(List.of("g1/2x3_map"), ids(ServerSelector.choose(s, TargetKind.GROUP, "2x3*", 1, Set.of())));
+        assertEquals(List.of(), ids(ServerSelector.choose(s, TargetKind.GROUP, "x", 1, Set.of())));
+    }
+
+    @Test
+    void stateWithNullArenasIsSkipped() {
+        ServerState broken = new ServerState("g1", "GAME", false, 0, null);
+        broken.arenas = null;
+        assertTrue(ServerSelector.choose(List.of(new Candidate("g1", broken, true)), TargetKind.ANY, null, 1, Set.of()).isEmpty());
+    }
 }

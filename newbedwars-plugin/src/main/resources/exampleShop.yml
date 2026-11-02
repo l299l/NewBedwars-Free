@@ -115,8 +115,6 @@ Categories:
     Icon: ironpickaxe
     Description: "&7Browse tools"
     Items:
-      - stonepickaxe
-      - goldpickaxe
       - ironpickaxe
       - diamondpickaxe
       - shears

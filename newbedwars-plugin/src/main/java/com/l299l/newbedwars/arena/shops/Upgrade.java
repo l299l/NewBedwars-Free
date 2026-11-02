@@ -48,7 +48,7 @@ public final class Upgrade {
 
     /**
      * @param defaultPrices price per level, used when config.yml has no {@code UpgradePrices.<NAME>} list
-     * @throws IllegalArgumentException when the name is taken
+     * @throws IllegalArgumentException when the name is taken or empty
      */
     public static synchronized Upgrade register(String name, int maxLevel, UpgradeHandler handler, List<Integer> defaultPrices) {
         String key = name.trim().toUpperCase(Locale.ROOT);

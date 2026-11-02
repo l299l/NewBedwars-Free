@@ -120,19 +120,26 @@ public final class JoinTicketHandler implements Listener {
         handled.put(handledKey, System.currentTimeMillis());
         plugin.getLogger().info("[Network] Join ticket for " + p.getName() + ": " + (t.arena != null ? "arena " + t.arena
                 : t.kind + (t.target != null ? " " + t.target : "")) + (t.party.size() > 1 ? ", party of " + t.party.size() : ""));
-        if (t.expiresAt > 0 && t.expiresAt < System.currentTimeMillis()) {
+        long deadline = deadlineOf(t, System.currentTimeMillis());
+        if (deadline < System.currentTimeMillis()) {
             reject(List.of(p), t, null, JoinReject.Reason.EXPIRED);
             return;
         }
         // Waits for the arena now, not for a ticket; the timeout covers the party grace time too.
         awaiting.put(p.getUniqueId(), System.currentTimeMillis() + timeoutMillis);
         String key = t.requestId + ":" + (t.partyId != null ? t.partyId : p.getUniqueId().toString());
-        Group g = groups.computeIfAbsent(key, k -> new Group(t));
+        Group g = groups.computeIfAbsent(key, k -> new Group(t, deadline));
         g.arrived.add(p.getUniqueId());
         if (g.arrived.containsAll(g.expected)) {
             groups.remove(key);
             execute(g);
         }
+    }
+
+    /** When the ticket ends on this server's clock: the proxy's relative time counted from arrival, else its absolute one. */
+    static long deadlineOf(JoinTicket t, long arrival) {
+        if (t.ttlMillis > 0) return arrival + t.ttlMillis;
+        return t.expiresAt > 0 ? t.expiresAt : Long.MAX_VALUE;
     }
 
     private void tick() {
@@ -165,6 +172,10 @@ public final class JoinTicketHandler implements Listener {
             if (p != null && p.isOnline()) players.add(p);
         }
         if (players.isEmpty()) return;
+        if (g.deadline < System.currentTimeMillis()) {
+            reject(players, g.ticket, g.ticket.arena, JoinReject.Reason.EXPIRED);
+            return;
+        }
         int n = players.size();
         if (g.ticket.kind == com.l299l.newbedwars.common.protocol.payload.TargetKind.REJOIN) {
             rejoin(players.get(0), g.ticket);
@@ -236,9 +247,11 @@ public final class JoinTicketHandler implements Listener {
         final Set<UUID> expected = new LinkedHashSet<>();
         final Set<UUID> arrived = new LinkedHashSet<>();
         final long firstAt = System.currentTimeMillis();
+        final long deadline;
 
-        Group(JoinTicket ticket) {
+        Group(JoinTicket ticket, long deadline) {
             this.ticket = ticket;
+            this.deadline = deadline;
             if (ticket.party != null) expected.addAll(ticket.party);
             if (ticket.player != null) expected.add(ticket.player);
         }

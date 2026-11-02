@@ -72,6 +72,7 @@ public final class ArenaInfo {
         map.put("AllowPrivateChat", g.AllowPrivateChat);
         map.put("AllowTeamDamage", g.AllowTeamDamage);
         map.put("MakeSwordsPermanent", g.MakeSwordsPermanent);
+        map.put("MakeToolsPermanent", g.MakeToolsPermanent);
         map.put("AllowMultipleGolems", g.AllowMultipleGolems);
         map.put("SplitPartiesToStart", g.SplitPartiesToStart);
         map.put("MapVote", g.MapVote);

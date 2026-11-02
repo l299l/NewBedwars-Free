@@ -2,62 +2,34 @@ package com.l299l.newbedwars.arena.shops.customitems;
 
 import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.ArenaRegistry;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.utils.TeamColor;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.NewBedwars;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.IArena;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.player.inventory.ArmorTier;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.Upgrade;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.config.Language;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.gui.GUIManager;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import com.l299l.newbedwars.version.VersionCompat;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.ChatColor;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.Material;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.NamespacedKey;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.enchantments.Enchantment;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.entity.Player;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.ItemFlag;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.ItemStack;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.meta.ItemMeta;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.inventory.meta.PotionMeta;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.persistence.PersistentDataType;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import org.bukkit.potion.PotionType;
 
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.util.*;
-import com.l299l.newbedwars.gui.model.GUIEntry;
 import java.util.stream.Collectors;
 
 public class CustomItem implements GUIEntry {
@@ -123,20 +95,17 @@ public class CustomItem implements GUIEntry {
         assert meta != null;
         String displayName = msg.getMsg(language, name + "-name");
         meta.setDisplayName(displayName != null ? displayName : name);
-        if (msg.getMsg(language, itemDesc) != null && !msg.getMsg(language, itemDesc).equals("")) {
-            meta.setLore(Arrays.asList(msg.getMsg(language, itemDesc).split("\n")));
+        String lore = msg.getMsg(language, itemDesc);
+        if (lore != null && !lore.isEmpty()) {
+            meta.setLore(Arrays.asList(lore.split("\n")));
         }
-        if(enchantments != null && !enchantments.isEmpty()){
-            List<Enchantment> enchants = new ArrayList<>(enchantments.keySet());
-            for (Enchantment enchant : enchants) {
-                Integer level = enchantments.get(enchant);
-                meta.addEnchant(enchant, level, (level > enchant.getMaxLevel()));
+        if (enchantments != null) {
+            for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+                meta.addEnchant(entry.getKey(), entry.getValue(), entry.getValue() > entry.getKey().getMaxLevel());
             }
         }
-        if(itemFlags != null && !itemFlags.isEmpty()){
-            for(ItemFlag flag : itemFlags){
-                meta.addItemFlags(flag);
-            }
+        if (itemFlags != null && !itemFlags.isEmpty()) {
+            meta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
         }
         meta.setUnbreakable(isPermanent);
         // Set potion appearance for potion-type items
@@ -160,24 +129,26 @@ public class CustomItem implements GUIEntry {
     }
 
     public boolean buyItem(Player player) {
-        if (onBuyEvent == OnBuyEvent.CANCEL) {
+        if (onBuyEvent == OnBuyEvent.CANCEL || onBuyEvent == OnBuyEvent.COMMANDS
+                || onBuyEvent == OnBuyEvent.OPEN_GUI || onBuyEvent == OnBuyEvent.GIVE_PERM) {
             return false;
         }
         if (permission != null && !permission.isEmpty() && !permission.equalsIgnoreCase("default") && !player.hasPermission(permission)) {
             return false;
         }
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
+        Team team = arena == null ? null : arena.getTeam(player);
+        boolean needsTeam = onBuyEvent == OnBuyEvent.GIVE_ARMOR || onBuyEvent == OnBuyEvent.GIVE_TOOL || onBuyEvent == OnBuyEvent.UPGRADE;
+        if (needsTeam && team == null) {
+            return false;
+        }
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
-            ArmorContents armorContents = ArenaRegistry.byWorld(player.getWorld()).getTeam(player).getArmorContents(player);
             ArmorTier newType = ArmorTier.getArmorTier(material);
             // a material no armor tier knows cannot be equipped; refuse before taking the payment
-            if (newType == ArmorTier.OTHER || armorContents.getArmor().rank() >= newType.rank()) {
+            if (newType == ArmorTier.OTHER || team.getArmorContents(player).getArmor().rank() >= newType.rank()) {
                 return false;
             }
         }
-        if (onBuyEvent == OnBuyEvent.COMMANDS || onBuyEvent == OnBuyEvent.OPEN_GUI || onBuyEvent == OnBuyEvent.GIVE_PERM) {
-            return false;
-        }
-        IArena shopArena = ArenaRegistry.byWorld(player.getWorld());
         Material priceMaterial = priceMaterial();
         if (priceMaterial != null && !player.getInventory().contains(priceMaterial, price)) {
             return false;
@@ -185,48 +156,44 @@ public class CustomItem implements GUIEntry {
         Upgrade upgrade = null;
         if (onBuyEvent == OnBuyEvent.UPGRADE) {
             upgrade = Upgrade.valueOf(name.toUpperCase());
-            Team upgradeTeam = shopArena == null ? null : shopArena.getTeam(player);
-            if (upgradeTeam == null || upgradeTeam.getTeamUpgrades().getUpgradeLevel(upgrade) >= upgrade.maxLevel) {
+            if (team.getTeamUpgrades().getUpgradeLevel(upgrade) >= upgrade.maxLevel) {
                 return false;
             }
         }
-        if (shopArena != null) {
+        if (arena != null) {
             ShopPurchaseEvent.Kind kind = switch (onBuyEvent) {
                 case GIVE_ARMOR -> ShopPurchaseEvent.Kind.ARMOR;
                 case GIVE_TOOL -> ShopPurchaseEvent.Kind.TOOL;
                 case UPGRADE -> ShopPurchaseEvent.Kind.UPGRADE;
                 default -> ShopPurchaseEvent.Kind.ITEM;
             };
-            if (!ApiEvents.shopPurchase(shopArena, player, name, kind, String.valueOf(priceType), price)) return false;
-            if (upgrade != null && !ApiEvents.teamUpgrade(shopArena, shopArena.getTeam(player), upgrade.name(),
-                    shopArena.getTeam(player).getTeamUpgrades().getUpgradeLevel(upgrade) + 1, player)) return false;
+            if (!ApiEvents.shopPurchase(arena, player, name, kind, String.valueOf(priceType), price)) return false;
+            if (upgrade != null && !ApiEvents.teamUpgrade(arena, team, upgrade.name(),
+                    team.getTeamUpgrades().getUpgradeLevel(upgrade) + 1, player)) return false;
         }
         if (priceMaterial != null) {
             player.getInventory().removeItem(new ItemStack(priceMaterial, price));
         }
-        if (onBuyEvent == OnBuyEvent.UPGRADE) {
-            return buyUpgrade(player);
-        }
         switch (onBuyEvent) {
-            case CANCEL, COMMANDS, OPEN_GUI, GIVE_PERM -> {
-                return false;
+            case UPGRADE -> {
+                team.getTeamUpgrades().upgrade(upgrade);
+                return true;
             }
             case GIVE_ITEM -> {
                 ArmorContents.giveOrDrop(player, getItem(player));
-                if (isPermanent) {
-                    ArenaRegistry.byWorld(player.getWorld()).getTeam(player).getArmorContents(player).addOther(this);
+                if (isPermanent && team != null) {
+                    team.getArmorContents(player).addOther(this);
                 }
                 return true;
             }
             case GIVE_ARMOR -> {
-                ArmorContents armorContents = ArenaRegistry.byWorld(player.getWorld()).getTeam(player).getArmorContents(player);
+                ArmorContents armorContents = team.getArmorContents(player);
                 armorContents.setArmor(ArmorTier.getArmorTier(material));
                 armorContents.applyArmor(player);
                 return true;
             }
             case GIVE_TOOL -> {
-                Team toolTeam = ArenaRegistry.byWorld(player.getWorld()).getTeam(player);
-                ArmorContents armorContents = toolTeam.getArmorContents(player);
+                ArmorContents armorContents = team.getArmorContents(player);
                 boolean isSword = material.name().endsWith("_SWORD");
                 if (isSword && armorContents.hasBoughtSword()) {
                     armorContents.setTool(this);
@@ -236,12 +203,14 @@ public class CustomItem implements GUIEntry {
                     armorContents.giveTool(player, this);
                 }
                 if (isSword) {
-                    toolTeam.getTeamUpgrades().applyPlayerUpgrades(player);
+                    team.getTeamUpgrades().applyPlayerUpgrades(player);
                 }
                 return true;
             }
+            default -> {
+                return false;
+            }
         }
-        return false;
     }
 
     public UUID getUuid() {
@@ -407,50 +376,8 @@ public class CustomItem implements GUIEntry {
         map.put("onBuyEvent", onBuyEvent.name());
         map.put("isPermanent", isPermanent);
         map.put("enchantments", getEnchantmentsAsHashMap());
-        map.put("itemFlags", getItemFlagsAsHashMap());
+        map.put("itemFlags", itemFlagNames());
         return map;
-    }
-
-    public String toJson() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"name\":\"").append(name).append("\",");
-        sb.append("\"description\":\"").append(itemDesc).append("\",");
-        sb.append("\"material\":\"").append(material).append("\",");
-        sb.append("\"price\":").append(price).append(",");
-        sb.append("\"priceType\":\"").append(priceType.name()).append("\",");
-        sb.append("\"amount\":").append(amount).append(",");
-        sb.append("\"iconDesc\":\"").append(iconDesc).append("\",");
-        sb.append("\"permission\":\"").append(permission).append("\",");
-        sb.append("\"event\":\"").append(event.getKey()).append("\",");
-        sb.append("\"onBuyEvent\":\"").append(onBuyEvent.name()).append("\",");
-        sb.append("\"isPermanent\":").append(isPermanent).append(",");
-        sb.append("\"enchantments\":{");
-        if(enchantments != null && !enchantments.isEmpty()){
-            List<Enchantment> enchants = new ArrayList<>(enchantments.keySet());
-            for (int i = 0; i < enchants.size(); i++) {
-                Enchantment enchant = enchants.get(i);
-                Integer level = enchantments.get(enchant);
-                sb.append("\"").append(enchant).append("\":").append(level);
-                if(i < enchants.size() - 1){
-                    sb.append(",");
-                }
-            }
-        }
-        sb.append("},");
-        sb.append("\"itemFlags\":[");
-        if(itemFlags != null && !itemFlags.isEmpty()){
-            for (int i = 0; i < itemFlags.size(); i++) {
-                ItemFlag flag = itemFlags.get(i);
-                sb.append("\"").append(flag).append("\"");
-                if(i < itemFlags.size() - 1){
-                    sb.append(",");
-                }
-            }
-        }
-        sb.append("]");
-        sb.append("}");
-        return sb.toString();
     }
 
     private Material priceMaterial() {
@@ -463,16 +390,6 @@ public class CustomItem implements GUIEntry {
         };
     }
 
-    private boolean buyUpgrade(Player p) {
-        Upgrade upgrade = Upgrade.valueOf(name.toUpperCase());
-        Team team = ArenaRegistry.byWorld(p.getWorld()).getTeam(p);
-        if (team.getTeamUpgrades().getUpgradeLevel(upgrade) >= upgrade.maxLevel) {
-            return false;
-        }
-        team.getTeamUpgrades().upgrade(upgrade);
-        return true;
-    }
-
     private HashMap<String, Integer> getEnchantmentsAsHashMap() {
         HashMap<String, Integer> map = new HashMap<>();
         for (Enchantment enchantment : enchantments.keySet()) {
@@ -481,7 +398,7 @@ public class CustomItem implements GUIEntry {
         return map;
     }
 
-    private List<String> getItemFlagsAsHashMap() {
+    private List<String> itemFlagNames() {
         List<String> list = new ArrayList<>();
         for (ItemFlag itemFlag : itemFlags) {
             list.add(itemFlag.name());

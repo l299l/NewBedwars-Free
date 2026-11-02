@@ -41,15 +41,23 @@ import java.util.stream.Collectors;
 public class MainCommand implements TabExecutor {
     private final NewBedwars plugin;
     private final Messages msg;
-    private final ArrayList<SubCommand> subCommandsLobbyPublic;
-    private final ArrayList<SubCommand> subCommandsLobbyAdmin;
-    private final ArrayList<SubCommand> subCommandsGameAdmin;
-    private final ArrayList<SubCommand> subCommandsGamePublic;
+    private final ArrayList<SubCommand> subCommandsLobbyPublic = new ArrayList<>();
+    private final ArrayList<SubCommand> subCommandsLobbyAdmin = new ArrayList<>();
+    private final ArrayList<SubCommand> subCommandsGameAdmin = new ArrayList<>();
+    private final ArrayList<SubCommand> subCommandsGamePublic = new ArrayList<>();
+    private final ArrayList<SubCommand> setupSubBasicCommands = new ArrayList<>();
+    private final ArrayList<SubCommand> setupSubNormalCommands = new ArrayList<>();
+    private final ArrayList<SubCommand> setupSubAdvancedCommands = new ArrayList<>();
+    private final ArrayList<SubCommand> setupSubAutomaticCommands = new ArrayList<>();
     private HelpCommand helpCommand;
-    private final ArrayList<SubCommand> setupSubBasicCommands;
-    private final ArrayList<SubCommand> setupSubNormalCommands;
-    private final ArrayList<SubCommand> setupSubAdvancedCommands;
-    private final ArrayList<SubCommand> setupSubAutomaticCommands;
+
+    private record Route(List<SubCommand> publicCmds, List<SubCommand> adminCmds, boolean adminNeedsArena) {
+        List<SubCommand> all() {
+            List<SubCommand> all = new ArrayList<>(publicCmds);
+            if (adminCmds != null) all.addAll(adminCmds);
+            return all;
+        }
+    }
 
     /** Where a registered command is available, mirroring the command buckets. */
     public enum Context {
@@ -93,14 +101,6 @@ public class MainCommand implements TabExecutor {
     public MainCommand() {
         plugin = NewBedwars.plugin;
         msg = plugin.getMessages();
-        subCommandsLobbyPublic = new ArrayList<>();
-        subCommandsLobbyAdmin = new ArrayList<>();
-        subCommandsGameAdmin = new ArrayList<>();
-        subCommandsGamePublic = new ArrayList<>();
-        setupSubBasicCommands = new ArrayList<>();
-        setupSubNormalCommands = new ArrayList<>();
-        setupSubAdvancedCommands = new ArrayList<>();
-        setupSubAutomaticCommands = new ArrayList<>();
         setSubCommands();
     }
 
@@ -114,40 +114,17 @@ public class MainCommand implements TabExecutor {
         if (args.length > 0) {
             Setup setupMode = getArenaSetupMode(p);
             if (setupMode == null || setupMode == Setup.NO_SETUP || setupMode == Setup.READY) {
-                boolean handled = false;
-                if (isPlayerInGame(p, false)) {
-                    if (isPlayerInGame(p, true)) {
-                        handled = subCmd(subCommandsGameAdmin, args, p, true);
-                    }
-                    if (!handled) {
-                        subCmd(subCommandsGamePublic, args, p, false);
-                    }
-                } else if (isSpectatorInArena(p)) {
-                    if (isAdmin(p) || p.hasPermission("newbedwars.bw.managegame")) {
-                        handled = subCmd(subCommandsGameAdmin, args, p, true);
-                    }
-                    if (!handled) {
-                        subCmd(subCommandsGamePublic, args, p, false);
-                    }
-                } else {
-                    if (hasAnyLobbyAdminPermission(p)) {
-                        handled = subCmd(subCommandsLobbyAdmin, args, p, false);
-                    }
-                    if (!handled) {
-                        subCmd(subCommandsLobbyPublic, args, p, false);
-                    }
+                Route route = routeFor(p);
+                boolean handled = route.adminCmds() != null && subCmd(route.adminCmds(), args, p, route.adminNeedsArena());
+                if (!handled) {
+                    subCmd(route.publicCmds(), args, p, false);
                 }
             } else {
                 if (!isAdmin(p) && !p.hasPermission("newbedwars.bw.arena")) {
                     msg.send(p, "NoPermissions");
                     return true;
                 }
-                subCmd(setupSubBasicCommands, args, p, true);
-                switch (setupMode) {
-                    case NORMAL_SETUP -> { subCmd(setupSubNormalCommands, args, p, true); return true; }
-                    case ADVANCED_SETUP -> { subCmd(setupSubNormalCommands, args, p, true); subCmd(setupSubAdvancedCommands, args, p, true); return true; }
-                    case AUTOMATIC_SETUP -> { subCmd(setupSubAutomaticCommands, args, p, true); return true; }
-                }
+                subCmd(setupCommandsFor(setupMode), args, p, true);
             }
         } else {
             helpCommand.perform(p, args, null);
@@ -160,12 +137,8 @@ public class MainCommand implements TabExecutor {
     }
 
     private boolean isSpectatorInArena(Player p) {
-        try {
-            IArena arena = ArenaRegistry.byWorld(p.getWorld());
-            return arena != null && arena.getSpectators().contains(p);
-        } catch (Exception e) {
-            return false;
-        }
+        IArena arena = ArenaRegistry.byWorld(p.getWorld());
+        return arena != null && arena.getSpectators().contains(p);
     }
 
     private boolean hasAnyLobbyAdminPermission(Player p) {
@@ -184,48 +157,17 @@ public class MainCommand implements TabExecutor {
 
         if (args.length == 1) {
             if (setupMode == null || setupMode == Setup.NO_SETUP || setupMode == Setup.READY) {
-                ArrayList<String> names;
-                if (isPlayerInGame(p, false)) {
-                    names = new ArrayList<>(subArgs(subCommandsGamePublic));
-                    if (isPlayerInGame(p, true)) names.addAll(subArgs(subCommandsGameAdmin));
-                } else if (isSpectatorInArena(p)) {
-                    names = new ArrayList<>(subArgs(subCommandsGamePublic));
-                    if (isAdmin(p) || p.hasPermission("newbedwars.bw.managegame")) names.addAll(subArgs(subCommandsGameAdmin));
-                } else {
-                    names = new ArrayList<>(subArgs(subCommandsLobbyPublic));
-                    if (hasAnyLobbyAdminPermission(p)) names.addAll(subArgs(subCommandsLobbyAdmin));
-                }
-                return filterAndSort(names, typed);
+                return filterAndSort(subArgs(routeFor(p).all()), typed);
             } else if (isAdmin(p) || p.hasPermission("newbedwars.bw.arena")) {
-                ArrayList<String> basic = subArgs(setupSubBasicCommands);
-                switch (setupMode) {
-                    case NORMAL_SETUP -> basic.addAll(subArgs(setupSubNormalCommands));
-                    case ADVANCED_SETUP -> { basic.addAll(subArgs(setupSubNormalCommands)); basic.addAll(subArgs(setupSubAdvancedCommands)); }
-                    case AUTOMATIC_SETUP -> basic.addAll(subArgs(setupSubAutomaticCommands));
-                }
-                return filterAndSort(basic, typed);
+                return filterAndSort(subArgs(setupCommandsFor(setupMode)), typed);
             }
         } else if (args.length >= 2) {
             String sub = args[args.length - 1].toLowerCase();
             List<String> raw = null;
             if (setupMode == null || setupMode == Setup.NO_SETUP) {
-                ArrayList<SubCommand> all = new ArrayList<>(subCommandsLobbyPublic);
-                if (hasAnyLobbyAdminPermission(p)) all.addAll(subCommandsLobbyAdmin);
-                raw = subSubArgs(all, args, p);
+                raw = subSubArgs(lobbyRoute(p).all(), args, p);
             } else if (setupMode == Setup.READY) {
-                if (isPlayerInGame(p, false)) {
-                    ArrayList<SubCommand> all = new ArrayList<>(subCommandsGamePublic);
-                    if (isPlayerInGame(p, true)) all.addAll(subCommandsGameAdmin);
-                    raw = subSubArgs(all, args, p);
-                } else if (isSpectatorInArena(p)) {
-                    ArrayList<SubCommand> all = new ArrayList<>(subCommandsGamePublic);
-                    if (isAdmin(p) || p.hasPermission("newbedwars.bw.managegame")) all.addAll(subCommandsGameAdmin);
-                    raw = subSubArgs(all, args, p);
-                } else {
-                    ArrayList<SubCommand> all = new ArrayList<>(subCommandsLobbyPublic);
-                    if (hasAnyLobbyAdminPermission(p)) all.addAll(subCommandsLobbyAdmin);
-                    raw = subSubArgs(all, args, p);
-                }
+                raw = subSubArgs(routeFor(p).all(), args, p);
             } else if (isAdmin(p) || p.hasPermission("newbedwars.bw.arena")) {
                 raw = joinedSubSubArgs(args, p);
             }
@@ -301,33 +243,34 @@ public class MainCommand implements TabExecutor {
 
         setupSubAutomaticCommands.add(new StartAutomaticSetupCommand());
         setupSubBasicCommands.add(new SetupHelpCommand(this::setupCommandsFor, this::getArena));
+    }
 
+    private Route lobbyRoute(Player p) {
+        return new Route(subCommandsLobbyPublic, hasAnyLobbyAdminPermission(p) ? subCommandsLobbyAdmin : null, false);
+    }
 
+    private Route routeFor(Player p) {
+        if (isPlayerInGame(p, false)) {
+            return new Route(subCommandsGamePublic, isPlayerInGame(p, true) ? subCommandsGameAdmin : null, true);
+        }
+        if (isSpectatorInArena(p)) {
+            return new Route(subCommandsGamePublic, isAdmin(p) || p.hasPermission("newbedwars.bw.managegame") ? subCommandsGameAdmin : null, true);
+        }
+        return lobbyRoute(p);
     }
 
     /** Commands the player may use right now (value = admin-only), mirroring the routing in onCommand. */
     private Map<SubCommand, Boolean> helpCommandsFor(Player p) {
+        Route route = routeFor(p);
         Map<SubCommand, Boolean> result = new LinkedHashMap<>();
-        ArrayList<SubCommand> publicCmds;
-        ArrayList<SubCommand> adminCmds = null;
-        if (isPlayerInGame(p, false)) {
-            publicCmds = subCommandsGamePublic;
-            if (isPlayerInGame(p, true)) adminCmds = subCommandsGameAdmin;
-        } else if (isSpectatorInArena(p)) {
-            publicCmds = subCommandsGamePublic;
-            if (isAdmin(p) || p.hasPermission("newbedwars.bw.managegame")) adminCmds = subCommandsGameAdmin;
-        } else {
-            publicCmds = subCommandsLobbyPublic;
-            if (hasAnyLobbyAdminPermission(p)) adminCmds = subCommandsLobbyAdmin;
-        }
-        for (SubCommand cmd : publicCmds) result.put(cmd, false);
-        if (adminCmds != null) {
-            for (SubCommand cmd : adminCmds) result.put(cmd, true);
+        for (SubCommand cmd : route.publicCmds()) result.put(cmd, false);
+        if (route.adminCmds() != null) {
+            for (SubCommand cmd : route.adminCmds()) result.put(cmd, true);
         }
         return result;
     }
 
-    private boolean subCmd(ArrayList<SubCommand> sub, String[] args, Player p, Boolean set) {
+    private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set) {
         for (SubCommand subCommand : sub) {
             if (args[0].equalsIgnoreCase(subCommand.getName())) {
                 if (set) {
@@ -344,13 +287,12 @@ public class MainCommand implements TabExecutor {
         return false;
     }
 
-    private ArrayList<String> subArgs(ArrayList<SubCommand> sub) {
-        ArrayList<String> subcommandsArguments = new ArrayList<>();
+    private ArrayList<String> subArgs(List<SubCommand> sub) {
+        ArrayList<String> names = new ArrayList<>();
         for (SubCommand subCommand : sub) {
-            subcommandsArguments.add(subCommand.getName());
+            names.add(subCommand.getName());
         }
-
-        return subcommandsArguments;
+        return names;
     }
 
     private List<String> joinedSubSubArgs(String[] args, Player p) {
@@ -358,10 +300,14 @@ public class MainCommand implements TabExecutor {
         return subSubArgs(allSubCommands, args, p);
     }
 
-    /** Setup commands usable in the current setup mode of {@code arena}, mirroring the routing in onCommand. */
     private List<SubCommand> setupCommandsFor(IArena arena) {
+        return setupCommandsFor(arena.getSetupMode());
+    }
+
+    /** Setup commands usable in {@code mode}, mirroring the routing in onCommand. */
+    private List<SubCommand> setupCommandsFor(Setup mode) {
         List<SubCommand> result = new ArrayList<>(setupSubBasicCommands);
-        switch (arena.getSetupMode()) {
+        switch (mode) {
             case NORMAL_SETUP -> result.addAll(setupSubNormalCommands);
             case ADVANCED_SETUP -> { result.addAll(setupSubNormalCommands); result.addAll(setupSubAdvancedCommands); }
             case AUTOMATIC_SETUP -> result.addAll(setupSubAutomaticCommands);
@@ -379,7 +325,7 @@ public class MainCommand implements TabExecutor {
         return allSubCommands;
     }
 
-    private List<String> subSubArgs(ArrayList<SubCommand> sub, String[] args, Player p) {
+    private List<String> subSubArgs(List<SubCommand> sub, String[] args, Player p) {
         for (SubCommand subCommand : sub) {
             if (args[0].equalsIgnoreCase(subCommand.getName())) {
                 List<String> result = subCommand.getSubcommandArguments(p, args);
@@ -390,37 +336,23 @@ public class MainCommand implements TabExecutor {
     }
 
     private Setup getArenaSetupMode(Player p) {
-        Setup setupMode = null;
-        try {
-            IArena arena = ArenaRegistry.byWorld(p.getWorld());
-            setupMode = arena.getSetupMode();
-            if (setupMode == Setup.READY) {
-                return setupMode;
-            }
-            if (!arena.getPlayersOnSetup().contains(p.getUniqueId())) {
-                return null;
-            }
-        }catch (Exception e) {
-            return null;
-        }
-        return setupMode;
+        IArena arena = ArenaRegistry.byWorld(p.getWorld());
+        if (arena == null) return null;
+        Setup setupMode = arena.getSetupMode();
+        if (setupMode == Setup.READY) return setupMode;
+        return arena.getPlayersOnSetup().contains(p.getUniqueId()) ? setupMode : null;
     }
 
     private boolean isPlayerInGame(Player p, boolean admin) {
-        try {
-            IArena arena = ArenaRegistry.byWorld(p.getWorld());
-            boolean is = arena.getPlayers().contains(p.getUniqueId());
-            GameStatus status = arena.status();
-            if (admin && (p.hasPermission("newbedwars.bw.admin") || p.hasPermission("newbedwars.bw.managegame") || p.isOp()) && status != GameStatus.restarting) {
-                return is;
-            } else if (admin) {
-                return false;
-            } else {
-                return is && status != GameStatus.restarting;
-            }
-        }catch (Exception e) {
-            return false;
+        IArena arena = ArenaRegistry.byWorld(p.getWorld());
+        if (arena == null) return false;
+        boolean is = arena.getPlayers().contains(p.getUniqueId());
+        GameStatus status = arena.status();
+        if (admin) {
+            return (p.hasPermission("newbedwars.bw.admin") || p.hasPermission("newbedwars.bw.managegame") || p.isOp())
+                    && status != GameStatus.restarting && is;
         }
+        return is && status != GameStatus.restarting;
     }
 
     private IArena getArena(Player player) {

@@ -33,9 +33,7 @@ public class CustomItemManager {
         createCustomItem("IronArmor", Material.IRON_CHESTPLATE, 12, PriceType.GOLD, 1, new NoneLogic(), OnBuyEvent.GIVE_ARMOR);
         createCustomItem("DiamondArmor", Material.DIAMOND_CHESTPLATE, 6, PriceType.EMERALD, 1, new NoneLogic(), OnBuyEvent.GIVE_ARMOR);
         createCustomItem("WoodenPickaxe", Material.WOODEN_PICKAXE, 10, PriceType.IRON, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
-        createCustomItem("StonePickaxe", Material.STONE_PICKAXE, 5, PriceType.IRON, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
-        createCustomItem("GoldPickaxe", Material.GOLDEN_PICKAXE, 3, PriceType.GOLD, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
-        createCustomItem("IronPickaxe", Material.IRON_PICKAXE, 5, PriceType.GOLD, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
+        createCustomItem("IronPickaxe", Material.IRON_PICKAXE, 7, PriceType.GOLD, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
         createCustomItem("DiamondPickaxe", Material.DIAMOND_PICKAXE, 3, PriceType.EMERALD, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
         createCustomItem("IronAxe", Material.IRON_AXE, 5, PriceType.GOLD, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
         createCustomItem("DiamondAxe", Material.DIAMOND_AXE, 3, PriceType.EMERALD, 1, new NoneLogic(), OnBuyEvent.GIVE_TOOL);
@@ -52,7 +50,7 @@ public class CustomItemManager {
         createCustomItem("TNT", Material.TNT, 4, PriceType.GOLD, 1, new TntLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("Fireball", Material.FIRE_CHARGE, 40, PriceType.IRON, 1, new FireballLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("BlastProtGlass", Material.WHITE_STAINED_GLASS, 4, PriceType.IRON, 4, new BlastProtLogic(), OnBuyEvent.GIVE_ITEM);
-        createCustomItem("EnderPearl", Material.ENDER_PEARL, 3, PriceType.EMERALD, 1);
+        createCustomItem("EnderPearl", Material.ENDER_PEARL, 2, PriceType.EMERALD, 1);
         createCustomItem("BridgeEgg", Material.EGG, 1, PriceType.EMERALD, 1, new BridgeEggLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("Bow", Material.BOW, 12, PriceType.GOLD, 1);
         createCustomItem("Arrow", Material.ARROW, 4, PriceType.GOLD, 8);
@@ -63,9 +61,9 @@ public class CustomItemManager {
         createCustomItem("GoldenApple", Material.GOLDEN_APPLE, 3, PriceType.GOLD, 1);
         List<ItemFlag> glowFlags = new ArrayList<>();
         glowFlags.add(ItemFlag.HIDE_ENCHANTS);
-        createCustomItem("IronGolem", Material.IRON_INGOT, 4, PriceType.EMERALD, 1, new IronGolemLogic(), OnBuyEvent.GIVE_ITEM,
+        createCustomItem("IronGolem", Material.IRON_INGOT, 120, PriceType.IRON, 1, new IronGolemLogic(), OnBuyEvent.GIVE_ITEM,
                 new HashMap<Enchantment, Integer>() {{put(VersionCompat.GLOW_ENCHANT, 1);}}, glowFlags);
-        createCustomItem("Silverfish", Material.SPIDER_EYE, 1, PriceType.EMERALD, 1, new SilverfishLogic(), OnBuyEvent.GIVE_ITEM,
+        createCustomItem("Silverfish", Material.SPIDER_EYE, 40, PriceType.IRON, 1, new SilverfishLogic(), OnBuyEvent.GIVE_ITEM,
                 new HashMap<Enchantment, Integer>() {{put(VersionCompat.GLOW_ENCHANT, 1);}}, glowFlags);
         createCustomItem("PortableTower", Material.BRICKS, 24, PriceType.IRON, 1, new PortableTowerLogic(), OnBuyEvent.GIVE_ITEM);
         createCustomItem("Fill", Material.BLACK_STAINED_GLASS_PANE, 0, PriceType.NONE, 1, new NoneLogic(), OnBuyEvent.CANCEL);

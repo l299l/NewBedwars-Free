@@ -18,6 +18,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public class Updater extends PluginFiles {
     private final Map<Language, FileConfiguration> langConfs = new EnumMap<>(Language.class);
@@ -46,7 +47,7 @@ public class Updater extends PluginFiles {
         try {
             ConfigUpdater.update(NewBedwars.plugin, "config.yml", configFile, Collections.emptyList());
         } catch (IOException e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not update config.yml", e);
         }
         NewBedwars.plugin.reloadConfig();
     }
@@ -125,6 +126,7 @@ public class Updater extends PluginFiles {
         try {
             conf.save(file);
         } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not save " + file.getPath(), e);
             NewBedwars.plugin.getServer().getConsoleSender().sendMessage(error);
         }
     }
@@ -133,7 +135,7 @@ public class Updater extends PluginFiles {
         try {
             ConfigUpdater.update(NewBedwars.plugin, resource, file, ignoredSections);
         } catch (Exception e) {
-            e.printStackTrace();
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not update " + file.getPath() + " from " + resource, e);
         }
     }
 

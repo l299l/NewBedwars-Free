@@ -25,4 +25,8 @@ mysql:
   database: "newbedwars"
   user: "root"
   password: ""
+  # DISABLED, PREFERRED (encrypt when the server supports it), REQUIRED, VERIFY_CA or VERIFY_IDENTITY.
+  ssl-mode: PREFERRED
+  # Only needed for MySQL 8 accounts with caching_sha2_password on a connection without SSL. Less secure.
+  allow-public-key-retrieval: false
   poll-seconds: 5

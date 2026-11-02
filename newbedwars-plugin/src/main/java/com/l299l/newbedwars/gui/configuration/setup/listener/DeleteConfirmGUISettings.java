@@ -1,9 +1,12 @@
 package com.l299l.newbedwars.gui.configuration.setup.listener;
 
+import com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent;
 import com.l299l.newbedwars.arena.ArenaRegistry;
+import com.l299l.newbedwars.config.data.IOExecutor;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.world.template.ArenaMaps;
+import com.l299l.newbedwars.world.template.MapTemplateManager;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
@@ -18,9 +21,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class DeleteConfirmGUISettings implements Listener {
     private final Messages msg;
@@ -60,7 +65,7 @@ public class DeleteConfirmGUISettings implements Listener {
         }
 
         World arenaWorld = arena.getArenaWorld();
-        File worldFolder = arenaWorld.getWorldFolder();
+        Path worldFolder = arenaWorld.getWorldFolder().toPath();
         if (arenaWorld.equals(Bukkit.getWorlds().get(0))) {
             msg.send(player, "ArenaDeleteFailed");
             return;
@@ -74,7 +79,7 @@ public class DeleteConfirmGUISettings implements Listener {
             p.setGameMode(GameMode.SURVIVAL);
             p.getInventory().clear();
             p.getInventory().setArmorContents(null);
-            if (!LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ARENA_DELETED) && p.getWorld().equals(arenaWorld)) {
+            if (!LobbyService.sendToLobby(p, PlayerSendToLobbyEvent.Reason.ARENA_DELETED) && p.getWorld().equals(arenaWorld)) {
                 p.teleport(lobby);
             }
         }
@@ -86,24 +91,22 @@ public class DeleteConfirmGUISettings implements Listener {
         }
         ArenaRegistry.unregister(arenaName, arenaWorld);
 
-        com.l299l.newbedwars.config.data.IOExecutor.flush();
-        deleteFolder(worldFolder);
-        new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + arenaName + ".json").delete();
+        IOExecutor.flush();
+        boolean complete = deleteQuietly(worldFolder);
+        complete &= deleteQuietly(NewBedwars.plugin.getDataFolder().toPath().resolve("data/arenas/" + arenaName + ".json"));
         // The template goes with the arena; backups in data/backups are intentionally kept.
-        deleteFolder(ArenaMaps.mapsRoot().resolve(arenaName).toFile());
+        complete &= deleteQuietly(ArenaMaps.mapsRoot().resolve(arenaName));
 
-        msg.send(player, "ArenaDeleted", Map.of("/arenaname/", arenaName));
+        msg.send(player, complete ? "ArenaDeleted" : "ArenaDeletedPartially", Map.of("/arenaname/", arenaName));
     }
 
-    private void deleteFolder(File folder) {
-        if (folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    deleteFolder(file);
-                }
-            }
+    private boolean deleteQuietly(Path path) {
+        try {
+            MapTemplateManager.deleteTree(path);
+            return true;
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not delete " + path, e);
+            return false;
         }
-        folder.delete();
     }
 }

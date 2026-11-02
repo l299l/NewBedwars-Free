@@ -22,8 +22,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Network mode ({@code Network.Mode} GAME or LOBBY). Created on every (re)load; in NONE mode nothing is
@@ -36,6 +38,8 @@ public final class NetworkManager implements Listener {
     private final NetworkMode mode;
     private final String serverId;
     private final BukkitMessenger messenger;
+    private static final long JOIN_COOLDOWN_MILLIS = 1000L;
+    private final Map<UUID, Long> lastJoinRequest = new HashMap<>();
     private NetworkGroupSync groupSync;
     // GAME
     private NetworkLobbyHandler lobbyHandler;
@@ -201,11 +205,21 @@ public final class NetworkManager implements Listener {
     public boolean requestJoin(Player p, TargetKind kind, String target, String server) {
         if (!ArenaJoinService.mayJoin(p)) return false;
         if (!ApiEvents.networkJoinRequest(p, kind, target)) return false;
+        if (!joinCooldownPassed(p.getUniqueId())) return false;
         if (!messenger.send(p, NetMessage.of(serverId, new JoinRequest(p.getUniqueId(), kind, target, server, null)))) {
             NewBedwars.plugin.getMessages().send(p, "NetworkUnavailable");
             return false;
         }
         NewBedwars.plugin.getMessages().send(p, "NetworkJoinSent");
+        return true;
+    }
+
+    private boolean joinCooldownPassed(UUID player) {
+        long now = System.currentTimeMillis();
+        Long last = lastJoinRequest.get(player);
+        if (last != null && now - last < JOIN_COOLDOWN_MILLIS) return false;
+        if (lastJoinRequest.size() > 64) lastJoinRequest.values().removeIf(t -> now - t >= JOIN_COOLDOWN_MILLIS);
+        lastJoinRequest.put(player, now);
         return true;
     }
 

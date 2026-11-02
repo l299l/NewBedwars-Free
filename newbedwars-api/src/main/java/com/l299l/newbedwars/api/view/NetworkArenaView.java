@@ -4,7 +4,7 @@ import java.util.Optional;
 
 /**
  * An arena on a game server of the network, as last reported to this server (read-only snapshot).
- * Only filled on {@link NetworkMode#LOBBY} servers.
+ * Filled on {@link NetworkMode#LOBBY} and {@link NetworkMode#GAME} servers (the map vote offers arenas of other servers).
  */
 public interface NetworkArenaView {
     /** The game server's name in the proxy config. */

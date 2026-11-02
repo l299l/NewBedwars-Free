@@ -6,9 +6,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Remembers how to undo what each addon registered, so it can be removed when the addon is disabled. */
 public final class ApiRegistrations {
+    private static final Logger LOG = Logger.getLogger("NewBedwars");
+
     private final Map<Plugin, List<Runnable>> undo = new HashMap<>();
 
     public synchronized void add(Plugin owner, Runnable undoAction) {
@@ -21,7 +25,8 @@ public final class ApiRegistrations {
         for (int i = actions.size() - 1; i >= 0; i--) {
             try {
                 actions.get(i).run();
-            } catch (RuntimeException ignored) {
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING, "Could not remove a registration of " + owner.getName(), e);
             }
         }
     }

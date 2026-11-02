@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.commands;
 
+import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.commands.bedwars.main.LangCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,7 +17,7 @@ public class LangStandaloneCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Only players can use this command.");
+            sender.sendMessage(NewBedwars.plugin.getMessages().getMsgToConsole("OnlyPlayer"));
             return true;
         }
         String[] shifted = new String[args.length + 1];

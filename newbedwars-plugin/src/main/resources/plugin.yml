@@ -144,6 +144,10 @@ permissions:
     description: Bypass restrictions (e.g. teleport to admins in setup worlds).
     default: op
 
+  newbedwars.chat.color:
+    description: Use colour codes (&) in arena chat messages.
+    default: op
+
   # ---- Player ---------------------------------------
   newbedwars.bw.player:
     description: Default player permissions bundle.

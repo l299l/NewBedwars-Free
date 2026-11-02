@@ -1,6 +1,9 @@
 package com.l299l.newbedwars.proxy.velocity;
 
+import com.l299l.newbedwars.common.sql.JdbcConnector;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +28,8 @@ final class ProxyConfig {
     String mysqlDatabase = "newbedwars";
     String mysqlUser = "root";
     String mysqlPassword = "";
+    String mysqlSslMode = "PREFERRED";
+    boolean mysqlAllowPublicKeyRetrieval;
     int mysqlPollSeconds = 5;
 
     static ProxyConfig load(Path dataDir) throws IOException {
@@ -33,7 +38,7 @@ final class ProxyConfig {
         for (String lang : List.of("en", "pl")) copyDefault(dataDir.resolve("lang").resolve(lang + ".yml"), "lang/" + lang + ".yml");
         Map<String, Object> m;
         try (Reader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            Object loaded = new Yaml().load(r);
+            Object loaded = yaml().load(r);
             m = loaded instanceof Map<?, ?> map ? cast(map) : Map.of();
         }
         ProxyConfig c = new ProxyConfig();
@@ -50,6 +55,8 @@ final class ProxyConfig {
             c.mysqlDatabase = String.valueOf(db.getOrDefault("database", "newbedwars"));
             c.mysqlUser = String.valueOf(db.getOrDefault("user", "root"));
             c.mysqlPassword = db.get("password") == null ? "" : String.valueOf(db.get("password"));
+            c.mysqlSslMode = JdbcConnector.normalizeSslMode(db.get("ssl-mode") == null ? null : String.valueOf(db.get("ssl-mode")));
+            c.mysqlAllowPublicKeyRetrieval = Boolean.TRUE.equals(db.get("allow-public-key-retrieval"));
             c.mysqlPollSeconds = integer(db.get("poll-seconds"), 5);
         }
         return c;
@@ -59,14 +66,18 @@ final class ProxyConfig {
     static Map<String, String> loadLanguage(Path file, String resource) throws IOException {
         Map<String, String> out = new java.util.HashMap<>();
         try (InputStream in = ProxyConfig.class.getClassLoader().getResourceAsStream(resource)) {
-            if (in != null) flat(new Yaml().load(new java.io.InputStreamReader(in, StandardCharsets.UTF_8)), out);
+            if (in != null) flat(yaml().load(new java.io.InputStreamReader(in, StandardCharsets.UTF_8)), out);
         }
         if (Files.exists(file)) {
             try (Reader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-                flat(new Yaml().load(r), out);
+                flat(yaml().load(r), out);
             }
         }
         return out;
+    }
+
+    private static Yaml yaml() {
+        return new Yaml(new SafeConstructor(new LoaderOptions()));
     }
 
     private static void flat(Object loaded, Map<String, String> out) {

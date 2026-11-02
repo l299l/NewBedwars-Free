@@ -163,4 +163,47 @@ class PartyCommandTest {
         cmd.onCommand(p2, null, "party", new String[]{"admin", "Alice"});
         verify(mockMessages).send(p2, "PartyNotAdmin");
     }
+
+    @Test
+    void acceptWhileAlreadyInPartyIsRejected() {
+        Party mine = pm.createParty(p2);
+        Player p3 = mockPlayer("Carol");
+        Party theirs = pm.createParty(p3);
+        pm.sendInvite(p3, p2, theirs);
+
+        cmd.onCommand(p2, null, "party", new String[]{"accept"});
+
+        verify(mockMessages).send(p2, "PartyAlreadyInParty");
+        verify(mockMessages, never()).send(eq(p2), eq("PartyAccepted"), any());
+        assertEquals(mine, pm.getParty(p2));
+        assertEquals(1, theirs.size());
+    }
+
+    @Test
+    void acceptOfEmptyPartyReportsNoInviteInsteadOfAccepted() {
+        Party party = pm.createParty(p1);
+        pm.sendInvite(p1, p2, party);
+        party.getMembers().clear();
+
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            cmd.onCommand(p2, null, "party", new String[]{"accept"});
+        }
+
+        verify(mockMessages).send(p2, "PartyNoPendingInvite");
+        verify(mockMessages, never()).send(eq(p2), eq("PartyAccepted"), any());
+        assertFalse(pm.isPlayerInParty(p2));
+    }
+
+    @Test
+    void inviteBeyondTheLimitIsRejected() {
+        Party party = pm.createParty(p1);
+        for (int i = 0; i < 10; i++) pm.sendInvite(p1, mockPlayer("P" + i), party);
+        Player extra = mockPlayer("Extra");
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer("Extra")).thenReturn(extra);
+            cmd.onCommand(p1, null, "party", new String[]{"invite", "Extra"});
+        }
+        verify(mockMessages).send(p1, "PartyTooManyInvites");
+        assertFalse(pm.hasPendingInvite(extra));
+    }
 }
