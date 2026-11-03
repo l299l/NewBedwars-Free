@@ -146,7 +146,6 @@ class ServerRegistryTest {
 
     @Test
     void databaseRowIsFreshFromTheProxyClockWhenItsHeartbeatChanges() {
-        // the game server's clock is far ahead of the proxy's: only changes matter
         reg.mergeFromDatabase(List.of(state("game1", 9_000_000, arena("a", 1))), 1000);
         assertTrue(reg.isFresh("game1", 1000));
         assertFalse(reg.isFresh("game1", 1000 + STALE + 1), "same heartbeat: no sign of life");
@@ -162,7 +161,6 @@ class ServerRegistryTest {
         reg.update("game1", state("game1", 0, arena("a", 1)), 1000);
         reg.mergeFromDatabase(List.of(state("game1", 777, arena("a", 7))), 2000);
         assertEquals(1, first(reg.snapshot(2000), "game1").players);
-        // once the message state is stale, a changed heartbeat takes over
         reg.mergeFromDatabase(List.of(state("game1", 888, arena("a", 7))), 1000 + STALE + 1);
         assertEquals(7, first(reg.snapshot(1000 + STALE + 1), "game1").players);
     }

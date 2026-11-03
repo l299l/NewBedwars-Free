@@ -1,9 +1,7 @@
 package com.l299l.newbedwars.common.protocol.payload;
 
-/** A backend server announces itself to the proxy. */
 public class Hello {
     public String serverId;
-    /** {@code GAME} or {@code LOBBY}. */
     public String mode;
     public String pluginVersion;
 

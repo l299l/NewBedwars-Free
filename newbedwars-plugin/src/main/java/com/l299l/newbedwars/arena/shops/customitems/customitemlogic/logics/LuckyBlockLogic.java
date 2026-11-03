@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 public class LuckyBlockLogic implements CustomLogic {
     @Override
     public boolean perform(Player player, IArena arena) {
-        return true; // Lucky block placement handled directly
+        return true;
     }
 
     @Override

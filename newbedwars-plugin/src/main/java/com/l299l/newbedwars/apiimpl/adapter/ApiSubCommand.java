@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-/** Shows an addon's command to the plugin's command system. */
 public final class ApiSubCommand extends SubCommand {
     private final AddonCommand command;
 

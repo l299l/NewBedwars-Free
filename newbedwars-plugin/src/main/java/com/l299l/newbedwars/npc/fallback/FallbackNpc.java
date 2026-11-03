@@ -7,7 +7,6 @@ import org.bukkit.World;
 
 import java.util.UUID;
 
-/** A plain entity used as a join NPC when Citizens is not installed. Saved in {@code data/npcs.json}. */
 public final class FallbackNpc {
     public int id;
     public String entityType;
@@ -19,7 +18,6 @@ public final class FallbackNpc {
     public float pitch;
     public String action;
     public String target;
-    /** The spawned entity; not saved. */
     public transient UUID entity;
 
     public FallbackNpc() {}
@@ -37,12 +35,10 @@ public final class FallbackNpc {
         this.target = action.getTarget();
     }
 
-    /** The stored action, or null when the file holds an invalid one. */
     public JoinNpcAction joinAction() {
         return JoinNpcAction.tryParse(action, target);
     }
 
-    /** The stored location, or null while its world is not loaded. */
     public Location location() {
         World w = Bukkit.getWorld(world);
         return w == null ? null : new Location(w, x, y, z, yaw, pitch);

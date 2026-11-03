@@ -26,7 +26,6 @@ import java.util.UUID;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Hotbar items of waiting players and spectators (leave bed, compass, effects), and spectator protection. */
 public class SpectatorListener implements Listener {
     private final NewBedwars plugin;
     private final HashMap<UUID, BukkitTask> pendingLeave = new HashMap<>();
@@ -117,7 +116,6 @@ public class SpectatorListener implements Listener {
         }
     }
 
-    /** Spectators can not be hurt; void damage (no Quick Void Y, or flying down fast) sends them back up. */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onSpectatorDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p)) return;

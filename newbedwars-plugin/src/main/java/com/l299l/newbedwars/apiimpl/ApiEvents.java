@@ -27,7 +27,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.ItemStack;
 
-/** The only place that builds and fires API events, so the rest of the plugin stays free of event details. */
 public final class ApiEvents {
     private ApiEvents() {}
 
@@ -44,12 +43,10 @@ public final class ApiEvents {
         return event;
     }
 
-    /** LOBBY mode: the network arena list changed. */
     public static void networkArenasUpdate(java.util.Collection<com.l299l.newbedwars.api.view.NetworkArenaView> arenas) {
         call(new com.l299l.newbedwars.api.events.NetworkArenasUpdateEvent(java.util.Collections.unmodifiableCollection(arenas)));
     }
 
-    /** LOBBY mode, before a join/rejoin request goes to the proxy. @return false when a listener cancelled it */
     public static boolean networkJoinRequest(Player player, com.l299l.newbedwars.common.protocol.payload.TargetKind kind, String target) {
         com.l299l.newbedwars.api.events.NetworkJoinRequestEvent.Kind k = switch (kind) {
             case ANY -> com.l299l.newbedwars.api.events.NetworkJoinRequestEvent.Kind.ANY;
@@ -73,12 +70,10 @@ public final class ApiEvents {
         call(new ArenaResetEvent(view(arena), stage));
     }
 
-    /** @return false when a listener cancelled the join */
     public static boolean playerJoin(IArena arena, Player player, boolean rejoin) {
         return !call(new PlayerJoinArenaEvent(view(arena), player, rejoin)).isCancelled();
     }
 
-    /** @return false when a listener cancelled the vote */
     public static boolean mapVote(IArena host, Player player, IArena voted) {
         return !call(new MapVoteEvent(view(host), player, view(voted))).isCancelled();
     }
@@ -104,7 +99,6 @@ public final class ApiEvents {
         call(new PlayerLeaveArenaEvent(view(arena), player, reason));
     }
 
-    /** @return false when a listener cancelled the bed break */
     public static boolean bedBreak(IArena arena, Team team, Player breaker) {
         return !call(new BedBreakEvent(view(arena), view(team), breaker)).isCancelled();
     }
@@ -113,17 +107,14 @@ public final class ApiEvents {
         call(new PlayerKillEvent(view(arena), victim, killer, finalKill, cause));
     }
 
-    /** @return false when a listener cancelled the purchase */
     public static boolean shopPurchase(IArena arena, Player player, String item, ShopPurchaseEvent.Kind kind, String priceType, int price) {
         return !call(new ShopPurchaseEvent(view(arena), player, item, kind, priceType, price)).isCancelled();
     }
 
-    /** @return false when a listener cancelled the upgrade */
     public static boolean teamUpgrade(IArena arena, Team team, String upgrade, int newLevel, Player buyer) {
         return !call(new TeamUpgradeEvent(view(arena), view(team), upgrade, newLevel, buyer)).isCancelled();
     }
 
-    /** @return the armor to apply, possibly replaced by a listener */
     public static ItemStack[] armorEquip(IArena arena, Player player, ItemStack[] armor) {
         return call(new ArmorEquipEvent(view(arena), player, armor)).getArmor();
     }

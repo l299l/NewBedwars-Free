@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/** Network part of the API: actions outside a lobby, stats, view defaults and the join-request event. */
 class ApiNetworkTest {
     private final NewBedwarsApiImpl api = new NewBedwarsApiImpl();
 
@@ -102,7 +101,7 @@ class ApiNetworkTest {
                 return null;
             }).when(pm).callEvent(any(Event.class));
             assertFalse(ApiEvents.networkJoinRequest(p, TargetKind.REJOIN, null));
-            for (TargetKind k : TargetKind.values()) ApiEvents.networkJoinRequest(p, k, null); // every kind maps
+            for (TargetKind k : TargetKind.values()) ApiEvents.networkJoinRequest(p, k, null);
         }
     }
 }

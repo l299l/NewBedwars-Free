@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** The proxy tells a backend about a party (or that it was disbanded / a player left it). */
 public class PartySync {
     public static class Member {
         public UUID uuid;
@@ -21,9 +20,9 @@ public class PartySync {
     public String partyId;
     public UUID admin;
     public List<Member> members = new ArrayList<>();
-    /** The party no longer exists: drop it. */
+
     public boolean disbanded;
-    /** Players that are no longer in any party (left or kicked). */
+
     public List<UUID> removed = new ArrayList<>();
 
     public PartySync() {}

@@ -29,8 +29,6 @@ class TeamTest {
         return mock(Player.class);
     }
 
-    // ── initial state ─────────────────────────────────────────────────────────
-
     @Test
     void newTeamHasCorrectNameAndColor() {
         assertEquals("Red", team.getName());
@@ -46,8 +44,6 @@ class TeamTest {
     void newTeamHasNoPlayers() {
         assertTrue(team.getPlayers().isEmpty());
     }
-
-    // ── addPlayer / removePlayer ──────────────────────────────────────────────
 
     @Test
     void addPlayerIncreasesPlayerCount() {
@@ -89,8 +85,6 @@ class TeamTest {
         assertEquals(1, team.getPlayers().size());
         assertTrue(team.isAlive());
     }
-
-    // ── isInBuildProtArea ─────────────────────────────────────────────────────
 
     private static Location loc(double x, double y, double z) {
         return new Location(null, x, y, z);
@@ -136,8 +130,6 @@ class TeamTest {
         assertTrue(team.isInBuildProtArea(loc(10, 70, 10)));
     }
 
-    // ── isInBase ─────────────────────────────────────────────────────────────
-
     @Test
     void isInBaseReturnsFalseWhenNotSet() {
         assertFalse(team.isInBase(loc(5, 64, 5)));
@@ -149,8 +141,6 @@ class TeamTest {
         team.setTeamBasePos2(loc(15, 75, 15));
         assertTrue(team.isInBase(loc(5, 65, 5)));
     }
-
-    // ── null checks for optional fields ───────────────────────────────────────
 
     @Test
     void isBedSetReturnsFalseInitially() {
@@ -173,8 +163,6 @@ class TeamTest {
         team.setTeamBuildProtAreaPos2(loc(10, 70, 10));
         assertTrue(team.isBuildProtAreaPosSet());
     }
-
-    // ── color ─────────────────────────────────────────────────────────────────
 
     @Test
     void colorCanBeChangedOutsideAGame() {

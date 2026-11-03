@@ -46,10 +46,6 @@ public class PlayerStatsDataJson {
         }
     }
 
-    /**
-     * Serializes the stats on the calling (main) thread, so nothing changes them while they are read,
-     * and writes the file in the background through a temp file, so a crash can not leave it half written.
-     */
     public void save() {
         String json = new Gson().toJson(new HashMap<>(NewBedwars.plugin.getPlayerManager().getAllStats()));
         Path target = new File(NewBedwars.plugin.getDataFolder(), "data/playerStats.json").toPath();

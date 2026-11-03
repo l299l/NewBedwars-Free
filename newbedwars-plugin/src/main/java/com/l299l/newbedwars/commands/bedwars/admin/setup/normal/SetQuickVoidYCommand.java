@@ -8,7 +8,6 @@ import java.util.List;
 
 public class SetQuickVoidYCommand extends BwCommand {
 
-
     @Override public String getName() { return "setQuickVoidY"; }
     @Override public String getDescription() { return "Set the Y level at which players instantly die (quick void)."; }
     @Override public String getSyntax() { return "/bw setQuickVoidY (<y>)"; }

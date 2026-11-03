@@ -11,7 +11,6 @@ import java.util.List;
 
 public class SetTeamsAccessoriesCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "setTeamAccessories";

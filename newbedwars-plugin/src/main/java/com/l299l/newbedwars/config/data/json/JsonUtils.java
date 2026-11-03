@@ -8,7 +8,7 @@ import org.bukkit.Location;
 import java.io.IOException;
 
 public class JsonUtils {
-    /** Returns {@code value} as a quoted, escaped JSON string ({@code null} for null). */
+
     public static String quote(String value) {
         return value == null ? "null" : new JsonPrimitive(value).toString();
     }
@@ -43,9 +43,6 @@ public class JsonUtils {
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
     }
 
-
-
-    /** Replaces every {@code "world": oldWorld} (locations, at any depth) with {@code newWorld}. */
     public static void renameWorld(com.google.gson.JsonElement element, String oldWorld, String newWorld) {
         if (element == null) return;
         if (element.isJsonArray()) {

@@ -9,11 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * An armor tier of the shop (leather, gold, iron, ...). The built-in tiers are registered here; addons add
- * their own (for example copper). A higher {@link #rank()} replaces a lower one; buying a lower or equal tier
- * is refused.
- */
 public final class ArmorTier {
     private static final Map<String, ArmorTier> TIERS = new LinkedHashMap<>();
 
@@ -23,7 +18,7 @@ public final class ArmorTier {
     public static final ArmorTier IRON = builtIn("IRON", 3, Material.IRON_BOOTS, Material.IRON_LEGGINGS, Material.IRON_CHESTPLATE, Material.IRON_HELMET);
     public static final ArmorTier DIAMOND = builtIn("DIAMOND", 4, Material.DIAMOND_BOOTS, Material.DIAMOND_LEGGINGS, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_HELMET);
     public static final ArmorTier NETHERITE = builtIn("NETHERITE", 5, Material.NETHERITE_BOOTS, Material.NETHERITE_LEGGINGS, Material.NETHERITE_CHESTPLATE, Material.NETHERITE_HELMET);
-    /** Armor made of shop items chosen by the arena ({@code otherArmorContents}); not a real tier. */
+
     public static final ArmorTier OTHER = new ArmorTier("OTHER", Integer.MAX_VALUE, null, null, null, null);
 
     private final String name;
@@ -48,7 +43,6 @@ public final class ArmorTier {
         return tier;
     }
 
-    /** @throws IllegalArgumentException when the name is taken or a material is not armor of the right slot */
     public static synchronized ArmorTier register(String name, int rank, Material boots, Material leggings, Material chestplate, Material helmet) {
         String key = name.trim().toUpperCase(Locale.ROOT);
         if (key.isEmpty() || TIERS.containsKey(key) || key.equals("OTHER")) {
@@ -69,7 +63,6 @@ public final class ArmorTier {
         }
     }
 
-    /** Removes an addon tier. The built-in tiers can not be removed. */
     public static synchronized boolean unregister(ArmorTier tier) {
         if (tier == null || tier == OTHER || tier == BASIC || tier == GOLD || tier == CHAINMAIL || tier == IRON
                 || tier == DIAMOND || tier == NETHERITE) {
@@ -82,7 +75,6 @@ public final class ArmorTier {
         return Collections.unmodifiableList(new ArrayList<>(TIERS.values()));
     }
 
-    /** The tier a shop armor piece belongs to, or {@link #OTHER} when no tier contains the material. */
     public static synchronized ArmorTier getArmorTier(Material material) {
         for (ArmorTier tier : TIERS.values()) {
             if (tier.boots == material || tier.leggings == material || tier.chestplate == material || tier.helmet == material) {

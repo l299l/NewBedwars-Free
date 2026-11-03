@@ -44,7 +44,6 @@ public class ArmorContents {
         other = new ArrayList<>();
     }
 
-    /** Equips the armor only; the rest of the inventory is left alone. */
     public void applyArmor(Player player) {
         this.player = player;
         ItemStack[] armorToSet = getArmorContents();
@@ -53,10 +52,6 @@ public class ArmorContents {
         player.getInventory().setArmorContents(armorToSet);
     }
 
-    /**
-     * Gives a freshly bought tool. It takes the place of the player's current tool of the same kind
-     * (wooden pickaxe -> iron pickaxe) wherever they moved it; other slots are never touched.
-     */
     public void giveTool(Player player, CustomItem tool) {
         this.player = player;
         String type = getToolType(tool.getMaterial());
@@ -80,14 +75,12 @@ public class ArmorContents {
         giveOrDrop(player, newItem);
     }
 
-    /** Adds the item to the inventory; what does not fit lands at the player's feet instead of vanishing. */
     public static void giveOrDrop(Player player, ItemStack item) {
         for (ItemStack left : player.getInventory().addItem(item).values()) {
             player.getWorld().dropItemNaturally(player.getLocation(), left);
         }
     }
 
-    /** Equips everything (start of the game, respawn). */
     public void loadPlayerArmorContents(Player player) {
         applyArmor(player);
         ItemStack[] contents = getInventoryContents();
@@ -124,7 +117,6 @@ public class ArmorContents {
         sword = getBasicSword();
     }
 
-    /** Drops pickaxe, axe and shears (they must be bought again). */
     public void resetTools() {
         pickaxe = null;
         axe = null;
@@ -203,7 +195,6 @@ public class ArmorContents {
         return NewBedwars.plugin.getCustomItemManager().getCustomItem(Properties.BasicSword);
     }
 
-    /** Boots and leggings of the tier, plus its chestplate and helmet when {@code FullArmor} is on (else team leather). */
     private ItemStack[] getTierArmor(ArmorTier tier, boolean all, int protectionLevel, ChatColor color) {
         ItemStack[] items = new ItemStack[]{
                 piece(tier.boots(), color),
@@ -219,7 +210,6 @@ public class ArmorContents {
         return items;
     }
 
-    /** Leather pieces get the team color, everything else is used as is. */
     private ItemStack piece(Material material, ChatColor color) {
         return material.name().startsWith("LEATHER_") ? createLeatherArmor(material, color) : new ItemStack(material);
     }

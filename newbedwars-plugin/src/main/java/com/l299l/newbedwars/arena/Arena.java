@@ -209,10 +209,6 @@ public class Arena implements IArena {
         shutdown(true);
     }
 
-    /**
-     * Ends the game and empties the arena. A normal stop resets the map; {@code force} (plugin disable or
-     * reload) kicks everyone and leaves the map to the dirty marker.
-     */
     private void shutdown(boolean force) {
         gameStatus = GameStatus.restarting;
         if (!force) MapVoteManager.resetArena(this);
@@ -280,35 +276,19 @@ public class Arena implements IArena {
         }
     }
 
-    /**
-     * Resets the arena world. With the default (template) system this only starts an asynchronous
-     * pipeline and returns {@code true} when it started; the arena stays {@code restarting} until the
-     * pipeline calls {@link #finishReset}. Without a template, or with {@code Rollback.UseLegacySystem},
-     * the world is reloaded synchronously from the server folder.
-     */
     @Override
     public boolean rollback() {
         return reset.rollback();
     }
 
-    /** Called by {@link ArenaResetPipeline} when the fresh world is loaded. */
     public void finishReset(World newWorld) {
         reset.finishReset(newWorld);
     }
 
-    /**
-     * Admin command: puts the map back to its saved state right now. Only possible while nobody is in
-     * the arena. Returns false when the arena is busy.
-     */
     public boolean resetMap() {
         return reset.resetMap();
     }
 
-    /**
-     * Called by {@link ArenaResetPipeline} when the arena can not be reset. The arena stays
-     * {@code restarting} (nobody can join) and the reset is retried automatically a few times; only when
-     * that keeps failing, or there is no template to restore, the arena is disabled.
-     */
     public void failReset(String reason) {
         reset.failReset(reason);
     }
@@ -317,7 +297,6 @@ public class Arena implements IArena {
         gameStatus = status;
     }
 
-    /** A reset that keeps failing takes the arena out of use until an admin looks at it. */
     void disableBroken(String reason) {
         enabled = false;
         setup = Setup.NO_SETUP;
@@ -413,7 +392,6 @@ public class Arena implements IArena {
         return true;
     }
 
-    /** True while the player is actually in another arena's world as one of its players. */
     private boolean playsInOtherArena(Player player) {
         for (IArena other : ArenaRegistry.all()) {
             if (other != this && other.isPlayerInArena(player)
@@ -422,7 +400,6 @@ public class Arena implements IArena {
         return false;
     }
 
-    /** Joining this arena gives up the player's place in any game they could still rejoin. */
     private void forfeitOtherRejoins(Player player) {
         for (IArena other : new ArrayList<>(ArenaRegistry.all())) {
             if (other != this) other.forfeitRejoin(player);
@@ -596,7 +573,7 @@ public class Arena implements IArena {
                 int time = Math.max(1, respawnTime);
                 @Override
                 public void run() {
-                    // Stop when the game ended or the player left (lobby, disconnect) while waiting to respawn.
+
                     if (gameStatus != GameStatus.playing || !isPlayerInArena(player)
                             || !player.isOnline() || !spectatorsList.contains(player)) {
                         cancel();
@@ -628,7 +605,7 @@ public class Arena implements IArena {
 
     @Override
     public int getActivePlayerCount() {
-        // teams are only assigned when the game starts, so the lobby counts everyone who joined
+
         if (gameStatus == GameStatus.waiting || gameStatus == GameStatus.starting) return players.size();
         int count = 0;
         for (Team team : teams.values()) {
@@ -653,7 +630,6 @@ public class Arena implements IArena {
                 "/players/", Integer.toString(players.size())));
     }
 
-    /** Everyone who should see arena messages: the players and the spectators who are not in the player list. */
     private List<Player> audience() {
         Set<Player> audience = new LinkedHashSet<>();
         for (UUID uuid : players.keySet()) {
@@ -1310,18 +1286,12 @@ public class Arena implements IArena {
         return count;
     }
 
-    /** A game needs players in at least two teams; one big party may otherwise be alone. */
     private boolean hasEnoughTeams() {
         boolean keepParties = gamerules.AllowParties;
         if (nonEmptyTeams(computeAssignment(keepParties)) >= 2) return true;
         return keepParties && splitPartiesToStart() && nonEmptyTeams(computeAssignment(false)) >= 2;
     }
 
-    /**
-     * Distributes everyone in the arena over the teams. Party members stay together when
-     * possible; teams are filled evenly (ties are random when {@code RandomTeams} is on).
-     * If that would leave a single team, parties are split (gamerule {@code SplitPartiesToStart}).
-     */
     private void assignTeams() {
         boolean keepParties = gamerules.AllowParties;
         List<List<Player>> assignment = computeAssignment(keepParties);
@@ -1364,7 +1334,6 @@ public class Arena implements IArena {
         }
     }
 
-    /** A finished game removes the bar, so the next waiting lobby gets a fresh one on first use. */
     private void addToBossBar(Player player) {
         if (arenaBossBar == null && (gameStatus == GameStatus.waiting || gameStatus == GameStatus.starting)) {
             arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("WaitingBeforeStart", this);
@@ -1464,7 +1433,6 @@ public class Arena implements IArena {
         }
     }
 
-    /** Offline players whose team has been eliminated can no longer rejoin. */
     private void dropRejoinOfDeadTeams() {
         for (UUID id : rejoin.waiting()) {
             GamePlayer gp = players.get(id);
@@ -1487,7 +1455,7 @@ public class Arena implements IArena {
                 }
             }
         } else if (alive == 0) {
-            // everyone left or was eliminated at once: nobody wins
+
             startEnding(null);
             return true;
         }
@@ -1537,7 +1505,6 @@ public class Arena implements IArena {
         NewBedwars.plugin.getDataManager().savePlayerStats();
     }
 
-    /** Players who already left (lobby, waiting for a rejoin) are not pulled back to watch the end. */
     void watchEnding() {
         for (UUID uuid : new ArrayList<>(players.keySet())) {
             Player p = Bukkit.getPlayer(uuid);

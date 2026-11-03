@@ -11,7 +11,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -39,7 +38,7 @@ class GamePlayerTest {
 
         player = mock(Player.class);
         when(player.getName()).thenReturn("Alice");
-        when(player.getWorld()).thenReturn(mock(World.class)); // arena lookup returns null → falls back to defaults
+        when(player.getWorld()).thenReturn(mock(World.class));
 
         team = mock(Team.class);
     }
@@ -53,8 +52,6 @@ class GamePlayerTest {
         return new GamePlayer(player, team);
     }
 
-    // ── constructor / getters ─────────────────────────────────────────────────
-
     @Test
     void constructorSetsPlayerAndTeam() {
         GamePlayer gp = createGamePlayer();
@@ -65,11 +62,9 @@ class GamePlayerTest {
     @Test
     void constructorFallsBackToDefaultGuiWhenPlayerNotRegisteredInManager() {
         when(mockPm.getPlayer("Alice")).thenReturn(null);
-        // Falls back to Properties.DefaultTeamShopGui / DefaultUpgradeShopGui — no NPE
+
         assertDoesNotThrow(this::createGamePlayer);
     }
-
-    // ── kills ─────────────────────────────────────────────────────────────────
 
     @Test
     void killsStartAtZero() {
@@ -84,8 +79,6 @@ class GamePlayerTest {
         assertEquals(2, gp.getKills());
     }
 
-    // ── final kills ───────────────────────────────────────────────────────────
-
     @Test
     void finalKillsStartAtZero() {
         assertEquals(0, createGamePlayer().getFinalKills());
@@ -97,8 +90,6 @@ class GamePlayerTest {
         gp.addFinalKill();
         assertEquals(1, gp.getFinalKills());
     }
-
-    // ── beds broken ───────────────────────────────────────────────────────────
 
     @Test
     void bedsBrokenStartAtZero() {
@@ -113,8 +104,6 @@ class GamePlayerTest {
         gp.addBedBroken();
         assertEquals(3, gp.getBedsBroken());
     }
-
-    // ── stats independence ────────────────────────────────────────────────────
 
     @Test
     void killFinalKillAndBedCountsAreIndependent() {

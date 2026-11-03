@@ -4,7 +4,6 @@ import com.l299l.newbedwars.npc.JoinNpcAction;
 import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.util.DataKey;
 
-/** Citizens trait holding a join NPC's action; Citizens saves it with the NPC. */
 public class NewBedwarsJoinTrait extends Trait {
     public static final String NAME = "newbedwarsjoin";
 
@@ -37,12 +36,10 @@ public class NewBedwarsJoinTrait extends Trait {
         }
     }
 
-    /** The action, or null when none (or an invalid one) is stored. */
     public JoinNpcAction getAction() {
         return JoinNpcAction.tryParse(action, target);
     }
 
-    /** Forgets the action, so a removed trait that Citizens still hands out does nothing. */
     public void clearAction() {
         action = null;
         target = null;

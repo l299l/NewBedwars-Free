@@ -13,8 +13,6 @@ class PlayerManagerTest {
         return new PlayerProfile(UUID.randomUUID(), name, Language.English, PlayerProfile.defaultFastBuy());
     }
 
-    // ── add / get ────────────────────────────────────────────────────────────
-
     @Test
     void addAndGetPlayerRoundTrip() {
         PlayerManager pm = new PlayerManager();
@@ -28,8 +26,6 @@ class PlayerManagerTest {
         PlayerManager pm = new PlayerManager();
         assertNull(pm.getPlayer("nobody"));
     }
-
-    // ── remove ───────────────────────────────────────────────────────────────
 
     @Test
     void removePlayerDeletesEntry() {
@@ -45,8 +41,6 @@ class PlayerManagerTest {
         assertDoesNotThrow(() -> pm.removePlayer("nobody"));
     }
 
-    // ── updatePlayerLanguage ─────────────────────────────────────────────────
-
     @Test
     void updatePlayerLanguageUpdatesExistingEntry() {
         PlayerManager pm = new PlayerManager();
@@ -54,8 +48,6 @@ class PlayerManagerTest {
         pm.updatePlayerLanguage("Alice", Language.Polish);
         assertEquals(Language.Polish, pm.getPlayer("Alice").language());
     }
-
-    // ── getPlayers ───────────────────────────────────────────────────────────
 
     @Test
     void getPlayersReturnsLiveMap() {

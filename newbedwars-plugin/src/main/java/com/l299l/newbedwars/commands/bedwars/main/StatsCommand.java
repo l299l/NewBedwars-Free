@@ -16,7 +16,6 @@ import java.util.List;
 
 public class StatsCommand extends BwCommand {
 
-
     @Override public String getName() { return "stats"; }
     @Override public String getDescription() { return "View your or another player's stats."; }
     @Override public String getSyntax() { return "/bw stats [player]"; }

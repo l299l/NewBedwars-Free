@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-/** A chest listing the enabled arenas (sorted by name), one icon per arena; subclasses draw the icon. */
 public abstract class ArenaListGUI implements InventoryHolder {
     private final Inventory inv;
     private final Map<Integer, IArena> slotToArena = new HashMap<>();
@@ -64,7 +63,6 @@ public abstract class ArenaListGUI implements InventoryHolder {
         };
     }
 
-    /** A message in the viewer's language. */
     protected String text(String key) {
         return text(viewer, key);
     }

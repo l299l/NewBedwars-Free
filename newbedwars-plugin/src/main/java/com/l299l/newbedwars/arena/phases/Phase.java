@@ -20,7 +20,7 @@ public class Phase {
         this.duration = duration;
         this.actions = actions;
     }
-    /** A fresh phase with the same settings; running state (duration, timer) is never shared between arenas. */
+
     public Phase copy() {
         return new Phase(name, initialDuration, actions);
     }
@@ -31,7 +31,7 @@ public class Phase {
         if (duration > 0) {
             startTimer(arena);
         }
-        // a failing action must not skip the others or stop the timer above
+
         for (PhaseAction action : actions) {
             try {
                 action.execute(arena);

@@ -44,7 +44,7 @@ public class PortableTowerLogic implements CustomLogic {
                         Location check = new Location(world, cx + dx, floorY + dy, cz + dz);
                         if (arenaImpl.isInTeamBase(check) || arenaImpl.isNearDiamondOrEmeraldGenerator(check)) {
                             NewBedwars.plugin.getMessages().send(player, "PortableTowerProtectedArea");
-                            return false; // blocked - item NOT consumed
+                            return false;
                         }
                     }
                 }
@@ -58,8 +58,6 @@ public class PortableTowerLogic implements CustomLogic {
             player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
         }
 
-        // Entrance faces back towards where the player was standing when they placed the
-        // tower (the opposite of their look direction), not away from them.
         BlockFace facing = getCardinalDirection(player.getLocation().getYaw()).getOppositeFace();
         int doorDx = facing.getModX();
         int doorDz = facing.getModZ();
@@ -81,7 +79,7 @@ public class PortableTowerLogic implements CustomLogic {
                         lb.setBlockData(ld, false);
                         arena.addPlacedBlock(lb.getLocation());
                     } else if (dx == doorDx && dz == doorDz && dy <= 2) {
-                        // Doorway facing the player's direction on placement — air for entry/exit
+
                     } else {
                         setTracked(arena, wool, world, cx + dx, y, cz + dz);
                     }
@@ -91,7 +89,7 @@ public class PortableTowerLogic implements CustomLogic {
 
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                if (dx == 0 && dz == 0) continue; // roof hatch directly above ladder
+                if (dx == 0 && dz == 0) continue;
                 setTracked(arena, wool, world, cx + dx, floorY + 5, cz + dz);
             }
         }
@@ -105,8 +103,8 @@ public class PortableTowerLogic implements CustomLogic {
                 }
             }
         }
-        
-        return true; // Tower successfully placed
+
+        return true;
     }
 
     private BlockFace getCardinalDirection(float yaw) {

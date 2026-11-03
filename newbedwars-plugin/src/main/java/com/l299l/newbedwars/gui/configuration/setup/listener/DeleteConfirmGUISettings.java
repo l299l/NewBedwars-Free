@@ -94,7 +94,7 @@ public class DeleteConfirmGUISettings implements Listener {
         IOExecutor.flush();
         boolean complete = deleteQuietly(worldFolder);
         complete &= deleteQuietly(NewBedwars.plugin.getDataFolder().toPath().resolve("data/arenas/" + arenaName + ".json"));
-        // The template goes with the arena; backups in data/backups are intentionally kept.
+
         complete &= deleteQuietly(ArenaMaps.mapsRoot().resolve(arenaName));
 
         msg.send(player, complete ? "ArenaDeleted" : "ArenaDeletedPartially", Map.of("/arenaname/", arenaName));

@@ -11,19 +11,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- * Picks where a join request goes. Arenas of servers with a fresh state that fit the request come first,
- * the fullest first (same rule as a local {@code /bw join}), ties by arena name. Game servers without a
- * fresh state come last as "blind" candidates: the player is sent with the request itself and the game
- * server decides (and rejects when nothing fits).
- */
 public final class ServerSelector {
-    /** Longest group/arena target a request may carry. */
     public static final int MAX_TARGET_LENGTH = 64;
 
     private ServerSelector() {}
 
-    /** A game server known to the proxy. {@code state} may be null. */
     public static final class Candidate {
         public final String serverId;
         public final ServerState state;
@@ -36,7 +28,6 @@ public final class ServerSelector {
         }
     }
 
-    /** One place to try: a server and the arena there, or a null arena for a blind try. */
     public static final class Choice {
         public final String serverId;
         public final String arena;
@@ -56,12 +47,6 @@ public final class ServerSelector {
         }
     }
 
-    /**
-     * All places to try, best first.
-     *
-     * @param needed  players joining together (party size, at least 1)
-     * @param exclude server ids that already rejected this request
-     */
     public static List<Choice> choose(Collection<Candidate> servers, TargetKind kind, String target,
                                       int needed, Set<String> exclude) {
         int n = Math.max(1, needed);
@@ -90,7 +75,6 @@ public final class ServerSelector {
         return out;
     }
 
-    /** Where {@code player} can rejoin: the arena holding their (unexpired) rejoin slot, or null. */
     public static Choice findRejoin(Collection<Candidate> servers, java.util.UUID player, long now) {
         for (Candidate c : servers) {
             if (c == null || c.state == null || c.state.arenas == null) continue;
@@ -101,7 +85,6 @@ public final class ServerSelector {
         return null;
     }
 
-    /** Where the running game {@code arena} can be watched: a playing or ending arena with that name, or null. */
     public static Choice findRunning(Collection<Candidate> servers, String arena) {
         if (arena == null) return null;
         Choice best = null;
@@ -116,12 +99,11 @@ public final class ServerSelector {
         return best;
     }
 
-    /** Whether {@code a} is what the request aims at (ignores whether it has room). */
     public static boolean matchesTarget(ArenaInfo a, TargetKind kind, String target) {
-        if (kind == TargetKind.REJOIN || kind == TargetKind.SPECTATE) return false; // routed by slot / running game
+        if (kind == TargetKind.REJOIN || kind == TargetKind.SPECTATE) return false;
         if (kind == null || kind == TargetKind.ANY || target == null || target.isEmpty()) return true;
         if (kind == TargetKind.ARENA) return a.name.equalsIgnoreCase(target);
-        // GROUP: the arena group first, else a name pattern ("solo*") or a team size ("4x1").
+
         if (a.group != null && a.group.equalsIgnoreCase(target)) return true;
         return matchesPatternOrSize(a, target);
     }
@@ -135,13 +117,12 @@ public final class ServerSelector {
                 int perTeam = Integer.parseInt(t.substring(x + 1));
                 return a.teams == teams && a.maxInTeam == perTeam;
             } catch (NumberFormatException ignored) {
-                // not a size, fall through to the pattern
+
             }
         }
         return glob(target, a.name);
     }
 
-    /** Same glob rule as local join NPCs: '*' = any characters, everything else literal, case-insensitive. */
     static boolean glob(String pattern, String text) {
         String p = pattern.toLowerCase(Locale.ROOT);
         String t = text.toLowerCase(Locale.ROOT);

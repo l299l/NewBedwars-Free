@@ -34,11 +34,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Next-map voting at the end of a game in a grouped arena: during the after-game watch time everyone still in the
- * arena gets a vote item; when the time is up the arena stops as usual and everyone is put into the waiting lobby
- * of the arena that won.
- */
 public final class MapVoteManager implements Listener {
     private static MapVoteManager instance;
     private final Map<String, MapVote> votes = new HashMap<>();
@@ -52,14 +47,10 @@ public final class MapVoteManager implements Listener {
         return instance;
     }
 
-    // ---- Static hooks called by Arena (no-ops without a manager, e.g. in unit tests) ---------------------
-
-    /** The game ended (start of the watch time): open the vote and hand out the vote items. */
     public static void gameEnded(IArena arena) {
         if (instance != null) instance.onGameEnded(arena);
     }
 
-    /** Someone started spectating during the watch time: they can vote (and will move) too. */
     public static void spectatorJoined(IArena arena, Player player) {
         if (instance != null && instance.isOpen(arena)) giveItem(player);
     }
@@ -68,10 +59,6 @@ public final class MapVoteManager implements Listener {
         if (instance != null) instance.onLeave(arena, player);
     }
 
-    /**
-     * The watch time is over: picks the winner. Call before {@code stop()} and run the returned task after it,
-     * which puts everyone into the winner's waiting lobby. Null when there is nothing to do.
-     */
     public static Runnable closeEndVote(IArena arena) {
         return instance == null ? null : instance.onClose(arena);
     }
@@ -80,18 +67,14 @@ public final class MapVoteManager implements Listener {
         if (instance != null) instance.votes.remove(key(arena));
     }
 
-    /** Forgets every vote (plugin reload). */
     public void clear() {
         votes.clear();
     }
-
-    // ---- State --------------------------------------------------------------------------------------------
 
     private static String key(IArena arena) {
         return arena.getArenaName().toLowerCase(Locale.ROOT);
     }
 
-    /** The group of {@code arena} when it votes (in a group of 2+ arenas, or a single-arena group on a network game server, and gamerule {@code MapVote} on), else null. */
     public ArenaGroup votingGroup(IArena arena) {
         ArenaGroupManager groups = ArenaGroupManager.get();
         if (groups == null) return null;
@@ -106,16 +89,11 @@ public final class MapVoteManager implements Listener {
         return votes.computeIfAbsent(key(ended), k -> new MapVote());
     }
 
-    /** Whether {@code ended} is in its watch time with an open vote. */
     public boolean isOpen(IArena ended) {
         MapVote v = votes.get(key(ended));
         return v != null && !v.isClosed() && ended.status() == GameStatus.ending;
     }
 
-    /**
-     * Arenas the players of {@code ended} can vote for: the other enabled arenas of the group that are waiting or starting, with room
-     * for everyone who would move. The ended arena itself is not offered (its map is reset).
-     */
     public List<IArena> options(IArena ended) {
         ArenaGroup group = votingGroup(ended);
         List<IArena> options = new ArrayList<>();
@@ -130,10 +108,6 @@ public final class MapVoteManager implements Listener {
         return options;
     }
 
-    /**
-     * Every map that can be voted for: {@link #options} on this server, then (network mode) the free arenas of the
-     * same group on the other game servers with room for everyone who would move.
-     */
     public List<VoteOption> allOptions(IArena ended) {
         List<VoteOption> all = new ArrayList<>();
         for (IArena a : options(ended)) all.add(VoteOption.local(a));
@@ -157,7 +131,6 @@ public final class MapVoteManager implements Listener {
         return null;
     }
 
-    /** Everyone still in the ended arena (all players are spectators during the watch time), each once. */
     private static List<Player> voters(IArena arena) {
         List<Player> result = new ArrayList<>();
         for (Player p : arena.getSpectators()) {
@@ -173,8 +146,6 @@ public final class MapVoteManager implements Listener {
         for (IArena a : arenas) names.add(a.getArenaName());
         return names;
     }
-
-    // ---- Lifecycle ----------------------------------------------------------------------------------------
 
     private void onGameEnded(IArena arena) {
         votes.remove(key(arena));
@@ -213,14 +184,13 @@ public final class MapVoteManager implements Listener {
         ended.broadcast("MapVoteChosen", Map.of("/arena/",
                 winner.isRemote() ? winner.arenaName() + " (" + winner.server() + ")" : winner.arenaName()));
         if (winner.isRemote()) {
-            // Another game server: the proxy moves everyone (parties together) after the arena stopped.
+
             return () -> moveAllRemote(movers, winner);
         }
         IArena target = winner.localArena();
         return () -> moveAll(movers, target);
     }
 
-    /** Sends {@code movers} to the winning arena on another game server, one request per party or player. */
     private static void moveAllRemote(List<Player> movers, VoteOption winner) {
         com.l299l.newbedwars.network.NetworkManager network = com.l299l.newbedwars.network.NetworkManager.get();
         if (network == null) return;
@@ -241,7 +211,6 @@ public final class MapVoteManager implements Listener {
         }
     }
 
-    /** Puts {@code movers} (now in the lobby) into {@code target}, keeping parties together. */
     private static void moveAll(List<Player> movers, IArena target) {
         Messages msg = NewBedwars.plugin.getMessages();
         PartyManager pm = NewBedwars.plugin.getPartyManager();
@@ -264,14 +233,10 @@ public final class MapVoteManager implements Listener {
         }
     }
 
-    // ---- Voting -------------------------------------------------------------------------------------------
-
-    /** {@code player} (in the ended arena {@code ended}) votes for the arena {@code choice} on this server. */
     public void castVote(Player player, IArena ended, IArena choice) {
         castVote(player, ended, VoteOption.local(choice));
     }
 
-    /** {@code player} (in the ended arena {@code ended}) votes for {@code choice}. */
     public void castVote(Player player, IArena ended, VoteOption choice) {
         Messages msg = NewBedwars.plugin.getMessages();
         MapVote v = votes.get(key(ended));
@@ -301,8 +266,6 @@ public final class MapVoteManager implements Listener {
         }
     }
 
-    // ---- Vote item ----------------------------------------------------------------------------------------
-
     private static Material itemMaterial() {
         Material m = Material.matchMaterial(Properties.MapVoteItemMaterial);
         return m == null || m.isAir() ? Material.PAPER : m;
@@ -318,7 +281,6 @@ public final class MapVoteManager implements Listener {
         p.getInventory().setItem(itemSlot(), item);
     }
 
-    /** The configured slot, or 2 when it is invalid or taken by a spectator item (compass 0, effects 4, leave 8). */
     static int itemSlot() {
         int slot = Properties.MapVoteItemSlot == null ? 2 : Properties.MapVoteItemSlot;
         return slot < 0 || slot > 8 || slot == 0 || slot == 4 || slot == 8 ? 2 : slot;

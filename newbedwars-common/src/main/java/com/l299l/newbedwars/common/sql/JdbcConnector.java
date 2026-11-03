@@ -7,11 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
-/**
- * One lazily (re)opened MySQL/MariaDB connection. The driver class is loaded through the given class loader,
- * so it works with a server-provided driver (Paper) as well as a shaded one (proxy). Not thread-safe:
- * use it from one thread.
- */
 public final class JdbcConnector implements AutoCloseable {
     private static final String[] DRIVERS = {"com.mysql.cj.jdbc.Driver", "com.mysql.jdbc.Driver", "org.mariadb.jdbc.Driver"};
 
@@ -43,7 +38,6 @@ public final class JdbcConnector implements AutoCloseable {
                 + "&serverTimezone=UTC&connectTimeout=5000&socketTimeout=10000";
     }
 
-    /** One of {@link #SSL_MODES} (case-insensitive), else {@link #DEFAULT_SSL_MODE}. */
     public static String normalizeSslMode(String mode) {
         if (mode != null) {
             String m = mode.trim().toUpperCase(Locale.ROOT);
@@ -52,13 +46,12 @@ public final class JdbcConnector implements AutoCloseable {
         return DEFAULT_SSL_MODE;
     }
 
-    /** The open connection, reconnecting when it was closed or broke. */
     public Connection get() throws SQLException {
         if (connection != null) {
             try {
                 if (!connection.isClosed() && connection.isValid(2)) return connection;
             } catch (SQLException ignored) {
-                // reconnect below
+
             }
             closeQuietly();
         }
@@ -76,7 +69,7 @@ public final class JdbcConnector implements AutoCloseable {
                 driver = (Driver) cls.getDeclaredConstructor().newInstance();
                 return driver;
             } catch (ReflectiveOperationException | LinkageError ignored) {
-                // try the next one
+
             }
         }
         throw new SQLException("No MySQL/MariaDB JDBC driver found");
@@ -86,7 +79,7 @@ public final class JdbcConnector implements AutoCloseable {
         try {
             if (connection != null) connection.close();
         } catch (SQLException ignored) {
-            // already broken
+
         }
         connection = null;
     }

@@ -46,7 +46,7 @@ public class EnableArenaCommand extends BwCommand {
                     return;
                 }
                 if (ArenaMaps.isEnabled()) {
-                    // Leaving setup: whatever the admin built is the map from now on.
+
                     try {
                         ArenaMaps.createTemplate(arena.getArenaName(), arena.getArenaWorld());
                     } catch (java.io.IOException e) {

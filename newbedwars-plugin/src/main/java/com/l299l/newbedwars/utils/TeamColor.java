@@ -5,15 +5,9 @@ import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 
-/**
- * The one place that maps a team's {@link ChatColor} to dyed blocks, leather and firework colors, so every
- * feature agrees on what a color looks like. Block materials are resolved by name, which keeps this working
- * on every supported version.
- */
 public final class TeamColor {
     private TeamColor() {}
 
-    /** Dyed block families that exist in all 16 colors. */
     public enum Kind {
         WOOL("WOOL"),
         TERRACOTTA("TERRACOTTA"),
@@ -31,7 +25,6 @@ public final class TeamColor {
         }
     }
 
-    /** The dye color of a team color. {@code null} gives gray, a non-color format gives white. */
     public static DyeColor dye(ChatColor color) {
         if (color == null) return DyeColor.GRAY;
         return switch (color) {
@@ -61,17 +54,14 @@ public final class TeamColor {
         return block(color, Kind.WOOL);
     }
 
-    /** Color for leather armor. */
     public static Color leather(ChatColor color) {
         return dye(color).getColor();
     }
 
-    /** Color for fireworks. */
     public static Color firework(ChatColor color) {
         return dye(color).getFireworkColor();
     }
 
-    /** The family of a white (undyed-looking) block such as {@code WHITE_WOOL} (plain {@code TERRACOTTA} counts as white), or {@code null} for anything else. */
     public static Kind undyedKind(Material material) {
         if (material == null) return null;
         if (material == Material.TERRACOTTA) return Kind.TERRACOTTA;
@@ -82,7 +72,6 @@ public final class TeamColor {
         return null;
     }
 
-    /** The family of a dyed block in any color (e.g. {@code RED_CONCRETE}), or {@code null} for anything else. */
     public static Kind kindOf(Material material) {
         if (material == null) return null;
         String name = material.name();
@@ -93,22 +82,17 @@ public final class TeamColor {
                 DyeColor.valueOf(name.substring(0, name.length() - end.length()));
                 return kind;
             } catch (IllegalArgumentException ignored) {
-                // not a dye prefix, e.g. RED_GLAZED_TERRACOTTA
+
             }
         }
         return null;
     }
 
-    /** Turns a white block (wool, terracotta, glass, concrete, carpet, bed, ...) into the team's color; anything else is returned as is. */
     public static Material recolor(Material material, ChatColor color) {
         Kind kind = undyedKind(material);
         return kind == null ? material : block(color, kind);
     }
 
-    /**
-     * Parses a team color name: dye names (BLUE, LIME, PINK, LIGHT_GRAY, ...) first, then plain
-     * {@link ChatColor} names. Throws {@link IllegalArgumentException} for unknown names.
-     */
     public static ChatColor parse(String name) {
         return switch (name.toUpperCase()) {
             case "PINK" -> ChatColor.LIGHT_PURPLE;

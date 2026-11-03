@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 public class BlastProtLogic implements CustomLogic {
     @Override
     public boolean perform(Player player, IArena arena) {
-        return true; // Blast protection is always applied successfully
+        return true;
     }
 
     @Override

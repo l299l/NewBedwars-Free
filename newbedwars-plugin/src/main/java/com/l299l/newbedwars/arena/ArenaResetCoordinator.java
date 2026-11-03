@@ -12,7 +12,6 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 
-/** Puts an arena's map back after a game: the template pipeline, its retries, or the legacy world reload. */
 class ArenaResetCoordinator {
     private static final int MAX_RESET_RETRIES = 6;
     private static final long RESET_RETRY_TICKS = 200L;
@@ -24,7 +23,6 @@ class ArenaResetCoordinator {
         this.arena = arena;
     }
 
-    /** See {@link Arena#rollback()}. */
     boolean rollback() {
         ApiEvents.arenaReset(arena, ArenaResetEvent.Stage.PRE);
         arena.clearPlacedBlocks();
@@ -49,7 +47,7 @@ class ArenaResetCoordinator {
         resetRetries = 0;
         arena.rebindWorld(newWorld);
         DecoUtils.removeAllArmorStands(arena);
-        // a disabled arena keeps the "restarting" status that blocks joins
+
         arena.setStatus(arena.isEnabled() ? GameStatus.waiting : GameStatus.restarting);
         ApiEvents.arenaReset(arena, ArenaResetEvent.Stage.POST);
     }
@@ -78,7 +76,7 @@ class ArenaResetCoordinator {
                 Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> ArenaResetPipeline.retry(arena), RESET_RETRY_TICKS);
                 return;
             } catch (IllegalStateException | org.bukkit.plugin.IllegalPluginAccessException e) {
-                // plugin is disabling; the dirty marker makes the next start restore the map
+
             }
         }
         NewBedwars.plugin.getLogger().severe("Arena " + name + " was disabled: " + reason);

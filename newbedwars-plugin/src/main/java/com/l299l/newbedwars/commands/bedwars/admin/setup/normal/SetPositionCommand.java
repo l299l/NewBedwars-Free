@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-/** {@code /bw set<Point> [team] [x y z]}: stores one arena or team location (the player's own when no coordinates are given). */
 public class SetPositionCommand extends BwCommand {
 
     public enum Point {
@@ -40,7 +39,7 @@ public class SetPositionCommand extends BwCommand {
         final Function<IArena, Location> arenaGetter;
         final BiConsumer<Team, Location> teamSetter;
         final Function<Team, Location> teamGetter;
-        /** Label of the setup armor stand placed at the point, or {@code null} for none. */
+
         final String marker;
 
         Point(String command, String description, String messageKey,

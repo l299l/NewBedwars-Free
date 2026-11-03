@@ -10,15 +10,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-/**
- * The map vote of one waiting lobby: one vote per player (changing replaces it), keyed by arena name
- * (case-insensitive). The winner has the most votes; a tie, or no votes at all, is decided randomly.
- */
 public final class MapVote {
     private final Map<UUID, String> votes = new HashMap<>();
     private boolean closed;
 
-    /** Records or changes {@code voter}'s vote. @return false when voting is closed */
     public boolean vote(UUID voter, String arena) {
         if (closed) return false;
         votes.put(voter, key(arena));
@@ -29,13 +24,11 @@ public final class MapVote {
         votes.remove(voter);
     }
 
-    /** Drops every vote for {@code arena} (it became unavailable). */
     public void removeOption(String arena) {
         String k = key(arena);
         votes.values().removeIf(k::equals);
     }
 
-    /** The arena {@code voter} voted for (lower case), or null. */
     public String voteOf(UUID voter) {
         return votes.get(voter);
     }
@@ -49,17 +42,12 @@ public final class MapVote {
         return n;
     }
 
-    /** Vote count per option, in option order; options without votes have 0, votes for other arenas are ignored. */
     public Map<String, Integer> counts(Collection<String> options) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (String option : options) counts.put(option, votes(option));
         return counts;
     }
 
-    /**
-     * The option with the most votes; ties and "no votes" pick randomly among the tied options.
-     * @return null when there are no options
-     */
     public String winner(List<String> options, Random random) {
         if (options.isEmpty()) return null;
         int best = -1;

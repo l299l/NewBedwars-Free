@@ -101,7 +101,7 @@ public class Properties{
         RequireJoinPermission = rjp instanceof Boolean b ? b : false;
         Object rlp = get("RequireLobbyPermission");
         RequireLobbyPermission = rlp instanceof Boolean b ? b : false;
-        //Default Settings
+
         DefaultMinPlayers = (Integer) get("DefaultMinPlayers");
         DefaultMaxTeams = (Integer) get("DefaultMaxTeams");
         DefaultMaxInTeam = (Integer) get("DefaultMaxInTeam");
@@ -111,7 +111,7 @@ public class Properties{
         DefaultGeneratorConfig = (String) get("DefaultGeneratorConfig");
         DefaultGamePhase = (String) get("DefaultGamePhase");
         DefaultRespawnTime = (Integer) get("DefaultRespawnTime");
-        //Gamerules
+
         DefaultGamerules.put("RandomTeams", (Boolean) get("DefaultGamerules.RandomTeams"));
         DefaultGamerules.put("AllowParties", (Boolean) get("DefaultGamerules.AllowParties"));
         DefaultGamerules.put("AllowSpectators", (Boolean) get("DefaultGamerules.AllowSpectators"));
@@ -127,7 +127,7 @@ public class Properties{
         Object dmv = get("DefaultGamerules.MapVote");
         DefaultGamerules.put("MapVote", dmv instanceof Boolean b ? b : true);
         DefaultLanguage = (String) get("DefaultLanguage");
-        //Game
+
         RejoinTimeEnabled = (Boolean) get("RejoinTimeLimitEnabled");
         RejoinTime = (Integer) get("RejoinTime");
         BasicSword = (String) get("BasicSword");
@@ -142,10 +142,10 @@ public class Properties{
         TntParticlesEnabled = tpe instanceof Boolean b ? b : true;
         Object dsh = get("DragonSpawnHeight");
         DragonSpawnHeight = dsh instanceof Integer i ? i : 20;
-        //Iron Golem settings
+
         Object igl = get("IronGolemLifetime");
         IronGolemLifetime = igl instanceof Integer i ? i : 120;
-        //Rollback
+
         Object rls = get("Rollback.UseLegacySystem");
         RollbackLegacySystem = rls instanceof Boolean b ? b : false;
         Object rac = get("Rollback.AsyncCopy");
@@ -163,12 +163,12 @@ public class Properties{
         }
         Object bk = get("Backups.Keep");
         BackupsKeep = bk instanceof Integer i && i >= 0 ? i : 5;
-        //Map vote
+
         Object mvs = get("MapVote.Item.Slot");
         MapVoteItemSlot = mvs instanceof Integer i && i >= 0 && i <= 8 ? i : 2;
         Object mvm = get("MapVote.Item.Material");
         MapVoteItemMaterial = mvm instanceof String str ? str : "PAPER";
-        //Join NPCs
+
         Object jnu = get("JoinNpc.UpdateSeconds");
         JoinNpcUpdateSeconds = jnu instanceof Integer i && i > 0 ? i : 2;
         Object jnl = get("JoinNpc.LeftClick");
@@ -193,7 +193,7 @@ public class Properties{
                 if (mat != null) DragonIndestructibleBlocks.add(mat);
             }
         }
-        //Phases
+
         List<Map<String, Object>> allGamePhases = (List<Map<String, Object>>) get("GamePhases");
         for (Map<String, Object> gamePhase : allGamePhases) {
             String ID = (String) gamePhase.get("ID");
@@ -217,7 +217,7 @@ public class Properties{
             }
             GamePhases.put(ID, new GamePhases(ID, phaseList));
         }
-        //Upgrade prices
+
         try {
             UpgradePriceType = PriceType.valueOf(((String) get("UpgradePrices.PriceType")).toUpperCase());
         } catch (Exception ignored) {
@@ -239,7 +239,7 @@ public class Properties{
     public static int getUpgradePrice(Upgrade upgrade, int currentLevel) {
         List<Integer> prices = UpgradePrices.get(upgrade.name());
         if (prices == null) {
-            // upgrades registered by addons after the config was read
+
             List<Integer> configured = NewBedwars.plugin.getConfig().getIntegerList("UpgradePrices." + upgrade.name());
             prices = configured.isEmpty() ? upgrade.defaultPrices() : configured;
         }

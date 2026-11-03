@@ -20,7 +20,6 @@ import org.bukkit.event.Listener;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The only class (with the trait) that touches Citizens; created only when the Citizens plugin is enabled. */
 public final class CitizensHook implements CitizensBridge, Listener {
     private final JoinNpcManager manager;
 
@@ -29,7 +28,6 @@ public final class CitizensHook implements CitizensBridge, Listener {
         Class<?> registered = CitizensAPI.getTraitFactory().getTraitClass(NewBedwarsJoinTrait.NAME);
         if (registered != NewBedwarsJoinTrait.class) {
             if (registered != null) {
-                // Left over from an earlier load of NewBedwars (plugin reloaded): replace it with this class.
                 for (TraitInfo info : new ArrayList<>(CitizensAPI.getTraitFactory().getRegisteredTraits())) {
                     if (info.getTraitClass() == registered) CitizensAPI.getTraitFactory().deregisterTrait(info);
                 }
@@ -46,7 +44,6 @@ public final class CitizensHook implements CitizensBridge, Listener {
     @Override
     public void shutdown() {
         org.bukkit.event.HandlerList.unregisterAll(this);
-        // The trait stays registered: deregistering would make Citizens drop the trait data on its next save.
     }
 
     @Override
@@ -80,7 +77,6 @@ public final class CitizensHook implements CitizensBridge, Listener {
         if (npc.hasTrait(NewBedwarsJoinTrait.class)) {
             trait = npc.getTraitNullable(NewBedwarsJoinTrait.class);
         } else {
-            // Not getOrAddTrait: after a removal it returns the removed trait instead of adding a new one.
             trait = new NewBedwarsJoinTrait();
             npc.addTrait(trait);
         }
@@ -114,7 +110,6 @@ public final class CitizensHook implements CitizensBridge, Listener {
     }
 
     private JoinNpc view(NPC npc) {
-        // hasTrait first: Citizens' getTraitNullable still returns a trait after removeTrait (its lookup keeps the slot).
         if (!npc.hasTrait(NewBedwarsJoinTrait.class)) return null;
         NewBedwarsJoinTrait trait = npc.getTraitNullable(NewBedwarsJoinTrait.class);
         if (trait == null) return null;

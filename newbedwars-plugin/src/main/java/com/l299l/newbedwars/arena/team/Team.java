@@ -23,10 +23,10 @@ public class Team {
     private com.google.gson.JsonObject extra = new com.google.gson.JsonObject();
     private TeamBed teamBed;
     private Location teamSpawn;
-    /** Smaller zone — players cannot place blocks inside (block-protection area). */
+
     private Location teamBuildProtAreaPos1;
     private Location teamBuildProtAreaPos2;
-    /** Larger whole-base zone — used for trap detection and heal pool. */
+
     private Location teamBasePos1;
     private Location teamBasePos2;
     private Location teamAccessories;
@@ -143,7 +143,6 @@ public class Team {
         return teamBuildProtAreaPos1 != null && teamBuildProtAreaPos2 != null;
     }
 
-    /** Returns true if {@code loc} is inside the block-protection zone (no placement allowed). */
     public boolean isInBuildProtArea(Location loc) {
         if (teamBuildProtAreaPos1 == null || teamBuildProtAreaPos2 == null) return false;
         int minX = Math.min(teamBuildProtAreaPos1.getBlockX(), teamBuildProtAreaPos2.getBlockX());
@@ -184,7 +183,6 @@ public class Team {
         return teamBasePos1 != null && teamBasePos2 != null;
     }
 
-    /** Returns true if {@code loc} is inside the team's whole base (trap/heal pool detection). */
     public boolean isInBase(Location loc) {
         if (teamBasePos1 == null || teamBasePos2 == null) return false;
         int minX = Math.min(teamBasePos1.getBlockX(), teamBasePos2.getBlockX());
@@ -241,7 +239,6 @@ public class Team {
         return arena;
     }
 
-    /** The text in this team's color, reset to white afterwards so the rest of a message keeps its own colors. */
     public String colored(String text) {
         return color + text + ChatColor.RESET;
     }
@@ -250,7 +247,6 @@ public class Team {
         return color;
     }
 
-    /** Changes the team color; only possible while no game is running. */
     public void setColor(ChatColor color) {
         if (color == null || !color.isColor()) throw new IllegalArgumentException("not a color: " + color);
         GameStatus status = arena.status();
@@ -301,7 +297,6 @@ public class Team {
         if (generator != null) generator.getLocation().setWorld(world);
     }
 
-    /** Free-form data owned by addons, saved and loaded unchanged. */
     public com.google.gson.JsonObject getExtra() {
         return extra;
     }

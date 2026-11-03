@@ -1,6 +1,5 @@
 package com.l299l.newbedwars.config;
 
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;

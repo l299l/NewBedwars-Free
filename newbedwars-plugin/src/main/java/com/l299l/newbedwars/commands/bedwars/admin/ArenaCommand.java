@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ArenaCommand extends BwCommand {
-    /** Subcommands by name, in the order they are listed in the usage and tab completion. */
+
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
 
     public ArenaCommand() {
@@ -56,7 +56,7 @@ public class ArenaCommand extends BwCommand {
             return;
         }
         if (com.l299l.newbedwars.network.NetworkManager.isLobby()) {
-            // Lobby server of a network: the arenas are on the game servers.
+
             com.l299l.newbedwars.network.NetworkArenaCommands.perform(player, args.length > 1 ? args[1] : null);
             return;
         }

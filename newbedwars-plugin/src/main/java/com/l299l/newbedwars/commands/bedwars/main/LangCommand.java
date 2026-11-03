@@ -15,7 +15,6 @@ import java.util.UUID;
 
 public class LangCommand extends BwCommand {
 
-
     private static final long COOLDOWN_MILLIS = 2000;
     private static final Map<UUID, Long> LAST_CHANGE = new HashMap<>();
 

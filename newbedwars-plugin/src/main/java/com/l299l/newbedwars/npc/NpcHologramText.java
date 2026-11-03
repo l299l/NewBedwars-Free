@@ -8,14 +8,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-/** Placeholder values for the hologram above a join NPC. */
 public final class NpcHologramText {
     private NpcHologramText() {}
 
-    /**
-     * {@code /group/}, {@code /arena/}, {@code /playing/}, {@code /waiting/}, {@code /arenas_free/},
-     * plus {@code /players/}, {@code /max/} and {@code /status/} of the arena shown in {@code /arena/}.
-     */
     public static HashMap<String, String> replacements(JoinNpcAction action, Collection<IArena> arenas) {
         List<IArena> matched = arenas.stream()
                 .filter(a -> a.isEnabled())
@@ -59,7 +54,6 @@ public final class NpcHologramText {
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
-    /** LOBBY mode: the same placeholders, from the arenas of the network. */
     public static HashMap<String, String> remoteReplacements(JoinNpcAction action,
                                                              com.l299l.newbedwars.network.RemoteArenaRegistry registry) {
         com.l299l.newbedwars.common.protocol.payload.TargetKind kind = switch (action.getType()) {
@@ -68,7 +62,6 @@ public final class NpcHologramText {
                     ? com.l299l.newbedwars.common.protocol.payload.TargetKind.ANY
                     : com.l299l.newbedwars.common.protocol.payload.TargetKind.GROUP;
         };
-        // ARENA "server:arena" = only that server's arena.
         List<com.l299l.newbedwars.network.RemoteArena> matched = kind == com.l299l.newbedwars.common.protocol.payload.TargetKind.ARENA
                 ? registry.resolveEntry(action.getTarget())
                 : registry.matching(kind, action.getTarget());

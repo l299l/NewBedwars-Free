@@ -11,7 +11,6 @@ import java.util.List;
 
 public class ListArenaCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "list";

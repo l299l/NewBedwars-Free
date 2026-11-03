@@ -16,15 +16,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** What the setup info shows ({@code /bw arena} in chat and in its GUIs): one source for both. */
 public final class ArenaInfo {
     private ArenaInfo() {
     }
 
-    /**
-     * One team setting: a single point ({@code pos1}) or, when {@code area}, the region {@code pos1}-{@code pos2}.
-     * {@code labelKey} is a language key, see {@link #label(Player)}.
-     */
     public record TeamSetting(String labelKey, Material icon, boolean area, boolean set, Location pos1, Location pos2) {
         public String label(Player viewer) {
             return text(viewer, labelKey);
@@ -61,7 +56,6 @@ public final class ArenaInfo {
         return list;
     }
 
-    /** The boolean gamerules shown in advanced setup, by name. */
     public static Map<String, Boolean> gamerules(Gamerules g) {
         Map<String, Boolean> map = new LinkedHashMap<>();
         map.put("RandomTeams", g.RandomTeams);
@@ -87,7 +81,6 @@ public final class ArenaInfo {
         return count;
     }
 
-    /** A setup info text in the viewer's language. */
     public static String text(Player viewer, String key) {
         return NewBedwars.plugin.getMessages().getMsg(viewer, key);
     }
@@ -96,7 +89,6 @@ public final class ArenaInfo {
         return ChatColor.RED + text(viewer, "Info-NotSet");
     }
 
-    /** White block coordinates, or red "not set". */
     public static String loc(Player viewer, Location loc) {
         if (loc == null) return notSet(viewer);
         return ChatColor.WHITE + String.valueOf(loc.getBlockX()) + " " + loc.getBlockY() + " " + loc.getBlockZ();
@@ -106,13 +98,11 @@ public final class ArenaInfo {
         return set ? ChatColor.GREEN + "✔" : ChatColor.RED + "✘";
     }
 
-    /** Green true / red false / red "not set". */
     public static String bool(Player viewer, Boolean value) {
         if (value == null) return notSet(viewer);
         return value ? ChatColor.GREEN + "true" : ChatColor.RED + "false";
     }
 
-    /** White value, or red "not set" when {@code null}. */
     public static String value(Player viewer, Object value) {
         return value != null ? ChatColor.WHITE + String.valueOf(value) : notSet(viewer);
     }

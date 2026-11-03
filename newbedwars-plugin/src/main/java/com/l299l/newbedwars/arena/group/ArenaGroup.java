@@ -6,13 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/** A named set of arenas (maps) players vote between at the end of a game. Saved in {@code data/groups.json}. */
 public final class ArenaGroup {
     public static final String DEFAULT_ITEM = "PAPER";
 
     private String name;
     private List<String> arenas = new ArrayList<>();
-    /** Material name of the icon shown for the group's maps in the vote menu. */
+
     private String displayItem = DEFAULT_ITEM;
 
     public ArenaGroup() {}
@@ -26,7 +25,6 @@ public final class ArenaGroup {
         return name;
     }
 
-    /** Arena names in the order they were added. */
     public List<String> getArenas() {
         if (arenas == null) arenas = new ArrayList<>();
         return arenas;
@@ -55,7 +53,6 @@ public final class ArenaGroup {
         return getArenas().removeIf(a -> a.equalsIgnoreCase(arenaName));
     }
 
-    /** An arena as far as group checks care: a name to show and its team size. */
     public record Member(String name, int teams, int maxInTeam) {
         public static Member of(IArena a) {
             return new Member(a.getArenaName(), a.getTeams().size(), a.getMaxInTeam());
@@ -70,15 +67,10 @@ public final class ArenaGroup {
         }
     }
 
-    /**
-     * Why {@code candidate} can not join this group, or null when it can: every arena of a group needs the
-     * same team count and players per team.
-     */
     public String incompatibility(IArena candidate, Function<String, IArena> lookup) {
         return incompatibility(List.of(Member.of(candidate)), local(lookup));
     }
 
-    /** Like {@link #incompatibility(IArena, Function)}; an entry may stand for several arenas (network). */
     public String incompatibility(List<Member> candidate, Function<String, List<Member>> resolve) {
         for (String other : getArenas()) {
             for (Member a : resolve.apply(other)) {
@@ -92,12 +84,10 @@ public final class ArenaGroup {
         return null;
     }
 
-    /** Problems of the group as it is now: missing arenas and arenas with a different team size. */
     public List<String> problems(Function<String, IArena> lookup) {
         return problemsOf(local(lookup));
     }
 
-    /** Like {@link #problems(Function)}; an entry may stand for several arenas (network). */
     public List<String> problemsOf(Function<String, List<Member>> resolve) {
         List<String> problems = new ArrayList<>();
         Member first = null;
@@ -128,7 +118,6 @@ public final class ArenaGroup {
         };
     }
 
-    /** The group's arenas that exist (in group order). */
     public List<IArena> resolve(Function<String, IArena> lookup) {
         List<IArena> result = new ArrayList<>();
         for (String name : getArenas()) {

@@ -124,7 +124,6 @@ public class CustomItemManager {
         createCustomItem(name, description, material, price, priceType, amount, iconDesc, permission, event, onBuyEvent, isPermanent, new HashMap<>(), new ArrayList<>());
     }
 
-
     public void createCustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
                                  String permission, CustomLogic event, OnBuyEvent onBuyEvent, boolean isPermanent, HashMap<Enchantment, Integer> enchantments,
                                  List<ItemFlag> itemFlags) {
@@ -141,7 +140,7 @@ public class CustomItemManager {
         customItems.put(customItem.getUuid(), customItem);
         customItemsByName.put(name.toLowerCase(), customItem);
     }
-    /** Same as the {@link LogicType} overload, but with the saved logic key (built-in name or an addon's key). */
+
     public void createCustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
                                  String permission, String logicKey, OnBuyEvent onBuyEvent, boolean isPermanent, HashMap<Enchantment, Integer> enchantments,
                                  List<ItemFlag> itemFlags, boolean load) {
@@ -151,7 +150,6 @@ public class CustomItemManager {
         customItemsByName.put(name.toLowerCase(), customItem);
     }
 
-    /** Built-in logic for a known type name, otherwise a lazy stand-in that resolves addon logic on use. */
     public CustomLogic matchLogicKey(String logicKey) {
         if (CustomLogicRegistry.isBuiltIn(logicKey)) {
             return matchLogicType(LogicType.valueOf(CustomLogicRegistry.normalize(logicKey)));
@@ -164,10 +162,6 @@ public class CustomItemManager {
         customItemsByName.put(customItem.getName().toLowerCase(), customItem);
     }
 
-    /**
-     * The shop item that sells the white form of {@code kind} (e.g. the "Wool" item for wool), used to hand a
-     * broken team block back as that item. The default "Wool" item wins for wool.
-     */
     public CustomItem getTeamBlockItem(TeamColor.Kind kind) {
         if (kind == TeamColor.Kind.WOOL) {
             CustomItem wool = getCustomItem("Wool");

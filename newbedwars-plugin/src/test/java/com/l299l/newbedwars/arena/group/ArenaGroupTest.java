@@ -100,7 +100,7 @@ class ArenaGroupTest {
                 "game1:ruins", List.of(new ArenaGroup.Member("game1:ruins", 2, 1)));
         ArenaGroup g = new ArenaGroup("solo", null);
         g.add("castle");
-        // one entry, two arenas: enough for a vote
+
         assertEquals(List.of(), g.problemsOf(e -> net.getOrDefault(e, List.of())));
         assertNotNull(g.incompatibility(net.get("game1:ruins"), e -> net.getOrDefault(e, List.of())));
         g.add("game1:ruins");
@@ -130,7 +130,7 @@ class ArenaGroupTest {
             m.useNetwork(List.of(g));
             assertTrue(m.isNetworkManaged());
             long before = m.getRevision();
-            m.changed(); // no save, no revision change (no plugin needed)
+            m.changed();
             assertEquals(before, m.getRevision());
             assertSame(g, m.groupOf("Castle"));
         } finally {

@@ -27,10 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Network mode ({@code Network.Mode} GAME or LOBBY). Created on every (re)load; in NONE mode nothing is
- * registered and {@link #get()} stays null, so single-server behaviour is untouched.
- */
 public final class NetworkManager implements Listener {
     private static NetworkManager active;
 
@@ -41,13 +37,13 @@ public final class NetworkManager implements Listener {
     private static final long JOIN_COOLDOWN_MILLIS = 1000L;
     private final Map<UUID, Long> lastJoinRequest = new HashMap<>();
     private NetworkGroupSync groupSync;
-    // GAME
+
     private NetworkLobbyHandler lobbyHandler;
     private JoinTicketHandler ticketHandler;
     private ArenaStatePublisher publisher;
     private GameServerRestarter restarter;
     private NetworkDatabase database;
-    // LOBBY
+
     private final RemoteArenaRegistry remoteArenas = new RemoteArenaRegistry();
     private RejoinNotifier rejoinNotifier;
 
@@ -58,7 +54,6 @@ public final class NetworkManager implements Listener {
         this.messenger = new BukkitMessenger(plugin, this::handle);
     }
 
-    /** The running manager, or null in NONE mode. */
     public static NetworkManager get() {
         return active;
     }
@@ -75,7 +70,6 @@ public final class NetworkManager implements Listener {
         return mode() == NetworkMode.GAME;
     }
 
-    /** Stops the old manager and starts a new one for the current config (no-op for NONE). */
     public static void restart(Plugin plugin) {
         shutdown();
         NetworkMode mode = Properties.NetworkMode;
@@ -155,8 +149,6 @@ public final class NetworkManager implements Listener {
         return remoteArenas;
     }
 
-    // ----- incoming -----
-
     void handle(Player via, NetMessage msg) {
         switch (msg.type()) {
             case JOIN_TICKET -> {
@@ -168,7 +160,7 @@ public final class NetworkManager implements Listener {
                 }
             }
             case NETWORK_STATE -> {
-                // Lobbies list the network's arenas; game servers need them for the map vote across servers.
+
                 if (remoteArenas.update(msg.payload(NetworkState.class)) && mode == NetworkMode.LOBBY) {
                     ApiEvents.networkArenasUpdate(List.copyOf(remoteArenas.all()));
                     if (rejoinNotifier != null) rejoinNotifier.tick();
@@ -176,12 +168,11 @@ public final class NetworkManager implements Listener {
             }
             case GROUPS -> groupSync.onGroups(msg.payload(NetworkGroups.class));
             default -> {
-                // HELLO, SERVER_STATE, JOIN_REQUEST, JOIN_REJECT, SEND_TO_LOBBY go to the proxy only.
+
             }
         }
     }
 
-    /** Introduce this server to the proxy through each player that joins (it answers with parties, tickets, state). */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
@@ -191,17 +182,10 @@ public final class NetworkManager implements Listener {
         }, 5L);
     }
 
-    // ----- LOBBY: joining a game on another server -----
-
-    /**
-     * Asks the proxy to send {@code p} (and their party, when they are its admin) to a game.
-     * Checks permission and party admin like {@code /bw join} first.
-     */
     public boolean requestJoin(Player p, TargetKind kind, String target) {
         return requestJoin(p, kind, target, null);
     }
 
-    /** Like {@link #requestJoin(Player, TargetKind, String)}, only to game server {@code server} (null = any). */
     public boolean requestJoin(Player p, TargetKind kind, String target, String server) {
         if (!ArenaJoinService.mayJoin(p)) return false;
         if (!ApiEvents.networkJoinRequest(p, kind, target)) return false;
@@ -223,7 +207,6 @@ public final class NetworkManager implements Listener {
         return true;
     }
 
-    /** {@code /bw rejoin} on a lobby: back into the game the player left on a game server. */
     public boolean requestRejoin(Player p) {
         if (findRejoin(p) == null) {
             NewBedwars.plugin.getMessages().send(p, "NoArenaToRejoin");
@@ -238,7 +221,6 @@ public final class NetworkManager implements Listener {
         return true;
     }
 
-    /** {@code /bw spectate [arena]} on a lobby: watch a running game on a game server. */
     public boolean requestSpectate(Player p, String arena, String server) {
         if (arena == null || arena.isBlank()) {
             p.openInventory(new NetworkArenaSelectGUI(p, remoteArenas.all(), true).getInventory());
@@ -253,10 +235,6 @@ public final class NetworkManager implements Listener {
         return true;
     }
 
-    /**
-     * GAME mode, map vote won by an arena on another server: moves {@code players} (a party or one player) there
-     * through the proxy. Sent through the first of them.
-     */
     public void moveTo(List<Player> players, String server, String arena) {
         if (players.isEmpty()) return;
         List<java.util.UUID> ids = new java.util.ArrayList<>();
@@ -270,15 +248,10 @@ public final class NetworkManager implements Listener {
         }
     }
 
-    /** The network arena {@code p} can still rejoin, or null. */
     public RemoteArena findRejoin(Player p) {
         return remoteArenas.findRejoin(p.getUniqueId(), System.currentTimeMillis());
     }
 
-    /**
-     * {@code /bw join <name>} or the API: {@code server:arena} = that arena on that server, else an arena name of
-     * the network (on whichever server has room), else a group.
-     */
     public boolean requestJoinByName(Player p, String name) {
         if (name == null || name.isBlank()) {
             return requestJoin(p, TargetKind.ANY, null);
@@ -291,7 +264,6 @@ public final class NetworkManager implements Listener {
         }
     }
 
-    /** An {@code ARENA} target: {@code arena} (any server that has it) or {@code server:arena}. */
     public boolean requestArena(Player p, String target) {
         String server = NetworkGroups.serverOf(target);
         String arena = NetworkGroups.arenaOf(target);
@@ -325,7 +297,6 @@ public final class NetworkManager implements Listener {
         requestJoin(p, TargetKind.ARENA, arena.getName(), arena.getServer());
     }
 
-    /** Placeholder values used when a LOBBY server shows network data. */
     public static Map<String, Integer> totals(List<RemoteArena> arenas) {
         int playing = 0, waiting = 0, free = 0, players = 0, max = 0;
         for (RemoteArena a : arenas) {

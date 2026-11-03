@@ -13,12 +13,12 @@ public class Gamerules {
     public Boolean AllowPrivateChat;
     public Boolean AllowTeamDamage;
     public Boolean MakeSwordsPermanent;
-    /** true: pickaxe, axe and shears are kept after death; false: they are lost on respawn and must be rebought. */
+
     public Boolean MakeToolsPermanent;
     public Boolean AllowMultipleGolems;
-    /** true: split a party over other teams when it would be the only team; false: keep waiting for more players. */
+
     public Boolean SplitPartiesToStart;
-    /** true: grouped arenas let the waiting lobby vote for the map; false: always play this arena. */
+
     public Boolean MapVote;
 
     public Gamerules() {

@@ -5,11 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-/**
- * Logic added by addons, by key. Built-in logic is selected by {@link LogicType}; every other key
- * (as saved in {@code items.yml}) is resolved here when the item is used, so items keep their logic even
- * when the addon enables after NewBedwars loaded the items.
- */
 public final class CustomLogicRegistry {
     private static final Map<String, Supplier<CustomLogic>> LOGIC = new ConcurrentHashMap<>();
 
@@ -28,7 +23,6 @@ public final class CustomLogicRegistry {
         }
     }
 
-    /** @throws IllegalArgumentException when the key is a built-in logic or already registered */
     public static void register(String key, Supplier<CustomLogic> logic) {
         String k = normalize(key);
         if (isBuiltIn(k)) throw new IllegalArgumentException("'" + k + "' is a built-in shop logic");

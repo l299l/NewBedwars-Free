@@ -22,7 +22,7 @@ public class BridgeEggLogic implements CustomLogic {
 
     @Override
     public boolean perform(Player player, IArena arena) {
-        return true; // Bridge egg logic handled by projectile launch
+        return true;
     }
 
     public static void startTracking(UUID eggId, Material woolType, IArena arena, Egg egg) {

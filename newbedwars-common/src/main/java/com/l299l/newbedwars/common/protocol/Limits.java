@@ -1,6 +1,5 @@
 package com.l299l.newbedwars.common.protocol;
 
-/** Upper bounds for data that arrives from other servers or from the shared database. */
 public final class Limits {
     public static final int MAX_NAME_LENGTH = 64;
     public static final int MAX_ENTRY_LENGTH = 2 * MAX_NAME_LENGTH + 1;
@@ -13,7 +12,6 @@ public final class Limits {
     public static final int MAX_PLAYERS_PER_MESSAGE = 64;
     public static final int MAX_DB_ROWS = 256;
     public static final int MAX_STATE_JSON_LENGTH = 65536;
-    /** Payload size the proxy sends to a backend (plugin messages are limited to 32 KiB). */
     public static final int MAX_PAYLOAD_BYTES = 30000;
 
     private Limits() {}

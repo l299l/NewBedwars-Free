@@ -184,7 +184,6 @@ public class PartyCommand implements TabExecutor {
             }
         }
 
-        // If only 1 member left, disband
         if (party.size() == 1) {
             Player lastMember = Bukkit.getPlayer(party.getMembers().get(0));
             pm.disbandParty(party);

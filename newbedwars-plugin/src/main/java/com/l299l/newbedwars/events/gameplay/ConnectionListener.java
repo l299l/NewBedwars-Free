@@ -15,7 +15,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Joining the server inside an arena world, and leaving the server while in an arena. */
 public class ConnectionListener implements Listener {
     private final NewBedwars plugin;
 

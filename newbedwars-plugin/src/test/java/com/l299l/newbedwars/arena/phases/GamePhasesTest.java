@@ -19,8 +19,6 @@ class GamePhasesTest {
         return p;
     }
 
-    // ── isLastPhase ──────────────────────────────────────────────────────────
-
     @Test
     void isLastPhaseReturnsTrueForSinglePhase() {
         GamePhases gp = new GamePhases("test", List.of(mockPhase()));
@@ -32,8 +30,6 @@ class GamePhasesTest {
         GamePhases gp = new GamePhases("test", List.of(mockPhase(), mockPhase()));
         assertFalse(gp.isLastPhase());
     }
-
-    // ── getNextPhase ─────────────────────────────────────────────────────────
 
     @Test
     void getNextPhaseReturnsNullAtLastPhase() {
@@ -48,8 +44,6 @@ class GamePhasesTest {
         GamePhases gp = new GamePhases("test", List.of(first, second));
         assertSame(second, gp.getNextPhase());
     }
-
-    // ── start / nextPhase ────────────────────────────────────────────────────
 
     @Test
     void startCallsFirstPhase() {
@@ -77,10 +71,8 @@ class GamePhasesTest {
         IArena arena = mock(IArena.class);
         GamePhases gp = new GamePhases("test", List.of(only));
         assertDoesNotThrow(() -> gp.nextPhase(arena));
-        verify(only, never()).start(any()); // still at last phase, not re-started
+        verify(only, never()).start(any());
     }
-
-    // ── stop ─────────────────────────────────────────────────────────────────
 
     @Test
     void stopCancelsCurrentPhaseAndResetsIndex() {
@@ -88,13 +80,11 @@ class GamePhasesTest {
         Phase second = mockPhase();
         IArena arena = mock(IArena.class);
         GamePhases gp = new GamePhases("test", List.of(first, second));
-        gp.nextPhase(arena);           // advance to phase index 1
+        gp.nextPhase(arena);
         gp.stop();
         verify(second).cancel();
-        assertFalse(gp.isLastPhase()); // back to index 0, which is not the last
+        assertFalse(gp.isLastPhase());
     }
-
-    // ── copy constructor ─────────────────────────────────────────────────────
 
     @Test
     void copyConstructorStartsAtPhaseZeroRegardlessOfOriginal() {
@@ -102,9 +92,9 @@ class GamePhasesTest {
         Phase second = mockPhase();
         IArena arena = mock(IArena.class);
         GamePhases original = new GamePhases("test", List.of(first, second));
-        original.nextPhase(arena);     // original is now at phase 1
+        original.nextPhase(arena);
         GamePhases copy = new GamePhases(original);
-        assertFalse(copy.isLastPhase()); // copy starts at phase 0
+        assertFalse(copy.isLastPhase());
         assertNotNull(copy.getNextPhase());
     }
 
@@ -123,8 +113,6 @@ class GamePhasesTest {
         assertNotSame(original.getCurrentPhase(), copy.getCurrentPhase());
         assertEquals("first", copy.getCurrentPhase().getName());
     }
-
-    // ── getCurrentPhase ──────────────────────────────────────────────────────
 
     @Test
     void getCurrentPhaseReturnsFirstPhaseInitially() {

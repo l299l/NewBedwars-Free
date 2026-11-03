@@ -132,10 +132,6 @@ public class ChatEvent implements Listener {
         }
     }
 
-    /**
-     * "X joined/left the game" for players outside arenas. Never on network game servers (arenas announce joins
-     * themselves, and players only pass through); on lobby servers {@code Network.LobbyJoinMessages}.
-     */
     static boolean showServerJoinMessages() {
         NetworkMode mode = NetworkManager.mode();
         if (mode == NetworkMode.GAME) return false;

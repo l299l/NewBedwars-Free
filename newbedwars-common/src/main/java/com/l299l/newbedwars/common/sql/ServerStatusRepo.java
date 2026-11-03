@@ -12,10 +12,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The shared status table {@code nbw_servers}: game servers write their {@link ServerState}, the proxy reads it.
- * Plain JDBC (MySQL/MariaDB syntax); the caller owns the connection and the thread.
- */
 public final class ServerStatusRepo {
     public static final String TABLE = "nbw_servers";
 
@@ -38,7 +34,6 @@ public final class ServerStatusRepo {
         }
     }
 
-    /** Stores {@code state} with {@code now} as heartbeat. */
     public static void upsert(Connection c, ServerState state, long now) throws SQLException {
         try (PreparedStatement ps = c.prepareStatement(UPSERT)) {
             ps.setString(1, state.serverId);
@@ -49,12 +44,6 @@ public final class ServerStatusRepo {
         }
     }
 
-    /**
-     * The newest rows (at most {@link Limits#MAX_DB_ROWS}, state text under {@link Limits#MAX_STATE_JSON_LENGTH}).
-     * The heartbeat is the writer's clock, so freshness is not decided here: the reader only compares it with the
-     * previous heartbeat of the same server. The returned state's {@code time} is the heartbeat; rows with broken
-     * JSON are skipped.
-     */
     public static List<ServerState> readAll(Connection c) throws SQLException {
         List<ServerState> out = new ArrayList<>();
         try (PreparedStatement ps = c.prepareStatement(SELECT_ALL)) {

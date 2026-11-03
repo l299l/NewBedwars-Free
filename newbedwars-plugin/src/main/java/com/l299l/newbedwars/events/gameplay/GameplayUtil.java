@@ -14,13 +14,11 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-/** Small helpers shared by the gameplay listeners. */
 final class GameplayUtil {
     private GameplayUtil() {}
 
-    /** The arena and team name of a golem/silverfish key {@code "arena:team"}. */
     record MobKey(String arenaName, String teamName) {
-        /** @return null when the key is null or has no colon */
+
         static MobKey parse(String key) {
             if (key == null) return null;
             int colon = key.indexOf(':');
@@ -33,14 +31,12 @@ final class GameplayUtil {
         }
     }
 
-    /** The player behind a hit: the damager itself or the shooter of a projectile; null for anything else. */
     static Player playerDamager(Entity damager) {
         if (damager instanceof Player p) return p;
         if (damager instanceof Projectile proj && proj.getShooter() instanceof Player p) return p;
         return null;
     }
 
-    /** The shop item an item stack was bought as, or null. */
     static CustomItem findCustomItem(ItemStack stack) {
         if (stack == null || stack.getType() == Material.AIR || stack.getItemMeta() == null) return null;
         NamespacedKey key = new NamespacedKey(NewBedwars.plugin, "custom_item_name");
@@ -49,7 +45,6 @@ final class GameplayUtil {
         return NewBedwars.plugin.getCustomItemManager().getCustomItem(name);
     }
 
-    /** The Y below which spectators and waiting players are rescued: the Quick Void Y, else the bottom of the world. */
     static double safeVoidY(IArena arena, World world) {
         Integer voidY = arena.getQuickVoidY();
         return voidY != null ? voidY : world.getMinHeight();

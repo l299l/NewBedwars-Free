@@ -61,7 +61,6 @@ public class ProfileGUI extends BasicGUI {
         inv.setItem(20, statItem(Material.PAPER,
                 ChatColor.LIGHT_PURPLE + text("GuiLanguage"), langName));
 
-        // Customize fast-buy button (only visible to the profile owner)
         if (getPlayer().equals(target)) {
             ItemStack fastBuyBtn = new ItemStack(Material.CHEST);
             ItemMeta meta = fastBuyBtn.getItemMeta();

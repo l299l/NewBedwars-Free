@@ -6,7 +6,6 @@ import com.l299l.newbedwars.config.data.sql.Database;
 
 import java.util.logging.Logger;
 
-/** GAME mode with {@code Network.MySQL}: writes this server's state to {@code nbw_servers} on the database thread. */
 public final class NetworkDatabase {
     private final Logger log;
     private final Database db;
@@ -28,7 +27,6 @@ public final class NetworkDatabase {
         });
     }
 
-    /** Writes {@code last} (e.g. marked restarting); the connection itself is closed by {@link Database#shutdown()}. */
     public void close(ServerState last) {
         if (last != null) publish(last);
     }

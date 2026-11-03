@@ -25,7 +25,6 @@ import java.util.List;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Item drops, armor slots, shop NPCs, the ender chest, crafting and hunger inside arenas. */
 public class InventoryListener implements Listener {
 
     @EventHandler
@@ -50,7 +49,6 @@ public class InventoryListener implements Listener {
         if (e.getClickedInventory() == null) return;
         Player p = (Player) e.getWhoClicked();
 
-
         if (ArenaRegistry.byWorld(p.getWorld()) != null) {
             IArena arena = ArenaRegistry.byWorld(p.getWorld());
             if (arena.getSpectators().contains(p) ||
@@ -59,7 +57,7 @@ public class InventoryListener implements Listener {
                 return;
             }
             if (arena.isPlayerInArena(p) && arena.status() == GameStatus.playing) {
-                // armor is managed by the shop: block taking it off, swapping (incl. number keys) and shift-equipping
+
                 boolean armorSlot = e.getSlotType() == InventoryType.SlotType.ARMOR;
                 boolean shiftEquip = e.isShiftClick() && e.getClickedInventory() == p.getInventory()
                         && e.getCurrentItem() != null && isArmorPiece(e.getCurrentItem().getType());
@@ -130,7 +128,7 @@ public class InventoryListener implements Listener {
         if (arena == null || arena.status() != GameStatus.playing) return;
         GamePlayer gp = arena.getPlayer(p.getUniqueId());
         if (gp == null || arena.getSpectators().contains(p)) return;
-        if (p.isSneaking() && e.getItem() != null) return; // let the player place a block
+        if (p.isSneaking() && e.getItem() != null) return;
         e.setCancelled(true);
         p.openInventory(gp.getVirtualEnderChest());
     }

@@ -13,7 +13,6 @@ public class GameruleCommand extends BwCommand {
             "AllowGlobalChat", "AllowPrivateChat", "AllowTeamDamage", "MakeSwordsPermanent", "MakeToolsPermanent", "AllowMultipleGolems", "SplitPartiesToStart", "MapVote"
     );
 
-
     @Override
     public String getName() {
         return "gamerule";

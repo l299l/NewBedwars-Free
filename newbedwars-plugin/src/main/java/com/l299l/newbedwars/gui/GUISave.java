@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** A shop GUI loaded from {@code data/guis/*.yml}: slot entries, categories and the header/footer layout. */
 public class GUISave {
     private final Class<?> guiClass;
     private final List<GUIEntry> items;
@@ -34,7 +33,6 @@ public class GUISave {
         items.set(slot, item);
     }
 
-    /** The entry on a slot, or null when it is empty. */
     public GUIEntry getItem(int slot) {
         return items.get(slot);
     }
@@ -43,7 +41,6 @@ public class GUISave {
         return items;
     }
 
-    /** Categories by id, in file order. */
     public Map<String, GUICategory> getCategories() {
         return categories;
     }

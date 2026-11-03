@@ -32,7 +32,6 @@ import java.util.Map;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Placing and breaking blocks (beds, team blocks), buckets, explosions and setup markers in arena worlds. */
 public class BlockListener implements Listener {
     private final NewBedwars plugin;
 
@@ -160,7 +159,7 @@ public class BlockListener implements Listener {
                 .contains(e.getBlock().getType())) {
             e.setCancelled(true);
         }
-        // team silverfish never enter or break blocks
+
         if (e.getEntity() instanceof org.bukkit.entity.Silverfish
                 && SilverfishLogic.activeSilverfish.contains(e.getEntity().getUniqueId())) {
             e.setCancelled(true);
@@ -183,8 +182,7 @@ public class BlockListener implements Listener {
             if (arena.isBlastProtBlock(loc)) return true;
             return arena.isBlastProtBlock(loc.clone().add(0, 1, 0));
         });
-        // Team blocks (wool, glass, concrete...) must not drop vanilla colored items when exploded: like a
-        // normal break they would give a different item than the shop one, so remove them without drops.
+
         e.blockList().removeIf(block -> {
             TeamColor.Kind kind = TeamColor.kindOf(block.getType());
             if (kind == null || kind == TeamColor.Kind.BED) return false;
@@ -194,7 +192,6 @@ public class BlockListener implements Listener {
         });
     }
 
-    /** Removes setup markers that were saved into an arena world (they are re-created when needed). */
     @EventHandler
     public void onArenaEntitiesLoad(org.bukkit.event.world.EntitiesLoadEvent e) {
         if (ArenaRegistry.byWorld(e.getWorld()) == null) return;

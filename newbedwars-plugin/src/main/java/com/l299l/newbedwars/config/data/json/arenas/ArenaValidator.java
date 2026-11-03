@@ -6,7 +6,6 @@ import com.l299l.newbedwars.arena.team.Team;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Collects problems that stop an arena from being playable. An arena with problems is loaded disabled. */
 public final class ArenaValidator {
     private ArenaValidator() {}
 

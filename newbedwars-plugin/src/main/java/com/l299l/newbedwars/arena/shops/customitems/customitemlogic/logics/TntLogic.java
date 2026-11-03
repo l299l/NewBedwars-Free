@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 public class TntLogic implements CustomLogic {
     @Override
     public boolean perform(Player player, IArena arena) {
-        return true; // TNT placement handled directly by item interaction
+        return true;
     }
 
     @Override

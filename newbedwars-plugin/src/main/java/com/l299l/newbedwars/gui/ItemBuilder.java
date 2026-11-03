@@ -8,7 +8,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.Arrays;
 import java.util.List;
 
-/** Builds GUI icons: {@code ItemBuilder.of(Material.STONE).name("Stone").lore("a", "b").build()}. */
 public final class ItemBuilder {
     private final ItemStack item;
     private String name;
@@ -32,7 +31,6 @@ public final class ItemBuilder {
         return this;
     }
 
-    /** Sets the lore; no lines leaves the lore empty. */
     public ItemBuilder lore(String... lines) {
         this.lore = lines.length == 0 ? null : Arrays.asList(lines);
         return this;

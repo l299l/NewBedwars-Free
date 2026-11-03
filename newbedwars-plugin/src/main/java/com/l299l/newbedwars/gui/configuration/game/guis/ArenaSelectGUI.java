@@ -15,7 +15,6 @@ public class ArenaSelectGUI extends ArenaListGUI {
         this(player, a -> true);
     }
 
-    /** Lists only the enabled arenas that match {@code filter}. */
     public ArenaSelectGUI(Player player, Predicate<IArena> filter) {
         super(player, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + text(player, "GuiSelectArenaTitle"), filter);
     }

@@ -8,19 +8,13 @@ import com.l299l.newbedwars.arena.join.ArenaJoinService;
 
 import java.util.List;
 
-/** {@code %newbedwars_group_<name>_<field>%} and {@code %newbedwars_group%}. */
 public final class GroupPlaceholders {
-    /** Longest first, so {@code _arenas_free} is not read as {@code _arenas} and {@code _max_players} not as {@code _players}. */
     private static final String[] FIELDS = {
             "_arenas_free", "_max_players", "_best_arena", "_players", "_playing", "_waiting", "_arenas"
     };
 
     private GroupPlaceholders() {}
 
-    /**
-     * @param rest the part after {@code group_}, e.g. {@code solo_playing}
-     * @return the value, {@code ""} for an unknown group, null for an unknown field
-     */
     public static String resolve(String rest) {
         for (String field : FIELDS) {
             if (!rest.endsWith(field)) continue;
@@ -37,7 +31,6 @@ public final class GroupPlaceholders {
         return null;
     }
 
-    /** The group of the arena the player is in, or "". */
     public static String groupOf(IArena arena) {
         if (arena == null || ArenaGroupManager.get() == null) return "";
         ArenaGroup group = ArenaGroupManager.get().groupOf(arena);
@@ -75,7 +68,6 @@ public final class GroupPlaceholders {
         };
     }
 
-    /** LOBBY mode: the group's arenas on the game servers (by group name, name pattern or team size). */
     static String remoteValue(com.l299l.newbedwars.network.RemoteArenaRegistry registry, String name, String field) {
         List<com.l299l.newbedwars.network.RemoteArena> arenas =
                 registry.matching(com.l299l.newbedwars.common.protocol.payload.TargetKind.GROUP, name);

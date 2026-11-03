@@ -21,10 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-/** {@code /bw npc set|clear|info|list|create|remove}: lobby join NPCs (Citizens or fallback). */
 public class NpcCommand extends BwCommand {
     private static final List<String> SUBCOMMANDS = List.of("set", "clear", "info", "list", "create", "remove");
-
 
     @Override
     public String getName() {
@@ -192,7 +190,6 @@ public class NpcCommand extends BwCommand {
         return npc;
     }
 
-    /** Parses and validates an action; sends the reason and returns null when it is invalid. */
     private JoinNpcAction parseAction(Player p, String type, String target) {
         JoinNpcAction action;
         try {
@@ -219,7 +216,6 @@ public class NpcCommand extends BwCommand {
         return r;
     }
 
-    /** Lobby: every arena of the network as {@code arena} and {@code server:arena}. */
     static List<String> networkArenaNames(com.l299l.newbedwars.network.NetworkManager network) {
         java.util.Set<String> names = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (com.l299l.newbedwars.network.RemoteArena a : network.getRemoteArenas().all()) {

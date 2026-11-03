@@ -13,11 +13,6 @@ import org.bukkit.entity.Player;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * Resets an arena world from its template: unload (without saving) → delete + copy template →
- * create the world again. The arena stays {@code restarting} until the new world is bound.
- * Always ends in {@link Arena#finishReset} or {@link Arena#failReset}.
- */
 public final class ArenaResetPipeline {
     private static final int MAX_UNLOAD_ATTEMPTS = 50;
 
@@ -35,7 +30,6 @@ public final class ArenaResetPipeline {
         return true;
     }
 
-    /** Continues a failed reset from wherever it stopped: unloads the world if it is still loaded, else restores it. */
     public static void retry(Arena arena) {
         World world = arena.getArenaWorld();
         if (world == null) {
@@ -51,11 +45,9 @@ public final class ArenaResetPipeline {
     }
 
     private static void tryUnload(Arena arena, World world, Path folder, int attempt) {
-        // Nobody may stay in the world, otherwise it can not be unloaded.
         for (Player player : world.getPlayers()) {
             LobbyService.sendToLobby(player, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.MAP_RESET);
         }
-        // Chunks are NOT saved (save = false): game damage must never reach the disk.
         if (Bukkit.unloadWorld(world, false)) {
             arena.unbindWorld();
             restoreAndReload(arena, world.getName(), folder);
@@ -90,7 +82,7 @@ public final class ArenaResetPipeline {
             try {
                 Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin, copy);
             } catch (IllegalStateException | org.bukkit.plugin.IllegalPluginAccessException e) {
-                // plugin is disabling; the dirty marker makes the next start restore the map
+
             }
         } else {
             copy.run();
@@ -119,7 +111,7 @@ public final class ArenaResetPipeline {
         try {
             Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, task, delayTicks);
         } catch (IllegalStateException | org.bukkit.plugin.IllegalPluginAccessException e) {
-            // plugin is disabling; the dirty marker makes the next start restore the map
+
         }
     }
 }

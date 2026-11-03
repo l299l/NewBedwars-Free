@@ -78,7 +78,7 @@ class CustomLogicRegistryTest {
         RegisteredLogic standIn = new RegisteredLogic("test_late");
         assertEquals("TEST_LATE", standIn.getKey());
         assertEquals(LogicType.NONE, standIn.getType());
-        // addon not registered yet: nothing happens and the item is not consumed
+
         assertFalse(standIn.perform(mock(Player.class), mock(IArena.class)));
         register("TEST_LATE", logic(true, calls));
         assertTrue(standIn.perform(mock(Player.class), mock(IArena.class)));

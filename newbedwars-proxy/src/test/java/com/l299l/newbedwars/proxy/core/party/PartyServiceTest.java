@@ -45,7 +45,6 @@ class PartyServiceTest {
         assertTrue(p.isAdmin(leo));
         assertTrue(pf.has("Bot:PartyAccepted{/player/=Leo}"));
         assertTrue(pf.has("Leo:PartyMemberJoined{/player/=Bot}"));
-        // last sync: one message per server (both on lobby)
         PartySync last = pf.toPlayerServer.get(pf.toPlayerServer.size() - 1).payload(PartySync.class);
         assertEquals(2, last.members.size());
         assertEquals(leo, last.admin);
@@ -102,7 +101,6 @@ class PartyServiceTest {
         assertTrue(p.isAdmin(bot));
         assertTrue(pf.has("Bot:PartyYouAreAdmin"));
         assertTrue(pf.has("Cat:PartyMemberLeft{/player/=Leo}"));
-        // sync went to lobby (Bot) and game1 (Cat)
         assertEquals(MessageType.PARTY_SYNC, pf.toPlayerServer.get(pf.toPlayerServer.size() - 1).type());
     }
 

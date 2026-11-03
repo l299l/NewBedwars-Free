@@ -31,7 +31,6 @@ import java.util.UUID;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Using shop custom items: bridge eggs, fireballs, potions, golems, silverfish, towers and addon logic. */
 public class CustomItemListener implements Listener {
     private final NewBedwars plugin;
     private final HashSet<UUID> pendingBridgeEggThrow = new HashSet<>();
@@ -86,11 +85,11 @@ public class CustomItemListener implements Listener {
                 e.setCancelled(true);
                 boolean success = customItem.getEvent().perform(p, arena);
                 if (success) {
-                    // PortableTowerLogic manually consumes the item, so don't consume again
+
                 }
             }
             default -> {
-                // logic registered by an addon
+
                 if (customItem.getEvent() instanceof RegisteredLogic) {
                     e.setCancelled(true);
                     if (customItem.getEvent().perform(p, arena)) consumeOneItem(p);

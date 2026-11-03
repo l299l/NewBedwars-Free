@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** The ender dragons of teams with the dragon buff upgrade (sudden death phase). */
 class DragonController {
     private final IArena arena;
     private final Map<Team, EnderDragon> dragons = new HashMap<>();
@@ -32,7 +31,6 @@ class DragonController {
         this.arena = arena;
     }
 
-    /** Spawns a dragon for every alive team with the dragon buff. @return true when any was spawned */
     boolean spawn() {
         boolean anySpawned = false;
         World world = arena.getArenaWorld();
@@ -92,7 +90,6 @@ class DragonController {
         return anySpawned;
     }
 
-    /** Online players of the other alive teams who can be attacked. */
     private List<Player> enemies(Team owningTeam) {
         List<Player> enemies = new ArrayList<>();
         for (Team t : arena.getTeams().values()) {
@@ -107,7 +104,6 @@ class DragonController {
         return enemies;
     }
 
-    /** Stops the attack tasks and removes every dragon. */
     void removeAll() {
         for (BukkitTask task : new ArrayList<>(tasks.values())) {
             if (!task.isCancelled()) task.cancel();

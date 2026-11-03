@@ -14,7 +14,6 @@ import java.util.List;
 
 public class JoinCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "join";
@@ -39,7 +38,7 @@ public class JoinCommand extends BwCommand {
     public void perform(Player p, String[] args, IArena old) {
         com.l299l.newbedwars.network.NetworkManager network = com.l299l.newbedwars.network.NetworkManager.get();
         if (network != null && com.l299l.newbedwars.network.NetworkManager.isLobby()) {
-            // Lobby server of a network: the arenas are on game servers, the proxy picks one.
+
             if (args.length > 1) {
                 network.requestJoinByName(p, args[1]);
             } else if (ArenaJoinService.mayJoin(p)) {

@@ -10,14 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** {@code /party} (alias {@code /p}) — same subcommands as on a single server. */
 public final class PartyCommand implements SimpleCommand {
     private final ProxyServer proxy;
     private final Object lock;
     private final PartyService parties;
     private final Router router;
 
-    /** @param lock the plugin's lock; every call into the core holds it */
     public PartyCommand(ProxyServer proxy, Object lock, PartyService parties, Router router) {
         this.proxy = proxy;
         this.lock = lock;

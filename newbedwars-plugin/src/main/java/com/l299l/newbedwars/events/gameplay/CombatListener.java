@@ -26,7 +26,6 @@ import java.util.UUID;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Player deaths (kills, resource transfer, death messages) and team damage. */
 public class CombatListener implements Listener {
     private final CombatTracker combat;
 

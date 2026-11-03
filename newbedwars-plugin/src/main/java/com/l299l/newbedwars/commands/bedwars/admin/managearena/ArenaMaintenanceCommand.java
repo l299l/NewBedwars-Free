@@ -287,7 +287,7 @@ public class ArenaMaintenanceCommand extends BwCommand {
             reply(player, "CopyFailed", newName, "an arena, map or world with that name already exists");
             return;
         }
-        // The pristine template is copied when there is one; otherwise the saved world (only while nobody uses it).
+
         Path mapSource;
         if (ArenaMaps.hasTemplate(name)) {
             mapSource = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name);
@@ -428,7 +428,6 @@ public class ArenaMaintenanceCommand extends BwCommand {
         void run() throws Exception;
     }
 
-    /** Runs {@code task} off the main thread, then {@code done} on it ({@code null} = success). */
     private static void runAsync(IoTask task, Consumer<Exception> done) {
         new BukkitRunnable() {
             @Override

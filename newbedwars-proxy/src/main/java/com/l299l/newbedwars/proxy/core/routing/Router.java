@@ -25,15 +25,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-/**
- * Handles messages from backends: server states, join requests (pick a server with {@link ServerSelector},
- * move the player and their party, hand the game server a {@link JoinTicket} once they arrived), rejects
- * (one more try elsewhere, then back to a lobby) and send-to-lobby. Not thread-safe.
- */
 public final class Router {
-    /** How many servers one request may try before the players go back to the lobby. */
     static final int MAX_TRIES = 2;
-    /** A player who just asked to join cannot start another join this soon. */
     static final long REQUEST_COOLDOWN_MILLIS = 2000L;
 
     private final ProxyPlatform platform;
@@ -54,12 +47,10 @@ public final class Router {
         final String target;
         final Set<String> tried = new HashSet<>();
         final Set<UUID> ticketsSent = new HashSet<>();
-        /** Only this game server (map vote winner); null = any. */
         String onlyServer;
         ServerSelector.Choice current;
         long expiresAt;
         final long createdAt;
-        /** The players counted into the chosen arena until a fresh state replaces them or the request ends. */
         ServerRegistry.Reservation reservation;
 
         Pending(String id, List<UUID> players, String partyId, TargetKind kind, String target, long createdAt) {
@@ -92,7 +83,6 @@ public final class Router {
         return groups;
     }
 
-    /** A message from backend {@code server}, received through {@code via}. */
     public void handle(String server, UUID via, NetMessage msg, long now) {
         switch (msg.type()) {
             case HELLO -> onHello(server, via, now);
@@ -100,7 +90,6 @@ public final class Router {
             case JOIN_REQUEST -> onJoinRequest(server, via, msg.payload(JoinRequest.class), now);
             case JOIN_REJECT -> onReject(server, msg.payload(JoinReject.class), now);
             case GROUPS -> {
-                // Only lobby servers define groups.
                 if (servers.isLobby(server)
                         && groups.onGroups(server, msg.payload(NetworkGroups.class), servers.lobbyServers(), servers.gameServers(), now)) {
                     servers.setGroups(groups.current());
@@ -113,9 +102,6 @@ public final class Router {
         }
     }
 
-    // ----- joining -----
-
-    /** Only players that are on the sending server can be moved by it. */
     private void onSendToLobby(String server, SendToLobby toLobby) {
         if (toLobby == null || toLobby.players == null) return;
         for (UUID p : toLobby.players) {
@@ -139,12 +125,10 @@ public final class Router {
         String partyId = null;
         boolean voteMove = r.players != null && !r.players.isEmpty();
         if (!voteMove) {
-            // A repeated click or a flood of requests: the first one is still being handled.
             Pending running = byPlayer.get(requester);
             if (running != null && now - running.createdAt < REQUEST_COOLDOWN_MILLIS) return;
         }
         if (voteMove) {
-            // A game server chose who moves together (map vote): no party-admin rule, but only its own players.
             if (!servers.isGame(server)) return;
             for (UUID u : r.players) {
                 if (u != null && server.equals(platform.currentServer(u)) && !group.contains(u)) group.add(u);
@@ -160,7 +144,6 @@ public final class Router {
                 }
                 group.add(requester);
                 for (UUID m : party.members()) {
-                    // Members that are in a game on another server stay there.
                     if (!m.equals(requester) && platform.isOnline(m) && !servers.isGame(platform.currentServer(m))) group.add(m);
                 }
                 partyId = party.id();
@@ -178,7 +161,6 @@ public final class Router {
         route(p, now);
     }
 
-    /** Watch a running game: to the server where {@code arena} is playing (or {@code onlyServer}), no retry. */
     private void onSpectateRequest(UUID player, String arena, String onlyServer, long now) {
         List<ServerSelector.Candidate> candidates = servers.candidates(now);
         if (onlyServer != null) candidates.removeIf(c -> !c.serverId.equalsIgnoreCase(onlyServer));
@@ -190,7 +172,6 @@ public final class Router {
         routeDirect(player, where, TargetKind.SPECTATE, now);
     }
 
-    /** Sends the player back to the game they left; parties do not follow (each member rejoins alone). */
     private void onRejoinRequest(UUID player, long now) {
         ServerSelector.Choice where = ServerSelector.findRejoin(servers.candidates(now), player, now);
         if (where == null) {
@@ -200,7 +181,6 @@ public final class Router {
         routeDirect(player, where, TargetKind.REJOIN, now);
     }
 
-    /** One player to one known server and arena (rejoin, spectate): no other server is tried. */
     private void routeDirect(UUID player, ServerSelector.Choice where, TargetKind kind, long now) {
         cancel(List.of(player));
         Pending p = new Pending("r" + (++nextId) + "-" + Long.toHexString(now), new ArrayList<>(List.of(player)), null,
@@ -237,7 +217,6 @@ public final class Router {
         if (!choice.isBlind()) p.reservation = servers.reserve(choice.serverId, choice.arena, p.players.size());
         for (UUID u : new ArrayList<>(p.players)) {
             if (choice.serverId.equals(platform.currentServer(u))) {
-                // Already on that server (e.g. a map vote won by an arena here): the ticket can go right away.
                 sendTicket(p, u, now);
                 continue;
             }
@@ -254,7 +233,6 @@ public final class Router {
         });
     }
 
-    /** The player arrived on {@code server} (connection switch done): give them their ticket. */
     public void onServerConnected(UUID player, String server, long now) {
         parties.onServerSwitch(player);
         sendTicketIfArrived(player, server, now);
@@ -265,7 +243,6 @@ public final class Router {
 
     private void onHello(String server, UUID via, long now) {
         if (via == null) return;
-        // The backend is ready for messages now: resend what it may have missed while the player was connecting.
         parties.onServerSwitch(via);
         sendTicketIfArrived(via, server, now);
         if (servers.isLobby(server) || servers.isGame(server)) {
@@ -300,7 +277,6 @@ public final class Router {
         retryOrFail(p, System.currentTimeMillis());
     }
 
-    /** Rejoin and spectate are never retried elsewhere; a join looks for another server. */
     private void retryOrFail(Pending p, long now) {
         p.current = null;
         releaseReservation(p);
@@ -320,7 +296,6 @@ public final class Router {
         }
     }
 
-    /** The request is over (failed, replaced or expired). */
     private void remove(Pending p) {
         releaseReservation(p);
         byRequest.remove(p.id);
@@ -347,7 +322,6 @@ public final class Router {
         if (p.players.isEmpty()) remove(p);
     }
 
-    /** Drops requests whose ticket time (twice over) has passed. */
     public void tick(long now) {
         for (Iterator<Pending> it = byRequest.values().iterator(); it.hasNext(); ) {
             Pending p = it.next();
@@ -360,9 +334,6 @@ public final class Router {
         servers.prune(now);
     }
 
-    // ----- lobby -----
-
-    /** Moves a player to the least full lobby server (not the one they are on). */
     public void sendToLobby(UUID player) {
         String current = platform.currentServer(player);
         String best = null;
@@ -382,16 +353,13 @@ public final class Router {
         });
     }
 
-    /** Pushes the network state to every lobby server when it changed. */
     public void pushState(long now, boolean force) {
         if (!servers.takeDirty() && !force) return;
         NetMessage msg = NetMessage.of(PartyService.FROM, servers.snapshot(now));
         for (String lobby : servers.lobbyServers()) platform.sendToServer(lobby, msg);
-        // Game servers need it too: the map vote offers arenas of the same group on other servers.
         for (ServerSelector.Candidate c : servers.candidates(now)) platform.sendToServer(c.serverId, msg);
     }
 
-    /** A plain message to a player (used by the platform's commands). */
     public void platformMessage(UUID player, String key) {
         platform.message(player, key, Map.of());
     }

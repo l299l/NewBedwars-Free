@@ -21,7 +21,6 @@ public class LangMessages {
         }
     }
 
-    /** Backward-compatible constructor used by tests and legacy code. */
     public LangMessages(FileConfiguration polishConf, FileConfiguration englishConf) {
         Map<Language, FileConfiguration> map = new EnumMap<>(Language.class);
         map.put(Language.English, englishConf);
@@ -37,7 +36,6 @@ public class LangMessages {
             messages.get(lang).clear();
         }
 
-        // Load flat keys from each language's config
         for (Language lang : Language.values()) {
             FileConfiguration conf = configs.get(lang);
             if (conf == null) continue;
@@ -51,10 +49,6 @@ public class LangMessages {
         setFromCustomItemsNames();
     }
 
-    /**
-     * Returns the message for the given language, falling back to English if the
-     * key is absent in the requested language. Returns "" if not found anywhere.
-     */
     public String getMsg(Language lang, String text) {
         HashMap<String, String> map = messages.get(lang);
         String result = map != null ? map.get(text) : null;
@@ -66,13 +60,11 @@ public class LangMessages {
         return result != null ? result : "";
     }
 
-    /** Returns null for unknown keys (backward compat). */
     public String getMsgEnglish(String text) {
         HashMap<String, String> map = messages.get(Language.English);
         return map != null ? map.get(text) : null;
     }
 
-    /** Returns null for unknown keys (backward compat). */
     public String getMsgPolish(String text) {
         HashMap<String, String> map = messages.get(Language.Polish);
         return map != null ? map.get(text) : null;

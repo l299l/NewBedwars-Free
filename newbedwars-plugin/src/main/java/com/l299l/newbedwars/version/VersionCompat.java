@@ -18,31 +18,28 @@ import org.bukkit.potion.PotionType;
 
 import java.lang.reflect.Field;
 
-/** Cross-version compatibility layer; reflection bridges the PotionData/setBasePotionType gap in 1.20.5. */
 public final class VersionCompat {
 
-    /** True when running on 1.20.5 or newer. */
     public static final boolean IS_1_20_5_PLUS;
 
-    public static final Enchantment PROTECTION;   // was PROTECTION_ENVIRONMENTAL
-    public static final Enchantment SHARPNESS;    // was DAMAGE_ALL
-    public static final Enchantment POWER;        // was ARROW_DAMAGE
-    public static final Enchantment INFINITY;     // was ARROW_INFINITE
-    /** Any valid enchantment used solely to make an item visually glow (always hidden). */
-    public static final Enchantment GLOW_ENCHANT; // unbreaking – exists in every version
+    public static final Enchantment PROTECTION;
+    public static final Enchantment SHARPNESS;
+    public static final Enchantment POWER;
+    public static final Enchantment INFINITY;
+    public static final Enchantment GLOW_ENCHANT;
 
-    public static final PotionEffectType SLOWNESS;       // was SLOW
-    public static final PotionEffectType HASTE;          // was FAST_DIGGING
-    public static final PotionEffectType MINING_FATIGUE; // was SLOW_DIGGING
-    public static final PotionEffectType JUMP_BOOST;     // was JUMP
-    public static final PotionEffectType SPEED;          // SWIFTNESS in 1.20.5+
-    public static final PotionEffectType INVISIBILITY;   // unchanged across versions
+    public static final PotionEffectType SLOWNESS;
+    public static final PotionEffectType HASTE;
+    public static final PotionEffectType MINING_FATIGUE;
+    public static final PotionEffectType JUMP_BOOST;
+    public static final PotionEffectType SPEED;
+    public static final PotionEffectType INVISIBILITY;
 
-    public static final PotionType POTION_SPEED;       // was SPEED  → SWIFTNESS
-    public static final PotionType POTION_JUMP;        // was JUMP   → LEAPING
-    public static final PotionType POTION_INVISIBILITY;// stable in all versions
+    public static final PotionType POTION_SPEED;
+    public static final PotionType POTION_JUMP;
+    public static final PotionType POTION_INVISIBILITY;
 
-    public static final Particle DUST;                  // was REDSTONE
+    public static final Particle DUST;
 
     static {
         IS_1_20_5_PLUS = isAtLeast(1, 20, 5);
@@ -69,7 +66,6 @@ public final class VersionCompat {
 
     private VersionCompat() {}
 
-
     public static boolean isAtLeast(int major, int minor, int patch) {
         String ver = Bukkit.getBukkitVersion().split("-")[0];
         String[] p = ver.split("\\.");
@@ -84,7 +80,6 @@ public final class VersionCompat {
             return false;
         }
     }
-
 
     private static Enchantment enchantment(String minecraftKey) {
         return Enchantment.getByKey(NamespacedKey.minecraft(minecraftKey));
@@ -106,7 +101,6 @@ public final class VersionCompat {
             }
         }
     }
-
 
     private static Particle particle(String modern, String legacy) {
         try {
@@ -131,7 +125,6 @@ public final class VersionCompat {
         meta.setOwningPlayer(Bukkit.getOfflinePlayer(playerName));
     }
 
-    /** Adds enchantment shimmer to an item using hidden Unbreaking I (valid in all versions). */
     public static void addGlowEffect(ItemMeta meta) {
         if (GLOW_ENCHANT != null) {
             meta.addEnchant(GLOW_ENCHANT, 1, true);
@@ -176,7 +169,6 @@ public final class VersionCompat {
         return item;
     }
 
-    /** Disables the 26.x "Locator Bar" gamerule via reflection; it is absent from the compile-time API and a no-op on older versions. */
     @SuppressWarnings("unchecked")
     public static void disableLocatorBar(World world) {
         try {

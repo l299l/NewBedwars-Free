@@ -18,7 +18,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import java.util.*;
 
 public class ScoreboardManager {
-    /** Every player has their own {@link Scoreboard}, so one short name is enough (1.17 limits objective names to 16 characters). */
     private static final String OBJECTIVE_ID = "nbw";
     private final HashMap<String, ScoreboardSave> scoreboards;
     private final FileConfiguration scoreboardConf;
@@ -93,7 +92,7 @@ public class ScoreboardManager {
                     }
                 }
             } else if (line.contains("/server/") && com.l299l.newbedwars.network.NetworkManager.get() == null) {
-                // A single server has no network server name: leave the whole line out.
+
                 continue;
             }else if (line.isEmpty()) {
                 lines.add(" ".repeat(Math.max(1, sep)));

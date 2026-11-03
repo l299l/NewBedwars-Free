@@ -16,7 +16,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/** PartyManager as the read model of proxy-owned parties (network mode). */
 class PartyNetworkSyncTest {
     static final UUID A = UUID.randomUUID();
     static final UUID B = UUID.randomUUID();
@@ -39,7 +38,6 @@ class PartyNetworkSyncTest {
             assertEquals(List.of(A, B), party.getMembers());
             assertEquals("Alice", pm.nameOf(A), "name from the proxy when not online here");
 
-            // B leaves, C joins, admin moves to C
             pm.applyNetworkSync(new PartySync("p1", C, List.of(new PartySync.Member(A, "Alice"), new PartySync.Member(C, "Cid")), false, List.of(B)));
             assertNull(pm.getParty(online(B)));
             assertSame(party, pm.getParty(online(C)));

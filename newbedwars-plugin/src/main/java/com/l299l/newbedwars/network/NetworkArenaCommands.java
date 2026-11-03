@@ -9,17 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * {@code /bw arena} on a LOBBY server: arenas live on the game servers, so only {@code list} (the arenas of all
- * game servers) and {@code info} (how to set arenas up on a network) work here.
- */
 public final class NetworkArenaCommands {
-    /** Subcommands that work on a lobby server. */
+
     public static final List<String> ALLOWED = List.of("list", "info");
 
     private NetworkArenaCommands() {}
 
-    /** Handles {@code /bw arena <sub>} on a lobby; {@code sub} may be null (no subcommand given). */
     public static void perform(Player p, String sub) {
         Messages msg = NewBedwars.plugin.getMessages();
         if ("list".equalsIgnoreCase(sub)) {

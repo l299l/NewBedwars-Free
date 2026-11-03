@@ -9,7 +9,6 @@ import java.util.List;
 public class SetResourcePackCommand extends BwCommand {
     private static final int SHA1_HEX_LENGTH = 40;
 
-
     @Override
     public String getName() {
         return "setResourcePack";

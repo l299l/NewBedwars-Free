@@ -9,7 +9,6 @@ import java.util.List;
 
 public class RejoinCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "rejoin";
@@ -47,7 +46,7 @@ public class RejoinCommand extends BwCommand {
             msg.send(p, "AlreadyInArena");
             return;
         }
-        // Find a pending rejoin slot (player kept in players map during disconnect window)
+
         IArena rejoinArena = findRejoinArena(p);
         if (rejoinArena == null) {
             msg.send(p, "NoArenaToRejoin");

@@ -11,13 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Arena groups are edited on lobby servers. The relay keeps the newest set (by revision) and hands it to every
- * backend: right away to servers with players, and to any server when a player arrives there (HELLO).
- * Not thread-safe.
- */
 public final class GroupRelay {
-    /** A revision this far ahead of the proxy clock is not a real edit time. */
     static final long MAX_FUTURE_MILLIS = 24L * 60 * 60 * 1000;
 
     private final ProxyPlatform platform;
@@ -27,13 +21,10 @@ public final class GroupRelay {
         this.platform = platform;
     }
 
-    /** The newest groups seen, or null. */
     public NetworkGroups current() {
         return current;
     }
 
-    /** Groups sent by lobby {@code from}; older or equal revisions, revisions more than a day ahead of
-     * {@code now} and sets too big for one message are ignored. @return whether they were taken */
     public boolean onGroups(String from, NetworkGroups groups, Set<String> lobbies, Set<String> games, long now) {
         if (groups == null || (current != null && groups.revision <= current.revision)) return false;
         if (groups.revision > now + MAX_FUTURE_MILLIS) return false;
@@ -46,7 +37,6 @@ public final class GroupRelay {
         return true;
     }
 
-    /** A player arrived on a backend: give that server the newest groups (it ignores ones it already has). */
     public void onHello(UUID via) {
         if (current != null) platform.sendToPlayerServer(via, message());
     }

@@ -7,7 +7,6 @@ import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.LogicType;
 import org.bukkit.entity.Player;
 
-/** Runs an addon's {@link ShopLogic} as shop item logic. */
 public final class ApiShopLogic implements CustomLogic {
     private final ShopLogic logic;
 

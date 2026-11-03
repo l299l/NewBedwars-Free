@@ -134,15 +134,14 @@ public class ArenaInfoGUI implements InventoryHolder {
         inv.setItem(41, createItem(Material.EMERALD, ChatColor.AQUA + "" + ChatColor.BOLD + text("Info-EmeraldGenerators"),
                 ChatColor.GRAY + text("Info-Count") + ": " + ChatColor.WHITE + emerald));
 
-        // We use slots 46-52 for advanced settings (only shown in ADVANCED_SETUP mode)
         if (isAdvanced) {
             int advSlot = 46;
-            
+
             List<String> gamerulesLore = new ArrayList<>();
             ArenaInfo.gamerules(arena.getGamerules()).forEach((name, value) ->
                     gamerulesLore.add(ChatColor.GRAY + name + ": " + ArenaInfo.bool(viewer, value)));
             inv.setItem(advSlot++, createItem(Material.JIGSAW, ChatColor.AQUA + "" + ChatColor.BOLD + text("Info-Gamerules"), gamerulesLore));
-            
+
             List<String> rpLore = new ArrayList<>();
             if (arena.getResourcePackUrl() != null) {
                 rpLore.add(ChatColor.GRAY + text("Info-Url") + ": " + ChatColor.WHITE + arena.getResourcePackUrl());
@@ -153,18 +152,18 @@ public class ArenaInfoGUI implements InventoryHolder {
                 rpLore.add(ChatColor.RED + text("Info-NotSet"));
             }
             inv.setItem(advSlot++, createItem(Material.MUSIC_DISC_13, ChatColor.AQUA + "" + ChatColor.BOLD + text("Info-ResourcePack"), rpLore));
-            
+
             List<String> shopGuiLore = new ArrayList<>();
             shopGuiLore.add(ChatColor.GRAY + text("Info-Shop") + ": " + ArenaInfo.value(viewer, arena.getShopGuiId()));
             shopGuiLore.add(ChatColor.GRAY + text("Info-Upgrades") + ": " + ArenaInfo.value(viewer, arena.getUpgradeGuiId()));
             inv.setItem(advSlot++, createItem(Material.CHEST, ChatColor.AQUA + "" + ChatColor.BOLD + text("Info-GUIs"), shopGuiLore));
-            
+
             List<String> genLore = new ArrayList<>();
             GeneratorLeveling leveling = arena.getGeneratorsLeveling();
             genLore.add(ChatColor.GRAY + text("Info-Config") + ": " + ArenaInfo.value(viewer, leveling != null ? leveling.getId() : null));
             inv.setItem(advSlot++, createItem(Material.HOPPER, ChatColor.AQUA + "" + ChatColor.BOLD + text("Info-GeneratorLeveling"), genLore));
         }
-        
+
         boolean canEnable = arena.canBeEnabled();
         inv.setItem(49, createItem(
                 canEnable ? Material.GREEN_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE,
@@ -207,7 +206,6 @@ public class ArenaInfoGUI implements InventoryHolder {
         return ArenaInfo.tick(set);
     }
 
-
     private String locStr(Location loc) {
         return ArenaInfo.loc(viewer, loc);
     }
@@ -216,7 +214,6 @@ public class ArenaInfoGUI implements InventoryHolder {
         return ArenaInfo.text(viewer, key);
     }
 
-    /** "Value: " in gray. */
     private String value() {
         return ChatColor.GRAY + text("Info-Value") + ": ";
     }

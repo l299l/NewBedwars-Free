@@ -17,13 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Paginated, clickable and localized command list built from the {@link SubCommand} metadata
- * of the commands available to the player in their current context.
- */
 public class HelpCommand extends SubCommand {
     private static final int PER_PAGE = 8;
-    /** Commands available to the player; the value is true for admin-only commands. */
+
     private final Function<Player, Map<SubCommand, Boolean>> available;
 
     public HelpCommand(Function<Player, Map<SubCommand, Boolean>> available) {
@@ -93,7 +89,6 @@ public class HelpCommand extends SubCommand {
         sendNavigation(player, msg, page, pages);
     }
 
-    /** Localized description (key {@code HelpDesc-<name>}), falling back to the command's own text. */
     private String description(Messages msg, Player player, SubCommand cmd) {
         String localized = msg.getMsg(player, "HelpDesc-" + cmd.getName());
         return localized.isEmpty() ? cmd.getDescription() : localized;

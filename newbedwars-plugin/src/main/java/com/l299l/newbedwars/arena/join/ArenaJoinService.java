@@ -18,19 +18,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-/** The checks and routing of {@code /bw join}, shared by the command, join NPCs and other join entry points. */
 public final class ArenaJoinService {
     private ArenaJoinService() {}
 
-    /** Joins (or rejoins) {@code arena} after all checks; sends the player the reason when it fails. */
     public static void join(Player p, IArena arena) {
         if (mayJoin(p)) joinArena(p, arena);
     }
 
-    /**
-     * Checks that do not depend on the target arena: join permission, only the party admin may join,
-     * and the player is not already playing in an arena world.
-     */
     public static boolean mayJoin(Player p) {
         Messages msg = NewBedwars.plugin.getMessages();
         if (Properties.RequireJoinPermission && !p.hasPermission("newbedwars.bw.join") && !p.isOp()) {
@@ -40,7 +34,7 @@ public final class ArenaJoinService {
         Party party = NewBedwars.plugin.getPartyManager().getParty(p);
         if (party != null && !party.isAdmin(p.getUniqueId())) {
             Player admin = Bukkit.getPlayer(party.getAdmin());
-            // In network mode the admin may be on another server; the proxy sent their name.
+
             String adminName = admin != null ? admin.getName()
                     : java.util.Objects.requireNonNullElse(NewBedwars.plugin.getPartyManager().nameOf(party.getAdmin()), "?");
             msg.send(p, "PartyOnlyAdminCanJoin", Map.of("/player/", adminName));
@@ -54,14 +48,13 @@ public final class ArenaJoinService {
         return true;
     }
 
-    /** Arena-specific part of the join; call {@link #mayJoin} first. */
     public static void joinArena(Player p, IArena arena) {
         Messages msg = NewBedwars.plugin.getMessages();
         if (!arena.isEnabled()) {
             msg.send(p, "ArenaNotEnabled", Map.of("/arenaname/", arena.getArenaName()));
             return;
         }
-        // Joining the arena you can rejoin rejoins it; joining another one gives that place up (in Arena.join).
+
         if (pendingArena(p) == arena) {
             if (arena.rejoin(p)) {
                 msg.send(p, "Rejoined");
@@ -99,17 +92,12 @@ public final class ArenaJoinService {
         }
     }
 
-    /** How many players join together when {@code p} joins: the online party size, or 1. */
     public static int joinSize(Player p) {
         PartyManager pm = NewBedwars.plugin.getPartyManager();
         Party party = pm.getParty(p);
         return party == null ? 1 : Math.max(1, pm.getOnlineMembers(party).size());
     }
 
-    /**
-     * The best arena among {@code arenas} that match {@code filter} and still have room for
-     * {@code needed} players: the fullest one, ties broken by name. {@code null} when none fits.
-     */
     public static IArena findBest(Collection<IArena> arenas, Predicate<IArena> filter, int needed) {
         return arenas.stream()
                 .filter(a -> a.isEnabled())
@@ -126,7 +114,6 @@ public final class ArenaJoinService {
         return arena.getMaxPlayers() - arena.getActivePlayerCount();
     }
 
-    /** The arena that still holds {@code p} as a player (in game or waiting for a rejoin), or null. */
     private static IArena pendingArena(Player p) {
         for (IArena existing : ArenaRegistry.all()) {
             if (existing.isPlayerInArena(p)) return existing;

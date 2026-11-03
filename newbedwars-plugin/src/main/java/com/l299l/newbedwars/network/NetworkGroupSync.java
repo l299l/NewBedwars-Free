@@ -18,12 +18,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 
-/**
- * Arena groups in network mode. Lobby servers own them ({@code /bw group} there, entries {@code arena} or
- * {@code server:arena}) and send them to the proxy after every edit and on each player join; the proxy hands the
- * newest set to every server. Game servers keep the last set in {@code data/network-groups.json} and use the
- * entries that mean their own arenas.
- */
 final class NetworkGroupSync {
     static final String CACHE_FILE = "network-groups.json";
 
@@ -33,7 +27,7 @@ final class NetworkGroupSync {
     private final Path dataDir;
     private final Logger log;
     private final Runnable onApplied;
-    /** GAME: revision of the groups in use (-1 = none yet). */
+
     private long revision = -1;
 
     NetworkGroupSync(NetworkMode mode, String serverId, Messenger messenger, Path dataDir, Logger log, Runnable onApplied) {
@@ -71,7 +65,6 @@ final class NetworkGroupSync {
         if (groups != null && mode == NetworkMode.LOBBY) groups.setChangeListener(null);
     }
 
-    /** LOBBY: tell the proxy our groups through {@code via} (it keeps the newest). */
     void sendVia(Player via) {
         NetworkGroups payload = payload();
         if (mode == NetworkMode.LOBBY && payload != null) messenger.send(via, NetMessage.of(serverId, payload));
@@ -87,7 +80,6 @@ final class NetworkGroupSync {
         return groups == null ? null : toPayload(groups.getGroups(), groups.getRevision());
     }
 
-    /** Groups from the proxy. */
     void onGroups(NetworkGroups g) {
         ArenaGroupManager groups = ArenaGroupManager.get();
         if (g == null || groups == null) return;
@@ -137,10 +129,6 @@ final class NetworkGroupSync {
         return out;
     }
 
-    /**
-     * The groups as a game server sees them: only entries for its own arenas ({@code arena} or
-     * {@code thisServer:arena}), as plain arena names; an arena stays in the first group that has it.
-     */
     static List<ArenaGroup> forServer(List<ArenaGroup> all, String serverId) {
         List<ArenaGroup> out = new ArrayList<>();
         Set<String> taken = new HashSet<>();

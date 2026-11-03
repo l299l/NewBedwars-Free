@@ -14,17 +14,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Reads and writes {@code data/groups.json}: {@code {"version":1,"revision":<time of last edit>,"groups":[...]}}
- * (the revision is used in network mode, where the newest set of groups wins).
- */
 public final class ArenaGroupStore {
     public static final int VERSION = 1;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private ArenaGroupStore() {}
 
-    /** Groups and the revision of a file. */
     public record Loaded(List<ArenaGroup> groups, long revision) {}
 
     public static String toJson(List<ArenaGroup> groups) {
@@ -52,18 +47,15 @@ public final class ArenaGroupStore {
         return result;
     }
 
-    /** The revision of a file's JSON, 0 when it has none. */
     public static long revisionOf(String json) {
         JsonObject root = JsonParser.parseString(json).getAsJsonObject();
         return root.has("revision") ? root.get("revision").getAsLong() : 0;
     }
 
-    /** Missing file = no groups. */
     public static List<ArenaGroup> load(Path file) throws IOException {
         return read(file).groups();
     }
 
-    /** Missing file = no groups, revision 0. */
     public static Loaded read(Path file) throws IOException {
         if (!Files.isRegularFile(file)) return new Loaded(new ArrayList<>(), 0);
         String json = Files.readString(file, StandardCharsets.UTF_8);

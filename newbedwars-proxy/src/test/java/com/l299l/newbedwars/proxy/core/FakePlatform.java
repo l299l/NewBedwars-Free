@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-/** In-memory proxy for core tests: players, their servers, sent messages and connects. */
 public class FakePlatform implements ProxyPlatform {
     public final Map<UUID, String> names = new HashMap<>();
     public final Map<UUID, String> servers = new HashMap<>();
@@ -21,9 +20,7 @@ public class FakePlatform implements ProxyPlatform {
     public final List<UUID> toPlayerServerVia = new ArrayList<>();
     public final List<String> toServer = new ArrayList<>();
     public final List<String> connects = new ArrayList<>();
-    /** Connects to these servers fail. */
     public final Set<String> failing = new HashSet<>();
-    /** When false, connects are not completed (the test calls the router itself). */
     public boolean completeConnects = true;
 
     public UUID add(String name, String server) {

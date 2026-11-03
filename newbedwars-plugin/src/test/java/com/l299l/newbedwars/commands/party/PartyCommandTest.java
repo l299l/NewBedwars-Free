@@ -35,7 +35,7 @@ class PartyCommandTest {
         pm = new PartyManager(plugin, mockMessages) {
             @Override
             protected void scheduleInviteExpiry(Player inviter, Player invitee, Party party) {
-                // no-op: skip BukkitRunnable scheduling in tests
+
             }
         };
 
@@ -150,7 +150,7 @@ class PartyCommandTest {
         Party party = pm.createParty(p1);
         pm.sendInvite(p1, p2, party);
         pm.acceptInvite(p2);
-        // p2 is a member but not admin
+
         cmd.onCommand(p2, null, "party", new String[]{"kick", "Alice"});
         verify(mockMessages).send(p2, "PartyNotAdmin");
     }

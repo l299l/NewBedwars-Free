@@ -25,15 +25,11 @@ public interface IArena {
     void stop();
     void forceShutdown();
     boolean rollback();
-    /** Problems found while loading the arena (empty when it is fine). */
     List<String> getLoadProblems();
-    /** Free-form data owned by addons, saved and loaded unchanged. */
     JsonObject getExtra();
     void setExtra(JsonObject extra);
-    /** Top-level fields of the arena file this version does not know; written back unchanged. */
     JsonObject getUnknownFields();
     void setUnknownFields(JsonObject unknownFields);
-    /** IDs from the arena file that did not resolve; saved back unchanged so a missing config does not erase them. */
     void setUnresolvedIds(String gamePhasesId, String generatorsLevelingId);
     int getGameTime();
     void upgradeGenerators(GeneratorType type, Integer level);
@@ -51,11 +47,6 @@ public interface IArena {
     GamePlayer getPlayer(UUID player);
     void killPlayer(Player player);
     void cancelStart();
-
-    /**
-     * Gives up the player's place in this game when they are kept only for a rejoin (not in this arena's world).
-     * @return true when a place was removed
-     */
     boolean forfeitRejoin(Player player);
     void broadcast(String message);
     void broadcast(String message, java.util.Map<String, String> replace);
@@ -78,20 +69,14 @@ public interface IArena {
     GeneratorLeveling getGeneratorsLeveling();
     void setGeneratorsLeveling(GeneratorLeveling generatorLeveling);
     void setGamerules(Gamerules gamerules);
-    /** Unmodifiable view; use {@link #createTeam} and {@link #removeTeam} to change the teams. */
     java.util.Map<String, Team> getTeams();
     int getMaxInTeam();
-
-    /** Teams times players per team. */
     default int getMaxPlayers() {
         return getTeams().size() * getMaxInTeam();
     }
-    /** Unmodifiable view; use {@link #addGenerator} and {@link #removeGenerator} to change the generators. */
     java.util.List<Generator> getGenerators();
     void addGenerator(Generator generator);
-    /** @return the removed generator, or {@code null} for an invalid index */
     Generator removeGenerator(int index);
-    /** Removes a team (and its setup armor stands are left to the caller). @return false when there is no such team */
     boolean removeTeam(String name);
     ArrayList<Player> getSpectators();
     void addSpectator(Player player, boolean canExit);
@@ -99,8 +84,6 @@ public interface IArena {
     void createTeam(String name, ChatColor color);
     Team getTeam(String name);
     Team getTeam(Player player);
-
-    /** The player's name in their team color (plain when they have no team). */
     default String coloredName(Player player) {
         Team team = getTeam(player);
         return team == null ? player.getName() : team.colored(player.getName());
@@ -110,11 +93,9 @@ public interface IArena {
     Team getTeamByBed(Location bed);
     void changeSetup(Setup setup);
     Setup getSetupMode();
-    /** Players who left this running game and may still rejoin it, with the end of their time (epoch millis). */
     default java.util.Map<UUID, Long> getRejoinSlots() {
         return java.util.Map.of();
     }
-
     ArrayList<UUID> getPlayersOnSetup();
     String getArenaName();
     void setMaxInTeam(int max);

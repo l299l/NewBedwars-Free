@@ -66,7 +66,6 @@ public class CreateCommand extends BwCommand {
             return;
         }
 
-        // an existing world (loaded or only on disk) must never be adopted: deleting the arena would delete it too
         if (Bukkit.getWorld(arenaName) != null || new java.io.File(Bukkit.getWorldContainer(), arenaName).exists()) {
             msg.send(player, "ArenaWorldExists");
             return;

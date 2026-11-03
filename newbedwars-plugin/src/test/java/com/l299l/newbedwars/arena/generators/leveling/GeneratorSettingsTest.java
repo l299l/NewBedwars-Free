@@ -39,14 +39,11 @@ class GeneratorSettingsTest {
                 """)));
     }
 
-    // ── shipped defaults ────────────────────────────────────────────────────
-
     private static GeneratorSettings shipped(String section) {
         YamlConfiguration conf = YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/defaultGenerators.yml"));
         return new GeneratorSettings(conf.getConfigurationSection(section));
     }
 
-    /** Items per second of one resource at a level: share of the weights x average amount / delay. */
     private static double income(GeneratorSettings s, int level, java.util.function.Function<GeneratorSettings, java.util.List<Double>> rate,
                                  java.util.function.Function<GeneratorSettings, java.util.List<Integer>> amount) {
         double total = 0;
@@ -61,7 +58,7 @@ class GeneratorSettingsTest {
     @Test
     void defaultTeamGeneratorHasOneLevelPerForgePurchase() {
         GeneratorSettings s = shipped("TeamGenerator");
-        assertEquals(9, s.getMaxLevel()); // base level + the 8 Forge levels of config.yml
+        assertEquals(9, s.getMaxLevel());
     }
 
     @Test

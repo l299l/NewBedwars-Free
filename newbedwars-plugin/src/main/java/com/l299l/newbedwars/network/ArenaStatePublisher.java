@@ -17,10 +17,6 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.function.BooleanSupplier;
 
-/**
- * GAME mode: sends this server's arena list to the proxy when something changes (debounced to one send per
- * tick) and every {@code StatePublishSeconds}; also writes it to MySQL when enabled (on change and every heartbeat).
- */
 public final class ArenaStatePublisher implements Listener {
     private final Plugin plugin;
     private final Messenger messenger;
@@ -63,7 +59,6 @@ public final class ArenaStatePublisher implements Listener {
         }, restarting.getAsBoolean(), System.currentTimeMillis());
     }
 
-    /** Publishes on the next tick (several changes in one tick give one message). */
     public void changed() {
         if (scheduled) return;
         scheduled = true;
@@ -90,7 +85,6 @@ public final class ArenaStatePublisher implements Listener {
         }
     }
 
-    // Everything that changes an arena's state or player count.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoinArena(PlayerJoinArenaEvent e) { changed(); }
 
@@ -106,7 +100,6 @@ public final class ArenaStatePublisher implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onReset(ArenaResetEvent e) { changed(); }
 
-    /** The proxy only hears from this server while someone is online: send right after a join. */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent e) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {

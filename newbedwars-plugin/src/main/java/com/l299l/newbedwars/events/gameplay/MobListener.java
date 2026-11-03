@@ -14,10 +14,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Team iron golems and silverfish: friendly fire, targets and drops. */
 public class MobListener implements Listener {
 
-    /** Golems and silverfish: no damage to their own team or owner, and no damage from it. */
     @EventHandler
     public void onMobDamage(EntityDamageByEntityEvent e) {
         if (golemHitsOwnTeam(e) || isOwnSilverfish(e) || isOwnGolem(e)) {
@@ -48,7 +46,6 @@ public class MobListener implements Listener {
                 golem.getPersistentDataContainer().get(IronGolemLogic.GOLEM_OWNER_KEY, PersistentDataType.STRING));
     }
 
-    /** True when the attacker of a team mob is its owner or on its team. */
     private static boolean attackedByOwnSide(EntityDamageByEntityEvent e, String mobKey, String ownerUuid) {
         MobKey key = MobKey.parse(mobKey);
         if (key == null) return false;

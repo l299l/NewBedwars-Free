@@ -24,18 +24,15 @@ public class TabArgsUtils {
         return null;
     }
 
-    /** Team names at {@code args.length == start}, then the player's block coordinates. */
     public static List<String> getTabCordsWithTeam(Player player, String[] args, int start) {
         if (args.length == start) return teamNames(player);
         return coords(player, args.length - start - 1);
     }
 
-    /** The player's block coordinates, the x one at {@code args.length == start}. */
     public static List<String> getTabCords(Player player, String[] args, int start) {
         return coords(player, args.length - start);
     }
 
-    /** Team names, then the shop/upgrade entity types, then the player's block coordinates. */
     public static List<String> getTabEntities(Player player, String[] args) {
         if (args.length == 2) return teamNames(player);
         if (args.length == 3) {
@@ -54,7 +51,6 @@ public class TabArgsUtils {
         return arena == null ? new ArrayList<>() : new ArrayList<>(arena.getTeams().keySet());
     }
 
-    /** "x y z", "y z" or "z" of the player's block position for coordinate {@code index} 0, 1 or 2; otherwise {@code null}. */
     private static List<String> coords(Player player, int index) {
         if (index < 0 || index > 2) return null;
         int[] xyz = {player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ()};

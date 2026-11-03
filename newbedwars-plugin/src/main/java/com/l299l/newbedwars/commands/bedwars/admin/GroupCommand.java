@@ -18,14 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * {@code /bw group create|delete|add|remove|list|info|setitem}: arena groups for map voting.
- * In network mode groups are edited on the lobby (entries {@code arena} = on every game server, or
- * {@code server:arena}) and are read-only on game servers.
- */
 public class GroupCommand extends BwCommand {
     private static final List<String> SUBCOMMANDS = List.of("create", "delete", "add", "remove", "list", "info", "setitem");
-
 
     @Override
     public String getName() {
@@ -151,14 +145,13 @@ public class GroupCommand extends BwCommand {
         msg.send(p, "GroupArenaAdded", r2(group, arena.getArenaName()));
     }
 
-    /** Lobby: {@code entry} is {@code arena} (that arena on every game server) or {@code server:arena}. */
     private void addNetwork(Player p, String entry, ArenaGroup group, ArenaGroupManager groups, RemoteArenaRegistry remote) {
         List<RemoteArena> found = remote.resolveEntry(entry);
         if (found.isEmpty()) {
             msg.send(p, "ArenaNotExists");
             return;
         }
-        // Stored with the names as the game servers spell them.
+
         RemoteArena first = found.get(0);
         entry = NetworkGroups.serverOf(entry) == null ? first.getName() : first.getServer() + ":" + first.getName();
         ArenaGroup current = groupWith(groups, entry);
@@ -182,7 +175,6 @@ public class GroupCommand extends BwCommand {
         msg.send(p, "GroupArenaAdded", r2(group, entry));
     }
 
-    /** The group with an entry that can mean the same arena as {@code entry} ({@code castle} / {@code game1:castle}). */
     private static ArenaGroup groupWith(ArenaGroupManager groups, String entry) {
         for (ArenaGroup g : groups.getGroups()) {
             for (String other : g.getArenas()) {
@@ -192,7 +184,6 @@ public class GroupCommand extends BwCommand {
         return null;
     }
 
-    /** The network's arenas on a lobby server, else null (local arenas). */
     private static RemoteArenaRegistry remote() {
         NetworkManager network = NetworkManager.get();
         return network != null && NetworkManager.isLobby() ? network.getRemoteArenas() : null;

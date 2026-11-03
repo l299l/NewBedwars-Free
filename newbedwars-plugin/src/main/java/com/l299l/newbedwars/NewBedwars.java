@@ -127,7 +127,7 @@ public final class NewBedwars extends JavaPlugin {
         LobbyData.save(lobbyLocation);
         if (dataManager != null) dataManager.save();
         if (ArenaMaps.isEnabled() && Properties.RollbackRestoreOnShutdown) {
-            // dataManager.save() unloaded the worlds without saving, so the folders can be replaced now.
+
             for (IArena arena : ArenaRegistry.all()) {
                 String name = arena.getArenaName();
                 if (!ArenaMaps.hasTemplate(name) || !ArenaMaps.isDirty(name)) continue;
@@ -144,8 +144,6 @@ public final class NewBedwars extends JavaPlugin {
         IOExecutor.flush();
         getServer().getConsoleSender().sendMessage(ChatColor.RED + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_RED + "Disabled");
     }
-
-
 
     public void reloadAll() {
         com.l299l.newbedwars.network.NetworkManager.shutdown();

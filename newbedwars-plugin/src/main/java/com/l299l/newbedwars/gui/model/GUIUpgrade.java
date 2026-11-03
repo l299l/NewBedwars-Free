@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record GUIUpgrade(String id, CustomItem icon) implements GUIEntry {
-    /** The upgrade, resolved when used so GUI files can reference upgrades an addon registers later. {@code null} while it is missing. */
+
     public Upgrade upgrade() {
         try {
             return Upgrade.valueOf(id);

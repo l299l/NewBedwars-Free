@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 
 public class SpectateCommand extends BwCommand {
 
-
     @Override public String getName() { return "spectate"; }
     @Override public String getDescription() { return "Join a running arena as spectator."; }
     @Override public String getSyntax() { return "/bw spectate <arena>"; }
@@ -24,7 +23,7 @@ public class SpectateCommand extends BwCommand {
     public void perform(Player player, String[] args, IArena arena) {
         com.l299l.newbedwars.network.NetworkManager network = com.l299l.newbedwars.network.NetworkManager.get();
         if (network != null && com.l299l.newbedwars.network.NetworkManager.isLobby()) {
-            // Lobby server of a network: the games run on game servers.
+
             network.requestSpectate(player, args.length < 2 ? null : args[1], null);
             return;
         }

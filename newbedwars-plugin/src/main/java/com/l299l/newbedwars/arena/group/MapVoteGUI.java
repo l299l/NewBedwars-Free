@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** The vote menu: one icon per map that can be voted for, with live vote counts. */
 public final class MapVoteGUI implements InventoryHolder {
     private final MapVoteManager manager;
     private final Player viewer;
@@ -38,7 +37,6 @@ public final class MapVoteGUI implements InventoryHolder {
         render();
     }
 
-    /** Redraws the icons (options and vote counts change while the menu is open). */
     public void render() {
         inv.clear();
         slots.clear();
@@ -82,7 +80,6 @@ public final class MapVoteGUI implements InventoryHolder {
         return slots.get(slot);
     }
 
-    /** The arena on this server at {@code slot}, or null (empty slot or an arena on another server). */
     public IArena arenaAt(int slot) {
         VoteOption o = slots.get(slot);
         return o == null ? null : o.localArena();

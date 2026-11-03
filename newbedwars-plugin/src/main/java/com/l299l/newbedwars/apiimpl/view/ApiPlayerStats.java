@@ -3,7 +3,6 @@ package com.l299l.newbedwars.apiimpl.view;
 import com.l299l.newbedwars.api.view.PlayerStatsView;
 import com.l299l.newbedwars.player.PlayerStats;
 
-/** {@link PlayerStatsView} of a {@link PlayerStats} snapshot. */
 public record ApiPlayerStats(PlayerStats stats) implements PlayerStatsView {
     @Override public int getWins() { return stats.wins(); }
     @Override public int getLosses() { return stats.losses(); }

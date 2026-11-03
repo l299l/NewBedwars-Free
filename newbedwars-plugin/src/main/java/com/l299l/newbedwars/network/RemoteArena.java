@@ -6,7 +6,6 @@ import com.l299l.newbedwars.common.protocol.payload.ArenaInfo;
 
 import java.util.Optional;
 
-/** An arena on another server (LOBBY mode), also the API view of it. */
 public final class RemoteArena implements NetworkArenaView {
     private final String server;
     private final ArenaInfo info;

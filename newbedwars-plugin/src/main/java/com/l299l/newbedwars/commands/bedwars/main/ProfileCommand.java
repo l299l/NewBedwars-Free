@@ -15,7 +15,6 @@ import java.util.List;
 
 public class ProfileCommand extends BwCommand {
 
-
     @Override public String getName() { return "profile"; }
     @Override public String getDescription() { return "View your or another player's profile."; }
     @Override public String getSyntax() { return "/bw profile [player]"; }

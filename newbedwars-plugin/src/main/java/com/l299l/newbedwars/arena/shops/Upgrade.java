@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * A team upgrade or trap. The built-in ones are constants; addons register more with {@link #register}.
- * Names are upper case and are used in config.yml ({@code UpgradePrices}) and the shop GUI files.
- */
 public final class Upgrade {
     private static final Map<String, Upgrade> REGISTRY = new LinkedHashMap<>();
 
@@ -46,10 +42,6 @@ public final class Upgrade {
         return upgrade;
     }
 
-    /**
-     * @param defaultPrices price per level, used when config.yml has no {@code UpgradePrices.<NAME>} list
-     * @throws IllegalArgumentException when the name is taken or empty
-     */
     public static synchronized Upgrade register(String name, int maxLevel, UpgradeHandler handler, List<Integer> defaultPrices) {
         String key = name.trim().toUpperCase(Locale.ROOT);
         if (key.isEmpty() || REGISTRY.containsKey(key)) throw new IllegalArgumentException("upgrade '" + key + "' already exists or is invalid");
@@ -58,7 +50,6 @@ public final class Upgrade {
         return upgrade;
     }
 
-    /** Removes an addon upgrade; the built-in ones stay. */
     public static synchronized boolean unregister(Upgrade upgrade) {
         return upgrade != null && !upgrade.builtIn && REGISTRY.remove(upgrade.name, upgrade);
     }
@@ -67,7 +58,6 @@ public final class Upgrade {
         return Collections.unmodifiableList(new ArrayList<>(REGISTRY.values()));
     }
 
-    /** @throws IllegalArgumentException when there is no upgrade with that name */
     public static synchronized Upgrade valueOf(String name) {
         Upgrade upgrade = REGISTRY.get(name.trim().toUpperCase(Locale.ROOT));
         if (upgrade == null) throw new IllegalArgumentException("No upgrade named " + name);

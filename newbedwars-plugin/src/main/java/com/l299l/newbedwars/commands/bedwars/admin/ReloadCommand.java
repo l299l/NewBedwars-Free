@@ -17,7 +17,6 @@ import static org.bukkit.Bukkit.getServer;
 
 public class ReloadCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "reload";

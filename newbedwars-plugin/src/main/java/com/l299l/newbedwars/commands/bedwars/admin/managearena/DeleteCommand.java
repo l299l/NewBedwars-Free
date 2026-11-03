@@ -14,7 +14,6 @@ import java.util.List;
 
 public class DeleteCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "delete";

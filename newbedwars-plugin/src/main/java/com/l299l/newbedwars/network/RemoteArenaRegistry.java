@@ -13,11 +13,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/** LOBBY and GAME mode: the arenas of all game servers, as last sent by the proxy. */
 public final class RemoteArenaRegistry {
     private volatile List<RemoteArena> arenas = List.of();
 
-    /** Replaces the list; returns true when something changed. */
     public boolean update(NetworkState state) {
         List<RemoteArena> list = new ArrayList<>();
         if (state != null && state.servers != null) {
@@ -39,7 +37,6 @@ public final class RemoteArenaRegistry {
         return arenas;
     }
 
-    /** Arenas that match a target the same way the proxy does ({@link ServerSelector#matchesTarget}). */
     public List<RemoteArena> matching(TargetKind kind, String target) {
         List<RemoteArena> out = new ArrayList<>();
         for (RemoteArena a : arenas) {
@@ -48,7 +45,6 @@ public final class RemoteArenaRegistry {
         return out;
     }
 
-    /** The arenas a group/NPC entry stands for: {@code arena} on every server, or {@code server:arena}. */
     public List<RemoteArena> resolveEntry(String entry) {
         List<RemoteArena> out = new ArrayList<>();
         if (entry == null || entry.isBlank()) return out;
@@ -62,7 +58,6 @@ public final class RemoteArenaRegistry {
         return out;
     }
 
-    /** {@link #resolveEntry} for group checks; members are named {@code server:arena}. */
     public List<ArenaGroup.Member> members(String entry) {
         List<ArenaGroup.Member> out = new ArrayList<>();
         for (RemoteArena a : resolveEntry(entry)) {
@@ -80,7 +75,6 @@ public final class RemoteArenaRegistry {
         return null;
     }
 
-    /** The arena where {@code player} still has a rejoin slot that is not over at {@code now}, or null. */
     public RemoteArena findRejoin(java.util.UUID player, long now) {
         for (RemoteArena a : arenas) {
             if (a.info().rejoinSlot(player, now) != null) return a;
@@ -88,7 +82,6 @@ public final class RemoteArenaRegistry {
         return null;
     }
 
-    /** The fullest arena with room for {@code needed} players among {@code list}, or null. */
     public static RemoteArena best(List<RemoteArena> list, int needed) {
         RemoteArena best = null;
         for (RemoteArena a : list) {

@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Reads and writes {@code data/npcs.json}: {@code {"version":1,"npcs":[...]}}. */
 public final class FallbackNpcStore {
     public static final int VERSION = 1;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -35,7 +34,6 @@ public final class FallbackNpcStore {
         return npcs == null ? new ArrayList<>() : new ArrayList<>(npcs);
     }
 
-    /** Missing file = no NPCs. */
     public static List<FallbackNpc> load(Path file) throws IOException {
         if (!Files.isRegularFile(file)) return new ArrayList<>();
         return fromJson(Files.readString(file, StandardCharsets.UTF_8));

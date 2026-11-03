@@ -13,10 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-/**
- * JSON encoding of {@link NetMessage}s: {@code {"v":1,"type":"...","from":"...","id":"...","payload":{...}}}.
- * Decoding never throws: malformed input, unknown types and other protocol versions give {@code null}.
- */
 public final class NetCodec {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
@@ -62,7 +58,6 @@ public final class NetCodec {
         }
     }
 
-    /** Plain Gson for payload objects stored outside an envelope (e.g. the MySQL status table). */
     public static String payloadToJson(Object payload) {
         return GSON.toJson(payload);
     }
@@ -77,7 +72,6 @@ public final class NetCodec {
         }
     }
 
-    /** Gson leaves missing lists null and keeps null elements: make every payload safe to iterate and bounded in size. */
     private static void normalize(Object payload) {
         if (payload instanceof ServerState s) {
             normalizeState(s);

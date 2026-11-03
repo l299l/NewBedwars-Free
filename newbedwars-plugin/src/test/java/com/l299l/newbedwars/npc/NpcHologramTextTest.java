@@ -16,7 +16,7 @@ class NpcHologramTextTest {
     @Test
     void groupCountsOnlyMatchingEnabledArenas() {
         IArena w1 = arena("solo_1", GameStatus.waiting, 4, 1, 2);
-        IArena w2 = arena("solo_2", GameStatus.starting, 4, 1, 4); // full
+        IArena w2 = arena("solo_2", GameStatus.starting, 4, 1, 4);
         IArena p1 = arena("solo_3", GameStatus.playing, 4, 1, 3);
         IArena off = arena("solo_4", GameStatus.waiting, 4, 1, 1);
         when(off.isEnabled()).thenReturn(false);

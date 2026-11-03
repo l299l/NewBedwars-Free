@@ -17,7 +17,6 @@ import java.util.function.ToIntFunction;
 public class PlayerManager {
     private final HashMap<String, PlayerProfile> players;
     private final HashMap<String, PlayerStats> playerStats;
-    /** {@code Storage.Type: MYSQL}: leaderboards read from the database ("wins", "kills", "beds", "finalKills"). */
     private Map<String, List<Map.Entry<String, PlayerStats>>> sharedLeaderboards;
 
     public PlayerManager() {
@@ -93,7 +92,6 @@ public class PlayerManager {
         return playerStats;
     }
 
-    /** MySQL storage: use these leaderboards (shared by the whole network) instead of the local stats. */
     public void setSharedLeaderboards(Map<String, List<Map.Entry<String, PlayerStats>>> boards) {
         this.sharedLeaderboards = boards;
     }
@@ -104,7 +102,6 @@ public class PlayerManager {
         return list == null ? null : list.subList(0, Math.min(limit, list.size()));
     }
 
-    /** The {@code limit} players with the highest {@code stat}, highest first. */
     public List<Map.Entry<String, PlayerStats>> getTopBy(ToIntFunction<PlayerStats> stat, int limit) {
         List<Map.Entry<String, PlayerStats>> list = new ArrayList<>(playerStats.entrySet());
         list.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> stat.applyAsInt(e.getValue())).reversed());

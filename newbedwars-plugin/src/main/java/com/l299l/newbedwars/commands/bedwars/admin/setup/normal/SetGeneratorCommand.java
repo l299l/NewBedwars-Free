@@ -18,8 +18,6 @@ import java.util.List;
 
 public class SetGeneratorCommand extends BwCommand {
 
-
-
     @Override
     public String getName() {
         return "setGenerator";

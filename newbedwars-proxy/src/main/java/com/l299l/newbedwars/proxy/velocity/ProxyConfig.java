@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** {@code plugins/newbedwars-proxy/config.yml}. */
 final class ProxyConfig {
     List<String> gameServers = new ArrayList<>();
     List<String> lobbyServers = new ArrayList<>();
@@ -62,7 +61,6 @@ final class ProxyConfig {
         return c;
     }
 
-    /** Language texts: the bundled defaults, overridden by the file in the data folder (new keys appear after updates). */
     static Map<String, String> loadLanguage(Path file, String resource) throws IOException {
         Map<String, String> out = new java.util.HashMap<>();
         try (InputStream in = ProxyConfig.class.getClassLoader().getResourceAsStream(resource)) {

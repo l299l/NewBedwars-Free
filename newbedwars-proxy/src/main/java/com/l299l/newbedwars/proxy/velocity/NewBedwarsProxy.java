@@ -41,7 +41,6 @@ public final class NewBedwarsProxy {
     private final ProxyServer proxy;
     private final Logger logger;
     private final Path dataDir;
-    /** Velocity runs events on several threads: every core call holds this lock. */
     private final Object lock = new Object();
     private ProxyConfig config;
     private ServerRegistry servers;
@@ -128,7 +127,6 @@ public final class NewBedwarsProxy {
     @Subscribe
     public void onPluginMessage(PluginMessageEvent e) {
         if (!CHANNEL.equals(e.getIdentifier())) return;
-        // Never forward this channel: a client could otherwise forge tickets or party data for a backend.
         e.setResult(PluginMessageEvent.ForwardResult.handled());
         if (!(e.getSource() instanceof ServerConnection conn)) return;
         NetMessage msg = NetCodec.decode(e.getData());

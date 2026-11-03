@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DecoUtils {
-    /** Scoreboard tag of the setup markers (Spawn, Bed, Shop, Generator, ... labels). */
+
     public static final String SETUP_MARKER_TAG = "nbw_setup_marker";
     private static final List<ArmorStand> armorStands = new ArrayList<>();
 
@@ -32,13 +32,12 @@ public class DecoUtils {
         armorStand.setCanPickupItems(false);
         armorStand.setRemoveWhenFarAway(false);
         armorStand.setMarker(true);
-        // Never saved with the world: saved markers piled up on every load and ended up in the map template.
+
         armorStand.setPersistent(false);
         armorStand.addScoreboardTag(SETUP_MARKER_TAG);
         armorStands.add(armorStand);
         return armorStand;
     }
-
 
     public static void removeArmorStandAt(Location location) {
         armorStands.removeIf(as -> {
@@ -66,7 +65,6 @@ public class DecoUtils {
         });
     }
 
-    /** Zombies spawn as babies by chance and baby animals grow up; shop NPCs must always be adults. */
     @SuppressWarnings("deprecation")
     public static void makeAdult(LivingEntity entity) {
         if (entity instanceof Zombie zombie) {
@@ -101,10 +99,6 @@ public class DecoUtils {
         }
     }
 
-    /**
-     * A setup marker: tagged ones, and the untagged invisible marker armor stands older versions saved into
-     * arena worlds (nothing else in an arena world is an invisible marker armor stand).
-     */
     public static boolean isSetupMarker(org.bukkit.entity.Entity entity) {
         if (!(entity instanceof ArmorStand as)) return false;
         return as.getScoreboardTags().contains(SETUP_MARKER_TAG) || (!as.isVisible() && as.isMarker());

@@ -4,19 +4,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-/** Upgrades arena JSON files to the current schema, one version step at a time. */
 public final class ArenaMigrator {
     public static final int CURRENT_VERSION = 2;
 
     private ArenaMigrator() {}
 
-    /** Files written before versioning existed have no {@code schemaVersion} and count as version 1. */
     public static int versionOf(JsonObject json) {
         JsonElement v = json.get("schemaVersion");
         return v != null && v.isJsonPrimitive() ? v.getAsInt() : 1;
     }
 
-    /** Migrates {@code json} in place to {@link #CURRENT_VERSION}. */
     public static JsonObject migrate(JsonObject json) {
         int version = versionOf(json);
         if (version > CURRENT_VERSION) {

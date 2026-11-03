@@ -41,11 +41,11 @@ class GroupPlaceholdersTest {
         ArenaRegistry.clear();
         castle = arena("castle", GameStatus.playing, 3);
         arena("ruins", GameStatus.waiting, 2);
-        arena("desert", GameStatus.starting, 4);   // full
+        arena("desert", GameStatus.starting, 4);
         IArena off = arena("ice", GameStatus.waiting, 0);
         when(off.isEnabled()).thenReturn(false);
         ArenaGroupManager groups = new ArenaGroupManager();
-        ArenaGroup g = new ArenaGroup("solo_4", null);  // underscore in the name on purpose
+        ArenaGroup g = new ArenaGroup("solo_4", null);
         for (String n : new String[]{"castle", "ruins", "desert", "ice", "ghost"}) g.add(n);
         groups.register(g);
     }

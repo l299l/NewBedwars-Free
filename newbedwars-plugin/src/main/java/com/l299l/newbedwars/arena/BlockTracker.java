@@ -5,7 +5,6 @@ import org.bukkit.Location;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Blocks placed by players during a game, and the placed blocks that are blast-protected. */
 public class BlockTracker {
     private final Set<String> placed = new HashSet<>();
     private final Set<String> blastProtected = new HashSet<>();

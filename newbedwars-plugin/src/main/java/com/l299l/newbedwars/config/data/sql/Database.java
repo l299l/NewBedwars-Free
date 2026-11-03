@@ -13,12 +13,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-/**
- * The one MySQL/MariaDB connection of the plugin (section {@code MySQL} in config.yml), used by
- * {@code Storage.Type: MYSQL} and the network status table. Every query runs on its single worker thread.
- */
 public final class Database {
-    /** Work done on the database thread. */
+
     public interface Task {
         void run(Connection c) throws SQLException;
     }
@@ -50,7 +46,6 @@ public final class Database {
                 + "|" + Properties.MySQLSslMode + "|" + Properties.MySQLAllowPublicKeyRetrieval;
     }
 
-    /** The database for the current config (reopened when the connection settings changed). */
     public static synchronized Database get(Logger log) {
         String s = currentSettings();
         if (instance != null && !instance.settings.equals(s)) {
@@ -61,7 +56,6 @@ public final class Database {
         return instance;
     }
 
-    /** Waits for queued work (at most 5 seconds) and closes the connection. */
     public static synchronized void shutdown() {
         if (instance != null) {
             instance.close();
@@ -69,19 +63,14 @@ public final class Database {
         }
     }
 
-    /** Runs {@code task} on the database thread; errors are logged (at most once a minute). */
     public void submit(String what, Task task) {
         try {
             executor.execute(() -> run(what, task));
         } catch (RejectedExecutionException ignored) {
-            // closing
+
         }
     }
 
-    /**
-     * Like {@link #submit}, but a task of the same {@code key} that did not start yet is replaced by this one,
-     * so a slow database never collects a backlog of outdated status writes.
-     */
     public void submitLatest(String key, String what, Task task) {
         boolean queue;
         synchronized (latest) {
@@ -109,7 +98,6 @@ public final class Database {
         }
     }
 
-    /** Runs {@code task} now on the calling thread (start-up only); throws on failure. */
     public synchronized void runNow(Task task) throws SQLException {
         task.run(connector.get());
     }

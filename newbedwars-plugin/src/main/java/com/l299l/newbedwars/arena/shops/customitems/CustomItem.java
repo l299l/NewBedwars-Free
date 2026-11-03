@@ -108,7 +108,7 @@ public class CustomItem implements GUIEntry {
             meta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
         }
         meta.setUnbreakable(isPermanent);
-        // Set potion appearance for potion-type items
+
         if ((material == Material.POTION || material == Material.SPLASH_POTION) && meta instanceof PotionMeta potionMeta) {
             PotionType pt = getPotionTypeByName(name);
             VersionCompat.applyPotionType(potionMeta, pt);
@@ -144,7 +144,7 @@ public class CustomItem implements GUIEntry {
         }
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
             ArmorTier newType = ArmorTier.getArmorTier(material);
-            // a material no armor tier knows cannot be equipped; refuse before taking the payment
+
             if (newType == ArmorTier.OTHER || team.getArmorContents(player).getArmor().rank() >= newType.rank()) {
                 return false;
             }
@@ -290,7 +290,7 @@ public class CustomItem implements GUIEntry {
         }
         if (desc == null) desc = "";
         if (onBuyEvent == OnBuyEvent.UPGRADE && price < 0) {
-            // Upgrade price is added per level by GUIUpgrade; drop the placeholder price line
+
             desc = Arrays.stream(desc.split(";"))
                     .filter(line -> !line.contains("/price/"))
                     .collect(Collectors.joining(";"));
@@ -406,4 +406,3 @@ public class CustomItem implements GUIEntry {
         return list;
     }
 }
-

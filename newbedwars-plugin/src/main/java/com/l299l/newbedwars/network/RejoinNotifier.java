@@ -21,14 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * LOBBY mode: a player who can still rejoin a running game on a game server gets a title, a sound and a clickable
- * chat button once, and an action bar reminder with the time left until they rejoin or the slot is gone.
- */
 public final class RejoinNotifier implements Listener {
     private final Plugin plugin;
     private final RemoteArenaRegistry registry;
-    /** Player -> "server/arena" they were last told about. */
+
     private final Map<UUID, String> announced = new HashMap<>();
     private BukkitTask task;
 
@@ -57,7 +53,6 @@ public final class RejoinNotifier implements Listener {
         announced.remove(e.getPlayer().getUniqueId());
     }
 
-    /** Runs every 2 seconds and right after the network state changed. */
     void tick() {
         long now = System.currentTimeMillis();
         for (Player p : Bukkit.getOnlinePlayers()) {

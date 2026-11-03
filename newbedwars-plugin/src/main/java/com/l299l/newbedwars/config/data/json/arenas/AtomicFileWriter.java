@@ -11,17 +11,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Writes files so a crash mid-write can never leave a half-written (corrupt) file behind. */
 public final class AtomicFileWriter {
     private static final Logger LOG = Logger.getLogger("NewBedwars");
 
     private AtomicFileWriter() {}
 
-    /**
-     * Writes {@code content} to {@code target} via a temp file. If {@code target} already exists and
-     * {@code backupDir} is not null, the old file is first copied to {@code backupDir/<timestamp>.json}
-     * and only the newest {@code keep} backups are kept.
-     */
     public static void write(Path target, String content, Path backupDir, int keep) throws IOException {
         Path parent = target.toAbsolutePath().getParent();
         Files.createDirectories(parent);

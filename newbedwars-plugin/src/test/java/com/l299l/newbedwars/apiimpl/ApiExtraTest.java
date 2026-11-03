@@ -81,7 +81,7 @@ class ApiExtraTest {
         assertEquals(Set.of("b"), mine.keys());
         mine.remove("b");
         assertFalse(root.has("MyAddon"));
-        mine.remove("never"); // no-op
+        mine.remove("never");
     }
 
     @Test

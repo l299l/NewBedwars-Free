@@ -9,7 +9,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
-/** One addon's namespace inside the {@code extra} JSON object of an arena or team. */
 public final class ApiExtra implements ExtraData {
     private final Supplier<JsonObject> root;
     private final String namespace;
@@ -21,7 +20,6 @@ public final class ApiExtra implements ExtraData {
         this.onChange = onChange;
     }
 
-    /** The addon's object, or {@code null} while it has stored nothing. */
     private JsonObject read() {
         JsonElement element = root.get().get(namespace);
         return element != null && element.isJsonObject() ? element.getAsJsonObject() : null;

@@ -18,8 +18,6 @@ public class RemoveCommand extends BwCommand {
     private static final List<String> TEAM_PROPS =
             Arrays.asList("bed", "spawn", "shop", "upgrades", "buildprotpos1", "buildprotpos2", "pos1", "pos2");
 
-
-
     @Override
     public String getName() {
         return "remove";

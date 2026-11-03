@@ -13,7 +13,6 @@ import java.util.function.ToIntFunction;
 
 public class LeaderboardCommand extends BwCommand {
 
-
     @Override public String getName() { return "leaderboard"; }
     @Override public String getDescription() { return "Show top 10 players by a stat."; }
     @Override public String getSyntax() { return "/bw leaderboard [wins|kills|beds|fk]"; }

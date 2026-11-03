@@ -4,10 +4,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Proxy texts per language ({@code en}, {@code pl}, ...), chosen by the player's client language; missing keys
- * fall back to English. Values use {@code &} color codes; a replacement value {@code %Key%} is itself a key.
- */
 public final class ProxyMessages {
     public static final String DEFAULT = "en";
     private final Map<String, Map<String, String>> languages = new HashMap<>();
@@ -27,7 +23,6 @@ public final class ProxyMessages {
         return value == null ? key : value;
     }
 
-    /** The text with placeholders replaced, still with {@code &} codes. */
     public String format(Locale locale, String key, Map<String, String> replacements) {
         String text = get(locale, key);
         for (Map.Entry<String, String> r : replacements.entrySet()) {

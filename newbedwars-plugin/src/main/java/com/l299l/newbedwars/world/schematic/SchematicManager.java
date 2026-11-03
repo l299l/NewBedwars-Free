@@ -37,7 +37,6 @@ public class SchematicManager {
         return dir;
     }
 
-    /** Returns the WorldEdit/FAWE schematics folder, or null if neither is installed. */
     private static File getWorldEditSchematicsDir() {
         org.bukkit.plugin.Plugin we = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit");
         if (we == null) we = Bukkit.getPluginManager().getPlugin("WorldEdit");
@@ -67,7 +66,6 @@ public class SchematicManager {
         return name != null && NAME.matcher(name).matches() && !name.contains("..");
     }
 
-    /** Finds a schematic file by name, checking the plugin folder then the WorldEdit folder. */
     private static File findSchematicFile(String name) {
         if (!isValidName(name)) return null;
         for (File dir : new File[]{getSchematicsDir(), getWorldEditSchematicsDir()}) {
@@ -87,9 +85,6 @@ public class SchematicManager {
         return null;
     }
 
-    /**
-     * Pastes a saved schematic into the given Bukkit world at the world's spawn point (0, 64, 0).
-     */
     public static void pasteIntoWorld(World world, String name) throws IOException, WorldEditException {
         File file = findSchematicFile(name);
         if (file == null) throw new SchematicNotFoundException(name);

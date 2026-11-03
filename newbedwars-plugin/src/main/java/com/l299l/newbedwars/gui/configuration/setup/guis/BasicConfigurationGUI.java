@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-
 public class BasicConfigurationGUI extends BasicGUI {
     private final Inventory inv;
 

@@ -53,7 +53,7 @@ public class ShopGUI extends BasicGUI {
                 || guiCategory.id().equalsIgnoreCase("home");
 
         if (isHomePage) {
-            // Determine if fast-buy customization applies (shop GUI only, not upgrade GUI)
+
             IArena arena = ArenaRegistry.byWorld(getPlayer().getWorld());
             boolean isShopGui = arena != null && guiSave.getGuiId().equals(arena.getShopGuiId());
             com.l299l.newbedwars.player.PlayerProfile playerIns = isShopGui
@@ -102,14 +102,12 @@ public class ShopGUI extends BasicGUI {
         }
     }
 
-    /** Renders the YAML-defined items from {@code start} to the end of the inventory (the footer). */
     private void renderFromSlot(int start) {
         for (int i = start; i < guiSave.getItems().size(); i++) {
             render(i, guiSave.getItem(i));
         }
     }
 
-    /** Puts a shop item, category or upgrade on {@code slot}; anything else leaves the slot empty. */
     private void render(int slot, GUIEntry item) {
         if (item == null) return;
         inv.setItem(slot, item.getIcon(getPlayer()));
@@ -117,12 +115,6 @@ public class ShopGUI extends BasicGUI {
         items.set(slot, item);
     }
 
-    /**
-     * Renders custom per-category fast-buy items onto the home page.
-     * Mirrors the YAML default grid: each category occupies a column,
-     * rows 1..3 hold fb-slot 1..3 for that category.
-     * Empty fast-buy slots render as empty (no item).
-     */
     private void renderCustomFastBuy(int headerSize, Map<String, List<String>> fastBuyPerCat) {
         List<GUICategory> orderedCats = new ArrayList<>();
         for (int i = 0; i < headerSize; i++) {

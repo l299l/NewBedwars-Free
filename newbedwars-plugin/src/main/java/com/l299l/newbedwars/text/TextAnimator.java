@@ -4,10 +4,6 @@ import org.bukkit.ChatColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Produces the frames of a {@link TextEffect}. Call {@link #next(String)} once per tick of the caller's timer with the
- * current text ({@code &} or {@code §} color codes); the result is the colored frame.
- */
 public final class TextAnimator {
     private static final ChatColor[] COLORS = {
             ChatColor.BLACK, ChatColor.DARK_BLUE, ChatColor.DARK_GREEN, ChatColor.DARK_AQUA, ChatColor.DARK_RED,
@@ -21,10 +17,6 @@ public final class TextAnimator {
     private int position;
     private boolean up = true;
 
-    /**
-     * @param initialText   the first text, used to pick the pulsing color from its leading color code
-     * @param pulseFallback pulsing color when the text has no leading color, or {@code null} for a random one
-     */
     public TextAnimator(TextEffect effect, String initialText, ChatColor pulseFallback) {
         this.effect = effect == null ? TextEffect.NONE : effect;
         this.secondColor = randomColor();
@@ -36,7 +28,6 @@ public final class TextAnimator {
         return effect;
     }
 
-    /** Ticks between frames for the non-scrolling effects; scrolling ones run as fast as the caller likes. */
     public long period(long scrollTicks) {
         return switch (effect) {
             case RAINBOW, GOING_CHANGING -> scrollTicks;
@@ -101,19 +92,16 @@ public final class TextAnimator {
         return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 
-    /** Leading color of {@code text} (already translated), or {@code null}. */
     static ChatColor leadingColor(String text) {
         if (text.length() < 2 || text.charAt(0) != ChatColor.COLOR_CHAR) return null;
         ChatColor color = ChatColor.getByChar(text.charAt(1));
         return color != null && color.isColor() ? color : null;
     }
 
-    /** A random color (no formats). */
     public static ChatColor randomColor() {
         return COLORS[ThreadLocalRandom.current().nextInt(COLORS.length)];
     }
 
-    /** The light/dark partner of {@code color}, used by pulsing. */
     static ChatColor secondColorOf(ChatColor color) {
         return switch (color) {
             case GREEN -> ChatColor.DARK_GREEN;

@@ -63,7 +63,6 @@ public class ItemsDataManager {
         }
     }
 
-
     public void save() {
         File itemsDataFile = new File(ItemsDataPath);
         try {

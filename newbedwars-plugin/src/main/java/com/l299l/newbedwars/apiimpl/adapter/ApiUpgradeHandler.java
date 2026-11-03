@@ -8,7 +8,6 @@ import com.l299l.newbedwars.arena.shops.UpgradeHandler;
 import com.l299l.newbedwars.arena.team.Team;
 import org.bukkit.entity.Player;
 
-/** Runs an addon's {@link UpgradeDefinition} as an upgrade or trap. */
 public final class ApiUpgradeHandler implements UpgradeHandler {
     private final UpgradeDefinition definition;
 

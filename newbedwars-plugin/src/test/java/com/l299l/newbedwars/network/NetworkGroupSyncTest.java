@@ -37,7 +37,7 @@ class NetworkGroupSyncTest {
                 group("solo", "castle", "game1:ruins", "game2:desert"),
                 group("duo", "Game1:castle", "game1:lake")), "game1");
         assertEquals(List.of("castle", "ruins"), local.get(0).getArenas());
-        // castle is already in solo: an arena stays in the first group that has it
+
         assertEquals(List.of("lake"), local.get(1).getArenas());
         assertEquals("MAP", local.get(0).getDisplayItem());
     }
@@ -67,8 +67,8 @@ class NetworkGroupSyncTest {
         assertEquals(1, applied.get());
         assertEquals(List.of("castle"), groups.group("solo").getArenas());
 
-        sync.onGroups(NetworkGroupSync.toPayload(List.of(), 4L)); // older: ignored
-        sync.onGroups(NetworkGroupSync.toPayload(List.of(), 5L)); // same: ignored
+        sync.onGroups(NetworkGroupSync.toPayload(List.of(), 4L));
+        sync.onGroups(NetworkGroupSync.toPayload(List.of(), 5L));
         assertEquals(1, applied.get());
         assertNotNull(groups.group("solo"));
 
@@ -77,7 +77,6 @@ class NetworkGroupSyncTest {
         assertEquals(5L, cached.revision());
         assertEquals(List.of("castle", "game2:ruins"), cached.groups().get(0).getArenas());
 
-        // after a restart the cache is used until the proxy sends something newer
         ArenaGroupManager again = new ArenaGroupManager();
         new NetworkGroupSync(NetworkMode.GAME, "game2", mock(Messenger.class), dir, Logger.getAnonymousLogger(), () -> {}).start();
         assertEquals(List.of("castle", "ruins"), again.group("solo").getArenas());

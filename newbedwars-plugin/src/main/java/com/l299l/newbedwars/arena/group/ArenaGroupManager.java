@@ -17,11 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Holds the arena groups (case-insensitive names); an arena belongs to at most one group.
- * In network mode lobby servers define the groups ({@link #getRevision()} = time of the last edit, the newest set
- * wins) and game servers only use the network's groups for their own arenas ({@link #useNetwork}, never saved).
- */
 public final class ArenaGroupManager {
     private static ArenaGroupManager instance;
     private final Map<String, ArenaGroup> groups = new LinkedHashMap<>();
@@ -33,12 +28,10 @@ public final class ArenaGroupManager {
         instance = this;
     }
 
-    /** The active manager, or null before the plugin loaded it (e.g. in unit tests). */
     public static ArenaGroupManager get() {
         return instance;
     }
 
-    /** The group called {@code name}, or null (also when no manager is loaded). */
     public static ArenaGroup lookup(String name) {
         return instance == null || name == null ? null : instance.group(name);
     }
@@ -88,7 +81,6 @@ public final class ArenaGroupManager {
         return groups.get(key(name));
     }
 
-    /** The group {@code arena} belongs to, or null. */
     public ArenaGroup groupOf(IArena arena) {
         return groupOf(arena.getArenaName());
     }
@@ -100,7 +92,6 @@ public final class ArenaGroupManager {
         return null;
     }
 
-    /** @return false when a group with that name exists */
     public boolean create(String name, String displayItem) {
         if (groups.containsKey(key(name))) return false;
         groups.put(key(name), new ArenaGroup(name, displayItem));
@@ -108,7 +99,6 @@ public final class ArenaGroupManager {
         return true;
     }
 
-    /** Adds a group without saving (tests). */
     public void register(ArenaGroup group) {
         groups.put(key(group.getName()), group);
     }
@@ -130,22 +120,18 @@ public final class ArenaGroupManager {
         if (changeListener != null) changeListener.run();
     }
 
-    /** Time of the last edit (0 = never edited); used to find the newest groups of a network. */
     public long getRevision() {
         return revision;
     }
 
-    /** Called after every edit (network lobby: send the groups to the proxy); null to remove. */
     public void setChangeListener(Runnable listener) {
         this.changeListener = listener;
     }
 
-    /** Game server in network mode: the groups come from the lobby and are not edited or saved here. */
     public boolean isNetworkManaged() {
         return networkManaged;
     }
 
-    /** Network lobby: take newer groups edited on another lobby and save them. */
     public void replace(List<ArenaGroup> newGroups, long newRevision) {
         groups.clear();
         for (ArenaGroup g : newGroups) groups.put(key(g.getName()), g);
@@ -153,14 +139,12 @@ public final class ArenaGroupManager {
         save();
     }
 
-    /** Network game server: use these groups (already reduced to this server's arenas); nothing is saved. */
     public void useNetwork(List<ArenaGroup> newGroups) {
         networkManaged = true;
         groups.clear();
         for (ArenaGroup g : newGroups) groups.putIfAbsent(key(g.getName()), g);
     }
 
-    /** Arenas of the group that exist. */
     public static List<IArena> arenas(ArenaGroup group) {
         return group.resolve(ArenaRegistry::find);
     }

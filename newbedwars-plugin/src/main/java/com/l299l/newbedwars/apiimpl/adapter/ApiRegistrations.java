@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Remembers how to undo what each addon registered, so it can be removed when the addon is disabled. */
 public final class ApiRegistrations {
     private static final Logger LOG = Logger.getLogger("NewBedwars");
 

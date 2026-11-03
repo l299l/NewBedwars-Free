@@ -122,7 +122,7 @@ class MapVoteManagerTest {
     @Test
     void optionsAreOtherFreeGroupArenasNotTheEndedOne() {
         IArena running = arena("lake", GameStatus.playing, 0);
-        IArena full = arena("tower", GameStatus.waiting, 3);   // 1 free slot, 2 players move
+        IArena full = arena("tower", GameStatus.waiting, 3);
         IArena off = arena("ice", GameStatus.waiting, 0);
         when(off.isEnabled()).thenReturn(false);
         for (String n : List.of("lake", "tower", "ice")) groups.group("solo").add(n);

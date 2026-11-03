@@ -12,7 +12,6 @@ import java.util.List;
 
 public class ManageGameCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "game";

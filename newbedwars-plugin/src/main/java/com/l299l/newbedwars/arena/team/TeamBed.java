@@ -1,6 +1,5 @@
 package com.l299l.newbedwars.arena.team;
 
-
 import org.bukkit.Location;
 
 public class TeamBed {

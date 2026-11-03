@@ -11,14 +11,9 @@ import com.l299l.newbedwars.npc.JoinNpcAction;
 import java.util.Collection;
 import java.util.function.Function;
 
-/** Which local arena a {@link JoinTicket} goes to, and whether {@code n} players can join it. */
 public final class TicketJoin {
     private TicketJoin() {}
 
-    /**
-     * The arena for the ticket: the one the proxy picked, else the best one for the ticket's target
-     * (like {@code /bw join <group>}). Null when nothing fits.
-     */
     public static IArena resolve(JoinTicket t, Collection<IArena> arenas, Function<String, IArena> byName, int n) {
         if (t.arena != null) return byName.apply(t.arena);
         TargetKind kind = t.kind == null ? TargetKind.ANY : t.kind;
@@ -30,7 +25,6 @@ public final class TicketJoin {
         return group == null ? null : ArenaJoinService.findBest(arenas, group::matches, n);
     }
 
-    /** Null when {@code n} players can join {@code arena} together, else why not. */
     public static JoinReject.Reason check(IArena arena, int n) {
         if (arena == null) return JoinReject.Reason.NO_ARENA;
         GameStatus s = arena.status();

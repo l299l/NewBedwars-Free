@@ -14,10 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Parties in network mode: the same commands and messages as the plugin's {@code /party}, but on the proxy so a
- * party survives server switches. Every change is synced to the backends the members are on ({@code PARTY_SYNC}).
- */
+
 public final class PartyService {
     public static final String FROM = "proxy";
 
@@ -25,7 +22,6 @@ public final class PartyService {
     private final long inviteMillis;
     private final Map<UUID, ProxyParty> byPlayer = new HashMap<>();
     private final Map<UUID, Invite> invites = new HashMap<>();
-    /** Last known names, so offline members still have one. */
     private final Map<UUID, String> names = new HashMap<>();
     private int nextId;
 
@@ -40,7 +36,6 @@ public final class PartyService {
         return byPlayer.get(player);
     }
 
-    // ----- commands -----
 
     public void invite(UUID p, String targetName, long now) {
         String own = platform.nameOf(p);
@@ -185,7 +180,6 @@ public final class PartyService {
         sync(party, List.of());
     }
 
-    /** Names for tab completion: the other members (for kick/admin). */
     public List<String> memberNames(UUID p) {
         ProxyParty party = byPlayer.get(p);
         List<String> out = new ArrayList<>();
@@ -196,12 +190,7 @@ public final class PartyService {
         return out;
     }
 
-    // ----- connection events -----
 
-    /**
-     * A player left the proxy: their invite is dropped, the admin role moves to an online member, and the
-     * party is disbanded once nobody is online (same as on a single server).
-     */
     public void onDisconnect(UUID p) {
         invites.remove(p);
         ProxyParty party = byPlayer.get(p);
@@ -218,7 +207,6 @@ public final class PartyService {
         }
     }
 
-    /** A player reached a backend: tell it about their party. */
     public void onServerSwitch(UUID p) {
         ProxyParty party = byPlayer.get(p);
         if (party != null) platform.sendToPlayerServer(p, NetMessage.of(FROM, toSync(party, List.of())));
@@ -233,7 +221,6 @@ public final class PartyService {
         }
     }
 
-    // ----- helpers -----
 
     private ProxyParty adminParty(UUID p) {
         ProxyParty party = byPlayer.get(p);
@@ -281,7 +268,6 @@ public final class PartyService {
         for (UUID m : party.members()) party.remove(m);
     }
 
-    /** Sends the party to each server one of its (or a just removed) member is on. */
     private void sync(ProxyParty party, List<UUID> removed) {
         PartySync s = toSync(party, removed);
         Set<String> servers = new HashSet<>();

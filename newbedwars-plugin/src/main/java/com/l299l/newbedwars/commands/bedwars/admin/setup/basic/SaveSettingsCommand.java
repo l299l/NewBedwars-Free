@@ -39,7 +39,7 @@ public class SaveSettingsCommand extends BwCommand {
             arena.getArenaWorld().save();
             player.sendMessage(msg.getMsg(player, "saveSuccess"));
             if (ArenaMaps.isEnabled()) {
-                // The saved world becomes the pristine copy every game is reset from.
+
                 ArenaMaps.createTemplateAsync(arena.getArenaName(), arena.getArenaWorld(), error -> {
                     if (error == null) {
                         msg.send(player, "MapTemplateSaved");

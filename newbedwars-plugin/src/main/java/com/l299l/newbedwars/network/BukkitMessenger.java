@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 
-/** Plugin messaging on {@code newbedwars:main} (JSON) plus {@code BungeeCord} for server switches. */
 public final class BukkitMessenger implements Messenger, PluginMessageListener {
     private final Plugin plugin;
     private final BiConsumer<Player, NetMessage> handler;
@@ -49,8 +48,6 @@ public final class BukkitMessenger implements Messenger, PluginMessageListener {
     public boolean send(Player via, NetMessage msg) {
         if (via == null || !via.isOnline()) return false;
         if (!via.getListeningPluginChannels().contains(NetChannel.MAIN)) {
-            // Bukkit drops messages on channels the other side did not register: the proxy plugin is missing
-            // or the player's connection is not set up yet.
             warnOnce("[Network] Can not send " + msg.type() + " through " + via.getName()
                     + ": the channel " + NetChannel.MAIN + " is not registered. Is NewBedwars-Proxy installed on Velocity?");
             return false;

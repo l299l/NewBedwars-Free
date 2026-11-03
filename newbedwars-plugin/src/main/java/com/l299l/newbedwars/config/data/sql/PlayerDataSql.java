@@ -26,14 +26,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-/**
- * {@code Storage.Type: MYSQL}: player data and stats live in the database, shared by every server that uses it.
- * A player's data is loaded when they join; a game's result is added in SQL; leaderboards are read every minute.
- */
 public final class PlayerDataSql implements Listener {
     private static final Gson GSON = new Gson();
     private static final Type FAST_BUY = new TypeToken<Map<String, List<String>>>() {}.getType();
-    /** {@code /bw leaderboard} keys -> columns. */
+
     static final Map<String, String> BOARDS = Map.of("wins", "wins", "kills", "kills", "beds", "beds_broken", "finalKills", "final_kills");
 
     private final NewBedwars plugin;
@@ -50,10 +46,6 @@ public final class PlayerDataSql implements Listener {
         return plugin.getPlayerManager();
     }
 
-    /**
-     * Creates the tables. When the database is empty, the data already in memory (read from this server's JSON
-     * files just before) is imported once. Then the in-memory stats are dropped: they come from the database now.
-     */
     public void load() {
         try {
             db.runNow(c -> {
@@ -75,7 +67,7 @@ public final class PlayerDataSql implements Listener {
         refreshLeaderboards();
         leaderboardTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             refreshLeaderboards();
-            // Games on other servers change stats too: re-read the online players' stats.
+
             for (Player p : Bukkit.getOnlinePlayers()) refreshStats(p.getName());
         }, 20L * 60, 20L * 60);
     }
@@ -90,7 +82,6 @@ public final class PlayerDataSql implements Listener {
         loadPlayer(e.getPlayer());
     }
 
-    /** Reads the player's data and stats in the background and puts them into the {@link PlayerManager}. */
     void loadPlayer(Player player) {
         String name = player.getName();
         UUID id = player.getUniqueId();
@@ -129,7 +120,7 @@ public final class PlayerDataSql implements Listener {
         loaded.add(name);
         pm().addStats(name, stats != null ? stats : PlayerStats.empty());
         if (row == null) {
-            // New in the database: store what this server set up on join (default language).
+
             savePlayer(name);
             return;
         }
@@ -140,7 +131,6 @@ public final class PlayerDataSql implements Listener {
                 fastBuy != null ? fastBuy : current != null ? current.fastBuyPerCategory() : PlayerProfile.defaultFastBuy()));
     }
 
-    /** Stores the player's current profile (language, quick buy) in the background. */
     public void savePlayer(String name) {
         if (!loaded.contains(name)) return;
         PlayerProfile p = pm().getPlayer(name);
@@ -153,7 +143,6 @@ public final class PlayerDataSql implements Listener {
         for (Player p : Bukkit.getOnlinePlayers()) savePlayer(p.getName());
     }
 
-    /** Adds one game's result to the player's stats in the database. */
     public void recordGame(String name, PlayerStats delta) {
         db.submit("Saving the stats of " + name, c -> PlayerSqlRepo.addStats(c, name, delta));
     }

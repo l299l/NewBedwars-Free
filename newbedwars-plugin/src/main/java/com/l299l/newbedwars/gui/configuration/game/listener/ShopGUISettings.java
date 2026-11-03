@@ -67,7 +67,7 @@ public class ShopGUISettings implements Listener {
             });
         } else if (item instanceof GUICategory cat) {
             player.closeInventory();
-            // "home" category → navigate back to the home page (null category)
+
             GUICategory target = cat.id().equalsIgnoreCase("home") ? null : cat;
             ShopGUI newGui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, gui.getGuiSave(), target);
             player.openInventory(newGui.getInventory());
@@ -97,7 +97,7 @@ public class ShopGUISettings implements Listener {
             if (!ApiEvents.shopPurchase(arena, player, icon.getName(), ShopPurchaseEvent.Kind.UPGRADE, priceType.name(), price)
                     || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) return;
             Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
-                // a second click in the same tick must not buy the same level twice
+
                 if (tu.getUpgradeLevel(upgrade) != currentLevel || !player.getInventory().contains(mat, price)) return;
                 player.getInventory().removeItem(new ItemStack(mat, price));
                 tu.upgrade(upgrade);

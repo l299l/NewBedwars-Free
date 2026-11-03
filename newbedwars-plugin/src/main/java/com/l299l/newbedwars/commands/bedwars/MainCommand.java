@@ -59,7 +59,6 @@ public class MainCommand implements TabExecutor {
         }
     }
 
-    /** Where a registered command is available, mirroring the command buckets. */
     public enum Context {
         LOBBY, LOBBY_ADMIN, GAME, GAME_ADMIN, SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_AUTOMATIC
     }
@@ -77,10 +76,6 @@ public class MainCommand implements TabExecutor {
         };
     }
 
-    /**
-     * Adds a subcommand to a context.
-     * @throws IllegalArgumentException when a command with that name already exists in any context
-     */
     public void register(SubCommand command, Context context) {
         for (Context c : Context.values()) {
             for (SubCommand existing : bucket(c)) {
@@ -259,7 +254,6 @@ public class MainCommand implements TabExecutor {
         return lobbyRoute(p);
     }
 
-    /** Commands the player may use right now (value = admin-only), mirroring the routing in onCommand. */
     private Map<SubCommand, Boolean> helpCommandsFor(Player p) {
         Route route = routeFor(p);
         Map<SubCommand, Boolean> result = new LinkedHashMap<>();
@@ -304,7 +298,6 @@ public class MainCommand implements TabExecutor {
         return setupCommandsFor(arena.getSetupMode());
     }
 
-    /** Setup commands usable in {@code mode}, mirroring the routing in onCommand. */
     private List<SubCommand> setupCommandsFor(Setup mode) {
         List<SubCommand> result = new ArrayList<>(setupSubBasicCommands);
         switch (mode) {

@@ -54,7 +54,7 @@ public class DiamondGenerator implements Generator {
         ArmorStand armorStand = hologram.getArmorStand();
         armorStand.setHelmet(new ItemStack(Material.DIAMOND_BLOCK));
         final int[] remaining = {delayInSeconds()};
-        // first tick after one second: the hologram counts remaining seconds and the drop lands exactly when it reaches 0
+
         task = new BukkitRunnable() {
             @Override
             public void run() {
@@ -74,7 +74,6 @@ public class DiamondGenerator implements Generator {
         }.runTaskTimer(NewBedwars.plugin, 0, 1);
     }
 
-    /** The delay in whole seconds; the timer ticks once per second, so fractions round up and 0 means every second. */
     private int delayInSeconds() {
         return Math.max(1, (int) Math.ceil(spawnDelay));
     }

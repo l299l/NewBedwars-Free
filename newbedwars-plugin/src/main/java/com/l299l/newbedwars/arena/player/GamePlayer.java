@@ -46,7 +46,6 @@ public class GamePlayer {
         return team;
     }
 
-    /** Teams are assigned at game start, so a player joins the waiting lobby without one. */
     public void setTeam(Team team) {
         this.team = team;
         this.inventory = new ArmorContents(player, team);
@@ -100,7 +99,6 @@ public class GamePlayer {
         this.respawnTask = task;
     }
 
-    /** Per-game ender chest; the player's real ender chest is never touched. */
     public Inventory getVirtualEnderChest() {
         if (virtualEnderChest == null) {
             virtualEnderChest = Bukkit.createInventory(null, 27,

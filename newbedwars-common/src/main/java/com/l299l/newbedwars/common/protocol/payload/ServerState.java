@@ -3,13 +3,12 @@ package com.l299l.newbedwars.common.protocol.payload;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The arenas of one game server. */
 public class ServerState {
     public String serverId;
     public String mode;
-    /** The server is about to restart and takes no new players. */
+
     public boolean restarting;
-    /** Sender clock, epoch millis. */
+
     public long time;
     public List<ArenaInfo> arenas = new ArrayList<>();
 

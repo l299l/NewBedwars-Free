@@ -5,7 +5,6 @@ import com.velocitypowered.api.command.SimpleCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-/** {@code /nbwproxy} — which game servers and arenas the proxy knows. */
 public final class StatusCommand implements SimpleCommand {
     private final Object lock;
     private final ServerRegistry servers;

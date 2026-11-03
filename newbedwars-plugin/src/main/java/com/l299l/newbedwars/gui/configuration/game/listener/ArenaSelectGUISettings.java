@@ -28,7 +28,7 @@ public class ArenaSelectGUISettings implements Listener {
             return;
         }
         p.closeInventory();
-        // Same checks as /bw join <arena>: permission, party admin, rejoin slot in another arena, state, room.
+
         ArenaJoinService.join(p, target);
     }
 }

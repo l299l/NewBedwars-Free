@@ -27,11 +27,6 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-/**
- * GAME mode: players arriving from the proxy wait for their {@link JoinTicket} and are then put into the arena.
- * Party members are joined together once all of them arrived (or after a short grace time). A player
- * without a ticket in time goes back to the lobby server; {@code newbedwars.network.bypass} lets staff stay.
- */
 public final class JoinTicketHandler implements Listener {
     static final String BYPASS_PERMISSION = "newbedwars.network.bypass";
     static final long PARTY_GRACE_MILLIS = 3000L;
@@ -43,12 +38,8 @@ public final class JoinTicketHandler implements Listener {
     private final BooleanSupplier restarting;
     private Consumer<Player> sendToLobby = p -> {};
     private boolean localLobby = true;
-
-    /** Players that joined the server and wait for a ticket -> deadline (epoch millis). */
     private final Map<UUID, Long> awaiting = new HashMap<>();
-    /** Open groups by key (request id + party id or player). */
     private final Map<String, Group> groups = new HashMap<>();
-    /** requestId:player of handled tickets -> time, to ignore resent tickets. */
     private final Map<String, Long> handled = new HashMap<>();
     private BukkitTask task;
 
@@ -60,7 +51,6 @@ public final class JoinTicketHandler implements Listener {
         this.restarting = restarting;
     }
 
-    /** false = arriving players wait invisibly (spectator mode) until their ticket puts them into an arena. */
     public void setLocalLobby(boolean localLobby) {
         this.localLobby = localLobby;
     }
@@ -80,10 +70,6 @@ public final class JoinTicketHandler implements Listener {
         groups.clear();
     }
 
-    /**
-     * Keeps {@code p} here (not sent to the lobby) while the proxy moves them to another server, e.g. after a map
-     * vote; if nothing happens before the timeout they go to the lobby as usual.
-     */
     public void hold(Player p) {
         awaiting.put(p.getUniqueId(), System.currentTimeMillis() + timeoutMillis);
         if (!localLobby) NetworkLobbyHandler.hide(p);
@@ -99,7 +85,6 @@ public final class JoinTicketHandler implements Listener {
         if (p.hasPermission(BYPASS_PERMISSION)) return;
         awaiting.put(p.getUniqueId(), System.currentTimeMillis() + timeoutMillis);
         if (!localLobby) {
-            // After the join handlers (they may reset the player); the arena sets the right mode when it takes them.
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (isAwaiting(p)) NetworkLobbyHandler.hide(p);
             });
@@ -111,7 +96,6 @@ public final class JoinTicketHandler implements Listener {
         awaiting.remove(e.getPlayer().getUniqueId());
     }
 
-    /** A ticket arrived (through {@code via}, normally the ticket's player). */
     public void onTicket(Player via, JoinTicket t) {
         Player p = t.player == null ? via : Bukkit.getPlayer(t.player);
         if (p == null || !p.isOnline()) return;
@@ -125,7 +109,6 @@ public final class JoinTicketHandler implements Listener {
             reject(List.of(p), t, null, JoinReject.Reason.EXPIRED);
             return;
         }
-        // Waits for the arena now, not for a ticket; the timeout covers the party grace time too.
         awaiting.put(p.getUniqueId(), System.currentTimeMillis() + timeoutMillis);
         String key = t.requestId + ":" + (t.partyId != null ? t.partyId : p.getUniqueId().toString());
         Group g = groups.computeIfAbsent(key, k -> new Group(t, deadline));
@@ -136,7 +119,6 @@ public final class JoinTicketHandler implements Listener {
         }
     }
 
-    /** When the ticket ends on this server's clock: the proxy's relative time counted from arrival, else its absolute one. */
     static long deadlineOf(JoinTicket t, long arrival) {
         if (t.ttlMillis > 0) return arrival + t.ttlMillis;
         return t.expiresAt > 0 ? t.expiresAt : Long.MAX_VALUE;
@@ -203,7 +185,6 @@ public final class JoinTicketHandler implements Listener {
         plugin.getLogger().info("[Network] " + players.size() + " player(s) joined arena " + arena.getArenaName() + " from a ticket");
     }
 
-    /** Watch a running game as a spectator. */
     private void spectate(Player p, JoinTicket t) {
         IArena arena = t.arena == null ? null : ArenaRegistry.find(t.arena);
         if (arena != null && arena.joinAsSpectator(p)) {
@@ -216,7 +197,6 @@ public final class JoinTicketHandler implements Listener {
         awaiting.put(p.getUniqueId(), System.currentTimeMillis() + timeoutMillis);
     }
 
-    /** Back into the running game the player left (its arena still holds their place). */
     private void rejoin(Player p, JoinTicket t) {
         IArena arena = t.arena == null ? null : ArenaRegistry.find(t.arena);
         if (arena != null && arena.isPlayerInArena(p) && arena.rejoin(p)) {
@@ -237,7 +217,6 @@ public final class JoinTicketHandler implements Listener {
         for (Player p : players) {
             NewBedwars.plugin.getMessages().send(p, "NetworkJoinRejected");
             messenger.send(p, NetMessage.of(serverId, new JoinReject(t.requestId, p.getUniqueId(), arena, why)));
-            // The proxy moves them on; if it does not, the timeout sends them to the lobby.
             awaiting.put(p.getUniqueId(), deadline);
         }
     }

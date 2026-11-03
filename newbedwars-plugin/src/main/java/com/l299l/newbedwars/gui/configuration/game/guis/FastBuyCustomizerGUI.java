@@ -25,28 +25,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Fast-Buy Customizer — 54-slot inventory.
- *
- * Layout (9 slots per row):
- *   Row 0: header / instructions
- *   Rows 1..ceil(N/2): two categories side-by-side per row
- *     [CatIcon][fb1][fb2][fb3][SEP][CatIcon][fb1][fb2][fb3]
- *   Last row (row 5): padding + Save & Close at slot 53
- *
- * Clicking an fb-slot removes the item from that category slot.
- * Clicking a category icon cycles to the next available item from that category's full item list.
- */
 public class FastBuyCustomizerGUI extends BasicGUI {
 
-    /** Maximum fast-buy items per category. */
     public static final int SLOTS_PER_CAT = 3;
-    /** Rows 1-4 hold two categories each; row 5 is reserved for the Reset and Save buttons. */
+
     private static final int MAX_CATEGORIES = 8;
 
     private final Inventory inv;
     private final List<GUICategory> categories;
-    private final Map<String, List<String>> selection; // categoryId → chosen item names
+    private final Map<String, List<String>> selection;
 
     public FastBuyCustomizerGUI(GUIManager guiManager, Player player, GUISave shopGuiSave) {
         super(guiManager, player);
@@ -73,11 +60,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         redraw();
     }
 
-
-    /**
-     * Row for a category pair: categories 0&1 → row 1, 2&3 → row 2, etc.
-     * (row 0 is the header)
-     */
     private int rowForPair(int pairIndex) {
         return 1 + pairIndex;
     }
@@ -86,21 +68,12 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         return row * 9 + col;
     }
 
-    /**
-     * Returns the absolute inventory slot of the given fast-buy slot (0-based)
-     * for category at list-index catIndex.
-     *
-     * Layout within a row:
-     *   cols 0-3: left category  [icon, fb0, fb1, fb2]
-     *   col  4:  separator
-     *   cols 5-8: right category [icon, fb0, fb1, fb2]
-     */
     public int fbSlot(int catIndex, int fbIndex) {
         int pairIndex = catIndex / 2;
         int row = rowForPair(pairIndex);
         boolean isRight = (catIndex % 2 == 1);
         int colBase = isRight ? 5 : 0;
-        return slot(row, colBase + 1 + fbIndex); // +1 to skip the category icon col
+        return slot(row, colBase + 1 + fbIndex);
     }
 
     private int catIconSlot(int catIndex) {
@@ -130,7 +103,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
         return -1;
     }
-
 
     public void redraw() {
         inv.clear();
@@ -193,7 +165,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
             }
         }
 
-        // Row 5 (slots 45-52): separator pane; slot 49: Reset All; slot 53: Save
         ItemStack rowSep = pane(Material.GRAY_STAINED_GLASS_PANE, "");
         for (int i = 45; i < 53; i++) inv.setItem(i, rowSep);
 
@@ -208,7 +179,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
                 ChatColor.GRAY + text("GuiFastBuySaveInfo"));
         inv.setItem(53, save);
     }
-
 
     public void addItem(int catIndex, String itemName) {
         if (catIndex < 0 || catIndex >= categories.size()) return;
@@ -239,11 +209,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
     }
 
-    /**
-     * Clears all per-category overrides so the home page falls back to the YAML default
-     * fast-buy grid (an empty map, not a map of empty lists — see {@link com.l299l.newbedwars.player.PlayerProfile}).
-     * Does not persist — caller must still Save & Close.
-     */
     public void resetAll() {
         selection.clear();
         redraw();
@@ -253,15 +218,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
 
     public static int resetSlot() { return 49; }
 
-    /**
-     * Returns the current selection for persistence, omitting categories with no picks.
-     * A category present with an empty list and a category absent from the map render
-     * identically (blank column) in {@code ShopGUI.renderCustomFastBuy}, but only a truly
-     * empty map trips the "no override, use the YAML default" fallback — so a player who
-     * opens the customizer and Saves without picking anything (or who Resets All) must not
-     * come back as a map full of empty lists, or their home page would render as blank
-     * instead of falling back to the YAML defaults.
-     */
     public Map<String, List<String>> getSelection() {
         Map<String, List<String>> persisted = new HashMap<>();
         for (Map.Entry<String, List<String>> entry : selection.entrySet()) {
@@ -269,7 +225,6 @@ public class FastBuyCustomizerGUI extends BasicGUI {
         }
         return persisted;
     }
-
 
     private ItemStack emptySlot(int index) {
         return pane(Material.LIGHT_GRAY_STAINED_GLASS_PANE,

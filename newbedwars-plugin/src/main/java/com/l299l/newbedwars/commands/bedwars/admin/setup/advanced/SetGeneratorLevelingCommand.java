@@ -14,7 +14,6 @@ import java.util.List;
 
 public class SetGeneratorLevelingCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "setGeneratorLeveling";

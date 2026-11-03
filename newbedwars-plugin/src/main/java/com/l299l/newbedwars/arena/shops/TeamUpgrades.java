@@ -106,7 +106,7 @@ public class TeamUpgrades {
             npc.remove();
             npc = null;
         }
-        // bought levels belong to one game; the next start() must not equip armor with the old Protection
+
         upgrades.clear();
     }
 
@@ -119,7 +119,6 @@ public class TeamUpgrades {
         if (!upgrade.handler().isTrap()) upgrade.handler().onPurchase(this, team, getUpgradeLevel(upgrade));
     }
 
-    /** Uses up one level of every bought trap and fires it at the enemy who entered the base. */
     public void triggerTraps(Player enemy, IArena arena) {
         for (Upgrade upgrade : Upgrade.values()) {
             if (!upgrade.handler().isTrap() || getUpgradeLevel(upgrade) <= 0) continue;
@@ -135,8 +134,7 @@ public class TeamUpgrades {
             public void run() {
                 for (Player player : team.getPlayers()) {
                     if (team.isInBase(player.getLocation())) {
-                        // Only (re-)apply if the effect is absent or nearly expired to avoid
-                        // resetting the internal heal-pulse counter before it can fire.
+
                         PotionEffect existing = player.getPotionEffect(PotionEffectType.REGENERATION);
                         if (existing == null || existing.getDuration() <= 50) {
                             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 200, 0, true, false));
@@ -147,7 +145,6 @@ public class TeamUpgrades {
         }.runTaskTimer(NewBedwars.plugin, 0L, 10L);
     }
 
-    /** Re-applies the upgrades that live on the player (sword enchant, haste, ...) after a respawn. */
     public void applyPlayerUpgrades(Player player) {
         for (Upgrade upgrade : Upgrade.values()) {
             int level = getUpgradeLevel(upgrade);

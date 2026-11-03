@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
-/** Builds the {@link ServerState} a game server publishes from its arenas. */
 public final class ArenaStateSnapshot {
     private ArenaStateSnapshot() {}
 

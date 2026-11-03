@@ -19,7 +19,7 @@ public class DataManager {
     private final StorageType storageType;
     private final PlayerDataJson playerDataJson;
     private final PlayerStatsDataJson playerStatsDataJson;
-    /** Only for {@code Storage.Type: MYSQL}. */
+
     private final PlayerDataSql playerDataSql;
     private final ArenaDataManager arenaDataManager;
     private final ItemsDataManager itemsDataManager;
@@ -31,7 +31,7 @@ public class DataManager {
         guiDataManager = new GUIDataManager();
         playerStatsDataJson = new PlayerStatsDataJson();
         this.storageType = Properties.StorageType;
-        // JSON files are always read: they are the data in JSON mode and what gets imported into an empty database.
+
         playerDataJson = new PlayerDataJson();
         playerDataSql = storageType == StorageType.MYSQL ? new PlayerDataSql(com.l299l.newbedwars.NewBedwars.plugin) : null;
     }
@@ -44,22 +44,18 @@ public class DataManager {
         guiDataManager.load();
     }
 
-    /** The MySQL player storage, or null with {@code Storage.Type: JSON}. */
     public PlayerDataSql getPlayerDataSql() {
         return playerDataSql;
     }
 
-    /** Stops background tasks before this manager is replaced ({@code /bw reload}). */
     public void stop() {
         if (playerDataSql != null) playerDataSql.stop();
     }
 
-    /** A player's language or quick buy changed. */
     public void playerChanged(String name) {
         if (playerDataSql != null) playerDataSql.savePlayer(name);
     }
 
-    /** A game ended for a player; in MySQL mode the result is added in the database (JSON is saved as a whole). */
     public void recordGameResult(String name, com.l299l.newbedwars.player.PlayerStats delta) {
         if (playerDataSql != null) {
             playerDataSql.recordGame(name, delta);
@@ -69,7 +65,7 @@ public class DataManager {
 
     public void loadArenas() {
         if (com.l299l.newbedwars.config.properties.Properties.NetworkMode == com.l299l.newbedwars.api.view.NetworkMode.LOBBY) {
-            // A lobby server of a network has no arenas; they live on the game servers.
+
             Bukkit.getLogger().info("[NewBedwars] Network.Mode is LOBBY: arenas are not loaded on this server");
             return;
         }

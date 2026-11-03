@@ -19,7 +19,6 @@ public class PartyManager {
     private final Messages messages;
     private final Map<UUID, Party> playerToParty = new HashMap<>();
     private final Map<UUID, Party> pendingInvites = new HashMap<>();
-    /** Network mode: parties owned by the proxy, by party id, and the names of their members. */
     private final Map<String, Party> networkParties = new HashMap<>();
     private final Map<UUID, String> networkNames = new HashMap<>();
 
@@ -138,16 +137,10 @@ public class PartyManager {
         return online;
     }
 
-    /**
-     * Called when a player quits: drops their pending invite, hands the admin role to another
-     * online member and disbands the party once nobody else is online. The quitting player stays
-     * in the party so they can come back to it.
-     */
     public void cleanupOfflinePlayer(Player player) {
         UUID id = player.getUniqueId();
         pendingInvites.remove(id);
         if (com.l299l.newbedwars.network.NetworkManager.get() != null) {
-            // The proxy owns parties in network mode: the player only left this server, not the party.
             return;
         }
         Party party = playerToParty.get(id);
@@ -173,14 +166,12 @@ public class PartyManager {
         }
     }
 
-    /** The name of a party member: online here, else the name the proxy sent, else "?". */
     public String nameOf(UUID id) {
         Player p = Bukkit.getPlayer(id);
         if (p != null) return p.getName();
         return networkNames.getOrDefault(id, "?");
     }
 
-    /** Network mode: applies a party update from the proxy (the proxy owns parties there). */
     public void applyNetworkSync(com.l299l.newbedwars.common.protocol.payload.PartySync sync) {
         if (sync == null) return;
         if (sync.removed != null) {

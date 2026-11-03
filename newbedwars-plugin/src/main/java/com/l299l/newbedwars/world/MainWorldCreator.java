@@ -55,4 +55,3 @@ public class MainWorldCreator implements ArenaWorldCreator {
         }
     }
 }
-

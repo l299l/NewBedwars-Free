@@ -25,13 +25,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-/**
- * File-level handling of arena map templates. Knows nothing about Bukkit worlds, so the world must be
- * unloaded (or not loaded yet) before {@link #restoreTemplate} is used.
- * <p>
- * Layout under {@code mapsRoot}: {@code <arena>/template/} (world copy), {@code <arena>/template.json}
- * (metadata) and {@code <arena>/.nbw-dirty} (present while the world may contain game damage).
- */
 public final class MapTemplateManager {
     public static final String DIRTY_MARKER = ".nbw-dirty";
     public static final String META_FILE = "template.json";
@@ -53,10 +46,6 @@ public final class MapTemplateManager {
         return isWorldFolder(templateDir(mapsRoot, arena));
     }
 
-    /**
-     * Old servers keep a {@code level.dat} in every world folder; newer ones (26.x) store extra worlds as
-     * dimension folders ({@code <level>/dimensions/minecraft/<name>}) that only hold {@code region/} etc.
-     */
     public static boolean isWorldFolder(Path dir) {
         return Files.isRegularFile(dir.resolve("level.dat")) || Files.isDirectory(dir.resolve("region"));
     }
@@ -75,10 +64,6 @@ public final class MapTemplateManager {
         Files.deleteIfExists(arenaRoot(mapsRoot, arena).resolve(DIRTY_MARKER));
     }
 
-    /**
-     * Replaces the template of {@code arena} with a copy of {@code worldFolder}. The old template is
-     * kept until the new copy is complete, so a failure never leaves the arena without a template.
-     */
     public static void createTemplate(Path mapsRoot, String arena, Path worldFolder, Collection<String> excludes) throws IOException {
         Path root = arenaRoot(mapsRoot, arena);
         Files.createDirectories(root);
@@ -108,12 +93,6 @@ public final class MapTemplateManager {
     private static final int REPAIR_ATTEMPTS = 50;
     private static final long REPAIR_WAIT_MS = 100;
 
-    /**
-     * The server writes world data files ({@code *.dat}) in the background after a save, so a copy made right
-     * after {@code World.save()} can catch one half-written (seen on Paper 26.x: 10-byte gzip files, then
-     * "Unexpected end of ZLIB input stream" when the world loads). Copies every broken one again until it is
-     * complete (up to ~5 s), then falls back to the previous template's copy.
-     */
     static void repairIncompleteFiles(Path source, Path copy, Path previous) throws IOException {
         List<Path> broken = new ArrayList<>();
         try (Stream<Path> s = Files.walk(copy)) {
@@ -139,7 +118,6 @@ public final class MapTemplateManager {
         }
     }
 
-    /** False for a gzip file that ends early; true for complete gzip files and for files that are not gzip. */
     static boolean isCompleteDat(Path file) {
         try (InputStream raw = Files.newInputStream(file)) {
             byte[] head = raw.readNBytes(2);
@@ -166,7 +144,6 @@ public final class MapTemplateManager {
         }
     }
 
-    /** Deletes {@code worldFolder} and fills it with the template. The world must not be loaded. */
     public static void restoreTemplate(Path mapsRoot, String arena, Path worldFolder, Collection<String> excludes) throws IOException {
         Path template = templateDir(mapsRoot, arena);
         if (!hasTemplate(mapsRoot, arena)) {
@@ -179,7 +156,6 @@ public final class MapTemplateManager {
         }
     }
 
-    /** Zips the current template to {@code target}. Returns false when there is nothing to zip. */
     public static boolean zipTemplate(Path mapsRoot, String arena, Path target) throws IOException {
         if (!hasTemplate(mapsRoot, arena)) return false;
         Files.createDirectories(target.getParent());
@@ -189,7 +165,6 @@ public final class MapTemplateManager {
         return true;
     }
 
-    /** Replaces the template with the contents of a zip made by {@link #zipTemplate}. */
     public static void restoreTemplateFromZip(Path mapsRoot, String arena, Path zip) throws IOException {
         Path root = arenaRoot(mapsRoot, arena);
         Files.createDirectories(root);
@@ -208,7 +183,6 @@ public final class MapTemplateManager {
         return new SimpleDateFormat("yyyyMMdd-HHmmss-SSS").format(new Date());
     }
 
-    /** Keeps only the newest {@code keep} files with {@code extension} in {@code dir}. */
     public static void rotate(Path dir, String extension, int keep) throws IOException {
         if (!Files.isDirectory(dir)) return;
         List<Path> files = listBackups(dir, extension);
@@ -217,7 +191,6 @@ public final class MapTemplateManager {
         }
     }
 
-    /** Backup files in {@code dir}, newest first (names are timestamps). */
     public static List<Path> listBackups(Path dir, String extension) throws IOException {
         if (!Files.isDirectory(dir)) return new ArrayList<>();
         try (Stream<Path> s = Files.list(dir)) {
@@ -276,7 +249,6 @@ public final class MapTemplateManager {
         });
     }
 
-    /** Extracts {@code zip} into {@code target}; entries escaping {@code target} are rejected. */
     public static void unzip(Path zip, Path target) throws IOException {
         unzip(zip, target, MAX_UNZIPPED_BYTES);
     }

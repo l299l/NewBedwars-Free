@@ -14,11 +14,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-/** Bukkit-aware entry points for map templates: paths, config and world handling. */
 public final class ArenaMaps {
     private ArenaMaps() {}
 
-    /** True when the new template based system is active (default). */
     public static boolean isEnabled() {
         return !Properties.RollbackLegacySystem;
     }
@@ -35,7 +33,6 @@ public final class ArenaMaps {
         return NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("backups").resolve("arenas").resolve(arena);
     }
 
-    /** Folder of a world by name: the loaded world's own folder, else the classic or the 26.x dimension layout. */
     public static Path worldFolder(String worldName) {
         World loaded = Bukkit.getWorld(worldName);
         if (loaded != null) return loaded.getWorldFolder().toPath();
@@ -71,17 +68,12 @@ public final class ArenaMaps {
         }
     }
 
-    /** Creates (or replaces) the template from the loaded world, backing up the previous one. Blocking. */
     public static void createTemplate(String arena, World world) throws IOException {
         world.save();
         backupTemplate(arena);
         MapTemplateManager.createTemplate(mapsRoot(), arena, world.getWorldFolder().toPath(), Properties.RollbackTemplateExcludes);
     }
 
-    /**
-     * Same as {@link #createTemplate} but the copy runs on another thread. {@code done} runs on the main
-     * thread with {@code null} on success.
-     */
     public static void createTemplateAsync(String arena, World world, Consumer<Exception> done) {
         world.save();
         Path folder = world.getWorldFolder().toPath();
@@ -99,7 +91,6 @@ public final class ArenaMaps {
         });
     }
 
-    /** Restores the world folder from the template. The world must NOT be loaded. */
     public static void restoreOffline(String arena, String worldName) throws IOException {
         MapTemplateManager.restoreTemplate(mapsRoot(), arena, worldFolder(worldName), Properties.RollbackTemplateExcludes);
         MapTemplateManager.clearDirty(mapsRoot(), arena);
@@ -112,7 +103,6 @@ public final class ArenaMaps {
         MapTemplateManager.rotate(mapBackupDir(arena), ".zip", keep);
     }
 
-    /** Settings every arena world needs after being (re)created. */
     public static void applyWorldRules(World world) {
         world.setAutoSave(false);
         world.setKeepSpawnInMemory(false);

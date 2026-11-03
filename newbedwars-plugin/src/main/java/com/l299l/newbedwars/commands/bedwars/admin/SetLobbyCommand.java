@@ -9,7 +9,6 @@ import java.util.List;
 
 public class SetLobbyCommand extends BwCommand {
 
-
     @Override
     public String getName() {
         return "setlobby";

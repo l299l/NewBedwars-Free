@@ -5,21 +5,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Pure balancing logic used to distribute players (grouped by party) over teams at game start.
- */
 public final class TeamAssigner {
     private TeamAssigner() {
     }
 
-    /**
-     * @param groups     players that should stay together (a solo player is a group of one)
-     * @param teamCount  number of teams
-     * @param maxInTeam  maximum players per team
-     * @param random     pick randomly among equally filled teams instead of the first one
-     * @param rnd        random source, only used when {@code random} is true
-     * @return one list per team index; groups that do not fit in any single team are split
-     */
     public static <T> List<List<T>> assign(List<? extends List<T>> groups, int teamCount, int maxInTeam,
                                            boolean random, Random rnd) {
         List<List<T>> result = new ArrayList<>();
@@ -31,7 +20,7 @@ public final class TeamAssigner {
         List<List<T>> ordered = new ArrayList<>(groups);
         ordered.sort(Comparator.comparingInt((List<T> g) -> g.size()).reversed());
         if (random) {
-            // shuffle groups of equal size so the same players don't always meet
+
             int from = 0;
             while (from < ordered.size()) {
                 int to = from;
@@ -49,14 +38,13 @@ public final class TeamAssigner {
             }
             for (T member : group) {
                 int idx = leastFilled(result, maxInTeam - 1, random, rnd);
-                if (idx < 0) break; // no room left anywhere
+                if (idx < 0) break;
                 result.get(idx).add(member);
             }
         }
         return result;
     }
 
-    /** Least-filled team whose current size is at most {@code maxSize}, or -1. */
     private static <T> int leastFilled(List<List<T>> teams, int maxSize, boolean random, Random rnd) {
         int best = Integer.MAX_VALUE;
         List<Integer> candidates = new ArrayList<>();

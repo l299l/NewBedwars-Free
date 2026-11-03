@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/** Shrinks a {@link NetworkState} in place until its payload fits a plugin message. */
 public final class StateFit {
     public enum Result { UNCHANGED, REJOIN_DROPPED, ARENAS_TRUNCATED }
 
@@ -19,7 +18,6 @@ public final class StateFit {
         return NetCodec.payloadToJson(payload).getBytes(StandardCharsets.UTF_8).length;
     }
 
-    /** Drops rejoin data first, then the least useful arenas (running or full ones, emptiest last). */
     public static Result fit(NetworkState state, int maxBytes) {
         if (size(state) <= maxBytes) return Result.UNCHANGED;
         for (ServerState s : state.servers) for (ArenaInfo a : s.arenas) a.rejoin = new ArrayList<>();

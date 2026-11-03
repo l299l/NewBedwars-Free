@@ -13,7 +13,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-/** The upgrades and traps that ship with the plugin. */
 final class BuiltInUpgrades {
     private BuiltInUpgrades() {}
 
@@ -79,7 +78,7 @@ final class BuiltInUpgrades {
             @Override
             public void onPurchase(TeamUpgrades upgrades, Team team, int newLevel) {
                 Generator gen = team.getGenerator();
-                // the generator starts at level 1, so Forge level N means generator level N + 1 (capped at its max)
+
                 if (gen != null) gen.upgrade(newLevel + 1);
             }
         };

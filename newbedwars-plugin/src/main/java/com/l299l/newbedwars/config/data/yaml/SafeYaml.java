@@ -6,7 +6,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
-/** Block-style YAML that only builds plain maps, lists and scalars, so a data file can not instantiate classes. */
 public final class SafeYaml {
     private SafeYaml() {}
 

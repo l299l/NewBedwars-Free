@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-/** {@link ProxyPlatform} on Velocity. Callbacks of connection attempts run under the plugin's lock. */
 final class VelocityPlatform implements ProxyPlatform {
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 

@@ -51,7 +51,7 @@ public class SilverfishLogic implements CustomLogic {
                 }
             }.runTaskLater(NewBedwars.plugin, DESPAWN_TICKS);
         }
-        return true; // Silverfish swarm successfully spawned
+        return true;
     }
 
     public static String getSilverfishKey(org.bukkit.entity.Entity entity) {

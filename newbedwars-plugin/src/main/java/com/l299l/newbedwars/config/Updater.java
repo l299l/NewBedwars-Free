@@ -1,6 +1,5 @@
 package com.l299l.newbedwars.config;
 
-
 import com.l299l.newbedwars.NewBedwars;
 import com.tchristofferson.configupdater.ConfigUpdater;
 import org.bukkit.ChatColor;
@@ -102,7 +101,6 @@ public class Updater extends PluginFiles {
         return generatorsConfigurations;
     }
 
-    /** Load, write back, add missing keys from the bundled resource, load again. Keeps {@code current} if nothing loads. */
     private FileConfiguration refresh(String resource, File file, FileConfiguration current) {
         FileConfiguration conf = loadOrDefault(file, resource);
         if (conf == null) conf = current;
@@ -112,7 +110,6 @@ public class Updater extends PluginFiles {
         return updated != null ? updated : conf;
     }
 
-    /** The file if it exists, otherwise the bundled resource; {@code null} when neither is there. */
     private FileConfiguration loadOrDefault(File file, String resource) {
         if (file != null && file.exists()) {
             return YamlConfiguration.loadConfiguration(file);

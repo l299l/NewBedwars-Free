@@ -31,11 +31,10 @@ public class IronGolemLogic implements CustomLogic {
     public static final NamespacedKey GOLEM_OWNER_KEY =
             new NamespacedKey(NewBedwars.plugin, "team_golem_owner");
 
-    private static final long TARGET_INTERVAL = 40L; // 2 s
+    private static final long TARGET_INTERVAL = 40L;
 
     private static final Map<String, BukkitTask> golemTasks = new HashMap<>();
 
-    // Track active golem per team: "arenaName:teamName" -> golemUuid
     private static final Map<String, String> teamActiveGolem = new HashMap<>();
 
     @Override
@@ -45,10 +44,9 @@ public class IronGolemLogic implements CustomLogic {
 
         String pdcKey = arena.getArenaName() + ":" + team.getName();
 
-        // Check spawn limit unless multiple golems are explicitly allowed
         if (!allowsMultipleGolems(arena) && hasActiveGolem(pdcKey)) {
             NewBedwars.plugin.getMessages().send(player, "GolemAlreadyActive");
-            return false; // Spawn blocked - item should NOT be consumed
+            return false;
         }
 
         long lifetime = getGolemLifetime();
@@ -64,7 +62,6 @@ public class IronGolemLogic implements CustomLogic {
 
         golem.setCustomName(golemName(team, lifetime));
 
-        // Countdown name updater
         new BukkitRunnable() {
             long remaining = lifetime;
             @Override
@@ -75,7 +72,6 @@ public class IronGolemLogic implements CustomLogic {
             }
         }.runTaskTimer(NewBedwars.plugin, 20L, 20L);
 
-        // Auto-target nearest enemy
         BukkitTask targetTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -95,17 +91,15 @@ public class IronGolemLogic implements CustomLogic {
         }.runTaskTimer(NewBedwars.plugin, TARGET_INTERVAL, TARGET_INTERVAL);
         golemTasks.put(golemUuid, targetTask);
 
-        // Register as team's active golem (when limit is enforced)
         if (!allowsMultipleGolems(arena)) {
             teamActiveGolem.put(pdcKey, golemUuid);
         }
 
-        // Auto-despawn after configured lifetime
         new BukkitRunnable() {
             @Override public void run() { cleanupGolem(golemUuid); }
         }.runTaskLater(NewBedwars.plugin, lifetime * 20L);
-        
-        return true; // Golem successfully spawned
+
+        return true;
     }
 
     private static String golemName(Team team, long seconds) {
@@ -117,9 +111,6 @@ public class IronGolemLogic implements CustomLogic {
                 + ChatColor.DARK_GRAY + "[" + timeColor + seconds + "s" + ChatColor.DARK_GRAY + "]";
     }
 
-    /**
-     * Check if a team already has a living active golem.
-     */
     private static boolean hasActiveGolem(String teamKey) {
         String golemUuid = teamActiveGolem.get(teamKey);
         if (golemUuid == null) return false;
@@ -127,7 +118,7 @@ public class IronGolemLogic implements CustomLogic {
         try {
             Entity e = Bukkit.getEntity(UUID.fromString(golemUuid));
             if (e == null || !e.isValid()) {
-                // Stale reference — entity already dead or removed
+
                 teamActiveGolem.remove(teamKey);
                 return false;
             }
@@ -138,18 +129,11 @@ public class IronGolemLogic implements CustomLogic {
         }
     }
 
-    /**
-     * Get configured golem lifetime in seconds; defaults to 120.
-     */
     private static long getGolemLifetime() {
         Integer configured = Properties.IronGolemLifetime;
         return (configured != null && configured > 0) ? configured.longValue() : 120L;
     }
 
-    /**
-     * Check whether the arena allows multiple golems per team.
-     * Uses the per-arena gamerule with fallback to the global default.
-     */
     private static boolean allowsMultipleGolems(IArena arena) {
         if (arena.getGamerules() != null && arena.getGamerules().AllowMultipleGolems != null) {
             return arena.getGamerules().AllowMultipleGolems;
@@ -158,14 +142,12 @@ public class IronGolemLogic implements CustomLogic {
     }
 
     public static void cleanupGolem(String golemUuid) {
-        // Cancel targeting task
+
         BukkitTask t = golemTasks.remove(golemUuid);
         if (t != null && !t.isCancelled()) t.cancel();
 
-        // Remove from team tracking
         teamActiveGolem.values().remove(golemUuid);
 
-        // Remove entity
         try {
             Entity e = Bukkit.getEntity(UUID.fromString(golemUuid));
             if (e != null && e.isValid()) e.remove();
@@ -177,7 +159,6 @@ public class IronGolemLogic implements CustomLogic {
     public static void cleanupAllForArena(String arenaName) {
         String prefix = arenaName + ":";
 
-        // Cleanup golem entities and tasks
         new ArrayList<>(golemTasks.keySet()).forEach(uuid -> {
             try {
                 Entity e = Bukkit.getEntity(UUID.fromString(uuid));
@@ -194,7 +175,6 @@ public class IronGolemLogic implements CustomLogic {
             }
         });
 
-        // Cleanup team tracking entries for this arena
         teamActiveGolem.keySet().removeIf(teamKey -> teamKey.startsWith(prefix));
     }
 

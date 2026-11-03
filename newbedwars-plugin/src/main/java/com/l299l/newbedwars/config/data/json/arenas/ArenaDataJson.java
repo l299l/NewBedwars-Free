@@ -234,7 +234,6 @@ public class ArenaDataJson {
         }
     }
 
-    /** Restores the world folder from the template when the last game never finished (server crash). */
     private static void restoreIfNeeded(String arenaName, String worldName) {
         if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) return;
         boolean missing = !MapTemplateManager.isWorldFolder(ArenaMaps.worldFolder(worldName));
@@ -247,7 +246,6 @@ public class ArenaDataJson {
         }
     }
 
-    /** First start after the update: existing arenas get their template from the current world. */
     private static void createMissingTemplate(String arenaName, World world) {
         try {
             ArenaMaps.createTemplate(arenaName, world);
@@ -258,11 +256,6 @@ public class ArenaDataJson {
         }
     }
 
-    /**
-     * Saves the arena. The JSON is built (and validated by parsing it) on the calling thread; the file
-     * is then written atomically on the IO thread, or immediately when the plugin is shutting down.
-     * The previous file is kept as a backup.
-     */
     public void save(){
         String name = arena.getArenaName();
         Path target = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("arenas").resolve(name + ".json");

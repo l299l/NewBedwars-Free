@@ -10,10 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-/**
- * Actions a game phase can run, by name (as written under {@code GamePhases:} in config.yml). The built-in
- * actions are registered here; addons add their own through the API.
- */
 public final class PhaseActionRegistry {
     private static final Map<String, BiConsumer<IArena, String>> ACTIONS = new LinkedHashMap<>();
 
@@ -31,7 +27,6 @@ public final class PhaseActionRegistry {
 
     private PhaseActionRegistry() {}
 
-    /** @throws IllegalArgumentException when the name is already taken */
     public static synchronized void register(String name, BiConsumer<IArena, String> action) {
         String key = normalize(name);
         if (ACTIONS.containsKey(key)) throw new IllegalArgumentException("phase action '" + key + "' already exists");

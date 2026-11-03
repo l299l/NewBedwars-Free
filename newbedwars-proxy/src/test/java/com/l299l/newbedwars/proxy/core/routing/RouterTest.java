@@ -57,14 +57,12 @@ class RouterTest {
         router.onServerConnected(leo, "lobby", 0);
         request(leo, TargetKind.GROUP, "solo", 100);
         assertEquals(List.of("Leo->game2"), pf.connects);
-        // The fake completes the connect at once; Velocity reports the arrival afterwards:
         router.onServerConnected(leo, "game2", 200);
         JoinTicket t = tickets().get(0);
         assertEquals(leo, t.player);
         assertEquals("b", t.arena);
         assertEquals(TargetKind.GROUP, t.kind);
         assertNull(t.partyId);
-        // reserved: the arena now counts the incoming player
         assertEquals(4, servers.snapshot(200).servers.stream().filter(s -> s.serverId.equals("game2")).findFirst()
                 .orElseThrow().arenas.get(0).players);
     }
@@ -365,7 +363,6 @@ class RouterTest {
         assertEquals(List.of("Leo->game2"), pf.connects);
     }
 
-    // ----- hostile or broken messages -----
 
     @Test
     void joinRequestMustComeFromTheRequestedPlayersOwnConnection() {
@@ -480,7 +477,6 @@ class RouterTest {
         assertEquals(List.of("Gamer->lobby2"), pf.connects);
     }
 
-    // ----- reservations, cooldown, group revisions -----
 
     private int playersIn(String server, long now) {
         return servers.snapshot(now).servers.stream().filter(x -> x.serverId.equals(server)).findFirst()

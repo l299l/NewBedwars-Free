@@ -5,10 +5,6 @@ import com.l299l.newbedwars.network.RemoteArena;
 
 import java.util.Locale;
 
-/**
- * A map the players of an ended game can vote for: an arena on this server, or (network mode) an arena of the
- * same group on another game server.
- */
 public final class VoteOption {
     private final IArena local;
     private final RemoteArena remote;
@@ -26,7 +22,6 @@ public final class VoteOption {
         return new VoteOption(null, arena);
     }
 
-    /** The key votes are counted under: the arena name here, {@code server/arena} for another server. */
     public String key() {
         return local != null ? local.getArenaName() : remote.getServer() + "/" + remote.getName();
     }
@@ -35,7 +30,6 @@ public final class VoteOption {
         return local != null ? local.getArenaName() : remote.getName();
     }
 
-    /** The other game server, or null for an arena on this server. */
     public String server() {
         return remote == null ? null : remote.getServer();
     }

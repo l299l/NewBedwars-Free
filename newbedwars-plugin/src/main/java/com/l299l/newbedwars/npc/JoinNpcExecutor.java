@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 
-/** Runs a join NPC's action for the player who clicked it. */
 public final class JoinNpcExecutor {
     private JoinNpcExecutor() {}
 
@@ -46,7 +45,6 @@ public final class JoinNpcExecutor {
         }
     }
 
-    /** LOBBY mode: every action goes to the game servers through the proxy. */
     private static void performOnLobby(NetworkManager network, Player p, JoinNpcAction action) {
         switch (action.getType()) {
             case GROUP -> network.requestJoin(p, TargetKind.GROUP, action.getTarget());

@@ -55,7 +55,6 @@ public class BossBarManager {
         NewBedwars.plugin.getLogger().info("Loaded " + bossBars.size() + " BossBars");
     }
 
-    /** Entry {@code index} of {@code values} as an enum; a missing or unknown entry falls back to {@code fallback}. */
     private static <E extends Enum<E>> E parse(Class<E> type, List<String> values, int index, E fallback) {
         if (index >= values.size()) return fallback;
         try {
@@ -100,7 +99,6 @@ public class BossBarManager {
         return bossBar;
     }
 
-    /** Stops the animation tasks of a bar made by {@link #createBossBar} and hides it from everyone. */
     public void removeBossBar(BossBar bossBar) {
         List<BukkitTask> bossBarTasks = tasks.remove(bossBar);
         if (bossBarTasks != null) {
@@ -110,7 +108,6 @@ public class BossBarManager {
         bossBar.setVisible(false);
     }
 
-    /** Starts the effect for {@code template}; the title is rebuilt on every tick so placeholders stay current. */
     private BukkitTask setEffect(BossBar bossBar, String template, TextEffect effect, IArena arena) {
         TextAnimator animator = new TextAnimator(effect, addInfo(template, arena), null);
         long period = animator.period(1);
@@ -130,6 +127,5 @@ public class BossBarManager {
                 .replace("/max_players/", String.valueOf(arena.getMaxPlayers()))
                 .replace("/phase/", arena.getCurrentGamePhase()));
     }
-
 
 }

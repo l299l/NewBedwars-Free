@@ -49,7 +49,6 @@ public class BasicGenerator implements Generator {
         schedule(0);
     }
 
-    /** (Re)starts the drop timer with the current level's {@code spawnDelay}. */
     private void schedule(long firstDelayTicks) {
         if (task != null) task.cancel();
         long period = Math.max(1L, Math.round(spawnDelay * 20));
@@ -86,12 +85,11 @@ public class BasicGenerator implements Generator {
         emeraldSpawnAmount = amount(settings.getEmeraldSpawnAmount(), index);
         diamondSpawnAmount = amount(settings.getDiamondSpawnAmount(), index);
         spawnDelay = settings.getSpawnDelay().get(index);
-        // a running generator picks up the new speed at once; the next drop is one full delay away
+
         if (task != null) schedule(Math.max(1L, Math.round(spawnDelay * 20)));
         return true;
     }
 
-    /** A resource the config has no section for never spawns. */
     private static double rate(List<Double> values, int index) {
         return values == null || index >= values.size() ? 0 : values.get(index);
     }
@@ -129,7 +127,6 @@ public class BasicGenerator implements Generator {
         return location;
     }
 
-    /** The next drop, or {@code null} when the picked resource has a MaxAmount of 0 at this level. */
     private ItemStack getGeneratorItem() {
         double total = ironSpawnRate + goldSpawnRate + emeraldSpawnRate + diamondSpawnRate;
         double random = Math.random() * total;
@@ -144,7 +141,6 @@ public class BasicGenerator implements Generator {
         }
     }
 
-    /** A random amount from 1 to {@code maxAmount}, both included. */
     private static ItemStack stack(Material material, int maxAmount) {
         if (maxAmount <= 0) return null;
         return new ItemStack(material, 1 + ThreadLocalRandom.current().nextInt(maxAmount));

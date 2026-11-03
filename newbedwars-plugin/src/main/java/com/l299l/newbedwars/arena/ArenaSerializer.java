@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Writes an arena file (schema {@link ArenaMigrator#CURRENT_VERSION}); loading is done with Gson in {@code ArenaDataJson}. */
 final class ArenaSerializer {
     private ArenaSerializer() {}
 
@@ -61,7 +60,6 @@ final class ArenaSerializer {
         return loc == null ? "null" : JsonUtils.locationToJson(loc);
     }
 
-    /** Missing ids are written as the string "null", as before. */
     private static String orNull(String id) {
         return id != null ? id : "null";
     }

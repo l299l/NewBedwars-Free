@@ -16,10 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * Paginated, clickable setup command list, limited to the commands of the arena's current setup mode.
- * {@code /bw setupHelp <command>} shows the details of one command.
- */
 public class SetupHelpCommand extends SubCommand {
     private static final int PER_PAGE = 8;
     private final Function<IArena, List<SubCommand>> available;

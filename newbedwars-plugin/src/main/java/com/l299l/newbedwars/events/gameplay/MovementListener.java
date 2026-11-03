@@ -19,7 +19,6 @@ import java.util.UUID;
 
 import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
-/** Player movement in arenas: ground tracking, the void and base traps. */
 public class MovementListener implements Listener {
     private final CombatTracker combat;
     private final HashMap<UUID, Set<String>> playersInBases = new HashMap<>();
@@ -45,14 +44,13 @@ public class MovementListener implements Listener {
         combat.setGround(p.getUniqueId(), e.getTo().clone());
     }
 
-    /** Waiting players and spectators are rescued from the void; players die at the Quick Void Y. */
     private void checkVoid(PlayerMoveEvent e) {
         if (e.getFrom().getBlockY() == e.getTo().getBlockY()) return;
         Player p = e.getPlayer();
         IArena arena = ArenaRegistry.byWorld(p.getWorld());
         if (arena == null) return;
         GameStatus status = arena.status();
-        // Spectators (any phase) and waiting players never die in the void: back to the waiting spawn.
+
         if (arena.getSpectators().contains(p)
                 || (arena.isPlayerInArena(p) && (status == GameStatus.waiting || status == GameStatus.starting))) {
             if (e.getTo().getY() <= safeVoidY(arena, p.getWorld())) rescueFromVoid(p, arena);
@@ -74,7 +72,6 @@ public class MovementListener implements Listener {
         p.damage(p.getMaxHealth() * 1000);
     }
 
-    /** Entering an enemy base triggers its traps. */
     private void checkTraps(PlayerMoveEvent e) {
         if (e.getFrom().getBlockX() == e.getTo().getBlockX()
                 && e.getFrom().getBlockY() == e.getTo().getBlockY()
@@ -84,7 +81,7 @@ public class MovementListener implements Listener {
         IArena arena = ArenaRegistry.byWorld(p.getWorld());
         if (arena == null || arena.status() != GameStatus.playing
                 || !arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) {
-            // a finished game must not leave "already inside this base" state behind
+
             if (!playersInBases.isEmpty()) playersInBases.remove(p.getUniqueId());
             return;
         }

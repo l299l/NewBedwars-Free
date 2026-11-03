@@ -41,16 +41,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Join NPCs: Citizens NPCs with the NewBedwars trait and fallback NPCs from {@code data/npcs.json}.
- * Keeps the live holograms above them, respawns fallback entities and handles clicks.
- */
 public final class JoinNpcManager implements Listener {
     private static final String CITIZENS = "Citizens";
-    /**
-     * Where the hologram base goes relative to the NPC top. Holograms use marker armor stands (no hitbox, so
-     * they never block clicks on the NPC); the lowest line then shows about 0.8 blocks above the NPC, over its name.
-     */
     private static final double BASE_BELOW_TOP = 0.2;
     private static final long CLICK_COOLDOWN_MS = 500;
 
@@ -64,7 +56,6 @@ public final class JoinNpcManager implements Listener {
 
     private record ShownHologram(Hologram hologram, Location base, JoinNpcAction.Type type) {}
 
-    /** Called once from {@code onEnable}: loads fallback NPCs, hooks Citizens if it is already enabled. */
     public void start() {
         started = true;
         try {
@@ -77,7 +68,6 @@ public final class JoinNpcManager implements Listener {
         restartTask();
     }
 
-    /** Called after {@code HandlerList.unregisterAll} on every (re)load. */
     public void registerListeners() {
         NewBedwars.plugin.getServer().getPluginManager().registerEvents(this, NewBedwars.plugin);
         if (citizens != null) citizens.registerListeners();
@@ -101,7 +91,6 @@ public final class JoinNpcManager implements Listener {
         task = Bukkit.getScheduler().runTaskTimer(NewBedwars.plugin, this::refresh, 1L, period);
     }
 
-    /** Refreshes on the next tick (after an NPC was added, changed or removed). */
     public void refreshSoon() {
         Bukkit.getScheduler().runTask(NewBedwars.plugin, this::refresh);
     }
@@ -114,7 +103,6 @@ public final class JoinNpcManager implements Listener {
         return Collections.unmodifiableList(fallbackNpcs);
     }
 
-    /** Every attached NPC (Citizens first). */
     public List<JoinNpc> allNpcs() {
         List<JoinNpc> all = new ArrayList<>();
         if (citizens != null) {
@@ -130,8 +118,6 @@ public final class JoinNpcManager implements Listener {
         }
         return all;
     }
-
-    // ---- Fallback NPCs ------------------------------------------------------------
 
     public FallbackNpc createFallback(Location loc, EntityType type, JoinNpcAction action) {
         int id = fallbackNpcs.stream().mapToInt(n -> n.id).max().orElse(0) + 1;
@@ -257,8 +243,6 @@ public final class JoinNpcManager implements Listener {
         };
     }
 
-    // ---- Holograms ----------------------------------------------------------------
-
     private void refresh() {
         for (FallbackNpc npc : fallbackNpcs) spawn(npc);
         Set<String> seen = new HashSet<>();
@@ -309,9 +293,6 @@ public final class JoinNpcManager implements Listener {
         return true;
     }
 
-    // ---- Clicks -------------------------------------------------------------------
-
-    /** Runs the NPC's action, ignoring repeated clicks within a short time. */
     public void click(Player p, JoinNpc npc) {
         long now = System.currentTimeMillis();
         Long last = lastClick.get(p.getUniqueId());
@@ -361,8 +342,6 @@ public final class JoinNpcManager implements Listener {
     public void onQuit(org.bukkit.event.player.PlayerQuitEvent e) {
         lastClick.remove(e.getPlayer().getUniqueId());
     }
-
-    // ---- Citizens -----------------------------------------------------------------
 
     @EventHandler
     public void onPluginEnable(PluginEnableEvent e) {

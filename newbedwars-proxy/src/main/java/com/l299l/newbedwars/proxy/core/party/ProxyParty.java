@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/** A party on the proxy. Members keep their order (the first online one becomes admin when needed). */
 public final class ProxyParty {
     private final String id;
     private UUID admin;

@@ -40,7 +40,6 @@ public class FastBuyCustomizerGUISettings implements Listener {
             return;
         }
 
-        // Fast-buy slot: filled → remove; empty → open picker
         int fbCatIdx = gui.catIndexForSlot(slot);
         if (fbCatIdx >= 0) {
             int fbIdx = gui.fbIndexForSlot(fbCatIdx, slot);

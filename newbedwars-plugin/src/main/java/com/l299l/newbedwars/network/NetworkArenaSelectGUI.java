@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** LOBBY mode: the arena selector listing the arenas of all game servers. */
 public final class NetworkArenaSelectGUI implements InventoryHolder {
     private final Inventory inv;
     private final Map<Integer, RemoteArena> slotToArena = new HashMap<>();
@@ -27,7 +26,6 @@ public final class NetworkArenaSelectGUI implements InventoryHolder {
         this(viewer, arenas, false);
     }
 
-    /** @param spectate list only running games; a click watches the game instead of joining */
     public NetworkArenaSelectGUI(Player viewer, List<RemoteArena> arenas, boolean spectate) {
         this.viewer = viewer;
         this.spectate = spectate;

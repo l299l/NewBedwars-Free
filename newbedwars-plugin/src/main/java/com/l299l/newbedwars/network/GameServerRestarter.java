@@ -15,10 +15,6 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-/**
- * GAME mode, {@code Network.RestartAfterGames > 0}: after that many finished games the server takes no new
- * players and shuts down (the host's start script starts it again) as soon as no arena has players.
- */
 public final class GameServerRestarter implements Listener {
     private final Plugin plugin;
     private final int afterGames;
@@ -69,7 +65,6 @@ public final class GameServerRestarter implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, Bukkit::shutdown, 40L);
     }
 
-    /** No players or spectators in any arena and no game running or ending. */
     static boolean allIdle(Collection<IArena> arenas) {
         for (IArena a : arenas) {
             if (!a.getPlayers().isEmpty() || !a.getSpectators().isEmpty()) return false;

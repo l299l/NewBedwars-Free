@@ -208,7 +208,7 @@ class ApiViewsTest {
         var json = new com.google.gson.JsonObject();
         when(arena.getExtra()).thenReturn(json);
         try (MockedStatic<Bukkit> ignored = mockStatic(Bukkit.class)) {
-            // saving is only requested when a value changes; reading must not need Bukkit
+
             assertEquals(5, new ApiArena(arena).getExtra(addon).getInt("x", 5));
         }
         assertEquals("d", new ApiTeam(red).getExtra(addon).getString("x", "d"));

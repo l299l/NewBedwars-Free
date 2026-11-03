@@ -10,7 +10,6 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Saves arena files after API changes, collecting bursts of changes into one write. */
 public final class ApiPersistence {
     private static final long DELAY_TICKS = 100L;
     private static final Set<String> PENDING = new HashSet<>();

@@ -13,10 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Player data and stats in MySQL/MariaDB. Stats are only ever changed by adding a game's result in SQL
- * ({@code wins = wins + ?}), so several servers of a network can write at the same time without losing games.
- */
 public final class PlayerSqlRepo {
     public static final String PLAYERS = "nbw_players";
     public static final String STATS = "nbw_stats";
@@ -40,10 +36,8 @@ public final class PlayerSqlRepo {
     static final String COUNT_STATS = "SELECT COUNT(*) FROM " + STATS;
     static final String COUNT_PLAYERS = "SELECT COUNT(*) FROM " + PLAYERS;
 
-    /** Leaderboard columns; the names are fixed, never user input (they are put into the SQL). */
     public static final Set<String> STAT_COLUMNS = Set.of("wins", "losses", "kills", "deaths", "final_kills", "beds_broken", "games_played");
 
-    /** A row of {@code nbw_players}. */
     public record PlayerRow(String name, String uuid, String language, String fastBuyJson) {}
 
     private PlayerSqlRepo() {}
@@ -86,7 +80,6 @@ public final class PlayerSqlRepo {
         }
     }
 
-    /** Adds {@code delta} (one game's result, or imported totals) to the player's stats. */
     public static void addStats(Connection c, String name, PlayerStats delta) throws SQLException {
         try (PreparedStatement ps = c.prepareStatement(ADD_STATS)) {
             ps.setString(1, name);
@@ -101,7 +94,6 @@ public final class PlayerSqlRepo {
         }
     }
 
-    /** The player's stats, or null when they have none yet. */
     public static PlayerStats loadStats(Connection c, String name) throws SQLException {
         try (PreparedStatement ps = c.prepareStatement(SELECT_STATS)) {
             ps.setString(1, name);
@@ -111,7 +103,6 @@ public final class PlayerSqlRepo {
         }
     }
 
-    /** The {@code limit} players with the highest {@code column} (one of {@link #STAT_COLUMNS}), highest first. */
     public static List<Map.Entry<String, PlayerStats>> top(Connection c, String column, int limit) throws SQLException {
         if (!STAT_COLUMNS.contains(column)) throw new IllegalArgumentException("Unknown stat " + column);
         List<Map.Entry<String, PlayerStats>> out = new ArrayList<>();
@@ -129,7 +120,6 @@ public final class PlayerSqlRepo {
                 rs.getInt("final_kills"), rs.getInt("beds_broken"), rs.getInt("games_played"));
     }
 
-    /** One game's result as a delta to add. */
     public static PlayerStats gameDelta(int kills, int deaths, int finalKills, int bedsBroken, boolean won) {
         return PlayerStats.empty().addGameResult(kills, deaths, finalKills, bedsBroken, won);
     }

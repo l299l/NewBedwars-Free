@@ -54,10 +54,6 @@ public class PlayerDataJson {
         }
     }
 
-    /**
-     * Serializes on the calling (main) thread and writes in the background through a temp file. Saves that
-     * pile up before the writer runs are coalesced into one write of the newest state.
-     */
     public void save() {
         if (saveBlocked) return;
         String json = new Gson().toJson(new HashMap<>(NewBedwars.plugin.getPlayerManager().getPlayers()));

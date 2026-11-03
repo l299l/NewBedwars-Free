@@ -75,8 +75,6 @@ class UpgradeTest {
         assertThrows(IllegalArgumentException.class, () -> Upgrade.register(" ", 1, new UpgradeHandler() {}, List.of()));
     }
 
-    // ── TeamUpgrades with handlers ────────────────────────────────────────────
-
     private Team teamWith(Player... players) {
         Team team = mock(Team.class);
         when(team.getPlayers()).thenReturn(new ArrayList<>(List.of(players)));
