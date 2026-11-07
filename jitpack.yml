@@ -1,6 +1,8 @@
 # JitPack builds the Bukkit-side modules with JDK 17 (they are compiled with `release 16`).
 # The proxy module needs JDK 25 and is not published through JitPack.
+# The Maven wrapper is used because JitPack's default Maven is older than the 3.6.3 the build plugins need.
 jdk:
   - openjdk17
 install:
-  - mvn -B -DskipTests -pl newbedwars-api,newbedwars-common,newbedwars-plugin -am clean install
+  - chmod +x mvnw
+  - ./mvnw -B -DskipTests -pl newbedwars-api,newbedwars-common,newbedwars-plugin -am clean install
