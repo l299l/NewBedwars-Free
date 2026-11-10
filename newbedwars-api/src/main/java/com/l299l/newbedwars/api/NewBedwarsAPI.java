@@ -8,6 +8,7 @@ import com.l299l.newbedwars.api.events.NetworkJoinRequestEvent;
 import com.l299l.newbedwars.api.view.ArenaGroupView;
 import com.l299l.newbedwars.api.view.ArenaState;
 import com.l299l.newbedwars.api.edit.ArenaEditor;
+import com.l299l.newbedwars.api.maintenance.ArenaMaintenance;
 import com.l299l.newbedwars.api.command.AddonCommand;
 import com.l299l.newbedwars.api.command.CommandContext;
 import com.l299l.newbedwars.api.registry.UpgradeDefinition;
@@ -94,6 +95,9 @@ public interface NewBedwarsAPI {
      * @throws IllegalStateException when the arena is not {@link ArenaState#WAITING}
      */
     ArenaEditor edit(ArenaView arena);
+
+    /** Arena actions of {@code /bw arena}: enable, disable, backups, export/import, copy, map reset, delete. */
+    ArenaMaintenance getMaintenance();
 
     /** Adds an action usable in {@code GamePhases} in config.yml as {@code NAME} or {@code NAME:argument}. */
     void registerPhaseAction(Plugin owner, String name, PhaseActionHandler handler);

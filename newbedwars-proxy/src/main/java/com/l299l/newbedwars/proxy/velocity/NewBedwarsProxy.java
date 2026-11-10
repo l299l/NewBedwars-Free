@@ -7,6 +7,7 @@ import com.l299l.newbedwars.common.protocol.NetMessage;
 import com.l299l.newbedwars.common.protocol.payload.ServerState;
 import com.l299l.newbedwars.common.sql.JdbcConnector;
 import com.l299l.newbedwars.common.sql.ServerStatusRepo;
+import com.l299l.newbedwars.common.update.Channel;
 import com.l299l.newbedwars.proxy.core.party.PartyService;
 import com.l299l.newbedwars.proxy.core.ProxyMessages;
 import com.l299l.newbedwars.proxy.velocity.command.PartyCommand;
@@ -49,6 +50,7 @@ public final class NewBedwarsProxy {
     private JdbcConnector database;
     private final Set<String> warnedServers = ConcurrentHashMap.newKeySet();
     private long lastDbError;
+    private ProxyUpdateCheck updateCheck;
 
     @Inject
     public NewBedwarsProxy(ProxyServer proxy, Logger logger, @DataDirectory Path dataDir) {
@@ -74,7 +76,16 @@ public final class NewBedwarsProxy {
         proxy.getChannelRegistrar().register(CHANNEL);
         var cm = proxy.getCommandManager();
         cm.register(cm.metaBuilder("party").aliases("p").plugin(this).build(), new PartyCommand(proxy, lock, parties, router));
-        cm.register(cm.metaBuilder("nbwproxy").plugin(this).build(), new StatusCommand(lock, servers));
+        String version = proxy.getPluginManager().fromInstance(this)
+                .flatMap(container -> container.getDescription().getVersion()).orElse("unknown");
+        if (config.updatesCheck) {
+            updateCheck = new ProxyUpdateCheck(logger, version,
+                    Channel.parse(config.updatesChannel, Channel.BETA),
+                    config.updatesNotify);
+            proxy.getScheduler().buildTask(this, updateCheck::run).delay(10, TimeUnit.SECONDS).repeat(12, TimeUnit.HOURS).schedule();
+        }
+        cm.register(cm.metaBuilder("nbwproxy").plugin(this).build(),
+                new StatusCommand(lock, servers, () -> updateCheck == null ? null : updateCheck.status()));
 
         proxy.getScheduler().buildTask(this, this::tick).repeat(1, TimeUnit.SECONDS).schedule();
         proxy.getScheduler().buildTask(this, () -> {

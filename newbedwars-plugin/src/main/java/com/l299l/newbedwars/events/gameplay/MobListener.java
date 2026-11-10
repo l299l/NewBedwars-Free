@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.events.gameplay;
 
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.dragon.DragonController;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.IronGolemLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.SilverfishLogic;
 import org.bukkit.entity.*;
@@ -8,6 +9,7 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import com.l299l.newbedwars.arena.team.Team;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.AreaEffectCloudApplyEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -18,9 +20,31 @@ public class MobListener implements Listener {
 
     @EventHandler
     public void onMobDamage(EntityDamageByEntityEvent e) {
-        if (golemHitsOwnTeam(e) || isOwnSilverfish(e) || isOwnGolem(e)) {
+        if (golemHitsOwnTeam(e) || isOwnSilverfish(e) || isOwnGolem(e) || dragonHitsOwnTeam(e)) {
             e.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onDragonCloud(AreaEffectCloudApplyEvent e) {
+        String owner = DragonController.ownerOf(e.getEntity());
+        if (owner == null) return;
+        e.getAffectedEntities().removeIf(entity -> entity instanceof Player p && isOwnTeam(owner, p));
+    }
+
+    private boolean dragonHitsOwnTeam(EntityDamageByEntityEvent e) {
+        if (!(e.getEntity() instanceof Player victim)) return false;
+        String owner = DragonController.ownerOf(e.getDamager());
+        return owner != null && isOwnTeam(owner, victim);
+    }
+
+    private static boolean isOwnTeam(String ownerKey, Player player) {
+        MobKey key = MobKey.parse(ownerKey);
+        if (key == null) return false;
+        IArena arena = key.arena();
+        if (arena == null) return false;
+        Team team = arena.getTeam(key.teamName());
+        return team != null && team.equals(arena.getTeam(player));
     }
 
     private boolean golemHitsOwnTeam(EntityDamageByEntityEvent e) {

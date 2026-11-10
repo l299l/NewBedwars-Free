@@ -37,6 +37,8 @@ public class Properties{
     public static Integer AfterGameWatchTime;
     public static Boolean TntParticlesEnabled;
     public static Integer DragonSpawnHeight;
+    public static com.l299l.newbedwars.arena.dragon.DragonSettings Dragon = com.l299l.newbedwars.arena.dragon.DragonSettings.DEFAULTS;
+    public static com.l299l.newbedwars.update.UpdateSettings Updates = com.l299l.newbedwars.update.UpdateSettings.DEFAULTS;
     public static Set<Material> DragonIndestructibleBlocks = new HashSet<>();
     public static HashMap<String, Boolean> DefaultGamerules = new HashMap<>();
     public static HashMap<String, GamePhases> GamePhases = new HashMap<>();
@@ -142,6 +144,8 @@ public class Properties{
         TntParticlesEnabled = tpe instanceof Boolean b ? b : true;
         Object dsh = get("DragonSpawnHeight");
         DragonSpawnHeight = dsh instanceof Integer i ? i : 20;
+        Dragon = com.l299l.newbedwars.arena.dragon.DragonSettings.read(this::get);
+        Updates = com.l299l.newbedwars.update.UpdateSettings.read(this::get);
 
         Object igl = get("IronGolemLifetime");
         IronGolemLifetime = igl instanceof Integer i ? i : 120;

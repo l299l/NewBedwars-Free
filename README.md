@@ -63,6 +63,13 @@ To build the arena from a schematic, put the `.schem` in the WorldEdit (or FAWE)
 
 Commands and permissions are listed in [docs/COMMANDS.md](docs/COMMANDS.md).
 
+### Updates
+
+> [!NOTE]
+> **Available from 2.7-beta** (when it is released). Versions up to 2.6-beta do not check for updates, so update to 2.7-beta once by hand; after that NewBedwars tells you about new versions itself.
+
+NewBedwars looks for new versions on Modrinth (GitHub as a fallback) every 12 hours. When one exists, it writes one line to the console and admins with `newbedwars.update.notify` get one chat line when they join. `/bw update download` downloads it (checksum verified) into `plugins/update/`, and the server installs it on the next restart; `Updates.AutoDownload: true` does that automatically. `Updates.Notify: false` turns off the messages, and `Updates.Check: false` turns off checking completely. The proxy plugin only writes a console line and shows it in `/nbwproxy` (settings under `updates:` in its `config.yml`).
+
 ## Network mode
 
 Lobby servers let players pick a game; game servers host the arenas. The proxy plugin routes players and parties to the fullest free arena, sends them back to a lobby after the game, and handles rejoin and spectating from the lobby.

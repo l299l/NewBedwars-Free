@@ -11,6 +11,7 @@ import com.l299l.newbedwars.commands.bedwars.admin.NpcCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.GroupCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.ReloadCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.SetLobbyCommand;
+import com.l299l.newbedwars.commands.bedwars.admin.UpdateCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.advanced.*;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.automatic.StartAutomaticSetupCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.basic.*;
@@ -141,7 +142,8 @@ public class MainCommand implements TabExecutor {
                 || p.hasPermission("newbedwars.bw.arena")
                 || p.hasPermission("newbedwars.bw.setlobby")
                 || p.hasPermission("newbedwars.bw.npc")
-                || p.hasPermission("newbedwars.bw.group");
+                || p.hasPermission("newbedwars.bw.group")
+                || p.hasPermission("newbedwars.bw.update");
     }
 
     @Override
@@ -200,6 +202,7 @@ public class MainCommand implements TabExecutor {
         subCommandsLobbyAdmin.add(new ReloadCommand());
         subCommandsLobbyAdmin.add(new NpcCommand());
         subCommandsLobbyAdmin.add(new GroupCommand());
+        subCommandsLobbyAdmin.add(new UpdateCommand());
 
         subCommandsGameAdmin.add(new ManageGameCommand());
 

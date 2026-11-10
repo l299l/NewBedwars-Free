@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena;
 
+import com.l299l.newbedwars.arena.dragon.DragonController;
 import com.l299l.newbedwars.api.events.LeaveReason;
 import com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent;
 import com.l299l.newbedwars.apiimpl.ApiEvents;

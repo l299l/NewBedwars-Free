@@ -65,6 +65,7 @@ public final class NewBedwars extends JavaPlugin {
     private final JoinNpcManager joinNpcManager;
     private final ArenaGroupManager arenaGroupManager;
     private final MapVoteManager mapVoteManager;
+    private com.l299l.newbedwars.update.UpdateService updateService;
 
     public NewBedwars() {
         plugin = this;
@@ -80,6 +81,7 @@ public final class NewBedwars extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        updateService = new com.l299l.newbedwars.update.UpdateService(this);
         reloadAll();
         mainCommand = new MainCommand();
         Objects.requireNonNull(getCommand("bw")).setExecutor(mainCommand);
@@ -105,6 +107,7 @@ public final class NewBedwars extends JavaPlugin {
     @Override
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
+        if (updateService != null) updateService.stop();
         joinNpcManager.shutdown();
         int active = 0;
         for (IArena arena : ArenaRegistry.all()) {
@@ -177,6 +180,7 @@ public final class NewBedwars extends JavaPlugin {
         reloadEvents();
         lobbyLocation = null;
         com.l299l.newbedwars.network.NetworkManager.restart(this);
+        if (updateService != null) updateService.restart();
     }
 
     public Properties getProperties() {
@@ -224,6 +228,14 @@ public final class NewBedwars extends JavaPlugin {
         return joinNpcManager;
     }
 
+    public com.l299l.newbedwars.update.UpdateService getUpdateService() {
+        return updateService;
+    }
+
+    public java.io.File getPluginFile() {
+        return getFile();
+    }
+
     public MainCommand getMainCommand() {
         return mainCommand;
     }
@@ -267,6 +279,9 @@ public final class NewBedwars extends JavaPlugin {
         }
         joinNpcManager.registerListeners();
         getServer().getPluginManager().registerEvents(mapVoteManager, this);
+        if (updateService != null) {
+            getServer().getPluginManager().registerEvents(new com.l299l.newbedwars.update.UpdateNotifier(this, updateService), this);
+        }
         guiManager.reloadGuis();
     }
 

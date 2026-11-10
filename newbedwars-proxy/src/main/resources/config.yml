@@ -30,3 +30,11 @@ mysql:
   # Only needed for MySQL 8 accounts with caching_sha2_password on a connection without SSL. Less secure.
   allow-public-key-retrieval: false
   poll-seconds: 5
+
+# Look for new NewBedwars-Proxy versions on Modrinth (GitHub as a fallback) every 12 hours.
+# Only a console line and a line in /nbwproxy; nothing is downloaded. Nothing about your network is sent.
+updates:
+  check: true
+  notify: true
+  # RELEASE, BETA (releases and betas) or ALPHA (everything)
+  channel: BETA

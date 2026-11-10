@@ -2,12 +2,20 @@
 
 Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`) is the stable contract for addons. All other packages are internal and can change in any update.
 
+> [!IMPORTANT]
+> **New in 2.7-beta** (not released yet):
+> - [Arena maintenance](#arena-maintenance): `NewBedwarsAPI.getMaintenance()` enables, disables, backs up, restores, exports, imports, copies, resets and deletes arenas like `/bw arena`.
+> - `ArenaView.getLoadProblems()`: why an arena was loaded disabled.
+>
+> Depend on `v2.7-beta` (or newer) to use them; on older NewBedwars versions these methods do not exist.
+
 - [Setup](#setup)
 - [Reading data](#reading-data)
 - [Events](#events)
 - [Registering your own content](#registering-your-own-content)
 - [Extra data](#extra-data)
 - [Editing arenas](#editing-arenas)
+- [Arena maintenance](#arena-maintenance)
 - [Rules and good practice](#rules-and-good-practice)
 - [Full example](#full-example)
 
@@ -46,7 +54,7 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | `getNetworkRejoin(Player)` **(2.6-beta)** | on a `LOBBY` server: the network arena the player can still rejoin |
 | `getStats(String name)` **(2.6-beta)** | `PlayerStatsView` (wins, losses, kills, deaths, final kills, beds, games; zeros when unknown). With MySQL storage these are network-wide; only online/loaded players are known |
 
-**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), `getGenerators`, `getExtra(Plugin)`.
+**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine).
 
 **`TeamView`**: `getName`, `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
 
@@ -184,9 +192,40 @@ editor.removeTeam("Blue");
 `ArenaEditor`: `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `createTeam`, `getTeam`, `removeTeam`, `addGenerator` (`DIAMOND`/`EMERALD`), `removeGenerator`, `save`.
 `TeamEditor`: `setColor`, `setSpawn`, `setBed`/`clearBed`, `setShop`/`clearShop`, `setUpgrades`/`clearUpgrades`, `setGenerator`/`clearGenerator`.
 
+## Arena maintenance
+
+> [!IMPORTANT]
+> **New in 2.7-beta.** Needs NewBedwars 2.7-beta or newer; check `api.getVersion()` if your addon also supports older versions.
+
+`api.getMaintenance()` returns `ArenaMaintenance`, the arena actions of `/bw arena` for addons such as a web panel. The same checks as the commands apply (e.g. nothing is changed while players are in the arena).
+
+| Method | Does |
+|---|---|
+| `enable(arena)` / `disable(arena)` | like `/bw arena enable/disable` (disable sends waiting players out) |
+| `backup(arena)` | saves the arena file and map; `detail()` is the backup id |
+| `listBackups(arena)` | `List<ArenaBackup>` (`id`, `hasArenaFile`, `hasMap`), newest first |
+| `restore(arena, backupId)` | restores file and map; `backupId` null = newest |
+| `export(arena)` | zip with arena file + map in `getExportFolder()`; `detail()` is its path |
+| `importArena(fileName)` | loads a zip from `getExportFolder()`; the new arena is disabled |
+| `copy(arena, newName)` | copy with settings and map, joins the same group |
+| `resetMap(arena)` | puts the map back to its saved state (completes when the reset started) |
+| `delete(arena)` | deletes the arena file, world and saved map (backups are kept) |
+| `getExportFolder()` | `plugins/NewBedwars/data/exports` |
+
+Every action returns a `CompletableFuture<MaintenanceResult>`. The methods can be called from any thread: the work runs on the server thread (file copying in the background) and the future completes on the server thread. A refused action is a normal result, not an exception:
+
+```java
+api.getMaintenance().backup("castle").thenAccept(result -> {
+    if (result.isSuccess()) getLogger().info("Backup " + result.detail());
+    else getLogger().warning(result.code() + ": " + result.message());
+});
+```
+
+`MaintenanceResult`: `code()` (`OK`, `NOT_FOUND`, `BUSY`, `ALREADY_DONE`, `NOT_READY`, `INVALID_NAME`, `NAME_TAKEN`, `UNAVAILABLE` on a `LOBBY` server, `FAILED`, `PARTIAL` = deleted but some files remain), `isSuccess()`, `arena()`, `message()` (the command's message in the server's default language, without colors) and `detail()` (backup id, export file, copy source or error text; may be null). `listBackups` completes exceptionally with `NoSuchElementException` for an unknown arena.
+
 ## Rules and good practice
 
-- Call the API from the main thread.
+- Call the API from the main thread (`getMaintenance()` methods may be called from any thread).
 - Events fire on the main thread; keep handlers fast.
 - Do not teleport players to the lobby yourself: NewBedwars does it through `PlayerSendToLobbyEvent`, so network setups keep working.
 - Do not hold on to worlds from `ArenaView#getWorld()`; fetch it again after `ArenaResetEvent` stage `POST`.

@@ -71,9 +71,13 @@ Available outside arenas to players with the permission shown.
 | `/bw npc create <entityType> <action> [target]` | `newbedwars.bw.npc` | Without Citizens: spawn a simple join NPC (e.g. a villager) where you stand |
 | `/bw npc remove <id>` | `newbedwars.bw.npc` | Remove a simple join NPC |
 | `/bw reload` | `newbedwars.bw.admin` | Save arenas, send everyone to the lobby and reload the configuration |
+| `/bw update [check\|download]` **(2.7-beta)** | `newbedwars.bw.update` | Look for a new NewBedwars version on Modrinth/GitHub; `download` saves it (checksum verified) to `plugins/update/`, installed on the next restart |
 | `/bw game <start\|forcestart\|stop\|forcestop\|nextPhase>` | `newbedwars.bw.managegame` | Manage the running game you are in or spectating (start, stop, skip a phase) |
 
 `/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
+
+> [!NOTE]
+> `/bw update` is **available from 2.7-beta** (when it is released). `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see the README).
 
 Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, and `SELECTOR [group]` opens the arena selector. On a network lobby server all three send players to the game servers. A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
 
@@ -133,15 +137,17 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 
 | Permission | Default | Description |
 |---|---|---|
-| `newbedwars.bw.admin` | op | All admin commands (grants `arena`, `setlobby`, `managegame`, `npc`, `group`) |
+| `newbedwars.bw.admin` | op | All admin commands (grants `arena`, `setlobby`, `managegame`, `npc`, `group`, `update`, `update.notify`) |
 | `newbedwars.bw.arena` | op | All `/bw arena ...` commands (grants the `arena.*` permissions) |
 | `newbedwars.bw.arena.create` / `.delete` / `.enable` / `.disable` / `.setup` / `.list` | op | The matching `/bw arena <action>` |
 | `newbedwars.bw.arena.backup` / `.backups` / `.restore` / `.export` / `.import` / `.copy` / `.resetmap` | op | The matching `/bw arena <action>` |
 | `newbedwars.bw.setlobby` | op | `/bw setlobby` |
 | `newbedwars.bw.managegame` | op | `/bw game ...` |
 | `newbedwars.bw.npc` | op | `/bw npc ...` |
+| `newbedwars.bw.update` | op | `/bw update` |
+| `newbedwars.update.notify` | op | One chat line on join when a new NewBedwars version is available |
 | `newbedwars.network.bypass` | op | Network GAME mode: stay on a game server without a join request (staff, setup) |
-| `newbedwars.proxy.admin` | - | Velocity: `/nbwproxy` (list the game servers and arenas the proxy knows) |
+| `newbedwars.proxy.admin` | - | Velocity: `/nbwproxy` (list the game servers and arenas the proxy knows, and whether a newer proxy version exists) |
 | `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`) |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions (for example entering setup worlds) |
 | `newbedwars.chat.color` | op | Use `&` colour codes in arena and team chat messages (others have them stripped) |

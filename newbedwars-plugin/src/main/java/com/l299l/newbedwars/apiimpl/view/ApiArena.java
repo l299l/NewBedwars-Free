@@ -114,6 +114,11 @@ public final class ApiArena implements ArenaView {
     }
 
     @Override
+    public List<String> getLoadProblems() {
+        return List.copyOf(arena.getLoadProblems());
+    }
+
+    @Override
     public ExtraData getExtra(org.bukkit.plugin.Plugin owner) {
         return new ApiExtra(arena::getExtra, owner.getName(), () -> ApiPersistence.requestSave(arena));
     }

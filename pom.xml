@@ -17,6 +17,7 @@
         <module>newbedwars-common</module>
         <module>newbedwars-plugin</module>
         <module>newbedwars-proxy</module>
+        <module>newbedwars-panel</module>
     </modules>
 
     <properties>

@@ -2,6 +2,20 @@
 
 All notable changes to NewBedwars are documented here.
 
+## [2.7-beta] - Coming soon
+
+### Added
+- **Smarter Ender Dragons** - Dragons from the Dragon Buff upgrade now patrol over the middle of the map, hunt enemy players (first those near a bed), dive at them and climb back up, aim their fireballs ahead of moving targets, and never fly off the map. Dragons break every block they fly through except beds and the blocks listed in `DragonIndestructibleBlocks` (the map is restored after the game). A player killed by a dragon gets a "killed by the <team> dragon" message; nobody gets a kill for it. A dragon never hurts its own team and disappears as soon as its team is out. Speed, turn rate, patrol height and radius, margin, target and attack range and fireball interval/speed can be changed in the new `Dragon` section of `config.yml`
+- **Update notifications** - NewBedwars looks for new versions on Modrinth (GitHub as a fallback) every 12 hours and writes one console line when one is out; admins (`newbedwars.update.notify`) get one chat line with a download link when they join. `/bw update` checks now, `/bw update download` downloads the new jar (checksum verified) into `plugins/update/` so the server installs it on the next restart. Optional `Updates.AutoDownload: true` does that automatically; `Updates.Notify` and `Updates.Check` turn the messages or the whole check off, `Updates.Channel` picks RELEASE, BETA or ALPHA versions. The proxy plugin reports new proxy versions in its console and in `/nbwproxy` (`updates:` in its config)
+
+### Fixed
+- **Dragons breaking protected blocks** - Blocks listed in `DragonIndestructibleBlocks` (e.g. obsidian) are no longer destroyed when an Ender Dragon flies through them
+- **`/bw game forcestop` tab completion** - Admins now get `forcestop` suggested while a game is ending
+
+### Addon API
+- **Arena maintenance** - Addons can enable, disable, back up, restore, export, import, copy, reset and delete arenas like the `/bw arena` commands (`NewBedwarsAPI.getMaintenance()`), and see why an arena was loaded disabled (`ArenaView.getLoadProblems()`). See `docs/API.md`
+
+
 ## [2.6-beta] - 02.11.2026
 
 ### Added

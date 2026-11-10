@@ -35,6 +35,8 @@ permissions:
       newbedwars.bw.managegame: true
       newbedwars.bw.npc: true
       newbedwars.bw.group: true
+      newbedwars.bw.update: true
+      newbedwars.update.notify: true
 
   newbedwars.bw.arena:
     description: Manage arenas (create, delete, enable, disable, setup, list).
@@ -106,6 +108,12 @@ permissions:
     default: op
   newbedwars.network.bypass:
     description: Network GAME mode - may stay on a game server without a join ticket (staff, setup).
+    default: op
+  newbedwars.bw.update:
+    description: Check for and download NewBedwars updates (/bw update).
+    default: op
+  newbedwars.update.notify:
+    description: Get a chat message on join when a new NewBedwars version is available.
     default: op
   newbedwars.bw.group:
     description: Manage arena groups for map voting (/bw group).

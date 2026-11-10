@@ -174,6 +174,13 @@ public class BlockListener implements Listener {
                             .contains(block.getType()));
             return;
         }
+        if (e.getEntity() instanceof EnderDragon) {
+            e.blockList().removeIf(block ->
+                    com.l299l.newbedwars.config.properties.Properties.DragonIndestructibleBlocks
+                            .contains(block.getType())
+                            || TeamColor.kindOf(block.getType()) == TeamColor.Kind.BED);
+            return;
+        }
         IArena arena = ArenaRegistry.byWorld(e.getEntity().getWorld());
         if (arena == null || arena.status() != GameStatus.playing) return;
         e.blockList().removeIf(block -> {

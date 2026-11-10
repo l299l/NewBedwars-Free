@@ -45,6 +45,11 @@ public interface ArenaView {
     /** Map generators (diamond, emerald) in the order used by {@link ArenaEditor#removeGenerator}. */
     List<GeneratorView> getGenerators();
 
+    /** Why the arena was loaded disabled (broken or missing settings); empty when it loaded fine. */
+    default List<String> getLoadProblems() {
+        return List.of();
+    }
+
     /** Settings {@code owner} keeps on this arena; saved with the arena file. */
     ExtraData getExtra(Plugin owner);
 }

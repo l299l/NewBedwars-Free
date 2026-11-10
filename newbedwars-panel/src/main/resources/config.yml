@@ -1,0 +1,37 @@
+# NewBedwars-Panel - web admin panel for NewBedwars.
+
+# Address and port the panel listens on. 0.0.0.0 = every network interface, 127.0.0.1 = this machine only.
+Bind: 0.0.0.0
+Port: 8150
+
+Https:
+  # true = HTTPS (recommended). false = plain HTTP: only behind a reverse proxy that adds HTTPS, or on a trusted network.
+  Enabled: true
+  # Your own certificate: path to a PKCS12 (.p12/.pfx) or JKS keystore, relative to this folder.
+  # Empty = a self-signed certificate is created on the first start (browsers warn about it once).
+  Keystore: ""
+  KeystorePassword: ""
+  # Extra host names or IP addresses for the self-signed certificate (e.g. panel.example.com).
+  Hostnames: []
+
+# true only when the panel runs behind your own reverse proxy: the client IP is then taken from X-Forwarded-For
+# and HTTPS from X-Forwarded-Proto. Never enable it when the panel port is reachable directly.
+TrustProxyHeaders: false
+
+Session:
+  # Logged out after this many minutes without activity.
+  IdleMinutes: 30
+  # Logged out after this many hours in any case.
+  MaxHours: 12
+
+Login:
+  # Wrong passwords before the account (and the address) is locked.
+  MaxAttempts: 5
+  LockMinutes: 10
+
+Upload:
+  # Largest arena zip that can be uploaded for an import.
+  MaxMegabytes: 512
+
+# Panel language when the browser asks for none of the available ones: en or pl.
+DefaultLanguage: en

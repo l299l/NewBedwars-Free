@@ -121,6 +121,41 @@ DragonIndestructibleBlocks:
   - END_PORTAL_FRAME
   - IRON_BARS
 
+# Flight of the Ender Dragons (spawned during the dragon phase for teams with the Dragon Buff upgrade)
+Dragon:
+  # Flight speed in blocks per tick
+  Speed: 0.6
+  # How fast a dragon can turn, in degrees per tick
+  TurnRate: 6.0
+  # Patrol height above the highest team spawn, bed or generator
+  PatrolHeight: 15
+  # Radius of the patrol circle around the map center (0 = automatic)
+  PatrolRadius: 0
+  # How far outside the bases and generators a dragon may fly
+  Margin: 10
+  # Maximum distance at which a dragon picks a target
+  TargetRange: 128
+  # Horizontal distance at which a dragon starts a dive attack
+  AttackRange: 20
+  # Seconds between fireballs for Dragon Buff level 1, 2, ...
+  FireballIntervalSeconds: [20, 10]
+  # Starting speed of the fireballs in blocks per tick
+  FireballSpeed: 1.0
+
+# ----- Updates ------------------------------------
+# NewBedwars looks for new versions on Modrinth (and GitHub as a fallback). Nothing about your server is sent.
+Updates:
+  # false = never contact Modrinth/GitHub (also disables /bw update)
+  Check: true
+  # Tell the console and admins (permission newbedwars.update.notify, one chat line on join) about a new version
+  Notify: true
+  # true = download a new version (checksum verified) into plugins/update/; it is installed on the next restart
+  AutoDownload: false
+  # Which versions to offer: RELEASE, BETA (releases and betas) or ALPHA (everything)
+  Channel: BETA
+  # Hours between checks
+  CheckIntervalHours: 12
+
 # ----- Rollback / Arena World ---------------------
 # The map of every arena is stored as a pristine template in plugins/NewBedwars/data/maps/<arena>/template.
 # After each game the arena world is replaced by a fresh copy of that template, so a crash or

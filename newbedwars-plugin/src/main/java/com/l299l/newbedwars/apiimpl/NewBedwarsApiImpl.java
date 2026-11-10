@@ -41,6 +41,7 @@ import java.util.Optional;
 
 public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     private final ApiRegistrations registrations = new ApiRegistrations();
+    private final ApiMaintenance maintenance = new ApiMaintenance();
 
     @Override
     public String getVersion() {
@@ -146,6 +147,11 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
         IArena internal = ArenaRegistry.byName(arena.getName());
         if (internal == null) throw new IllegalArgumentException("arena " + arena.getName() + " does not exist (any more)");
         return new ApiEditor(internal);
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.maintenance.ArenaMaintenance getMaintenance() {
+        return maintenance;
     }
 
     @Override

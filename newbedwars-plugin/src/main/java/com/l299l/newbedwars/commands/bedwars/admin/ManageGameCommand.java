@@ -106,6 +106,9 @@ public class ManageGameCommand extends BwCommand {
         if (arena.status() == GameStatus.starting) {
             completion.add("forcestart");
         }
+        if (arena.status() == GameStatus.ending) {
+            completion.add("forcestop");
+        }
         return completion;
 
     }

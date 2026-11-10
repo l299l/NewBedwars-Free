@@ -42,8 +42,9 @@ public class CombatListener implements Listener {
                 e.setCancelled(true);
                 e.setDeathMessage(null);
                 boolean mobKill = combat.takeMobHit(p.getUniqueId());
-                Player killer = mobKill ? null : p.getKiller();
-                if (killer == null) {
+                Team dragonTeam = dragonTeam(arena, p.getLastDamageCause());
+                Player killer = mobKill || dragonTeam != null ? null : p.getKiller();
+                if (killer == null && dragonTeam == null) {
                     UUID attackerId = combat.lastAttacker(p.getUniqueId());
                     if (attackerId != null) killer = Bukkit.getPlayer(attackerId);
                 }
@@ -107,6 +108,10 @@ public class CombatListener implements Listener {
                             }
                         }
                         arena.broadcast("PlayerDeathByVoid", Map.of("/player/", victimName));
+                    } else if (dragonTeam != null) {
+                        arena.broadcast("PlayerDeathByDragon", Map.of(
+                                "/player/", victimName,
+                                "/team/", dragonTeam.getColor() + dragonTeam.getName()));
                     } else {
                         EntityDamageEvent lastDmg = e.getEntity().getLastDamageCause();
                         EntityDamageEvent.DamageCause cause = lastDmg != null

@@ -30,6 +30,9 @@ final class ProxyConfig {
     String mysqlSslMode = "PREFERRED";
     boolean mysqlAllowPublicKeyRetrieval;
     int mysqlPollSeconds = 5;
+    boolean updatesCheck = true;
+    boolean updatesNotify = true;
+    String updatesChannel = "BETA";
 
     static ProxyConfig load(Path dataDir) throws IOException {
         Path file = dataDir.resolve("config.yml");
@@ -57,6 +60,12 @@ final class ProxyConfig {
             c.mysqlSslMode = JdbcConnector.normalizeSslMode(db.get("ssl-mode") == null ? null : String.valueOf(db.get("ssl-mode")));
             c.mysqlAllowPublicKeyRetrieval = Boolean.TRUE.equals(db.get("allow-public-key-retrieval"));
             c.mysqlPollSeconds = integer(db.get("poll-seconds"), 5);
+        }
+        if (m.get("updates") instanceof Map<?, ?> raw) {
+            Map<String, Object> updates = cast(raw);
+            c.updatesCheck = !Boolean.FALSE.equals(updates.get("check"));
+            c.updatesNotify = !Boolean.FALSE.equals(updates.get("notify"));
+            if (updates.get("channel") != null) c.updatesChannel = String.valueOf(updates.get("channel"));
         }
         return c;
     }

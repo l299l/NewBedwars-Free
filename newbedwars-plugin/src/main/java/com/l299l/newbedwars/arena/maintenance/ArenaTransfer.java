@@ -1,4 +1,4 @@
-package com.l299l.newbedwars.commands.bedwars.admin.managearena;
+package com.l299l.newbedwars.arena.maintenance;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

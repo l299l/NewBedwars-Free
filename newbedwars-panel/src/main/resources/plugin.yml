@@ -1,0 +1,8 @@
+name: NewBedwars-Panel
+version: '${project.version}'
+main: com.l299l.newbedwars.panel.NewBedwarsPanel
+api-version: '1.17'
+depend: [NewBedwars]
+author: l299l
+description: Web admin panel for NewBedwars
+website: https://github.com/l299l/NewBedwars-Free

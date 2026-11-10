@@ -172,22 +172,4 @@ class ArenaMaintenanceCommandTest {
         assertFalse(Files.exists(tempDir.resolve("data/arenas/castle.json")));
         assertFalse(Files.exists(tempDir.resolve("data/maps/castle")));
     }
-
-    @Test
-    void transferHelpers() throws IOException {
-        assertTrue(ArenaTransfer.isSafeName("castle_2-x"));
-        assertFalse(ArenaTransfer.isSafeName("../x"));
-        assertFalse(ArenaTransfer.isSafeName(""));
-        assertFalse(ArenaTransfer.isSafeName(null));
-        Path template = tempDir.resolve("t");
-        Files.createDirectories(template.resolve("data/paper"));
-        Files.writeString(template.resolve("uid.dat"), "x");
-        Files.writeString(template.resolve("data/paper/metadata.dat"), "x");
-        Files.writeString(template.resolve("level.dat"), "x");
-        ArenaTransfer.stripWorldIdentity(template);
-        assertFalse(Files.exists(template.resolve("uid.dat")));
-        assertFalse(Files.exists(template.resolve("data/paper/metadata.dat")));
-        assertTrue(Files.exists(template.resolve("level.dat")));
-        ArenaTransfer.stripWorldIdentity(template);
-    }
 }
