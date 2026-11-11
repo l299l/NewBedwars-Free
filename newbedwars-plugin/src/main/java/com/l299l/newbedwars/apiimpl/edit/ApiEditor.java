@@ -119,4 +119,25 @@ public final class ApiEditor implements ArenaEditor {
     public void save() {
         ApiPersistence.saveNow(arena);
     }
+
+    @Override
+    public void setShopGui(String guiId) {
+        requireEditable();
+        arena.setShopGuiId(requireGui(guiId));
+        changed();
+    }
+
+    @Override
+    public void setUpgradeGui(String guiId) {
+        requireEditable();
+        arena.setUpgradeGuiId(requireGui(guiId));
+        changed();
+    }
+
+    private static String requireGui(String guiId) {
+        if (guiId == null || com.l299l.newbedwars.NewBedwars.plugin.getGuiManager().getGui(guiId) == null) {
+            throw new IllegalArgumentException("there is no GUI with the id " + guiId);
+        }
+        return guiId;
+    }
 }

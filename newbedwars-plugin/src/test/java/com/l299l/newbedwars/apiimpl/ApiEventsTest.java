@@ -60,6 +60,47 @@ class ApiEventsTest {
     }
 
     @Test
+    void phaseChangeCarriesNamesAndForcedFlag() {
+        ApiEvents.phaseChange(arena, "Diamond II", "Beds gone", true);
+        GamePhaseChangeEvent e = captured(GamePhaseChangeEvent.class);
+        assertEquals("Diamond II", e.getPrevious());
+        assertEquals("Beds gone", e.getNext());
+        assertTrue(e.isForced());
+    }
+
+    @Test
+    void arenaChatCarriesMessageAndTeam() {
+        ApiEvents.arenaChat(arena, player, "gg", true, team);
+        ArenaChatEvent e = captured(ArenaChatEvent.class);
+        assertSame(player, e.getPlayer());
+        assertEquals("gg", e.getMessage());
+        assertTrue(e.isTeamChat());
+        assertEquals("Red", e.getTeam().getName());
+    }
+
+    @Test
+    void bedsDestroyedListsTeams() {
+        ApiEvents.bedsDestroyed(arena, java.util.List.of(team));
+        BedsDestroyedEvent e = captured(BedsDestroyedEvent.class);
+        assertEquals(1, e.getTeams().size());
+        assertThrows(UnsupportedOperationException.class, () -> e.getTeams().clear());
+    }
+
+    @Test
+    void teamEliminatedCarriesTeam() {
+        ApiEvents.teamEliminated(arena, team);
+        assertEquals("Red", captured(TeamEliminatedEvent.class).getTeam().getName());
+    }
+
+    @Test
+    void generatorUpgradeMapsKind() {
+        ApiEvents.generatorUpgrade(arena, com.l299l.newbedwars.arena.generators.GeneratorType.EMERALD, 3);
+        GeneratorUpgradeEvent e = captured(GeneratorUpgradeEvent.class);
+        assertEquals(com.l299l.newbedwars.api.view.GeneratorKind.EMERALD, e.getKind());
+        assertEquals(3, e.getLevel());
+    }
+
+    @Test
     void gameStartCarriesArena() {
         ApiEvents.gameStart(arena);
         assertEquals("A1", captured(GameStartEvent.class).getArena().getName());

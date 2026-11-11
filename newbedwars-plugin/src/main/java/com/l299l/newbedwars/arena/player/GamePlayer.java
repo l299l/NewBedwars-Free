@@ -5,7 +5,6 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.gui.GUIManager;
 import com.l299l.newbedwars.gui.GUISave;
 import com.l299l.newbedwars.arena.IArena;
 import org.bukkit.Bukkit;
@@ -17,8 +16,7 @@ public class GamePlayer {
     private final Player player;
     private Team team;
     private ArmorContents inventory;
-    private final GUISave playerShopGui;
-    private final GUISave playerUpgradesGui;
+    private final IArena arena;
     private int kills;
     private int finalKills;
     private int bedsBroken;
@@ -30,12 +28,7 @@ public class GamePlayer {
         this.player = player;
         this.team = team;
         this.inventory = new ArmorContents(player, team);
-        GUIManager guiManager = NewBedwars.plugin.getGuiManager();
-        IArena arena = com.l299l.newbedwars.arena.ArenaRegistry.byWorld(player.getWorld());
-        String shopGuiId = arena != null ? arena.getShopGuiId() : Properties.DefaultTeamShopGui;
-        String upgradesGuiId = arena != null ? arena.getUpgradeGuiId() : Properties.DefaultUpgradeShopGui;
-        playerShopGui = guiManager.getGui(shopGuiId);
-        playerUpgradesGui = guiManager.getGui(upgradesGuiId);
+        this.arena = ArenaRegistry.byWorld(player.getWorld());
     }
 
     public Player getPlayer() {
@@ -56,11 +49,13 @@ public class GamePlayer {
     }
 
     public GUISave getPlayerShopGui() {
-        return playerShopGui;
+        String id = arena != null ? arena.getShopGuiId() : Properties.DefaultTeamShopGui;
+        return NewBedwars.plugin.getGuiManager().getGui(id);
     }
 
     public GUISave getPlayerUpgradesGui() {
-        return playerUpgradesGui;
+        String id = arena != null ? arena.getUpgradeGuiId() : Properties.DefaultUpgradeShopGui;
+        return NewBedwars.plugin.getGuiManager().getGui(id);
     }
 
     public int getKills() {

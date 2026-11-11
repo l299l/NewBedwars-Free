@@ -63,7 +63,26 @@ class LangMessagesTest {
         lm.reloadMessages();
         lm.addCustomItemProperty("Sword", "-name");
         assertEquals("Sword", lm.getMsgEnglish("Sword-name"));
-        assertEquals("Sword", lm.getMsgPolish("Sword-name"));
+        assertNull(lm.getMsgPolish("Sword-name"));
+        assertEquals("Sword", lm.getMsg(com.l299l.newbedwars.config.Language.Polish, "Sword-name"));
+    }
+
+    @Test
+    void addCustomItemProperty_otherLanguagesFallBackToTheEnglishText() {
+        LangMessages lm = new LangMessages(yaml(""), yaml("CustomItemsNames:\n  Sword-name: 'Iron Sword'"));
+        lm.reloadMessages();
+        lm.addCustomItemProperty("Sword", "-name");
+        assertEquals("Iron Sword", lm.getMsg(com.l299l.newbedwars.config.Language.Polish, "Sword-name"));
+    }
+
+    @Test
+    void setText_putsTranslatedTextAndRemovesEmpty() {
+        LangMessages lm = new LangMessages(yaml(""), yaml(""));
+        lm.reloadMessages();
+        lm.setText(com.l299l.newbedwars.config.Language.Polish, "Sword-name", "&cMiecz");
+        assertEquals("§cMiecz", lm.getMsgPolish("Sword-name"));
+        lm.setText(com.l299l.newbedwars.config.Language.Polish, "Sword-name", "");
+        assertNull(lm.getMsgPolish("Sword-name"));
     }
 
     @Test

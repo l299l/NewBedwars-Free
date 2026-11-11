@@ -115,6 +115,33 @@ public final class ApiEvents {
         return !call(new TeamUpgradeEvent(view(arena), view(team), upgrade, newLevel, buyer)).isCancelled();
     }
 
+    public static void phaseChange(IArena arena, String previous, String next, boolean forced) {
+        call(new com.l299l.newbedwars.api.events.GamePhaseChangeEvent(view(arena), previous, next, forced));
+    }
+
+    public static void arenaChat(IArena arena, Player player, String message, boolean teamChat, Team team) {
+        call(new com.l299l.newbedwars.api.events.ArenaChatEvent(view(arena), player, message, teamChat, view(team)));
+    }
+
+    public static void bedsDestroyed(IArena arena, java.util.List<Team> teams) {
+        java.util.List<TeamView> views = new java.util.ArrayList<>();
+        for (Team team : teams) views.add(view(team));
+        call(new com.l299l.newbedwars.api.events.BedsDestroyedEvent(view(arena), java.util.Collections.unmodifiableList(views)));
+    }
+
+    public static void teamEliminated(IArena arena, Team team) {
+        call(new com.l299l.newbedwars.api.events.TeamEliminatedEvent(view(arena), view(team)));
+    }
+
+    public static void generatorUpgrade(IArena arena, com.l299l.newbedwars.arena.generators.GeneratorType type, int level) {
+        com.l299l.newbedwars.api.view.GeneratorKind kind = switch (type) {
+            case DIAMOND -> com.l299l.newbedwars.api.view.GeneratorKind.DIAMOND;
+            case EMERALD -> com.l299l.newbedwars.api.view.GeneratorKind.EMERALD;
+            default -> com.l299l.newbedwars.api.view.GeneratorKind.BASIC;
+        };
+        call(new com.l299l.newbedwars.api.events.GeneratorUpgradeEvent(view(arena), kind, level));
+    }
+
     public static ItemStack[] armorEquip(IArena arena, Player player, ItemStack[] armor) {
         return call(new ArmorEquipEvent(view(arena), player, armor)).getArmor();
     }

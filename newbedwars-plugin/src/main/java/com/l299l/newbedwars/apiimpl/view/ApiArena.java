@@ -7,6 +7,7 @@ import com.l299l.newbedwars.api.view.ExtraData;
 import com.l299l.newbedwars.api.view.GeneratorView;
 import com.l299l.newbedwars.api.view.GamePlayerView;
 import com.l299l.newbedwars.api.view.TeamView;
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.GamePlayer;
 import com.l299l.newbedwars.arena.team.Team;
@@ -104,6 +105,29 @@ public final class ApiArena implements ArenaView {
     @Override
     public int getGameTime() {
         return arena.getGameTime();
+    }
+
+    @Override
+    public String getNextPhase() {
+        String next = arena.getNextGamePhase();
+        return next == null || next.isEmpty() ? null : next;
+    }
+
+    @Override
+    public int getPhaseTimeLeft() {
+        String current = arena.getCurrentGamePhase();
+        if (arena.status() != GameStatus.playing || current == null || current.isEmpty()) return -1;
+        return Math.max(0, arena.getPhaseTime());
+    }
+
+    @Override
+    public String getShopGui() {
+        return arena.getShopGuiId();
+    }
+
+    @Override
+    public String getUpgradeGui() {
+        return arena.getUpgradeGuiId();
     }
 
     @Override

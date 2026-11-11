@@ -363,8 +363,8 @@ public class CustomItem implements GUIEntry {
         itemFlags.add(itemFlag);
     }
 
-    public HashMap<String, Object> getAsHashMap() {
-        HashMap<String, Object> map = new HashMap<>();
+    public Map<String, Object> getAsHashMap() {
+        Map<String, Object> map = new LinkedHashMap<>();
         map.put("description", itemDesc);
         map.put("material", material.name());
         map.put("price", price);
@@ -390,16 +390,19 @@ public class CustomItem implements GUIEntry {
         };
     }
 
-    private HashMap<String, Integer> getEnchantmentsAsHashMap() {
-        HashMap<String, Integer> map = new HashMap<>();
-        for (Enchantment enchantment : enchantments.keySet()) {
-            map.put(enchantment.getKey().getKey(), enchantments.get(enchantment));
+    private Map<String, Integer> getEnchantmentsAsHashMap() {
+        Map<String, Integer> map = new java.util.TreeMap<>();
+        if (enchantments == null) return map;
+        for (Map.Entry<Enchantment, Integer> e : enchantments.entrySet()) {
+            NamespacedKey key = e.getKey().getKey();
+            map.put(key.getNamespace().equals(NamespacedKey.MINECRAFT) ? key.getKey() : key.toString(), e.getValue());
         }
         return map;
     }
 
     private List<String> itemFlagNames() {
         List<String> list = new ArrayList<>();
+        if (itemFlags == null) return list;
         for (ItemFlag itemFlag : itemFlags) {
             list.add(itemFlag.name());
         }

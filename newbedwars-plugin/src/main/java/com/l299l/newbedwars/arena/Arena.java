@@ -89,6 +89,7 @@ public class Arena implements IArena {
     private int waitingTime;
     private GamePhases gamePhases;
     private int nextPhaseTime = 0;
+    private final Set<String> eliminatedTeams = new HashSet<>();
     private int respawnTime;
     private World world;
     private final ArrayList<Player> spectatorsList = new ArrayList<>();
@@ -176,7 +177,14 @@ public class Arena implements IArena {
                 team.stop();
             }
         }
+        eliminatedTeams.clear();
+        for (Team team : teams.values()) {
+            if (!team.isAlive()) eliminatedTeams.add(team.getName());
+        }
         ApiEvents.gameStart(this);
+        if (gamePhases != null && gamePhases.getCurrentPhase() != null) {
+            ApiEvents.phaseChange(this, null, gamePhases.getCurrentPhase().getName(), false);
+        }
         checkWin();
     }
 
@@ -358,6 +366,7 @@ public class Arena implements IArena {
                 generator.upgrade(level);
             }
         }
+        if (type != null && level != null) ApiEvents.generatorUpgrade(this, type, level);
     }
 
     private void applyJoinSetup(Player player) {
@@ -740,14 +749,25 @@ public class Arena implements IArena {
 
     @Override
     public void nextPhase() {
-        if (gamePhases != null) gamePhases.nextPhase(this);
+        if (gamePhases == null) return;
+        Phase before = gamePhases.getCurrentPhase();
+        gamePhases.nextPhase(this);
+        firePhaseChange(before, false);
     }
 
     @Override
     public void advancePhase() {
         if (gameStatus != GameStatus.playing || gamePhases == null || gamePhases.isLastPhase()) return;
-        gamePhases.getCurrentPhase().cancel();
+        Phase before = gamePhases.getCurrentPhase();
+        before.cancel();
         gamePhases.nextPhase(this);
+        firePhaseChange(before, true);
+    }
+
+    private void firePhaseChange(Phase before, boolean forced) {
+        Phase after = gamePhases == null ? null : gamePhases.getCurrentPhase();
+        if (after == null || after == before) return;
+        ApiEvents.phaseChange(this, before == null ? null : before.getName(), after.getName(), forced);
     }
 
     @Override
@@ -1055,8 +1075,10 @@ public class Arena implements IArena {
 
     @Override
     public void bedDestruction() {
+        List<Team> destroyed = new ArrayList<>();
         for (Team team : teams.values()) {
             if (team.getTeamBed() != null && team.getTeamBed().isAlive()) {
+                destroyed.add(team);
                 team.getTeamBed().destroy();
                 Location loc = team.getTeamBed().getLocation();
                 loc.getBlock().setType(Material.AIR, false);
@@ -1070,6 +1092,7 @@ public class Arena implements IArena {
         }
         broadcast("BedsDestroyed");
         broadcastTitleKeys("BedsDestroyedTitle", "BedsDestroyedSubtitle", Map.of(), 10, 60, 20);
+        if (!destroyed.isEmpty()) ApiEvents.bedsDestroyed(this, destroyed);
     }
 
     @Override
@@ -1444,8 +1467,15 @@ public class Arena implements IArena {
         }
     }
 
+    private void reportEliminations() {
+        for (Team team : teams.values()) {
+            if (!team.isAlive() && eliminatedTeams.add(team.getName())) ApiEvents.teamEliminated(this, team);
+        }
+    }
+
     private boolean checkWin() {
         if (gameStatus != GameStatus.playing) return false;
+        reportEliminations();
         dropRejoinOfDeadTeams();
         int alive = teamsAlive();
         if (alive == 1) {

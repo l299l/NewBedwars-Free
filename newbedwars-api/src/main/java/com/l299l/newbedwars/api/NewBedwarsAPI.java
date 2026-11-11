@@ -4,11 +4,17 @@ import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.view.NetworkArenaView;
 import com.l299l.newbedwars.api.view.NetworkMode;
 import com.l299l.newbedwars.api.view.PlayerStatsView;
+import com.l299l.newbedwars.api.view.StatType;
+import com.l299l.newbedwars.api.view.LeaderboardEntry;
+import java.util.concurrent.CompletableFuture;
+import java.util.List;
 import com.l299l.newbedwars.api.events.NetworkJoinRequestEvent;
 import com.l299l.newbedwars.api.view.ArenaGroupView;
 import com.l299l.newbedwars.api.view.ArenaState;
 import com.l299l.newbedwars.api.edit.ArenaEditor;
 import com.l299l.newbedwars.api.maintenance.ArenaMaintenance;
+import com.l299l.newbedwars.api.game.GameControl;
+import com.l299l.newbedwars.api.shop.ShopEditor;
 import com.l299l.newbedwars.api.command.AddonCommand;
 import com.l299l.newbedwars.api.command.CommandContext;
 import com.l299l.newbedwars.api.registry.UpgradeDefinition;
@@ -91,6 +97,23 @@ public interface NewBedwarsAPI {
     PlayerStatsView getStats(String playerName);
 
     /**
+     * The best players by one statistic, best first (ties by name). Works with JSON and MySQL storage; with MySQL
+     * the database is asked, so offline players are included. Can be called from any thread. Available from 2.7-beta.
+     *
+     * @param limit 1 to 100
+     */
+    CompletableFuture<List<LeaderboardEntry>> getLeaderboard(StatType stat, int limit);
+
+    /**
+     * Statistics of any player who ever played, also offline (with MySQL they are read from the database).
+     * Empty when the player has no statistics. Can be called from any thread. Available from 2.7-beta.
+     */
+    CompletableFuture<Optional<PlayerStatsView>> loadStats(String playerName);
+
+    /** Names of players with statistics that start with {@code prefix} (case-insensitive), sorted. Available from 2.7-beta. */
+    CompletableFuture<List<String>> findPlayers(String prefix, int limit);
+
+    /**
      * Changes the setup of an arena.
      * @throws IllegalStateException when the arena is not {@link ArenaState#WAITING}
      */
@@ -99,11 +122,30 @@ public interface NewBedwarsAPI {
     /** Arena actions of {@code /bw arena}: enable, disable, backups, export/import, copy, map reset, delete. */
     ArenaMaintenance getMaintenance();
 
+    /** Start, stop, next phase and broadcast for running games, like {@code /bw game}. Available from 2.7-beta. */
+    GameControl getGameControl();
+
+    /** Shop items, their texts and shop GUIs: read and change them like the web panel's shop editor. Available from 2.7-beta. */
+    ShopEditor getShop();
+
     /** Adds an action usable in {@code GamePhases} in config.yml as {@code NAME} or {@code NAME:argument}. */
     void registerPhaseAction(Plugin owner, String name, PhaseActionHandler handler);
 
-    /** Adds a {@code /bw} subcommand. */
-    void registerCommand(Plugin owner, AddonCommand command, CommandContext context);
+    /** Adds a {@code /bw} subcommand in one context. */
+    default void registerCommand(Plugin owner, AddonCommand command, CommandContext context) {
+        registerCommand(owner, command, context, new CommandContext[0]);
+    }
+
+    /**
+     * Adds one {@code /bw} subcommand in several contexts, e.g. {@code LOBBY, GAME, CONSOLE}. It is the same
+     * command object everywhere; {@code arena} in {@link AddonCommand#perform} is {@code null} outside arenas.
+     * Available from 2.7-beta.
+     *
+     * @throws IllegalArgumentException when another subcommand with the same name is available in one of these
+     *                                  contexts (lobby and lobby admin count as one place, so do game and game admin,
+     *                                  and all setup modes)
+     */
+    void registerCommand(Plugin owner, AddonCommand command, CommandContext context, CommandContext... more);
 
     /** Adds shop item logic; use {@code key} as {@code itemLogic} in {@code items.yml}. */
     void registerShopLogic(Plugin owner, String key, ShopLogic logic);

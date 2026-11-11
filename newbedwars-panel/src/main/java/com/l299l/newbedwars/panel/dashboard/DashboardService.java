@@ -35,6 +35,10 @@ public final class DashboardService {
         for (int i = 0; i < colors.length; i++) COLORS.put(colors[i], hex[i]);
     }
 
+    public static String hex(ChatColor color) {
+        return color == null ? "#FFFFFF" : COLORS.getOrDefault(color, "#FFFFFF");
+    }
+
     private final Plugin plugin;
     private final NewBedwarsAPI api;
     private final DashboardState state = new DashboardState(System::currentTimeMillis);
@@ -136,6 +140,8 @@ public final class DashboardService {
         a.addProperty("maxInTeam", arena.getMaxInTeam());
         if (arena.getCurrentPhase() != null) a.addProperty("phase", arena.getCurrentPhase());
         a.addProperty("gameTime", arena.getGameTime());
+        if (arena.getNextPhase() != null) a.addProperty("nextPhase", arena.getNextPhase());
+        a.addProperty("phaseTimeLeft", arena.getPhaseTimeLeft());
         JsonArray problems = new JsonArray();
         arena.getLoadProblems().forEach(problems::add);
         a.add("problems", problems);
@@ -143,7 +149,7 @@ public final class DashboardService {
         for (TeamView team : arena.getTeams()) {
             JsonObject t = new JsonObject();
             t.addProperty("name", team.getName());
-            t.addProperty("color", COLORS.getOrDefault(team.getColor(), "#FFFFFF"));
+            t.addProperty("color", hex(team.getColor()));
             t.addProperty("players", team.getPlayers().size());
             t.addProperty("alive", team.isAlive());
             t.addProperty("bed", !team.isBedDestroyed());

@@ -35,13 +35,22 @@ import com.l299l.newbedwars.apiimpl.view.ApiArenaGroup;
 import com.l299l.newbedwars.arena.group.ArenaGroup;
 import com.l299l.newbedwars.arena.group.ArenaGroupManager;
 
+import com.l299l.newbedwars.api.view.LeaderboardEntry;
+import com.l299l.newbedwars.api.view.PlayerStatsView;
+import com.l299l.newbedwars.api.view.StatType;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     private final ApiRegistrations registrations = new ApiRegistrations();
     private final ApiMaintenance maintenance = new ApiMaintenance();
+    private final ApiStats stats = ApiStats.create();
+    private final ApiGameControl gameControl = new ApiGameControl();
+    private final ApiShopEditor shopEditor = new ApiShopEditor();
 
     @Override
     public String getVersion() {
@@ -127,6 +136,31 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     }
 
     @Override
+    public com.l299l.newbedwars.api.game.GameControl getGameControl() {
+        return gameControl;
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.shop.ShopEditor getShop() {
+        return shopEditor;
+    }
+
+    @Override
+    public CompletableFuture<List<LeaderboardEntry>> getLeaderboard(StatType stat, int limit) {
+        return stats.leaderboard(stat, limit);
+    }
+
+    @Override
+    public CompletableFuture<Optional<PlayerStatsView>> loadStats(String playerName) {
+        return stats.load(playerName);
+    }
+
+    @Override
+    public CompletableFuture<List<String>> findPlayers(String prefix, int limit) {
+        return stats.find(prefix, limit);
+    }
+
+    @Override
     public Collection<ArenaGroupView> getGroups() {
         Collection<ArenaGroupView> result = new ArrayList<>();
         ArenaGroupManager groups = ArenaGroupManager.get();
@@ -161,15 +195,19 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     }
 
     @Override
-    public void registerCommand(Plugin owner, AddonCommand command, CommandContext context) {
+    public void registerCommand(Plugin owner, AddonCommand command, CommandContext context, CommandContext... more) {
         ApiSubCommand subCommand = new ApiSubCommand(command);
         MainCommand main = NewBedwars.plugin.getMainCommand();
-        main.register(subCommand, toInternal(context));
+        MainCommand.Context[] contexts = new MainCommand.Context[1 + (more == null ? 0 : more.length)];
+        contexts[0] = toInternal(context);
+        for (int i = 1; i < contexts.length; i++) contexts[i] = toInternal(more[i - 1]);
+        main.register(subCommand, contexts);
         registrations.add(owner, () -> main.unregister(subCommand));
     }
 
     @SuppressWarnings("deprecation")
     static MainCommand.Context toInternal(CommandContext context) {
+        if (context == null) throw new IllegalArgumentException("null command context");
         if (context == CommandContext.SETUP_BUILDING) return MainCommand.Context.SETUP_AUTOMATIC;
         return MainCommand.Context.valueOf(context.name());
     }
@@ -195,7 +233,15 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
         Upgrade registered = Upgrade.register(upgrade.getName(), upgrade.getMaxLevel(), new ApiUpgradeHandler(upgrade), upgrade.getPrices());
         registrations.add(owner, () -> Upgrade.unregister(registered));
         var items = NewBedwars.plugin.getCustomItemManager();
-        if (items.getCustomItem(upgrade.getName()) == null) items.createCustomUpdateItem(upgrade.getName(), upgrade.getIcon());
+        if (items.getCustomItem(upgrade.getName()) == null) {
+            items.createCustomUpdateItem(upgrade.getName(), upgrade.getIcon());
+            var data = NewBedwars.plugin.getDataManager();
+            if (data != null) {
+                data.getItemsDataManager().save();
+                data.getGuiDataManager().rebuild();
+                NewBedwars.plugin.getGuiManager().refresh();
+            }
+        }
     }
 
     @Override

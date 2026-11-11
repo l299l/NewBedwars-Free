@@ -77,6 +77,7 @@ AdminHaveBypass: "&b[NewBedwars] &8&l> &r&cAdmin /admin/ have bypass permission!
 CorrectUsage: "&6&lCorrect usage: &r&f"
 ErrorOnCreate: "&4&lError: &r&cError while creating new arena!"
 OnlyPlayer: "&b[NewBedwars] &8&l> &fOnly &4player &fcan use these command!"
+ConsoleCommands: "&b[NewBedwars] &8&l> &fCommands for the console: &e/commands/"
 NotInArena: "&b[NewBedwars] &8&l> &cYou not on Arena!"
 ArenaNotExists: "&4&lError: &r&cThis arena don't exist!"
 AlreadyCreated: "&4&lError: &r&cArena with that name already exist!"
@@ -199,6 +200,8 @@ NoPermission: "&b[NewBedwars] &8&l> &cYou don't have permission to do that!"
 #Use /admin/ to get name of admin
 AdminForcedStart: "&b[NewBedwars] &8&l> &r&a/admin/ &fhas forced the game to start!"
 AdminStoppedGame: "&b[NewBedwars] &8&l> &r&a/admin/ &fhas stopped the game!"
+AdminBroadcast: "&b[NewBedwars] &8&l> &c[/admin/] &r/message/"
+AdminBroadcastInvalid: "&b[NewBedwars] &8&l> &cWrite a message of 1 to /max/ characters: /bw game broadcast <message>"
 
 #Arena displays
 DiamondGenerator: "&fDiamond Generator ; Tier &e /tier/ ; &fNext spawn in: &e /delay/s"

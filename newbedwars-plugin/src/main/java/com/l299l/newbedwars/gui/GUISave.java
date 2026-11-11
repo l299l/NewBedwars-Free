@@ -19,6 +19,8 @@ public class GUISave {
     private boolean closeOnTransaction;
     private int headerSize;
     private int footerSize;
+    private com.l299l.newbedwars.config.data.yaml.guis.GuiDefinition definition;
+    private List<String> problems = List.of();
 
     public GUISave(Class<?> guiClass, String id, String name, int size, boolean closeOnTransaction) {
         this.guiClass = guiClass;
@@ -95,6 +97,22 @@ public class GUISave {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public com.l299l.newbedwars.config.data.yaml.guis.GuiDefinition getDefinition() {
+        return definition;
+    }
+
+    public void setDefinition(com.l299l.newbedwars.config.data.yaml.guis.GuiDefinition definition) {
+        this.definition = definition;
+    }
+
+    public List<String> getProblems() {
+        return problems;
+    }
+
+    public void setProblems(List<String> problems) {
+        this.problems = List.copyOf(problems);
     }
 
     public void setSize(int size) {

@@ -14,11 +14,22 @@ import org.bukkit.inventory.ItemFlag;
 import java.util.*;
 
 public class CustomItemManager {
-    private final HashMap<UUID, CustomItem> customItems;
-    private final HashMap<String, CustomItem> customItemsByName;
+    private final Map<UUID, CustomItem> customItems;
+    private final Map<String, CustomItem> customItemsByName;
     public CustomItemManager() {
-        customItems = new HashMap<>();
-        customItemsByName = new HashMap<>();
+        customItems = new LinkedHashMap<>();
+        customItemsByName = new LinkedHashMap<>();
+    }
+
+    public void clear() {
+        customItems.clear();
+        customItemsByName.clear();
+    }
+
+    public CustomItem remove(String name) {
+        CustomItem item = customItemsByName.remove(name.toLowerCase());
+        if (item != null) customItems.remove(item.getUuid());
+        return item;
     }
 
     public void createDefaults() {
@@ -128,8 +139,7 @@ public class CustomItemManager {
                                  String permission, CustomLogic event, OnBuyEvent onBuyEvent, boolean isPermanent, HashMap<Enchantment, Integer> enchantments,
                                  List<ItemFlag> itemFlags) {
         CustomItem customItem = new CustomItem(name, description, material, price, priceType, amount, iconDesc, permission, event, onBuyEvent, isPermanent, enchantments, itemFlags, false);
-        customItems.put(customItem.getUuid(), customItem);
-        customItemsByName.put(name.toLowerCase(), customItem);
+        addCustomItem(customItem);
     }
 
     public void createCustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
@@ -137,8 +147,7 @@ public class CustomItemManager {
                                  List<ItemFlag> itemFlags, boolean load) {
         CustomLogic logic = matchLogicType(logicType);
         CustomItem customItem = new CustomItem(name, description, material, price, priceType, amount, iconDesc, permission, logic, onBuyEvent, isPermanent, enchantments, itemFlags, load);
-        customItems.put(customItem.getUuid(), customItem);
-        customItemsByName.put(name.toLowerCase(), customItem);
+        addCustomItem(customItem);
     }
 
     public void createCustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
@@ -146,8 +155,7 @@ public class CustomItemManager {
                                  List<ItemFlag> itemFlags, boolean load) {
         CustomLogic logic = matchLogicKey(logicKey);
         CustomItem customItem = new CustomItem(name, description, material, price, priceType, amount, iconDesc, permission, logic, onBuyEvent, isPermanent, enchantments, itemFlags, load);
-        customItems.put(customItem.getUuid(), customItem);
-        customItemsByName.put(name.toLowerCase(), customItem);
+        addCustomItem(customItem);
     }
 
     public CustomLogic matchLogicKey(String logicKey) {
@@ -158,6 +166,8 @@ public class CustomItemManager {
     }
 
     public void addCustomItem(CustomItem customItem) {
+        CustomItem old = customItemsByName.get(customItem.getName().toLowerCase());
+        if (old != null) customItems.remove(old.getUuid());
         customItems.put(customItem.getUuid(), customItem);
         customItemsByName.put(customItem.getName().toLowerCase(), customItem);
     }
@@ -181,15 +191,6 @@ public class CustomItemManager {
         return customItems;
     }
 
-    public HashMap<String, HashMap<String, Object>> getCustomItemsAsHashMap() {
-        HashMap<String, HashMap<String, Object>> customItems = new HashMap<>();
-        List<CustomItem> customItemsList = getCustomItems();
-        for (CustomItem customItem : customItemsList) {
-            customItems.put(customItem.getName(), customItem.getAsHashMap());
-        }
-        return customItems;
-    }
-
     public CustomItem getCustomItem(UUID uuid) {
         return customItems.get(uuid);
     }
@@ -208,6 +209,7 @@ public class CustomItemManager {
             case IRON_GOLEM -> new IronGolemLogic();
             case SILVERFISH -> new SilverfishLogic();
             case PORTABLE_TOWER -> new PortableTowerLogic();
+            case POTION -> new PotionLogic();
             default -> new NoneLogic();
         };
     }

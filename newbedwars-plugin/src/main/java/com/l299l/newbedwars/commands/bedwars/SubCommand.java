@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.commands.bedwars;
 
 import com.l299l.newbedwars.arena.IArena;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -18,4 +19,10 @@ public abstract class SubCommand {
 
     public abstract List<String> getSubcommandArguments(Player player, String[] args);
 
+    public void performConsole(CommandSender sender, String[] args) {
+    }
+
+    public List<String> getConsoleArguments(CommandSender sender, String[] args) {
+        return List.of();
+    }
 }

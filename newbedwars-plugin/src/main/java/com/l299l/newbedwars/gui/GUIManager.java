@@ -47,9 +47,12 @@ public class GUIManager {
         plugin.getServer().getPluginManager().registerEvents(new ItemPickerGUISettings(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new ArenaSelectGUISettings(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new SpectateSelectGUISettings(), plugin);
+        refresh();
+    }
+
+    public void refresh() {
         guis.clear();
-        List<GUISave> guiSaves = plugin.getDataManager().getGuiData();
-        for (GUISave guiSave : guiSaves) {
+        for (GUISave guiSave : NewBedwars.plugin.getDataManager().getGuiData()) {
             guis.put(guiSave.getGuiId(), guiSave);
         }
     }

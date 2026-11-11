@@ -17,14 +17,18 @@ public final class AtomicFileWriter {
     private AtomicFileWriter() {}
 
     public static void write(Path target, String content, Path backupDir, int keep) throws IOException {
+        write(target, content, backupDir, keep, ".json");
+    }
+
+    public static void write(Path target, String content, Path backupDir, int keep, String backupExtension) throws IOException {
         Path parent = target.toAbsolutePath().getParent();
         Files.createDirectories(parent);
         Path tmp = parent.resolve(target.getFileName() + ".tmp");
         Files.writeString(tmp, content, StandardCharsets.UTF_8);
         if (backupDir != null && keep > 0 && Files.isRegularFile(target) && !sameContent(target, content)) {
             Files.createDirectories(backupDir);
-            Files.copy(target, backupDir.resolve(MapTemplateManager.timestamp() + ".json"), StandardCopyOption.REPLACE_EXISTING);
-            MapTemplateManager.rotate(backupDir, ".json", keep);
+            Files.copy(target, backupDir.resolve(MapTemplateManager.timestamp() + backupExtension), StandardCopyOption.REPLACE_EXISTING);
+            MapTemplateManager.rotate(backupDir, backupExtension, keep);
         }
         try {
             Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

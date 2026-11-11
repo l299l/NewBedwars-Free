@@ -16,9 +16,13 @@ public final class Permission {
     public static final String USERS_MANAGE = "users.manage";
     public static final String ROLES_MANAGE = "roles.manage";
     public static final String AUDIT_VIEW = "audit.view";
+    public static final String STATS_VIEW = "stats.view";
+    public static final String GAME_MANAGE = "game.manage";
+    public static final String GAME_LOG = "game.log";
+    public static final String SHOP_EDIT = "shop.edit";
 
     public static final List<String> ALL = List.of(
-            DASHBOARD_VIEW, ARENA_ENABLE, ARENA_DISABLE, ARENA_BACKUP, ARENA_RESTORE, ARENA_RESETMAP,
+            DASHBOARD_VIEW, STATS_VIEW, GAME_MANAGE, GAME_LOG, SHOP_EDIT, ARENA_ENABLE, ARENA_DISABLE, ARENA_BACKUP, ARENA_RESTORE, ARENA_RESETMAP,
             ARENA_EXPORT, ARENA_IMPORT, ARENA_COPY, ARENA_DELETE, USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW);
 
     private Permission() {}

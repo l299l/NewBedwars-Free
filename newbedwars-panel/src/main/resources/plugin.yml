@@ -6,3 +6,11 @@ depend: [NewBedwars]
 author: l299l
 description: Web admin panel for NewBedwars
 website: https://github.com/l299l/NewBedwars-Free
+commands:
+  nbwpanel:
+    description: Manage the NewBedwars web panel (status, accounts)
+    usage: /nbwpanel <status|user>
+permissions:
+  newbedwars.panel.manage:
+    description: Create, reset, delete and list panel accounts and see the panel status
+    default: op

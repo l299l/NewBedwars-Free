@@ -89,8 +89,6 @@ public class DataManager {
         savePlayerStats();
         arenaDataManager.save();
         unloadArenas();
-        itemsDataManager.save();
-        guiDataManager.save();
     }
 
     public void savePlayerData() {
@@ -103,6 +101,14 @@ public class DataManager {
 
     public void savePlayerStats() {
         if (playerDataSql == null) playerStatsDataJson.save();
+    }
+
+    public ItemsDataManager getItemsDataManager() {
+        return itemsDataManager;
+    }
+
+    public GUIDataManager getGuiDataManager() {
+        return guiDataManager;
     }
 
     public List<GUISave> getGuiData() {

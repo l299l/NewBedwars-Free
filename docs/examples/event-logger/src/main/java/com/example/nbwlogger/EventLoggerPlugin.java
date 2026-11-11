@@ -77,9 +77,8 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
                     log("Trap NBWBLIND triggered on " + enemy.getName() + " at team " + team.getName());
                 }));
 
-        // Subcommands: /bw nbwinfo (in a game) and /bw nbwlobby (lobby admins).
-        api.registerCommand(this, new InfoCommand("nbwinfo"), CommandContext.GAME);
-        api.registerCommand(this, new InfoCommand("nbwlobby"), CommandContext.LOBBY_ADMIN);
+        // One subcommand in three places: /bw nbwinfo in a game, as a lobby admin, and from the console.
+        api.registerCommand(this, new InfoCommand("nbwinfo"), CommandContext.GAME, CommandContext.LOBBY_ADMIN, CommandContext.CONSOLE);
         log("Registered phase action, shop logic, armor tier, upgrade, trap and 2 commands");
     }
 
@@ -100,6 +99,21 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
         public void perform(Player player, String[] args, ArenaView arena) {
             player.sendMessage("Command " + name + " works. Arena: " + (arena == null ? "none" : arena.getName()));
             if (arena != null) describe(player, arena);
+        }
+
+        @Override
+        public void performConsole(CommandSender sender, String[] args) {
+            if (args.length < 2) {
+                sender.sendMessage("Usage: bw " + name + " <arena>");
+                return;
+            }
+            NewBedwarsAPI.get().getArena(args[1]).ifPresentOrElse(arena -> describe(sender, arena),
+                    () -> sender.sendMessage("No arena " + args[1]));
+        }
+
+        @Override
+        public List<String> tabCompleteConsole(CommandSender sender, String[] args) {
+            return args.length == 2 ? NewBedwarsAPI.get().getArenas().stream().map(ArenaView::getName).collect(Collectors.toList()) : List.of();
         }
     }
 

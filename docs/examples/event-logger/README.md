@@ -20,7 +20,7 @@ On enable the addon registers (all removed automatically when the addon is disab
 | Armor tier `NBWTEST` (rank 2) | shop item with `onBuyEvent: GIVE_ARMOR` and `TURTLE_HELMET`: you get diamond boots, iron leggings, golden chestplate, turtle helmet (a lower tier like leather must not replace it) |
 | Upgrade `NBWSPEED` (2 levels, 2/4 diamonds) | put `upg:NBWSPEED` in the upgrade GUI file; buy it: Speed for the whole team, re-applied after respawn; level shown by `/bw nbwinfo` |
 | Trap `NBWBLIND` | put `upg:NBWBLIND` in the upgrade GUI; an enemy entering the base gets Blindness and the console logs it |
-| Subcommands | `/bw nbwinfo` in a game (shows arena extra data, generators, upgrade levels); `/bw nbwlobby` as admin in the lobby; both appear in `/bw help` |
+| Subcommands | One command in three contexts: `/bw nbwinfo` in a game (shows arena extra data, generators, upgrade levels), as admin in the lobby, and `bw nbwinfo <arena>` in the console (with tab completion); it appears in `/bw help` |
 | Extra data | the addon counts `games` on the arena at game start and `wins` on the winning team; check with `/nbwlog` and that the values survive a restart (`extra` in the arena JSON) |
 | Editor | stand in a WAITING arena (as an op) and run `/nbwlog edit`: it creates team `NbwTest`, adds and removes a diamond generator, removes the team. Run it during a game: it must refuse |
 | Cleanup | `/plugman unload NewBedwarsEventLogger` (or disable): the action, item logic, upgrades and commands must disappear without errors; reload it and registration works again |

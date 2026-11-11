@@ -71,12 +71,17 @@ public class LangMessages {
     }
 
     public void addCustomItemProperty(String name, String suffix) {
-        for (Language lang : Language.values()) {
-            HashMap<String, String> map = messages.get(lang);
-            if (map != null) {
-                map.putIfAbsent(name + suffix, name);
-            }
+        HashMap<String, String> map = messages.get(Language.English);
+        if (map != null) {
+            map.putIfAbsent(name + suffix, name);
         }
+    }
+
+    public void setText(Language lang, String key, String value) {
+        HashMap<String, String> map = messages.get(lang);
+        if (map == null) return;
+        if (value == null || value.isEmpty()) map.remove(key);
+        else map.put(key, ChatColor.translateAlternateColorCodes('&', value));
     }
 
     private String getString(String text, FileConfiguration configuration) {

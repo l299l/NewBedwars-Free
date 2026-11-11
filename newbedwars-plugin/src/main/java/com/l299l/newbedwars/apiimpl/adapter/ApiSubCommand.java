@@ -4,6 +4,7 @@ import com.l299l.newbedwars.apiimpl.view.ApiArena;
 import com.l299l.newbedwars.api.command.AddonCommand;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -43,5 +44,15 @@ public final class ApiSubCommand extends SubCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         return command.tabComplete(player, args);
+    }
+
+    @Override
+    public void performConsole(CommandSender sender, String[] args) {
+        command.performConsole(sender, args);
+    }
+
+    @Override
+    public List<String> getConsoleArguments(CommandSender sender, String[] args) {
+        return command.tabCompleteConsole(sender, args);
     }
 }

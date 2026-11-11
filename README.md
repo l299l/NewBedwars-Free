@@ -35,6 +35,7 @@ Arena files are saved atomically with rotating backups, every game starts from a
 - JSON storage by default, or MySQL/MariaDB shared between servers
 - Velocity network mode with lobby and game servers
 - A read-only addon API with events
+- A web admin panel as an optional addon (from 2.7-beta)
 
 Optional integrations:
 
@@ -83,12 +84,25 @@ Optional: MySQL/MariaDB for shared stats and server status
 
 Put `NewBedwars-Proxy` on Velocity, the normal jar on every backend, set `Network.Mode` in each backend's `config.yml`, and use Velocity modern forwarding. Backend ports must not be reachable from the internet. Full setup, config and security notes are in [docs/NETWORK.md](docs/NETWORK.md).
 
+## Web panel
+
+> [!NOTE]
+> **Available from 2.7-beta** (when it is released), as the separate jar `NewBedwars-Panel`.
+
+Put `NewBedwars-Panel-<version>.jar` next to the NewBedwars jar and restart. The panel runs inside the server at `https://<server>:8150/`. On first start it creates a self-signed certificate; you can also use your own certificate or a reverse proxy.
+
+1. Create the first account in the console: `nbwpanel user create <name> admin`. This prints a one-time password.
+2. Log in with it in the browser and choose your own password.
+
+The panel shows every arena live (state, players, phase, teams and beds), online players, TPS and memory. From it you can enable, disable, back up, restore, reset, copy, export, import and delete arenas. It has accounts with roles (`admin`, view-only `staff` and your own), a login lock, an activity log, and English and Polish. Setup, certificates, reverse proxy and roles: [docs/PANEL.md](docs/PANEL.md).
+
 ## Documentation
 
 - [Commands and permissions](docs/COMMANDS.md)
 - [Placeholders](docs/PLACEHOLDERS.md)
 - [Storage (JSON and MySQL)](docs/STORAGE.md)
 - [Network mode](docs/NETWORK.md)
+- [Web panel](docs/PANEL.md)
 - [Addon API](docs/API.md)
 - [Changelog](CHANGELOG.md)
 
@@ -273,13 +287,13 @@ mvn -pl newbedwars-plugin -am package    # only the Paper plugin
 mvn test
 ```
 
-The modules are `newbedwars-api`, `newbedwars-common`, `newbedwars-plugin` (Paper, Java 16 bytecode) and `newbedwars-proxy` (Velocity, Java 25). Use JDK 25 or newer to build everything. Artifacts: `newbedwars-plugin/target/NewBedwars-<version>.jar` and `newbedwars-proxy/target/NewBedwars-Proxy-<version>.jar`.
+The modules are `newbedwars-api`, `newbedwars-common`, `newbedwars-plugin` (Paper, Java 16 bytecode), `newbedwars-proxy` (Velocity, Java 25) and `newbedwars-panel` (web panel addon, Java 16 bytecode). Use JDK 25 or newer to build everything. Artifacts: `newbedwars-plugin/target/NewBedwars-<version>.jar`, `newbedwars-proxy/target/NewBedwars-Proxy-<version>.jar` and `newbedwars-panel/target/NewBedwars-Panel-<version>.jar`.
 
 ---
 
 ## Roadmap
 
-NewBedwars leaves beta once it has been verified on all supported server versions. A website panel is still planned; everything else on the old roadmap (parties, PlaceholderAPI, schematics, stats, addon API, Citizens NPCs, map voting, network mode) is done.
+NewBedwars leaves beta once it has been verified on all supported server versions. Everything on the old roadmap is done (parties, PlaceholderAPI, schematics, stats, addon API, Citizens NPCs, map voting, network mode, and the web panel from 2.7-beta). Later panel versions may add public stats pages, match history and config editing.
 
 ---
 

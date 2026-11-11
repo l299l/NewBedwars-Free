@@ -10,8 +10,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import com.l299l.newbedwars.api.events.ArenaChatEvent;
+import org.bukkit.event.Event;
+import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.util.ArrayList;
@@ -94,12 +98,20 @@ class ChatEventTest {
         when(sender.hasPermission("newbedwars.chat.color")).thenReturn(false);
 
         AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, sender, "&cloud", new HashSet<>());
+        PluginManager pm = mock(PluginManager.class);
         try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
             bukkit.when(Bukkit::isPrimaryThread).thenReturn(true);
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pm);
             new ChatEvent(plugin).onChat(event);
         }
 
         verify(spectator).sendMessage("\u00a77Name: \u00a7floud");
         assertTrue(event.isCancelled());
+        ArgumentCaptor<Event> fired = ArgumentCaptor.forClass(Event.class);
+        verify(pm).callEvent(fired.capture());
+        ArenaChatEvent chat = assertInstanceOf(ArenaChatEvent.class, fired.getValue());
+        assertEquals("loud", chat.getMessage());
+        assertFalse(chat.isTeamChat());
+        assertSame(sender, chat.getPlayer());
     }
 }

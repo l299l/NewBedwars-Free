@@ -19,6 +19,12 @@ public enum CommandContext {
     /** While setting up an arena in automatic setup. */
     SETUP_AUTOMATIC,
     /**
+     * Typed in the server console (or by a command block). The command runs
+     * {@link AddonCommand#performConsole(org.bukkit.command.CommandSender, String[])}.
+     * Available from 2.7-beta.
+     */
+    CONSOLE,
+    /**
      * Same as {@link #SETUP_AUTOMATIC}.
      *
      * @deprecated renamed, use {@link #SETUP_AUTOMATIC}

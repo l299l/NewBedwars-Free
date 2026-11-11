@@ -34,6 +34,18 @@ public interface ArenaEditor {
     /** @param index position in {@link ArenaView#getGenerators()} @return false for an invalid index */
     boolean removeGenerator(int index);
 
+    /**
+     * The shop GUI ({@code data/guis/}) the arena's item shop opens. Available from 2.7-beta.
+     * @throws IllegalArgumentException when there is no GUI with that id
+     */
+    void setShopGui(String guiId);
+
+    /**
+     * The GUI the arena's team upgrade shop opens. Available from 2.7-beta.
+     * @throws IllegalArgumentException when there is no GUI with that id
+     */
+    void setUpgradeGui(String guiId);
+
     /** Writes the arena file now. */
     void save();
 }

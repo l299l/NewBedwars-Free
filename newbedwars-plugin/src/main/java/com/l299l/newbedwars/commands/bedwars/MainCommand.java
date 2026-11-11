@@ -34,6 +34,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class MainCommand implements TabExecutor {
     private final ArrayList<SubCommand> setupSubNormalCommands = new ArrayList<>();
     private final ArrayList<SubCommand> setupSubAdvancedCommands = new ArrayList<>();
     private final ArrayList<SubCommand> setupSubAutomaticCommands = new ArrayList<>();
+    private final ArrayList<SubCommand> consoleCommands = new ArrayList<>();
     private HelpCommand helpCommand;
 
     private record Route(List<SubCommand> publicCmds, List<SubCommand> adminCmds, boolean adminNeedsArena) {
@@ -61,7 +63,7 @@ public class MainCommand implements TabExecutor {
     }
 
     public enum Context {
-        LOBBY, LOBBY_ADMIN, GAME, GAME_ADMIN, SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_AUTOMATIC
+        LOBBY, LOBBY_ADMIN, GAME, GAME_ADMIN, SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_AUTOMATIC, CONSOLE
     }
 
     private ArrayList<SubCommand> bucket(Context context) {
@@ -74,18 +76,44 @@ public class MainCommand implements TabExecutor {
             case SETUP_NORMAL -> setupSubNormalCommands;
             case SETUP_ADVANCED -> setupSubAdvancedCommands;
             case SETUP_AUTOMATIC -> setupSubAutomaticCommands;
+            case CONSOLE -> consoleCommands;
         };
     }
 
-    public void register(SubCommand command, Context context) {
+    public void register(SubCommand command, Context... contexts) {
+        if (contexts == null || contexts.length == 0) throw new IllegalArgumentException("no context for command '" + command.getName() + "'");
+        for (Context context : contexts) {
+            if (context == null) throw new IllegalArgumentException("null context for command '" + command.getName() + "'");
+        }
         for (Context c : Context.values()) {
+            if (Arrays.stream(contexts).noneMatch(wanted -> group(wanted) == group(c))) continue;
             for (SubCommand existing : bucket(c)) {
-                if (existing.getName().equalsIgnoreCase(command.getName())) {
+                if (existing != command && existing.getName().equalsIgnoreCase(command.getName())) {
                     throw new IllegalArgumentException("command '" + command.getName() + "' already exists (" + c + ")");
                 }
             }
         }
-        bucket(context).add(command);
+        for (Context context : contexts) {
+            List<SubCommand> bucket = bucket(context);
+            if (!bucket.contains(command)) bucket.add(command);
+        }
+    }
+
+    static int group(Context context) {
+        return switch (context) {
+            case LOBBY, LOBBY_ADMIN -> 0;
+            case GAME, GAME_ADMIN -> 1;
+            case SETUP_BASIC, SETUP_NORMAL, SETUP_ADVANCED, SETUP_AUTOMATIC -> 2;
+            case CONSOLE -> 3;
+        };
+    }
+
+    public List<Context> contextsOf(SubCommand command) {
+        List<Context> result = new ArrayList<>();
+        for (Context c : Context.values()) {
+            if (bucket(c).contains(command)) result.add(c);
+        }
+        return result;
     }
 
     public boolean unregister(SubCommand command) {
@@ -103,7 +131,7 @@ public class MainCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         if (!(sender instanceof Player p)) {
-            sender.sendMessage(msg.getMsgToConsole("OnlyPlayer"));
+            onConsoleCommand(sender, args);
             return true;
         }
 
@@ -113,7 +141,7 @@ public class MainCommand implements TabExecutor {
                 Route route = routeFor(p);
                 boolean handled = route.adminCmds() != null && subCmd(route.adminCmds(), args, p, route.adminNeedsArena());
                 if (!handled) {
-                    subCmd(route.publicCmds(), args, p, false);
+                    subCmd(route.publicCmds(), args, p, false, route.adminNeedsArena());
                 }
             } else {
                 if (!isAdmin(p) && !p.hasPermission("newbedwars.bw.arena")) {
@@ -126,6 +154,37 @@ public class MainCommand implements TabExecutor {
             helpCommand.perform(p, args, null);
         }
         return true;
+    }
+
+    private void onConsoleCommand(CommandSender sender, String[] args) {
+        if (args.length > 0) {
+            for (SubCommand command : consoleCommands) {
+                if (command.getName().equalsIgnoreCase(args[0])) {
+                    command.performConsole(sender, args);
+                    return;
+                }
+            }
+        }
+        if (consoleCommands.isEmpty()) {
+            sender.sendMessage(msg.getMsgToConsole("OnlyPlayer"));
+            return;
+        }
+        String names = consoleCommands.stream().map(SubCommand::getName).sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.joining(", "));
+        sender.sendMessage(msg.getMsgToConsole("ConsoleCommands").replace("/commands/", names));
+    }
+
+    private List<String> consoleTabComplete(CommandSender sender, String[] args) {
+        if (args.length <= 1) {
+            return filterAndSort(subArgs(consoleCommands), args.length == 0 ? "" : args[0].toLowerCase());
+        }
+        for (SubCommand command : consoleCommands) {
+            if (command.getName().equalsIgnoreCase(args[0])) {
+                List<String> raw = command.getConsoleArguments(sender, args);
+                return filterAndSort(raw == null ? List.of() : raw, args[args.length - 1].toLowerCase());
+            }
+        }
+        return List.of();
     }
 
     private boolean isAdmin(Player p) {
@@ -148,7 +207,7 @@ public class MainCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
-        if (!(sender instanceof Player p)) return null;
+        if (!(sender instanceof Player p)) return consoleTabComplete(sender, args);
         Setup setupMode = getArenaSetupMode(p);
         String typed = args.length > 0 ? args[0].toLowerCase() : "";
 
@@ -185,62 +244,58 @@ public class MainCommand implements TabExecutor {
         LobbyCommand lobbyCmd = new LobbyCommand();
         LangCommand langCmd = new LangCommand();
         SpectateCommand spectateCmd = new SpectateCommand();
-        subCommandsLobbyPublic.add(new JoinCommand());
-        subCommandsLobbyPublic.add(new RejoinCommand());
-        subCommandsLobbyPublic.add(lobbyCmd);
-        subCommandsLobbyPublic.add(langCmd);
-        subCommandsLobbyPublic.add(spectateCmd);
-        subCommandsLobbyPublic.add(new StatsCommand());
-        subCommandsLobbyPublic.add(new ProfileCommand());
-        subCommandsLobbyPublic.add(new LeaderboardCommand());
+        register(new JoinCommand(), Context.LOBBY);
+        register(new RejoinCommand(), Context.LOBBY);
+        register(lobbyCmd, Context.LOBBY, Context.GAME);
+        register(langCmd, Context.LOBBY, Context.GAME);
+        register(spectateCmd, Context.LOBBY);
+        register(new StatsCommand(), Context.LOBBY);
+        register(new ProfileCommand(), Context.LOBBY);
+        register(new LeaderboardCommand(), Context.LOBBY);
 
-        subCommandsGamePublic.add(lobbyCmd);
-        subCommandsGamePublic.add(langCmd);
+        register(new SetLobbyCommand(), Context.LOBBY_ADMIN);
+        register(new ArenaCommand(), Context.LOBBY_ADMIN);
+        register(new ReloadCommand(), Context.LOBBY_ADMIN);
+        register(new NpcCommand(), Context.LOBBY_ADMIN);
+        register(new GroupCommand(), Context.LOBBY_ADMIN);
+        register(new UpdateCommand(), Context.LOBBY_ADMIN);
 
-        subCommandsLobbyAdmin.add(new SetLobbyCommand());
-        subCommandsLobbyAdmin.add(new ArenaCommand());
-        subCommandsLobbyAdmin.add(new ReloadCommand());
-        subCommandsLobbyAdmin.add(new NpcCommand());
-        subCommandsLobbyAdmin.add(new GroupCommand());
-        subCommandsLobbyAdmin.add(new UpdateCommand());
-
-        subCommandsGameAdmin.add(new ManageGameCommand());
+        register(new ManageGameCommand(), Context.GAME_ADMIN);
 
         helpCommand = new HelpCommand(this::helpCommandsFor);
-        subCommandsLobbyPublic.add(helpCommand);
-        subCommandsGamePublic.add(helpCommand);
+        register(helpCommand, Context.LOBBY, Context.GAME);
 
-        setupSubBasicCommands.add(new ArenaInfoCommand());
-        setupSubBasicCommands.add(new LeaveSetupModeCommand());
-        setupSubBasicCommands.add(new SaveSettingsCommand());
-        setupSubBasicCommands.add(new RemoveCommand());
-        setupSubBasicCommands.add(new SetupModeCommand());
+        register(new ArenaInfoCommand(), Context.SETUP_BASIC);
+        register(new LeaveSetupModeCommand(), Context.SETUP_BASIC);
+        register(new SaveSettingsCommand(), Context.SETUP_BASIC);
+        register(new RemoveCommand(), Context.SETUP_BASIC);
+        register(new SetupModeCommand(), Context.SETUP_BASIC);
 
-        setupSubNormalCommands.add(new CreateTeamCommand());
-        setupSubNormalCommands.add(new SetGeneratorCommand());
-        setupSubNormalCommands.add(new SetMaxInTeamCommand());
-        setupSubNormalCommands.add(new SetMinPlayersCommand());
-        setupSubNormalCommands.add(new SetTeamBedCommand());
-        setupSubNormalCommands.add(new SetTeamsShopCommand());
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_SPAWN));
-        setupSubNormalCommands.add(new SetTeamsUpgradesCommand());
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BUILD_PROT_POS1));
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BUILD_PROT_POS2));
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BASE_POS1));
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.TEAM_BASE_POS2));
-        setupSubNormalCommands.add(new SetQuickVoidYCommand());
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.WAITING_POS1));
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.WAITING_POS2));
-        setupSubNormalCommands.add(new SetPositionCommand(SetPositionCommand.Point.WAITING_SPAWN));
-        setupSubNormalCommands.add(new SetWaitingTimeCommand());
-        setupSubAdvancedCommands.add(new GameruleCommand());
-        setupSubAdvancedCommands.add(new SetResourcePackCommand());
-        setupSubAdvancedCommands.add(new SetArenaGUICommand());
-        setupSubAdvancedCommands.add(new SetGeneratorLevelingCommand());
-        setupSubAdvancedCommands.add(new SetTeamsAccessoriesCommand());
+        register(new CreateTeamCommand(), Context.SETUP_NORMAL);
+        register(new SetGeneratorCommand(), Context.SETUP_NORMAL);
+        register(new SetMaxInTeamCommand(), Context.SETUP_NORMAL);
+        register(new SetMinPlayersCommand(), Context.SETUP_NORMAL);
+        register(new SetTeamBedCommand(), Context.SETUP_NORMAL);
+        register(new SetTeamsShopCommand(), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.TEAM_SPAWN), Context.SETUP_NORMAL);
+        register(new SetTeamsUpgradesCommand(), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.TEAM_BUILD_PROT_POS1), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.TEAM_BUILD_PROT_POS2), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.TEAM_BASE_POS1), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.TEAM_BASE_POS2), Context.SETUP_NORMAL);
+        register(new SetQuickVoidYCommand(), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.WAITING_POS1), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.WAITING_POS2), Context.SETUP_NORMAL);
+        register(new SetPositionCommand(SetPositionCommand.Point.WAITING_SPAWN), Context.SETUP_NORMAL);
+        register(new SetWaitingTimeCommand(), Context.SETUP_NORMAL);
+        register(new GameruleCommand(), Context.SETUP_ADVANCED);
+        register(new SetResourcePackCommand(), Context.SETUP_ADVANCED);
+        register(new SetArenaGUICommand(), Context.SETUP_ADVANCED);
+        register(new SetGeneratorLevelingCommand(), Context.SETUP_ADVANCED);
+        register(new SetTeamsAccessoriesCommand(), Context.SETUP_ADVANCED);
 
-        setupSubAutomaticCommands.add(new StartAutomaticSetupCommand());
-        setupSubBasicCommands.add(new SetupHelpCommand(this::setupCommandsFor, this::getArena));
+        register(new StartAutomaticSetupCommand(), Context.SETUP_AUTOMATIC);
+        register(new SetupHelpCommand(this::setupCommandsFor, this::getArena), Context.SETUP_BASIC);
     }
 
     private Route lobbyRoute(Player p) {
@@ -268,6 +323,10 @@ public class MainCommand implements TabExecutor {
     }
 
     private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set) {
+        return subCmd(sub, args, p, set, false);
+    }
+
+    private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set, boolean inArena) {
         for (SubCommand subCommand : sub) {
             if (args[0].equalsIgnoreCase(subCommand.getName())) {
                 if (set) {
@@ -276,7 +335,7 @@ public class MainCommand implements TabExecutor {
                         subCommand.perform(p, args, arena);
                     }
                 } else {
-                    subCommand.perform(p, args, null);
+                    subCommand.perform(p, args, inArena ? ArenaRegistry.byWorld(p.getWorld()) : null);
                 }
                 return true;
             }

@@ -405,4 +405,20 @@ class ArenaTest {
 
         verify(other).forfeitRejoin(viewer);
     }
+
+    @Test
+    void phaseChangesFireOnceWithTheForcedFlag() {
+        arena.setGamePhases(new com.l299l.newbedwars.arena.phases.GamePhases("t", List.of(
+                new com.l299l.newbedwars.arena.phases.Phase("One", 0, List.of()),
+                new com.l299l.newbedwars.arena.phases.Phase("Two", 0, List.of()),
+                new com.l299l.newbedwars.arena.phases.Phase("Three", 0, List.of()))));
+        arena.setStatus(GameStatus.playing);
+        arena.nextPhase();
+        apiEvents.verify(() -> ApiEvents.phaseChange(arena, "One", "Two", false));
+        arena.advancePhase();
+        apiEvents.verify(() -> ApiEvents.phaseChange(arena, "Two", "Three", true));
+        arena.advancePhase();
+        arena.nextPhase();
+        apiEvents.verify(() -> ApiEvents.phaseChange(any(), any(), any(), anyBoolean()), times(2));
+    }
 }

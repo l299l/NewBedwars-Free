@@ -6,6 +6,11 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 > **New in 2.7-beta** (not released yet):
 > - [Arena maintenance](#arena-maintenance): `NewBedwarsAPI.getMaintenance()` enables, disables, backs up, restores, exports, imports, copies, resets and deletes arenas like `/bw arena`.
 > - `ArenaView.getLoadProblems()`: why an arena was loaded disabled.
+> - [Statistics and leaderboards](#statistics-and-leaderboards): `getLeaderboard`, `loadStats` (offline players too), `findPlayers`.
+> - [Game control](#game-control): `NewBedwarsAPI.getGameControl()` starts, stops, skips phases and broadcasts like `/bw game`; `ArenaView.getNextPhase()` / `getPhaseTimeLeft()`.
+> - [Shop editor](#shop-editor): `NewBedwarsAPI.getShop()` reads and changes shop items, their texts and shop GUIs; `ArenaView.getShopGui()` / `getUpgradeGui()`, `ArenaEditor.setShopGui()` / `setUpgradeGui()`.
+> - New [events](#events): `GamePhaseChangeEvent`, `ArenaChatEvent`, `BedsDestroyedEvent`, `TeamEliminatedEvent`, `GeneratorUpgradeEvent`.
+> - [Subcommands](#subcommands) in several contexts at once (`registerCommand(owner, command, LOBBY, GAME, CONSOLE)`), and the new `CONSOLE` context with `AddonCommand.performConsole` / `tabCompleteConsole`.
 >
 > Depend on `v2.7-beta` (or newer) to use them; on older NewBedwars versions these methods do not exist.
 
@@ -54,7 +59,7 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | `getNetworkRejoin(Player)` **(2.6-beta)** | on a `LOBBY` server: the network arena the player can still rejoin |
 | `getStats(String name)` **(2.6-beta)** | `PlayerStatsView` (wins, losses, kills, deaths, final kills, beds, games; zeros when unknown). With MySQL storage these are network-wide; only online/loaded players are known |
 
-**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine).
+**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine).
 
 **`TeamView`**: `getName`, `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
 
@@ -82,6 +87,11 @@ Normal Bukkit events: register a `Listener` as usual. All arena events extend `A
 | `ArmorEquipEvent` | no | before armor is applied (respawn, purchase) | `getPlayer()`, `setArmor(ItemStack[])` (boots, leggings, chestplate, helmet) |
 | `MapVoteEvent` **(2.6-beta)** | yes | during the after-game time, a player of the ended arena votes for the next map | `getPlayer()`, `getVotedArena()` (null when the arena is on another game server), `getVotedNetworkArena()` |
 | `MapChosenEvent` **(2.6-beta)** | no | the after-game time is over and a next map won; the arena then stops and everyone joins the chosen arena | `getGroup()`, `getChosenArena()` (null when on another game server), `getChosenNetworkArena()` |
+| `GamePhaseChangeEvent` **(2.7-beta)** | no | the game moves to the next phase (also the first phase at game start) | `getPrevious()` (null at the first phase), `getNext()`, `isForced()` (admin skipped) |
+| `ArenaChatEvent` **(2.7-beta)** | no | after a player's arena or team chat message was delivered | `getPlayer()`, `getMessage()` (without colours), `isTeamChat()`, `getTeam()` (nullable) |
+| `BedsDestroyedEvent` **(2.7-beta)** | no | the bed destruction phase destroyed the remaining beds | `getTeams()` |
+| `TeamEliminatedEvent` **(2.7-beta)** | no | a team is out (no bed, no living players) | `getTeam()` |
+| `GeneratorUpgradeEvent` **(2.7-beta)** | no | a game phase upgraded the diamond or emerald generators | `getKind()`, `getLevel()` |
 | `PlayerSendToLobbyEvent` | yes | whenever a player is sent to the lobby | `getPlayer()`, `getReason()`, `getTarget()`/`setTarget()` |
 | `NetworkJoinRequestEvent` **(2.6-beta)** | yes | on a `LOBBY` server, before a join or rejoin request goes to the proxy (`/bw join`, NPCs, selector, `/bw rejoin`, API); cancelled = nothing is sent and NewBedwars sends no message | `getPlayer()`, `getKind()` (`ANY`, `GROUP`, `ARENA`, `REJOIN`, `SPECTATE`), `getTarget()` |
 | `NetworkArenasUpdateEvent` **(2.6-beta)** | no | on a `LOBBY` server, when the network arena list changed (not an `ArenaEvent`) | `getArenas()` |
@@ -151,13 +161,23 @@ api.registerUpgrade(this, UpgradeDefinition.trap("BLIND", 1, Material.INK_SAC, L
 
 ### Subcommands
 
-Adds `/bw <name>`, listed in `/bw help`. `CommandContext` says where it is available: `LOBBY`, `LOBBY_ADMIN`, `GAME`, `GAME_ADMIN`, `SETUP_BASIC`, `SETUP_NORMAL`, `SETUP_ADVANCED`, `SETUP_AUTOMATIC` (`SETUP_BUILDING` is a deprecated alias for it).
+Adds `/bw <name>`, listed in `/bw help`. `CommandContext` says where it is available: `LOBBY`, `LOBBY_ADMIN`, `GAME`, `GAME_ADMIN`, `SETUP_BASIC`, `SETUP_NORMAL`, `SETUP_ADVANCED`, `SETUP_AUTOMATIC` (`SETUP_BUILDING` is a deprecated alias for it) and `CONSOLE` (2.7-beta).
 
 Implement `AddonCommand` (`getName`, `getDescription`, `getSyntax`, `getExample`, `perform(player, args, arena)`, optional `tabComplete`) and register it:
 
 ```java
 api.registerCommand(this, new MyCommand(), CommandContext.GAME);
 ```
+
+**Several contexts (2.7-beta).** Register the same command for every place it should work. `arena` in `perform` is the player's arena, or `null` outside arenas:
+
+```java
+api.registerCommand(this, new TrimCommand(), CommandContext.LOBBY, CommandContext.GAME, CommandContext.CONSOLE);
+```
+
+`CONSOLE` makes `/bw <name>` work in the server console (and command blocks). It calls `performConsole(sender, args)` and `tabCompleteConsole(sender, args)` instead of the player methods. Both do nothing by default, so override them when you register for `CONSOLE`. Typing `bw` alone in the console lists the console commands.
+
+Names: two different commands may not share a name in the same place. Lobby and lobby admin count as one place, so do game and game admin, all setup modes together, and the console. The same name is allowed in places that never apply at the same time (e.g. one addon's `trim` in `LOBBY` and another's in `GAME`). A clash throws `IllegalArgumentException`.
 
 ## Extra data
 
@@ -222,6 +242,69 @@ api.getMaintenance().backup("castle").thenAccept(result -> {
 ```
 
 `MaintenanceResult`: `code()` (`OK`, `NOT_FOUND`, `BUSY`, `ALREADY_DONE`, `NOT_READY`, `INVALID_NAME`, `NAME_TAKEN`, `UNAVAILABLE` on a `LOBBY` server, `FAILED`, `PARTIAL` = deleted but some files remain), `isSuccess()`, `arena()`, `message()` (the command's message in the server's default language, without colors) and `detail()` (backup id, export file, copy source or error text; may be null). `listBackups` completes exceptionally with `NoSuchElementException` for an unknown arena.
+
+## Statistics and leaderboards
+
+> [!IMPORTANT]
+> **New in 2.7-beta.**
+
+| Method | Returns |
+|---|---|
+| `getLeaderboard(StatType, limit)` | `CompletableFuture<List<LeaderboardEntry>>` (`getName()`, `getStats()`), best first, ties by name; `limit` 1 to 100 |
+| `loadStats(name)` | `CompletableFuture<Optional<PlayerStatsView>>`, also for offline players; empty when the player never played |
+| `findPlayers(prefix, limit)` | `CompletableFuture<List<String>>` names starting with `prefix` (case-insensitive) |
+
+`StatType`: `WINS`, `LOSSES`, `KILLS`, `DEATHS`, `FINAL_KILLS`, `BEDS_BROKEN`, `GAMES_PLAYED` (`stat.of(view)` reads the value). With JSON storage the data comes from memory (the future completes on the server thread); with MySQL storage the database is asked on its own thread, so the results cover the whole network. Call them from any thread and never block the server thread on the future.
+
+```java
+api.getLeaderboard(StatType.WINS, 10).thenAccept(top ->
+        top.forEach(e -> getLogger().info(e.getName() + ": " + e.getStats().getWins())));
+```
+
+## Game control
+
+> [!IMPORTANT]
+> **New in 2.7-beta.**
+
+`api.getGameControl()` returns `GameControl`, the actions of `/bw game` without a player in the arena. `actor` is the name players see in the messages (e.g. `"Panel: Alex"`).
+
+| Method | Does | Refused (`NOT_READY`) when |
+|---|---|---|
+| `start(arena, actor)` | starts the countdown | the arena is not waiting |
+| `forceStart(arena, actor)` | starts the game now | the arena is not waiting or starting |
+| `stop(arena, actor)` | ends the game as a draw (stats saved) | no game runs |
+| `forceStop(arena, actor)` | stops and resets the arena at once | never |
+| `nextPhase(arena, actor)` | skips to the next game phase | no game runs |
+| `broadcast(arena, actor, message)` | sends `message` (`&` colours, 1 to 256 characters, `INVALID_NAME` otherwise) to all players and spectators of the arena | |
+
+All return `CompletableFuture<MaintenanceResult>` like [arena maintenance](#arena-maintenance) (`NOT_FOUND` for an unknown arena), can be called from any thread and run on the server thread.
+
+## Shop editor
+
+> [!IMPORTANT]
+> **New in 2.7-beta.**
+
+`api.getShop()` returns `ShopEditor`, the data behind the web panel's shop editor. Every method can be called from any thread and returns a `CompletableFuture`; the work runs on the server thread. Changes apply at once (players see them the next time they open a shop) and the previous file is kept in `data/backups/shop/`.
+
+| Method | Does |
+|---|---|
+| `getItems()` / `getItem(name)` | `ShopItem`s of `items.yml` (items that could not be loaded on this server are left out) |
+| `saveItem(item)` | creates the item when the name is new, changes it otherwise |
+| `deleteItem(name)` | refused with `IN_USE` while a GUI or `config.yml` uses it |
+| `getItemTexts(name)` / `saveItemTexts(name, texts)` | `ItemTexts` (name, shop icon description, lore) per language code |
+| `getGuis()` / `getGui(id)` | `ShopGui`s with slots, categories, unresolved references (`problems`) and `usedBy` |
+| `createGui(gui)` / `saveGui(gui)` / `deleteGui(id)` | `deleteGui` is refused while an arena or `config.yml` uses it |
+| `getArenaShops()` / `setArenaShops(arena, shopGui, upgradeGui)` | which GUIs each arena opens; only while the arena is waiting (`BUSY` otherwise) |
+| `getOptions()` | materials, enchantments, flags, logic keys, upgrades, price types, buy actions and languages of this server |
+
+Changes return a `ShopResult` (`OK`, `NOT_FOUND`, `INVALID` with the field in `detail`, `IN_USE` with the places in `detail`, `BUSY`, `NAME_TAKEN`, `FAILED`).
+
+```java
+ShopEditor shop = api.getShop();
+shop.getItem("Wool").thenAccept(item -> item.ifPresent(wool ->
+        shop.saveItem(new ShopItem(wool.name(), wool.material(), 32, wool.price(), wool.priceType(), wool.onBuy(),
+                wool.logic(), wool.permanent(), wool.permission(), wool.enchantments(), wool.flags(), List.of()))));
+```
 
 ## Rules and good practice
 

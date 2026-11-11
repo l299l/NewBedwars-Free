@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -110,6 +111,19 @@ public final class PlayerSqlRepo {
             ps.setInt(1, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) out.add(new AbstractMap.SimpleImmutableEntry<>(rs.getString("name"), stats(rs)));
+            }
+        }
+        return out;
+    }
+
+    public static List<String> findNames(Connection c, String prefix, int limit) throws SQLException {
+        String escaped = prefix.replace("!", "!!").replace("%", "!%").replace("_", "!_");
+        List<String> out = new ArrayList<>();
+        try (PreparedStatement ps = c.prepareStatement("SELECT name FROM " + STATS + " WHERE LOWER(name) LIKE ? ESCAPE '!' ORDER BY name ASC LIMIT ?")) {
+            ps.setString(1, escaped.toLowerCase(Locale.ROOT) + "%");
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add(rs.getString("name"));
             }
         }
         return out;

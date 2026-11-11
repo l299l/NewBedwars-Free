@@ -108,4 +108,18 @@ class PlayerSqlRepoTest {
         assertEquals(List.of("Net1"), pm.getTopByWins(1).stream().map(Map.Entry::getKey).toList());
         assertEquals("Local", pm.getTopByKills(10).get(0).getKey(), "boards the database did not send stay local");
     }
+
+    @Test
+    void findNamesEscapesWildcards() throws Exception {
+        Connection c = mock(Connection.class);
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ResultSet rs = mock(ResultSet.class);
+        when(c.prepareStatement(anyString())).thenReturn(ps);
+        when(ps.executeQuery()).thenReturn(rs);
+        when(rs.next()).thenReturn(true, false);
+        when(rs.getString("name")).thenReturn("Al_x");
+        assertEquals(List.of("Al_x"), PlayerSqlRepo.findNames(c, "A%_!", 5));
+        verify(ps).setString(1, "a!%!_!!%");
+        verify(ps).setInt(2, 5);
+    }
 }

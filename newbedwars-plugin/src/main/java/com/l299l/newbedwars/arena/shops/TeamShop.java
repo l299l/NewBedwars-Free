@@ -94,7 +94,9 @@ public class TeamShop {
 
     public void open(Player player) {
         IArena arena = ArenaRegistry.byWorld(player.getWorld());
-        ShopGUI gui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, arena.getPlayer(player.getUniqueId()).getPlayerShopGui(), null);
+        com.l299l.newbedwars.gui.GUISave save = arena.getPlayer(player.getUniqueId()).getPlayerShopGui();
+        if (save == null) return;
+        ShopGUI gui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, save, null);
         player.openInventory(gui.getInventory());
     }
 

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.events.lifecycle;
 
+import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.api.view.NetworkMode;
@@ -84,6 +85,7 @@ public class ChatEvent implements Listener {
             for (Player member : team.getPlayers()) {
                 member.sendMessage(formatted);
             }
+            ApiEvents.arenaChat(arena, sender, plain(stripped), true, team);
         } else if (Boolean.TRUE.equals(arena.getGamerules().AllowGlobalChat)) {
             String formatted = format(
                     plugin.getMessages().getMsg(sender, "ArenaChatFormat")
@@ -96,9 +98,14 @@ public class ChatEvent implements Listener {
             for (Player spec : arena.getSpectators()) {
                 spec.sendMessage(formatted);
             }
+            ApiEvents.arenaChat(arena, sender, plain(message), false, arena.getTeam(sender));
         } else {
             plugin.getMessages().send(sender, "ArenaChatDisabled");
         }
+    }
+
+    static String plain(String message) {
+        return ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', message));
     }
 
     static String format(String template, String message, boolean allowColor) {

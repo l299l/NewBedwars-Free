@@ -33,6 +33,10 @@ public final class CustomLogicRegistry {
         return LOGIC.remove(normalize(key)) != null;
     }
 
+    public static java.util.List<String> keys() {
+        return LOGIC.keySet().stream().sorted().toList();
+    }
+
     public static CustomLogic create(String key) {
         Supplier<CustomLogic> supplier = LOGIC.get(normalize(key));
         return supplier == null ? null : supplier.get();

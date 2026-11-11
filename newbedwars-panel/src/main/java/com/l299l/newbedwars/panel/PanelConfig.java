@@ -7,10 +7,10 @@ import java.util.function.Function;
 public record PanelConfig(String bind, int port, boolean https, String keystore, String keystorePassword,
                           List<String> hostnames, boolean trustProxyHeaders, int sessionIdleMinutes,
                           int sessionMaxHours, int loginMaxAttempts, int loginLockMinutes, int uploadMaxMegabytes,
-                          String language) {
+                          String language, List<String> ignoredCommands) {
 
     public static final PanelConfig DEFAULTS = new PanelConfig("0.0.0.0", 8150, true, "", "", List.of(), false,
-            30, 12, 5, 10, 512, "en");
+            30, 12, 5, 10, 512, "en", com.l299l.newbedwars.panel.gamelog.CommandFilter.DEFAULT_IGNORED);
 
     public static PanelConfig read(Function<String, Object> get) {
         return new PanelConfig(
@@ -26,7 +26,8 @@ public record PanelConfig(String bind, int port, boolean https, String keystore,
                 range(get.apply("Login.MaxAttempts"), 1, 100, DEFAULTS.loginMaxAttempts),
                 range(get.apply("Login.LockMinutes"), 1, 24 * 60, DEFAULTS.loginLockMinutes),
                 range(get.apply("Upload.MaxMegabytes"), 1, 8192, DEFAULTS.uploadMaxMegabytes),
-                string(get.apply("DefaultLanguage"), DEFAULTS.language).toLowerCase(Locale.ROOT));
+                string(get.apply("DefaultLanguage"), DEFAULTS.language).toLowerCase(Locale.ROOT),
+                get.apply("GameLog.IgnoredCommands") instanceof List<?> ? strings(get.apply("GameLog.IgnoredCommands")) : DEFAULTS.ignoredCommands);
     }
 
     private static String string(Object value, String fallback) {

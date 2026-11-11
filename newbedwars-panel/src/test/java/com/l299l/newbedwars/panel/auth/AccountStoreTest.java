@@ -85,7 +85,7 @@ class AccountStoreTest {
         assertTrue(store.removeRole("MODS"));
         assertNull(store.role("mods"));
         assertTrue(Role.ADMIN_ROLE.permissions().containsAll(Permission.ALL));
-        assertEquals(Set.of(Permission.DASHBOARD_VIEW), Role.STAFF_ROLE.permissions());
+        assertEquals(Set.of(Permission.DASHBOARD_VIEW, Permission.STATS_VIEW), Role.STAFF_ROLE.permissions());
     }
 
     @Test

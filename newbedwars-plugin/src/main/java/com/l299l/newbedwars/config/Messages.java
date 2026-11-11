@@ -6,7 +6,6 @@ import com.l299l.newbedwars.config.properties.LangMessages;
 import com.l299l.newbedwars.config.properties.Properties;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.*;
@@ -80,28 +79,57 @@ public class Messages {
 
     public void addCustomItemProperty(String name, String suffix) {
         langMessages.addCustomItemProperty(name, suffix);
-        for (java.io.File file : updater.getLangFiles().values()) {
-            if (file.exists()) {
-                addToFile(name, file, suffix);
+        String key = "CustomItemsNames." + name + suffix;
+        for (Language lang : Language.values()) {
+            org.bukkit.configuration.file.FileConfiguration conf = langConf(lang);
+            if (conf != null && !conf.contains(key)) {
+                conf.set(key, name);
+                saveLater(lang);
             }
         }
+    }
+
+    private final java.util.Set<Language> pendingSaves = java.util.EnumSet.noneOf(Language.class);
+
+    private void saveLater(Language lang) {
+        boolean first = pendingSaves.isEmpty();
+        pendingSaves.add(lang);
+        if (!first) return;
+        try {
+            Bukkit.getScheduler().runTask(NewBedwars.plugin, this::flushPendingSaves);
+        } catch (RuntimeException e) {
+            flushPendingSaves();
+        }
+    }
+
+    private void flushPendingSaves() {
+        for (Language lang : java.util.List.copyOf(pendingSaves)) saveLangFile(lang, false);
+        pendingSaves.clear();
+    }
+
+    public org.bukkit.configuration.file.FileConfiguration langConf(Language lang) {
+        return updater.getLangConfs().get(lang);
+    }
+
+    public void saveLangFile(Language lang, boolean backup) {
+        org.bukkit.configuration.file.FileConfiguration conf = langConf(lang);
+        java.io.File file = updater.getLangFiles().get(lang);
+        if (conf == null || file == null || !file.exists()) return;
+        String content = conf.saveToString();
+        java.nio.file.Path backups = backup ? NewBedwars.plugin.getDataFolder().toPath()
+                .resolve("data/backups/shop/language/" + lang.getCode()) : null;
+        int keep = backup ? Math.max(1, com.l299l.newbedwars.config.properties.Properties.BackupsKeep) : 0;
+        com.l299l.newbedwars.config.data.IOExecutor.submit(() -> {
+            try {
+                com.l299l.newbedwars.config.data.json.arenas.AtomicFileWriter.write(file.toPath(), content, backups, keep, ".yml");
+            } catch (IOException e) {
+                NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not save " + file.getPath(), e);
+            }
+        });
     }
 
     private Language playerLanguage(Player p) {
         PlayerProfile profile = NewBedwars.plugin.getPlayerManager().getPlayer(p.getName());
         return profile == null || profile.language() == null ? Language.English : profile.language();
-    }
-
-    private void addToFile(String name, java.io.File file, String suffix) {
-        try {
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-            String key = "CustomItemsNames." + name + suffix;
-            if (!config.contains(key)) {
-                config.set(key, name);
-                config.save(file);
-            }
-        } catch (IOException e) {
-            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not add " + name + suffix + " to " + file.getPath(), e);
-        }
     }
 }

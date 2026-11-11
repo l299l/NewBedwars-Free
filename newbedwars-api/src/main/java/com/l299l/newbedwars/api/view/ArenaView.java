@@ -42,6 +42,18 @@ public interface ArenaView {
     /** Seconds since the game started. */
     int getGameTime();
 
+    /** Name of the phase that comes after the current one, or {@code null} when there is none. Available from 2.7-beta. */
+    String getNextPhase();
+
+    /** Seconds until the current phase ends while a game runs, or -1 when no phase timer runs. Available from 2.7-beta. */
+    int getPhaseTimeLeft();
+
+    /** Id of the shop GUI the arena's item shop opens. Available from 2.7-beta. */
+    String getShopGui();
+
+    /** Id of the GUI the arena's team upgrade shop opens. Available from 2.7-beta. */
+    String getUpgradeGui();
+
     /** Map generators (diamond, emerald) in the order used by {@link ArenaEditor#removeGenerator}. */
     List<GeneratorView> getGenerators();
 

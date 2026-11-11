@@ -10,7 +10,7 @@ public record Role(String name, Set<String> permissions, boolean builtIn) {
     public static final String ADMIN = "admin";
     public static final String STAFF = "staff";
     public static final Role ADMIN_ROLE = new Role(ADMIN, Set.copyOf(Permission.ALL), true);
-    public static final Role STAFF_ROLE = new Role(STAFF, Set.of(Permission.DASHBOARD_VIEW), true);
+    public static final Role STAFF_ROLE = new Role(STAFF, Set.of(Permission.DASHBOARD_VIEW, Permission.STATS_VIEW), true);
     public static final List<Role> BUILT_IN = List.of(ADMIN_ROLE, STAFF_ROLE);
     private static final Pattern NAME = Pattern.compile("[a-z0-9_-]{2,32}");
 

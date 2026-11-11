@@ -15,6 +15,7 @@ import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogicR
 import com.l299l.newbedwars.commands.bedwars.MainCommand;
 import com.l299l.newbedwars.commands.bedwars.SubCommand;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
@@ -77,6 +78,19 @@ class ApiRegistrationsTest {
         Player player = mock(Player.class);
         captor.getValue().perform(player, new String[]{"cw"}, null);
         verify(command).perform(eq(player), any(), eq(null));
+    }
+
+    @Test
+    void commandCanBeRegisteredInSeveralContexts() {
+        AddonCommand command = mock(AddonCommand.class);
+        when(command.getName()).thenReturn("trim");
+        api.registerCommand(addon, command, CommandContext.LOBBY, CommandContext.GAME, CommandContext.CONSOLE);
+        ArgumentCaptor<SubCommand> captor = ArgumentCaptor.forClass(SubCommand.class);
+        verify(main).register(captor.capture(), eq(MainCommand.Context.LOBBY), eq(MainCommand.Context.GAME), eq(MainCommand.Context.CONSOLE));
+        CommandSender console = mock(CommandSender.class);
+        captor.getValue().performConsole(console, new String[]{"trim"});
+        verify(command).performConsole(eq(console), any());
+        assertThrows(IllegalArgumentException.class, () -> api.registerCommand(addon, command, CommandContext.LOBBY, (CommandContext) null));
     }
 
     @Test

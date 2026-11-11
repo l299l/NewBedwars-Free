@@ -6,6 +6,7 @@ load: STARTUP
 authors: [l299l]
 softdepend: [PlaceholderAPI, WorldEdit, FastAsyncWorldEdit, Citizens]
 description: Advanced and modern bedwars plugin!
+website: https://github.com/l299l/NewBedwars-Free
 commands:
   bw:
     description: Main bedwars command!

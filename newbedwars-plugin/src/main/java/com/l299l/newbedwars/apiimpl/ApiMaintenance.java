@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 public final class ApiMaintenance implements ArenaMaintenance {
 
-    private interface Action<T> {
+    interface Action<T> {
         CompletableFuture<T> start() throws Exception;
     }
 
@@ -98,7 +98,7 @@ public final class ApiMaintenance implements ArenaMaintenance {
         return onMain(() -> action.get().thenApply(ApiMaintenance::toResult));
     }
 
-    private static <T> CompletableFuture<T> onMain(Action<T> action) {
+    static <T> CompletableFuture<T> onMain(Action<T> action) {
         CompletableFuture<T> result = new CompletableFuture<>();
         Runnable task = () -> {
             try {

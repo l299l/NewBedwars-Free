@@ -73,6 +73,7 @@ Available outside arenas to players with the permission shown.
 | `/bw reload` | `newbedwars.bw.admin` | Save arenas, send everyone to the lobby and reload the configuration |
 | `/bw update [check\|download]` **(2.7-beta)** | `newbedwars.bw.update` | Look for a new NewBedwars version on Modrinth/GitHub; `download` saves it (checksum verified) to `plugins/update/`, installed on the next restart |
 | `/bw game <start\|forcestart\|stop\|forcestop\|nextPhase>` | `newbedwars.bw.managegame` | Manage the running game you are in or spectating (start, stop, skip a phase) |
+| `/bw game broadcast <message>` | `newbedwars.bw.managegame` | Send a highlighted message (`&` colours allowed) to everyone in your arena. **Available from 2.7-beta** |
 
 `/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
 
@@ -80,6 +81,19 @@ Available outside arenas to players with the permission shown.
 > `/bw update` is **available from 2.7-beta** (when it is released). `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see the README).
 
 Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, and `SELECTOR [group]` opens the arena selector. On a network lobby server all three send players to the game servers. A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
+
+## Web panel commands
+
+> [!NOTE]
+> **Available from 2.7-beta** (when it is released), only with the `NewBedwars-Panel` addon installed. See [PANEL.md](PANEL.md).
+
+| Command | Permission | Description |
+|---|---|---|
+| `/nbwpanel status` | `newbedwars.panel.manage` | Panel address, certificate fingerprint, accounts and logged-in sessions |
+| `/nbwpanel user create <name> <role>` | `newbedwars.panel.manage` | Create a panel account; prints a one-time password |
+| `/nbwpanel user reset <name>` | `newbedwars.panel.manage` | New one-time password; the account is logged out |
+| `/nbwpanel user delete <name>` | `newbedwars.panel.manage` | Delete a panel account (not the last admin) |
+| `/nbwpanel user list` | `newbedwars.panel.manage` | List panel accounts and roles |
 
 ## Setup commands
 
@@ -148,6 +162,7 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.update.notify` | op | One chat line on join when a new NewBedwars version is available |
 | `newbedwars.network.bypass` | op | Network GAME mode: stay on a game server without a join request (staff, setup) |
 | `newbedwars.proxy.admin` | - | Velocity: `/nbwproxy` (list the game servers and arenas the proxy knows, and whether a newer proxy version exists) |
+| `newbedwars.panel.manage` | op | `/nbwpanel` (web panel addon: status and panel accounts) |
 | `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`) |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions (for example entering setup worlds) |
 | `newbedwars.chat.color` | op | Use `&` colour codes in arena and team chat messages (others have them stripped) |

@@ -35,3 +35,10 @@ Upload:
 
 # Panel language when the browser asks for none of the available ones: en or pl.
 DefaultLanguage: en
+
+GameLog:
+  # Commands typed inside an arena world are shown in the game log (admin commands such as /bw game or /gamemode).
+  # Commands listed here are not: player commands. A two-word entry like "bw lobby" leaves out only that subcommand.
+  # Login and password commands are never logged.
+  IgnoredCommands: [lobby, hub, leave, lang, party, p, msg, tell, w, whisper, m, r, reply, me, list, help, "?", rejoin,
+    "bw join", "bw rejoin", "bw lobby", "bw lang", "bw spectate", "bw stats", "bw profile", "bw leaderboard", "bw help"]

@@ -3,11 +3,13 @@ package com.l299l.newbedwars.commands.bedwars.admin;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.game.GameControlService;
+import com.l299l.newbedwars.arena.game.GameControlService.Action;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.List;
 
 public class ManageGameCommand extends BwCommand {
@@ -19,17 +21,17 @@ public class ManageGameCommand extends BwCommand {
 
     @Override
     public String getDescription() {
-        return "Command to manage game. You can start, stop, reset and manage of game here.";
+        return "Manage the current game: start, stop, next phase, broadcast a message.";
     }
 
     @Override
     public String getSyntax() {
-        return "/bw game <start|forcestart|stop|forcestop|nextPhase>";
+        return "/bw game <start|forcestart|stop|forcestop|nextPhase|broadcast <message>>";
     }
 
     @Override
     public String getExample() {
-        return "/bw game stop";
+        return "/bw game broadcast &eRestart in 5 minutes";
     }
 
     @Override
@@ -46,46 +48,24 @@ public class ManageGameCommand extends BwCommand {
             msg.send(player, "NotInArena");
             return;
         }
+        GameControlService.Outcome outcome;
         switch (args[1]) {
-            case "forcestart" -> {
-                if (arena.status() == GameStatus.starting || arena.status() == GameStatus.waiting) {
-                    arena.broadcast("AdminForcedStart", Map.of("/admin/", player.getName()));
-                    arena.start();
-                }else {
-                    msg.send(player, "GameNotWaiting");
-                }
+            case "forcestart" -> outcome = GameControlService.run(arena, Action.FORCE_START, player.getName());
+            case "start" -> outcome = GameControlService.run(arena, Action.START, player.getName());
+            case "stop" -> outcome = GameControlService.run(arena, Action.STOP, player.getName());
+            case "forcestop" -> outcome = GameControlService.run(arena, Action.FORCE_STOP, player.getName());
+            case "nextPhase" -> outcome = GameControlService.run(arena, Action.NEXT_PHASE, player.getName());
+            case "broadcast" -> outcome = GameControlService.broadcast(arena, player.getName(),
+                    String.join(" ", Arrays.copyOfRange(args, 2, args.length)));
+            default -> {
+                usage(player);
+                return;
             }
-            case "start" -> {
-                if (arena.status() == GameStatus.waiting) {
-                    arena.broadcast("AdminForcedStart", Map.of("/admin/", player.getName()));
-                    arena.setArenaStarting();
-                }else {
-                    msg.send(player, "GameNotWaiting");
-                }
-            }
-            case "stop" -> {
-                if (arena.status() != GameStatus.playing) {
-                    msg.send(player, "GameNotInProgress");
-                    return;
-                }
-                arena.endGame("DRAW");
-            }
-            case "forcestop" -> {
-                arena.broadcast("AdminStoppedGame", Map.of("/admin/", player.getName()));
-                arena.stop();
-            }
-            case "nextPhase" -> {
-                if (arena.status() != GameStatus.playing) {
-                    msg.send(player, "GameNotInProgress");
-                    return;
-                }
-                String next = arena.getNextGamePhase();
-                arena.advancePhase();
-                msg.send(player, next.isEmpty() ? "PhaseAdvanced" : "PhaseAdvancedTo", Map.of("/phase/", next));
-            }
-            default -> usage(player);
         }
-
+        String key = outcome.key();
+        if (!outcome.success() || key.equals("PhaseAdvanced") || key.equals("PhaseAdvancedTo")) {
+            msg.send(player, key, outcome.replacements());
+        }
     }
 
     @Override
@@ -109,7 +89,7 @@ public class ManageGameCommand extends BwCommand {
         if (arena.status() == GameStatus.ending) {
             completion.add("forcestop");
         }
+        completion.add("broadcast");
         return completion;
-
     }
 }

@@ -75,6 +75,7 @@ AdminHaveBypass: "&b[NewBedwars] &8&l> &r&cAdmin /admin/ ma uprawnienia bypass! 
 CorrectUsage: "&6&lPoprawne użycie: &r&f"
 ErrorOnCreate: "&4&lBłąd: &r&cBłąd podczas tworzenia nowej areny!"
 OnlyPlayer: "&b[NewBedwars] &8&l> &fTylko &4gracz &fmoże używać tej komendy!"
+ConsoleCommands: "&b[NewBedwars] &8&l> &fKomendy dla konsoli: &e/commands/"
 NotInArena: "&b[NewBedwars] &8&l> &cNie jesteś na Arenie!"
 ArenaNotExists: "&4&lBłąd: &r&cTa arena nie istnieje!"
 AlreadyCreated: "&4&lBłąd: &r&cArena o tej nazwie już istnieje!"
@@ -197,6 +198,8 @@ NoPermission: "&b[NewBedwars] &8&l> &cNie masz uprawnień do wykonania tej komen
 #Użyj /admin/ aby uzyskać nazwę administratora
 AdminForcedStart: "&b[NewBedwars] &8&l> &r&a/admin/ &fwymusił start gry!"
 AdminStoppedGame: "&b[NewBedwars] &8&l> &r&a/admin/ &fzatrzymał grę!"
+AdminBroadcast: "&b[NewBedwars] &8&l> &c[/admin/] &r/message/"
+AdminBroadcastInvalid: "&b[NewBedwars] &8&l> &cNapisz wiadomość o długości od 1 do /max/ znaków: /bw game broadcast <wiadomość>"
 
 #Wyświetlacze areny
 DiamondGenerator: "&fGenerator Diamentów ; Poziom &e /tier/ ; &fNastępne pojawienie za: &e /delay/s"
