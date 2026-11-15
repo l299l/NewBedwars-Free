@@ -183,6 +183,19 @@ Backups:
   # How many automatic arena file / map backups are kept per arena.
   Keep: 5
 
+# ----- Automatic arena setup ----------------------
+# /bw startAutomaticSetup scans the built map around you for beds, generator blocks and marker signs.
+AutomaticSetup:
+  # Scan radius in blocks when none is given, and the largest radius that is allowed.
+  DefaultRadius: 150
+  MaxRadius: 400
+  # How many blocks around a bed an iron or gold block counts as that team's generator.
+  GeneratorSearchRadius: 20
+  # Team base area: blocks added around the points of a team on the sides, below and above.
+  BasePadding: 8
+  BaseBelow: 5
+  BaseAbove: 15
+
 # ----- Join NPCs ----------------------------------
 # Lobby NPCs that join a game when clicked. Make one with Citizens (/npc create, /npc select)
 # and attach it with /bw npc set <GROUP|ARENA|SELECTOR> [target],
@@ -246,19 +259,7 @@ Network:
 IronGolemLifetime: 120
 
 # ----- Upgrade Prices -----------------------------
-# Cost to unlock each level (index 0 = level 1→2, index 1 = level 2→3, etc.)
-# PriceType: IRON | GOLD | DIAMOND | EMERALD
-UpgradePrices:
-  PriceType: DIAMOND
-  PROTECTION:        [2, 4, 8, 12, 16]
-  SHARPNESS:         [2, 4, 8, 16]
-  HASTE:             [2, 4]
-  FORGE:             [2, 3, 5, 7, 9, 11, 14, 18]
-  HEALPOOL:          [4]
-  ALARMTRAP:         [1, 2]
-  BLINDTRAP:         [2, 3]
-  MININGFATIGUETRAP: [2, 3]
-  DRAGONBUFF:        [2, 4]
+# Upgrade and trap prices are in plugins/NewBedwars/data/upgrades.yml
 
 # ----- Game Phases --------------------------------
 # Each phase runs for Duration seconds, then executes its Actions.

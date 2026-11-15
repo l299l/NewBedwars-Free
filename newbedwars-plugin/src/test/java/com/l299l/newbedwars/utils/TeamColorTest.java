@@ -147,4 +147,33 @@ class TeamColorTest {
             }
         }
     }
+
+    @Test
+    void bedMaterialsMapBackToTeamColors() {
+        assertEquals(ChatColor.RED, TeamColor.fromMaterial(Material.RED_BED));
+        assertEquals(ChatColor.DARK_BLUE, TeamColor.fromMaterial(Material.BLUE_BED));
+        assertEquals(ChatColor.GREEN, TeamColor.fromMaterial(Material.LIME_BED));
+        assertEquals(ChatColor.AQUA, TeamColor.fromMaterial(Material.LIGHT_BLUE_BED));
+        assertEquals(ChatColor.LIGHT_PURPLE, TeamColor.fromMaterial(Material.PINK_BED));
+        assertEquals(ChatColor.GRAY, TeamColor.fromMaterial(Material.LIGHT_GRAY_BED));
+        assertNull(TeamColor.fromMaterial(Material.MAGENTA_BED));
+        assertNull(TeamColor.fromMaterial(Material.BROWN_BED));
+        assertNull(TeamColor.fromMaterial(Material.STONE));
+        assertNull(TeamColor.fromMaterial(null));
+    }
+
+    @Test
+    void everyMappedDyeRoundTrips() {
+        for (DyeColor dye : DyeColor.values()) {
+            ChatColor color = TeamColor.fromDye(dye);
+            if (color != null) assertEquals(dye, TeamColor.dye(color), dye.name());
+        }
+    }
+
+    @Test
+    void displayNamesAreSingleWords() {
+        assertEquals("Red", TeamColor.displayName(ChatColor.RED));
+        assertEquals("LightBlue", TeamColor.displayName(ChatColor.AQUA));
+        assertEquals("LightGray", TeamColor.displayName(ChatColor.GRAY));
+    }
 }

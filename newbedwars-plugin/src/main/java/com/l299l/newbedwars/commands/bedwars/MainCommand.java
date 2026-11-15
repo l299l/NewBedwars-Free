@@ -5,6 +5,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.Setup;
+import com.l299l.newbedwars.arena.setup.auto.AutoSetupSession;
 import com.l299l.newbedwars.commands.bedwars.admin.ArenaCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.ManageGameCommand;
 import com.l299l.newbedwars.commands.bedwars.admin.NpcCommand;
@@ -149,11 +150,21 @@ public class MainCommand implements TabExecutor {
                     return true;
                 }
                 subCmd(setupCommandsFor(setupMode), args, p, true);
+                if (setupMode == Setup.AUTOMATIC_SETUP && !args[0].equalsIgnoreCase("startAutomaticSetup")) {
+                    notifyAutoSetup(p);
+                }
             }
         } else {
             helpCommand.perform(p, args, null);
         }
         return true;
+    }
+
+    private void notifyAutoSetup(Player p) {
+        IArena arena = ArenaRegistry.byWorld(p.getWorld());
+        if (arena == null) return;
+        AutoSetupSession session = AutoSetupSession.of(p, arena);
+        if (session != null) session.afterCommand(p);
     }
 
     private void onConsoleCommand(CommandSender sender, String[] args) {
@@ -292,7 +303,6 @@ public class MainCommand implements TabExecutor {
         register(new SetResourcePackCommand(), Context.SETUP_ADVANCED);
         register(new SetArenaGUICommand(), Context.SETUP_ADVANCED);
         register(new SetGeneratorLevelingCommand(), Context.SETUP_ADVANCED);
-        register(new SetTeamsAccessoriesCommand(), Context.SETUP_ADVANCED);
 
         register(new StartAutomaticSetupCommand(), Context.SETUP_AUTOMATIC);
         register(new SetupHelpCommand(this::setupCommandsFor, this::getArena), Context.SETUP_BASIC);
@@ -365,7 +375,7 @@ public class MainCommand implements TabExecutor {
         switch (mode) {
             case NORMAL_SETUP -> result.addAll(setupSubNormalCommands);
             case ADVANCED_SETUP -> { result.addAll(setupSubNormalCommands); result.addAll(setupSubAdvancedCommands); }
-            case AUTOMATIC_SETUP -> result.addAll(setupSubAutomaticCommands);
+            case AUTOMATIC_SETUP -> { result.addAll(setupSubNormalCommands); result.addAll(setupSubAutomaticCommands); }
             default -> { }
         }
         return result;

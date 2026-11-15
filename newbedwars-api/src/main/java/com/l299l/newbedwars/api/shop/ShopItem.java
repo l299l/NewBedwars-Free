@@ -9,7 +9,7 @@ import java.util.Map;
  * @param name         letters, digits and {@code _}, 1 to 32 characters
  * @param material     a Bukkit {@code Material} name that is an item on this server
  * @param amount       1 to 64
- * @param price        0 to 100000 ({@code -1} for upgrade icons whose price comes from {@code config.yml})
+ * @param price        0 to 100000 ({@code -1} for upgrade icons, whose price comes from {@code data/upgrades.yml})
  * @param priceType    one of {@link ShopOptions#priceTypes()}
  * @param onBuy        what buying does, one of {@link ShopOptions#onBuyActions()}
  * @param logic        item logic key, one of {@link ShopOptions#logicKeys()}
@@ -27,5 +27,14 @@ public record ShopItem(String name, String material, int amount, int price, Stri
         flags = flags == null ? List.of() : List.copyOf(flags);
         usedBy = usedBy == null ? List.of() : List.copyOf(usedBy);
         permission = permission == null ? "" : permission;
+    }
+
+    /**
+     * A plain item sold for {@code price} of {@code priceType} ({@code IRON}, {@code GOLD}, {@code DIAMOND} or
+     * {@code EMERALD}) that gives {@code amount} of {@code material} and runs the item logic {@code logic}
+     * ({@code "NONE"} for no logic). Not permanent, no permission, enchantments or flags.
+     */
+    public static ShopItem of(String name, String material, int amount, int price, String priceType, String logic) {
+        return new ShopItem(name, material, amount, price, priceType, "GIVE_ITEM", logic, false, "", null, null, null);
     }
 }

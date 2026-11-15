@@ -100,4 +100,14 @@ public final class ApiShopEditor implements ShopEditor {
     public CompletableFuture<ShopOptions> getOptions() {
         return run(ShopEditService::options);
     }
+
+    @Override
+    public CompletableFuture<List<com.l299l.newbedwars.api.shop.UpgradePrice>> getUpgradePrices() {
+        return run(ShopEditService::upgradePrices);
+    }
+
+    @Override
+    public CompletableFuture<ShopResult> saveUpgradePrices(String upgrade, List<com.l299l.newbedwars.api.shop.UpgradeTier> tiers) {
+        return change(() -> ShopEditService.saveUpgradePrices(upgrade, tiers));
+    }
 }

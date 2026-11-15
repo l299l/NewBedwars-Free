@@ -7,7 +7,8 @@ import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.arena.team.Team;
-import com.l299l.newbedwars.config.properties.Properties;
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradePurchase;
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradeTier;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -42,13 +43,14 @@ public record GUIUpgrade(String id, CustomItem icon) implements GUIEntry {
         TeamUpgrades tu = team.getTeamUpgrades();
         if (tu == null) return item;
         int currentLevel = tu.getUpgradeLevel(upgrade);
+        int maxLevel = UpgradePurchase.maxLevel(arena, upgrade);
+        UpgradeTier next = UpgradePurchase.nextTier(arena, upgrade, currentLevel);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
         List<String> lore = meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-        lore.add(ChatColor.GRAY + text(player, "GuiUpgradeLevel") + ": " + ChatColor.WHITE + currentLevel + "/" + upgrade.maxLevel);
-        if (currentLevel < upgrade.maxLevel) {
-            int nextPrice = Properties.getUpgradePrice(upgrade, currentLevel);
-            lore.add(ChatColor.GRAY + text(player, "GuiUpgradePrice") + ": " + ChatColor.YELLOW + nextPrice + " " + Properties.UpgradePriceType.name());
+        lore.add(ChatColor.GRAY + text(player, "GuiUpgradeLevel") + ": " + ChatColor.WHITE + currentLevel + "/" + maxLevel);
+        if (next != null) {
+            lore.add(ChatColor.GRAY + text(player, "GuiUpgradePrice") + ": " + ChatColor.YELLOW + next.price() + " " + next.currency().name());
         } else {
             lore.add(ChatColor.GREEN + text(player, "GuiUpgradeMaxed"));
         }

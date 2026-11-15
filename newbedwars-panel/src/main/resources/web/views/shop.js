@@ -1,5 +1,5 @@
 import { api, busy, confirmDialog, errorText, go, h, t } from '../app.js';
-import { datalist, materialColor, mcText, select, shopOptions, shopTabs, showResult, swatch, usageText } from './shopcommon.js';
+import { datalist, materialColor, mcText, select, shopOptions, shopTabs, showResult, swatch, syncButton, tierEditor, usageText } from './shopcommon.js';
 
 export function render(root, params) {
   const [page, arg] = params;
@@ -11,6 +11,7 @@ export function render(root, params) {
     return () => { gone = true; if (stop) stop(); };
   }
   if (page === 'arenas') return arenasPage(root);
+  if (page === 'upgrades') return upgradesPage(root);
   return itemsPage(root);
 }
 
@@ -23,7 +24,7 @@ function itemsPage(root) {
   const filter = h('input', { type: 'search', id: 'item-filter', autocomplete: 'off', spellcheck: 'false', placeholder: t('shop.items.filter') });
   const add = h('a', { class: 'btn btn-primary', href: '#/shop/item' }, t('shop.items.new'));
   const list = h('div', { class: 'table-wrap' }, h('p', { class: 'muted' }, t('common.working')));
-  root.append(h('div', { class: 'inline-form shop-toolbar' }, h('label', { for: 'item-filter', class: 'sr-only' }, t('shop.items.filter')), filter, add), list);
+  root.append(h('div', { class: 'inline-form shop-toolbar' }, h('label', { for: 'item-filter', class: 'sr-only' }, t('shop.items.filter')), filter, add, syncButton('items')), list);
   let items = [];
 
   function draw() {
@@ -41,7 +42,7 @@ function itemsPage(root) {
       h('tbody', {}, shown.map(i => h('tr', {},
         h('td', {}, h('a', { href: '#/shop/item/' + encodeURIComponent(i.name) }, i.name)),
         h('td', { class: 'mono' }, swatch(i.material), i.material),
-        h('td', { class: 'num nowrap' }, i.price < 0 ? t('shop.item.configPrice') : i.price + ' ' + i.priceType),
+        h('td', { class: 'num nowrap' }, i.onBuy === 'UPGRADE' ? h('a', { href: '#/shop/upgrades' }, t('shop.item.upgradePrice')) : i.price + ' ' + i.priceType),
         h('td', { class: 'num' }, String(i.amount)),
         h('td', { class: 'hide-narrow mono' }, i.logic),
         h('td', { class: 'hide-narrow' }, i.usedBy.length ? String(i.usedBy.length) : h('span', { class: 'muted' }, '-')))))));
@@ -81,7 +82,7 @@ async function itemPage(root, name) {
   const materialSwatch = swatch(item.material);
   material.addEventListener('input', () => materialSwatch.style.setProperty('--team', materialColor(material.value)));
   const amount = h('input', { id: 'item-amount', type: 'number', min: '1', max: '64', required: true, value: String(item.amount) });
-  const price = h('input', { id: 'item-price', type: 'number', min: '-1', max: '100000', required: true, value: String(item.price) });
+  const price = h('input', { id: 'item-price', type: 'number', min: '0', max: '100000', required: true, value: String(Math.max(0, item.price)) });
   const priceType = select('item-price-type', options.priceTypes, item.priceType);
   const onBuy = select('item-onbuy', options.onBuyActions, item.onBuy, Object.fromEntries(options.onBuyActions.map(a => [a, t('shop.onBuy.' + a)])));
   const logic = select('item-logic', options.logicKeys, item.logic);
@@ -134,6 +135,20 @@ async function itemPage(root, name) {
     return { lang, block, initial: tx, read: () => ({ name: n.value, iconDescription: icon.value, lore: lore.value }) };
   });
 
+  const priceBox = h('div', { class: 'stack' },
+    ...field('item-price', t('shop.item.price'), price),
+    ...field('item-price-type', t('shop.item.priceType'), priceType));
+  const upgradeNote = h('p', { class: 'hint' }, t('shop.item.upgradePriceHint'), ' ',
+    h('a', { href: '#/shop/upgrades' }, t('shop.item.upgradePriceLink')), '.');
+  const toggleUpgrade = () => {
+    const isUpgrade = onBuy.value === 'UPGRADE';
+    priceBox.hidden = isUpgrade;
+    upgradeNote.hidden = !isUpgrade;
+    price.required = !isUpgrade;
+  };
+  onBuy.addEventListener('change', toggleUpgrade);
+  toggleUpgrade();
+
   const error = h('p', { class: 'form-error', role: 'alert' });
   const save = h('button', { class: 'btn btn-primary', type: 'submit' }, creating ? t('shop.item.create') : t('common.save'));
   const del = creating ? null : h('button', { class: 'btn btn-danger', type: 'button', disabled: item.usedBy.length > 0 }, t('common.delete'));
@@ -148,8 +163,8 @@ async function itemPage(root, name) {
         ...field('item-name', t('shop.item.name'), nameInput, creating ? t('shop.item.nameHint') : null),
         h('label', { for: 'item-material' }, t('shop.item.material')), h('div', { class: 'inline-form' }, materialSwatch, material),
         ...field('item-amount', t('shop.item.amount'), amount),
-        ...field('item-price', t('shop.item.price'), price, t('shop.item.priceHint')),
-        ...field('item-price-type', t('shop.item.priceType'), priceType)),
+        priceBox,
+        upgradeNote),
       h('div', { class: 'stack' },
         ...field('item-onbuy', t('shop.item.onBuy'), onBuy),
         ...field('item-logic', t('shop.item.logic'), logic),
@@ -185,7 +200,7 @@ async function itemPage(root, name) {
       enchantments[k.value] = Number(lvl.value);
     }
     const payload = {
-      material: material.value.trim().toUpperCase(), amount: Number(amount.value), price: Number(price.value),
+      material: material.value.trim().toUpperCase(), amount: Number(amount.value), price: onBuy.value === 'UPGRADE' ? item.price : Number(price.value),
       priceType: priceType.value, onBuy: onBuy.value, logic: logic.value, permanent: permanent.checked,
       permission: permission.value.trim(), enchantments,
       flags: [...flags.querySelectorAll('input:checked')].map(c => c.value),
@@ -255,4 +270,40 @@ function arenasPage(root) {
   }
 
   load();
+}
+
+function upgradesPage(root) {
+  head(root, 'upgrades');
+  root.append(h('div', { class: 'inline-form shop-toolbar' }, h('p', { class: 'hint measure' }, t('shop.upgrades.hint')), syncButton('upgrades')));
+  const list = h('div', { class: 'upgrade-list' }, h('p', { class: 'muted' }, t('common.working')));
+  root.append(list);
+
+  api('GET', '/api/shop/upgrades').then(data => {
+    if (!data.upgrades.length) {
+      list.replaceChildren(h('p', { class: 'empty' }, t('shop.upgrades.none')));
+      return;
+    }
+    list.replaceChildren(...data.upgrades.map(u => card(u, data.currencies)));
+  }).catch(err => list.replaceChildren(h('p', { class: 'form-error' }, errorText(err))));
+
+  function card(u, currencies) {
+    const editor = tierEditor('upg-' + u.name, u.tiers, u.maxLevel, currencies);
+    const save = h('button', { class: 'btn btn-small btn-primary', type: 'submit' }, t('common.save'));
+    const form = h('form', { class: 'panel-section upgrade-card' },
+      h('div', { class: 'row-between' },
+        h('h2', {}, u.name, u.builtIn ? null : h('span', { class: 'tag' }, t('shop.upgrades.addon'))),
+        h('span', { class: 'hint' }, t('shop.upgrades.max', { max: u.maxLevel }))),
+      editor.el,
+      h('div', { class: 'row-end' }, save));
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      busy(save, async () => {
+        try {
+          showResult(await api('POST', '/api/shop/upgrades/' + encodeURIComponent(u.name), { tiers: editor.read() }), 'shop.upgrades.saved');
+        } catch (err) { showResult({ ok: false, code: 'FAILED', detail: errorText(err) }); }
+      });
+    });
+    return form;
+  }
+  return null;
 }

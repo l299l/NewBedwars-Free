@@ -54,6 +54,16 @@ public interface ArenaView {
     /** Id of the GUI the arena's team upgrade shop opens. Available from 2.7-beta. */
     String getUpgradeGui();
 
+    /** Y level below which players die instantly, or {@code null} while it is not configured. Available from 2.7-beta. */
+    default Integer getQuickVoidY() {
+        return null;
+    }
+
+    /** Online players who are setting this arena up (in setup mode). Available from 2.7-beta. */
+    default List<Player> getSetupPlayers() {
+        return List.of();
+    }
+
     /** Map generators (diamond, emerald) in the order used by {@link ArenaEditor#removeGenerator}. */
     List<GeneratorView> getGenerators();
 

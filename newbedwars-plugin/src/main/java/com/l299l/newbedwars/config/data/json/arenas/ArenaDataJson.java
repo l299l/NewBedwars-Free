@@ -126,7 +126,6 @@ public class ArenaDataJson {
                 }
                 Location teamSpawn = getLocation(gson.fromJson(teamObject.get("teamSpawn"), Object.class));
                 Location teamBed = getLocation(gson.fromJson(teamObject.get("teamBed"), Object.class));
-                Location teamAccessories = getLocation(gson.fromJson(teamObject.get("teamAccessories"), Object.class));
                 if (teamSpawn != null) {
                     arenaTeam.setTeamSpawn(teamSpawn);
                 }
@@ -148,9 +147,6 @@ public class ArenaDataJson {
                 if (teamObject.has("teamBasePos2")) {
                     Location p = getLocation(gson.fromJson(teamObject.get("teamBasePos2"), Object.class));
                     if (p != null) arenaTeam.setTeamBasePos2(p);
-                }
-                if (teamAccessories != null) {
-                    arenaTeam.setTeamAccessories(teamAccessories);
                 }
                 JsonObject teamShop = gson.fromJson(teamObject.get("teamShop"), JsonObject.class);
                 if (teamShop != null) {

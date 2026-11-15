@@ -13,6 +13,8 @@ public final class Response {
     final String contentType;
     final byte[] body;
     final Path file;
+    java.io.InputStream stream;
+    long streamLength = -1;
     final Map<String, String> headers = new LinkedHashMap<>();
 
     private Response(int status, String contentType, byte[] body, Path file) {
@@ -60,6 +62,13 @@ public final class Response {
     public static Response download(Path file, String downloadName) {
         Response r = new Response(200, "application/zip", null, file);
         r.headers.put("Content-Disposition", "attachment; filename=\"" + downloadName.replace("\"", "") + "\"");
+        return r;
+    }
+
+    public static Response stream(int status, String contentType, java.io.InputStream in, long length) {
+        Response r = new Response(status, contentType, null, null);
+        r.stream = in;
+        r.streamLength = length;
         return r;
     }
 

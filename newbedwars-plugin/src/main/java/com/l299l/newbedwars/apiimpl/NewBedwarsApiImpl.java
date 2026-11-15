@@ -27,6 +27,11 @@ import org.bukkit.plugin.Plugin;
 import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.NewBedwarsAPI;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.api.shop.ItemTexts;
+import com.l299l.newbedwars.api.shop.ShopItem;
+import com.l299l.newbedwars.api.shop.ShopResult;
+import com.l299l.newbedwars.arena.shops.editor.ShopEditService;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -42,6 +47,8 @@ import com.l299l.newbedwars.api.view.StatType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -232,6 +239,7 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
         }
         Upgrade registered = Upgrade.register(upgrade.getName(), upgrade.getMaxLevel(), new ApiUpgradeHandler(upgrade), upgrade.getPrices());
         registrations.add(owner, () -> Upgrade.unregister(registered));
+        if (NewBedwars.plugin.getDataManager() != null) NewBedwars.plugin.getDataManager().getUpgradePricing().addMissing(registered);
         var items = NewBedwars.plugin.getCustomItemManager();
         if (items.getCustomItem(upgrade.getName()) == null) {
             items.createCustomUpdateItem(upgrade.getName(), upgrade.getIcon());
@@ -242,6 +250,41 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
                 NewBedwars.plugin.getGuiManager().refresh();
             }
         }
+    }
+
+    @Override
+    public Optional<ArenaView> getSetupArena(Player player) {
+        for (IArena arena : ArenaRegistry.all()) {
+            if (arena.getPlayersOnSetup().contains(player.getUniqueId())) return Optional.of(new ApiArena(arena));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Player, ArenaView> getSetupPlayers() {
+        Map<Player, ArenaView> result = new LinkedHashMap<>();
+        for (IArena arena : ArenaRegistry.all()) {
+            ApiArena view = new ApiArena(arena);
+            for (Player player : view.getSetupPlayers()) result.put(player, view);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean registerShopItem(Plugin owner, ShopItem item, Map<String, ItemTexts> texts) {
+        if (!Bukkit.isPrimaryThread()) throw new IllegalStateException("registerShopItem must be called on the server thread");
+        if (item == null) throw new IllegalArgumentException("item is null");
+        if (ShopEditService.itemExists(item.name())) return false;
+        ShopResult result = ShopEditService.saveItem(item);
+        if (!result.isSuccess()) throw new IllegalArgumentException(item.name() + ": " + result.code() + " " + result.detail());
+        if (texts != null && !texts.isEmpty()) {
+            ShopResult saved = ShopEditService.saveTexts(item.name(), texts);
+            if (!saved.isSuccess()) {
+                ShopEditService.deleteItem(item.name());
+                throw new IllegalArgumentException(item.name() + ": " + saved.code() + " " + saved.detail());
+            }
+        }
+        return true;
     }
 
     @Override

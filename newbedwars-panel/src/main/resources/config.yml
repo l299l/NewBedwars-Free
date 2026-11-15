@@ -36,6 +36,26 @@ Upload:
 # Panel language when the browser asks for none of the available ones: en or pl.
 DefaultLanguage: en
 
+Network:
+  # STANDALONE = a single panel (default).
+  # GATEWAY    = the panel you log in to (usually on the lobby server). It lists and controls the servers in Peers.
+  # NODE       = a game server panel that only answers its gateway.
+  Role: STANDALONE
+  # Name of this server in the network (letters, digits, _ -). Empty = the NewBedwars server id.
+  # On a node it must be the same as its key under Peers on the gateway.
+  Id: ""
+  # Shared secret, at least 32 characters, the same on the gateway and every node. Create one with /nbwpanel network secret.
+  Secret: ""
+  # NODE only: true = people can also log in to this node directly with accounts of this panel.
+  NodeLogin: false
+  # GATEWAY only: the other panels. The key is the server id (the same name the proxy uses) and must match that node's id.
+  # Fingerprint: empty = trust the certificate of the first answer and remember it (peers.json),
+  # a SHA-256 fingerprint = only that certificate, "system" = a normal CA-signed certificate.
+  Peers: {}
+  #  game1:
+  #    Url: "https://10.0.0.5:8150"
+  #    Fingerprint: ""
+
 GameLog:
   # Commands typed inside an arena world are shown in the game log (admin commands such as /bw game or /gamemode).
   # Commands listed here are not: player commands. A two-word entry like "bw lobby" leaves out only that subcommand.

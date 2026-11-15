@@ -94,6 +94,9 @@ Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `AREN
 | `/nbwpanel user reset <name>` | `newbedwars.panel.manage` | New one-time password; the account is logged out |
 | `/nbwpanel user delete <name>` | `newbedwars.panel.manage` | Delete a panel account (not the last admin) |
 | `/nbwpanel user list` | `newbedwars.panel.manage` | List panel accounts and roles |
+| `/nbwpanel network status` | `newbedwars.panel.manage` | Network role of the panel and, on a gateway, the state of every server |
+| `/nbwpanel network secret` | `newbedwars.panel.manage` | Print a new random network secret (not saved) |
+| `/nbwpanel network forget <server>` | `newbedwars.panel.manage` | Gateway: forget the remembered certificate of a server |
 
 ## Setup commands
 
@@ -103,7 +106,7 @@ Used inside the arena world after `/bw arena setup <name>`. Choose the mode with
 
 | Command | Description |
 |---|---|
-| `/bw arena [gui]` | Show the setup status of the arena |
+| `/bw info [gui]` | Show the setup status of the arena |
 | `/bw setupMode` | Open the setup mode selection GUI |
 | `/bw setupHelp [page] [command]` | Show the setup commands of your mode, or the details of one |
 | `/bw save` | Save the arena (also updates the map copy used for resets) |
@@ -137,11 +140,34 @@ Used inside the arena world after `/bw arena setup <name>`. Choose the mode with
 | `/bw setGui <shop\|upgrade> <guiId>` | Shop or upgrade GUI used on this arena |
 | `/bw setGeneratorLeveling <configId>` | Generator leveling configuration |
 | `/bw setResourcePack <url\|clear> [sha1]` | Per-arena resource pack |
-| `/bw setTeamAccessories <team> [x y z]` | Team accessories location |
 
 ### Automatic setup
 
-`/bw startAutomaticSetup` starts the automatic setup (building mode).
+Pick **Automatic** in the setup menu (or `/bw arena create`), build the arena, stand in the middle of it and run:
+
+| Command | Description |
+|---|---|
+| `/bw startAutomaticSetup [radius]` | Scans the blocks around you (default `AutomaticSetup.DefaultRadius`, at most `AutomaticSetup.MaxRadius`) and sets up what it finds, then asks for the rest |
+| `/bw startAutomaticSetup next` | Shows the current step again (after you changed something by hand) |
+| `/bw startAutomaticSetup skip` | Skips the current step |
+| `/bw startAutomaticSetup cancel` | Stops the scan or the step-by-step help; what was already set stays |
+
+What the scan finds:
+
+- **Beds** (the head half): every bed color becomes a team (`Red`, `Blue`, `LightBlue`, ...) with its bed set.
+- **Generator blocks**: diamond and emerald blocks become arena generators (touching blocks make one). The nearest iron or gold block within `AutomaticSetup.GeneratorSearchRadius` blocks of a bed becomes that team's generator.
+- **Marker signs** place the rest. Line 1 is the type, line 2 the team color (left empty = the team of the nearest bed), line 3 an optional mob type for shops (default `VILLAGER`):
+
+| Line 1 | Sets |
+|---|---|
+| `[spawn]` | Team spawn (faces the middle of the map) |
+| `[shop]` | Item shop |
+| `[upgrades]` | Upgrades shop |
+| `[gen]` | Team generator (wins over a found iron or gold block). With `DIAMOND` or `EMERALD` on line 2 it adds an arena generator instead |
+
+Used signs are removed. The lowest block of the scanned area minus 10 becomes the quick void Y, and the base area and block protection area of every team are guessed from its points (padding in `AutomaticSetup`). Guessed areas follow the team's points until you set them yourself.
+
+Steps still missing are shown in chat with clickable **[Set here]** and **[Skip]** buttons that run the normal setup commands. Things that are already set are never overwritten by a new scan. When no step is left, the plugin says whether the arena can be enabled; save with `/bw save`.
 
 ## Permissions
 

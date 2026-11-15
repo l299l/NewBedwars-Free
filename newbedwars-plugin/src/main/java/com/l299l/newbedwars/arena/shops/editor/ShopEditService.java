@@ -1,5 +1,8 @@
 package com.l299l.newbedwars.arena.shops.editor;
 
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradePricing;
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradeTier;
+import com.l299l.newbedwars.api.shop.UpgradePrice;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.api.shop.ItemTexts;
 import com.l299l.newbedwars.api.shop.ShopCategory;
@@ -48,6 +51,7 @@ public final class ShopEditService {
     static final Pattern GUI_ID = Pattern.compile("[A-Za-z0-9_-]{1,32}");
     static final List<String> OFFERED_ON_BUY = List.of("GIVE_ITEM", "GIVE_ARMOR", "GIVE_TOOL", "UPGRADE", "CANCEL");
     private static final String TEXTS = "CustomItemsNames.";
+    private static final int MAX_UPGRADE_PRICE = 2304;
     private static final String DEFAULT_LORE_KEY = "shop-item-description";
 
     private ShopEditService() {}
@@ -114,6 +118,10 @@ public final class ShopEditService {
             for (String token : c.items()) if (GuiRefs.refersToItem(token, name, true)) return true;
         }
         return false;
+    }
+
+    public static boolean itemExists(String name) {
+        return name != null && (items().getCustomItem(name) != null || itemsData().isBroken(name));
     }
 
     public static ShopResult saveItem(ShopItem spec) {
@@ -287,8 +295,12 @@ public final class ShopEditService {
         for (GuiDefinition.Category c : d.categories()) {
             categories.add(new ShopCategory(c.id(), c.name(), c.icon(), c.description(), c.items()));
         }
+        Map<String, List<com.l299l.newbedwars.api.shop.UpgradeTier>> overrides = new LinkedHashMap<>();
+        for (Map.Entry<String, List<UpgradeTier>> e : pricing().overrides(d).entrySet()) {
+            overrides.put(e.getKey(), toApi(e.getValue()));
+        }
         return new ShopGui(d.id(), d.title(), d.size(), d.headerSize(), d.footerSize(), d.closeOnTransaction(),
-                d.fill(), d.empty(), d.slots(), categories, save.getProblems(), guiUsages(d.id()));
+                d.fill(), d.empty(), d.slots(), categories, save.getProblems(), guiUsages(d.id()), overrides);
     }
 
     public static List<String> guiUsages(String id) {
@@ -325,9 +337,29 @@ public final class ShopEditService {
         for (ShopCategory c : gui.categories()) {
             categories.add(new GuiDefinition.Category(c.id(), c.name(), c.icon(), c.description(), c.items()));
         }
+        Map<String, Object> extra = new LinkedHashMap<>(previous == null ? Map.of() : previous.extra());
+        if (gui.upgradePrices() != null) {
+            Map<String, Object> overrides = new LinkedHashMap<>();
+            for (Map.Entry<String, List<com.l299l.newbedwars.api.shop.UpgradeTier>> e : gui.upgradePrices().entrySet()) {
+                Upgrade upgrade = findUpgrade(e.getKey());
+                if (upgrade == null) return invalid("upgradePrices: unknown upgrade " + e.getKey());
+                List<UpgradeTier> tiers;
+                try {
+                    tiers = fromApi(e.getValue());
+                } catch (IllegalArgumentException ex) {
+                    return invalid("upgradePrices." + upgrade.name() + ": " + ex.getMessage());
+                }
+                if (tiers.size() > upgrade.maxLevel) {
+                    return invalid("upgradePrices." + upgrade.name() + ": at most " + upgrade.maxLevel + " levels");
+                }
+                overrides.put(upgrade.name(), UpgradePricing.serialize(tiers));
+            }
+            if (overrides.isEmpty()) extra.remove(UpgradePricing.GUI_KEY);
+            else extra.put(UpgradePricing.GUI_KEY, overrides);
+        }
         GuiDefinition def = new GuiDefinition(gui.id(), previous == null ? "ShopGUI" : previous.guiClass(), gui.title(),
                 gui.size(), gui.closeOnTransaction(), blankToEmpty(gui.fill()), blankToEmpty(gui.empty()),
-                gui.headerSize(), gui.footerSize(), gui.slots(), categories, previous == null ? Map.of() : previous.extra());
+                gui.headerSize(), gui.footerSize(), gui.slots(), categories, extra);
         guiData().save(def);
         NewBedwars.plugin.getGuiManager().refresh();
         return ok();
@@ -444,6 +476,58 @@ public final class ShopEditService {
         }
         if (changed) com.l299l.newbedwars.apiimpl.ApiPersistence.requestSave(arena);
         return ok();
+    }
+
+    public static List<UpgradePrice> upgradePrices() {
+        List<UpgradePrice> out = new ArrayList<>();
+        for (Upgrade upgrade : Upgrade.values()) {
+            if (upgrade.maxLevel <= 0) continue;
+            out.add(new UpgradePrice(upgrade.name(), toApi(pricing().tiers(upgrade)), upgrade.maxLevel, upgrade.isBuiltIn()));
+        }
+        return out;
+    }
+
+    public static ShopResult saveUpgradePrices(String name, List<com.l299l.newbedwars.api.shop.UpgradeTier> tiers) {
+        Upgrade upgrade = name == null ? null : findUpgrade(name);
+        if (upgrade == null || upgrade.maxLevel <= 0) return new ShopResult(Code.NOT_FOUND, null);
+        List<UpgradeTier> parsed;
+        try {
+            parsed = fromApi(tiers);
+        } catch (IllegalArgumentException e) {
+            return invalid(e.getMessage());
+        }
+        if (parsed.size() > upgrade.maxLevel) return invalid("at most " + upgrade.maxLevel + " levels");
+        pricing().set(upgrade.name(), parsed);
+        return ok();
+    }
+
+    private static UpgradePricing pricing() {
+        return NewBedwars.plugin.getDataManager().getUpgradePricing();
+    }
+
+    private static Upgrade findUpgrade(String name) {
+        try {
+            return Upgrade.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static List<com.l299l.newbedwars.api.shop.UpgradeTier> toApi(List<UpgradeTier> tiers) {
+        List<com.l299l.newbedwars.api.shop.UpgradeTier> out = new ArrayList<>();
+        for (UpgradeTier t : tiers) out.add(new com.l299l.newbedwars.api.shop.UpgradeTier(t.price(), t.currency().name()));
+        return out;
+    }
+
+    private static List<UpgradeTier> fromApi(List<com.l299l.newbedwars.api.shop.UpgradeTier> tiers) {
+        List<UpgradeTier> out = new ArrayList<>();
+        if (tiers == null) return out;
+        for (com.l299l.newbedwars.api.shop.UpgradeTier t : tiers) {
+            if (t == null) throw new IllegalArgumentException("empty level");
+            if (t.price() < 0 || t.price() > MAX_UPGRADE_PRICE) throw new IllegalArgumentException("price must be 0 to " + MAX_UPGRADE_PRICE);
+            out.add(new UpgradeTier(t.price(), UpgradeTier.parseCurrency(t.currency(), null)));
+        }
+        return out;
     }
 
     public static ShopOptions options() {

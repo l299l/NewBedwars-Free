@@ -150,14 +150,7 @@ public final class ArenaRoutes {
             return runImport(r, file.getFileName().toString(), null);
         }
         Path file = exportFile(r.query("name"));
-        String length = r.header("Content-Length");
-        if (length != null) {
-            try {
-                if (Long.parseLong(length.trim()) > maxUploadBytes) throw new HttpError(413, "too_large");
-            } catch (NumberFormatException e) {
-                throw new HttpError(400, "bad_length");
-            }
-        }
+        if (r.contentLength() > maxUploadBytes) throw new HttpError(413, "too_large");
         if (Files.exists(file)) throw new HttpError(409, "file_exists");
         Files.createDirectories(file.getParent());
         Path temp = Files.createTempFile(file.getParent(), ".upload-", ".tmp");

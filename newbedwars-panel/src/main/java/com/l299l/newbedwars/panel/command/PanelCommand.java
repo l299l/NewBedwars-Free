@@ -3,6 +3,7 @@ package com.l299l.newbedwars.panel.command;
 import com.l299l.newbedwars.panel.NewBedwarsPanel;
 import com.l299l.newbedwars.panel.PanelMessages;
 import com.l299l.newbedwars.panel.auth.Account;
+import com.l299l.newbedwars.panel.network.NetworkService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -17,7 +18,8 @@ import java.util.function.Supplier;
 
 public final class PanelCommand implements TabExecutor {
     public static final String PERMISSION = "newbedwars.panel.manage";
-    private static final List<String> ROOT = List.of("status", "user");
+    private static final List<String> ROOT = List.of("status", "user", "network");
+    private static final List<String> NETWORK = List.of("status", "secret", "forget");
     private static final List<String> USER = List.of("create", "reset", "delete", "list");
 
     private final NewBedwarsPanel plugin;
@@ -37,6 +39,8 @@ public final class PanelCommand implements TabExecutor {
             status(sender);
         } else if (sub.equals("user") && args.length >= 2) {
             user(sender, args);
+        } else if (sub.equals("network")) {
+            network(sender, args);
         } else {
             send(sender, "Usage");
         }
@@ -60,6 +64,38 @@ public final class PanelCommand implements TabExecutor {
         int count = users.list().size();
         send(sender, "StatusAccounts", count, status.sessions());
         if (count == 0) send(sender, "StatusNoAdmin");
+    }
+
+    private void network(CommandSender sender, String[] args) {
+        String sub = args.length < 2 ? "status" : args[1].toLowerCase(Locale.ROOT);
+        switch (sub) {
+            case "secret" -> {
+                byte[] bytes = new byte[36];
+                new java.security.SecureRandom().nextBytes(bytes);
+                send(sender, "NetworkSecret", java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
+                send(sender, "NetworkSecretNote");
+            }
+            case "forget" -> {
+                if (args.length != 3) {
+                    send(sender, "NetworkUsageForget");
+                    return;
+                }
+                if (plugin.peerPins() == null) {
+                    send(sender, "NetworkNotGateway");
+                    return;
+                }
+                send(sender, plugin.peerPins().remove(args[2]) ? "NetworkForgot" : "NetworkNotPinned", args[2]);
+            }
+            case "status" -> {
+                send(sender, "NetworkRole", plugin.networkRole().name(), plugin.networkId() == null ? "-" : plugin.networkId());
+                if (plugin.network() == null) return;
+                for (NetworkService.PeerStatus peer : plugin.network().statuses()) {
+                    String state = peer.status() == null ? text(sender, "NetworkNotContacted") : peer.status().name();
+                    sender.sendMessage(color(text(sender, "NetworkPeer", peer.id(), peer.url(), state, peer.pinSource())));
+                }
+            }
+            default -> send(sender, "NetworkUsage");
+        }
     }
 
     private void user(CommandSender sender, String[] args) {
@@ -147,6 +183,13 @@ public final class PanelCommand implements TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission(PERMISSION)) return List.of();
         if (args.length == 1) return matching(ROOT, args[0]);
+        if (args[0].equalsIgnoreCase("network")) {
+            if (args.length == 2) return matching(NETWORK, args[1]);
+            if (args.length == 3 && args[1].equalsIgnoreCase("forget") && plugin.network() != null) {
+                return matching(plugin.network().statuses().stream().map(NetworkService.PeerStatus::id).toList(), args[2]);
+            }
+            return List.of();
+        }
         if (!args[0].equalsIgnoreCase("user")) return List.of();
         if (args.length == 2) return matching(USER, args[1]);
         UserCommands users = plugin.userCommands();

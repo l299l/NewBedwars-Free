@@ -27,6 +27,7 @@ public class Updater extends PluginFiles {
     private final List<FileConfiguration> generatorsConfigurations = new ArrayList<>();
     private FileConfiguration defaultGeneratorsConf = null;
     private final ClassLoader classLoader;
+    private Map<String, Object> legacyUpgradePrices;
     private final File bossBarsFile = new File(NewBedwars.plugin.getDataFolder(), "bossBars.yml");
     private final File scoreboardFile = new File(NewBedwars.plugin.getDataFolder(), "scoreboards.yml");
     private final File generatorsFolder = new File(NewBedwars.plugin.getDataFolder(), "generators");
@@ -43,6 +44,9 @@ public class Updater extends PluginFiles {
     public void updateConf() {
         NewBedwars.plugin.saveDefaultConfig();
         File configFile = new File(NewBedwars.plugin.getDataFolder(), "config.yml");
+        org.bukkit.configuration.ConfigurationSection legacy = YamlConfiguration.loadConfiguration(configFile)
+                .getConfigurationSection("UpgradePrices");
+        if (legacy != null) legacyUpgradePrices = legacy.getValues(false);
         try {
             ConfigUpdater.update(NewBedwars.plugin, "config.yml", configFile, Collections.emptyList());
         } catch (IOException e) {
@@ -79,6 +83,12 @@ public class Updater extends PluginFiles {
         save(defaultGeneratorsConf, generatorsFile);
         update("defaultGenerators.yml", generatorsFile, Collections.emptyList());
         reloadGenerators();
+    }
+
+    public Map<String, Object> takeLegacyUpgradePrices() {
+        Map<String, Object> legacy = legacyUpgradePrices;
+        legacyUpgradePrices = null;
+        return legacy;
     }
 
     public Map<Language, FileConfiguration> getLangConfs() {

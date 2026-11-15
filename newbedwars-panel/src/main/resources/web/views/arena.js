@@ -1,4 +1,4 @@
-import { api, busy, can, confirmDialog, errorText, formatDuration, go, h, t, toast } from '../app.js';
+import { api, busy, can, confirmDialog, errorText, formatDuration, go, h, routed, t, toast } from '../app.js';
 import { refresh, watch } from '../live.js';
 import { bedStrip, stateBadge } from './dashboard.js';
 import { createLog } from './gamelog.js';
@@ -118,7 +118,7 @@ let backupBox = null;
 
 function showDownload(file) {
   if (!downloadBox) return;
-  downloadBox.replaceChildren(h('a', { class: 'btn btn-primary', href: '/api/exports/' + encodeURIComponent(file), download: file }, t('arena.download', { file })));
+  downloadBox.replaceChildren(h('a', { class: 'btn btn-primary', href: routed('/api/exports/' + encodeURIComponent(file)), download: file }, t('arena.download', { file })));
 }
 
 function copyForm(name) {
@@ -159,17 +159,21 @@ async function loadBackups(name) {
   }
 }
 
-export function render(root, [name]) {
+export function render(root, params) {
+  const name = params.length >= 2 ? params[1] : params[0];
+  const serverId = params.length >= 2 ? params[0] : null;
   const header = h('div', { class: 'arena-head' });
   const body = h('div');
   downloadBox = h('div', { class: 'download' });
   backupBox = h('div');
   let shownKey = null;
   const log = can('game.log') ? createLog(name) : null;
-  root.append(h('a', { href: '#/dashboard', class: 'back' }, t('arena.back')), header, body);
+  const stale = h('p', { class: 'notice notice-warn', hidden: true });
+  root.append(h('a', { href: '#/dashboard', class: 'back' }, t('arena.back')), header, stale, body);
+  const serverTag = serverId ? h('span', { class: 'badge badge-net-online' }, serverId) : null;
 
   const draw = arena => {
-    header.replaceChildren(h('h1', {}, arena.name), stateBadge(arena.state, arena.enabled), bedStrip(arena.teams));
+    header.replaceChildren(...[h('h1', {}, arena.name), serverTag, stateBadge(arena.state, arena.enabled), bedStrip(arena.teams)].filter(Boolean));
     const actionKey = arena.enabled + '|' + arena.state;
     const live = [facts(arena),
       arena.problems.length ? h('section', { class: 'notice notice-warn' }, h('h2', {}, t('arena.problems')), h('ul', {}, arena.problems.map(p => h('li', {}, p)))) : null,
@@ -178,18 +182,28 @@ export function render(root, [name]) {
       shownKey = actionKey;
       const buttons = actions(arena);
       const copy = copyForm(arena.name);
-      body.replaceChildren(h('div', { class: 'live' }, live),
+      body.replaceChildren(...[h('div', { class: 'live' }, live),
         gameSection(arena),
         log ? log.element : null,
         buttons.length || copy ? h('section', { class: 'panel-section' }, h('h2', {}, t('arena.actions')), h('div', { class: 'actions' }, buttons), downloadBox, copy) : null,
-        can('arena.restore') || can('arena.backup') ? h('section', { class: 'panel-section' }, h('h2', {}, t('arena.backups')), backupBox) : null);
+        can('arena.restore') || can('arena.backup') ? h('section', { class: 'panel-section' }, h('h2', {}, t('arena.backups')), backupBox) : null].filter(Boolean));
     } else {
       body.querySelector('.live').replaceChildren(...live.filter(Boolean));
     }
   };
 
-  const stop = watch(data => {
-    if (!data) return;
+  const stop = watch((data, failed, net, status) => {
+    const away = !!serverId && !!net && !!data && status !== 'ONLINE';
+    stale.hidden = !away;
+    if (away) stale.textContent = t('net.staleData', { server: serverId, status: t('net.status.' + status) });
+    if (!data) {
+      if (serverId && net) {
+        shownKey = null;
+        header.replaceChildren(...[h('h1', {}, name), serverTag].filter(Boolean));
+        body.replaceChildren(h('p', { class: 'notice notice-warn' }, status === 'UNKNOWN' ? t('net.unknownServer', { server: serverId }) : t('net.unavailable', { server: serverId, status: t('net.status.' + status) })));
+      }
+      return;
+    }
     const arena = data.arenas.find(a => a.name.toLowerCase() === String(name).toLowerCase());
     if (!arena) {
       shownKey = null;

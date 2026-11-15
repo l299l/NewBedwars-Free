@@ -2,7 +2,6 @@ package com.l299l.newbedwars.gui.configuration.setup.guis;
 
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.ArenaInfo;
-import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.gui.ItemBuilder;
 import com.l299l.newbedwars.arena.team.Team;
 import org.bukkit.Bukkit;
@@ -44,7 +43,7 @@ public class ArenaInfoTeamGUI implements InventoryHolder {
 
         int slot = 10;
 
-        for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team, arena.getSetupMode() == Setup.ADVANCED_SETUP)) {
+        for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team)) {
             if (slot >= 27) break;
             List<String> lore = !setting.set() ? List.of(ChatColor.RED + ArenaInfo.text(viewer, "Info-NotSet"))
                     : setting.area() ? List.of(ChatColor.GRAY + ArenaInfo.text(viewer, "Info-Pos1") + ": " + ArenaInfo.loc(viewer, setting.pos1()),

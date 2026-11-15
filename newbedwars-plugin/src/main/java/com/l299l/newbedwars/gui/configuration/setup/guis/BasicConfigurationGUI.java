@@ -10,7 +10,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class BasicConfigurationGUI extends BasicGUI {
@@ -40,10 +39,9 @@ public class BasicConfigurationGUI extends BasicGUI {
                 List<String> aLoreList = Arrays.asList(aLoreArr);
                 inv.setItem(i, getGuiManager().createItem(getMsg().getMsg(getPlayer(), "AdvancedSetup"), Material.NETHER_STAR, aLoreList, true));
             }else if(i == 15) {
-                inv.setItem(i, getGuiManager().createItem(
-                        "§8§m" + getMsg().getMsg(getPlayer(), "AutomaticSetup"),
-                        Material.BARRIER,
-                        Collections.singletonList("§c§lNot yet implemented"), false));
+                String autoLore = getMsg().getMsg(getPlayer(), "AutomaticSetupLore");
+                inv.setItem(i, getGuiManager().createItem(getMsg().getMsg(getPlayer(), "AutomaticSetup"), Material.REDSTONE_TORCH,
+                        Arrays.asList(autoLore.split(";")), true));
             }else {
                 inv.setItem(i, new ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1));
             }

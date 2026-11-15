@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.l299l.newbedwars.api.NewBedwarsAPI;
 import com.l299l.newbedwars.api.view.ArenaGroupView;
+import com.l299l.newbedwars.api.view.ArenaState;
 import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.view.NetworkArenaView;
 import com.l299l.newbedwars.api.view.NetworkMode;
@@ -145,14 +146,15 @@ public final class DashboardService {
         JsonArray problems = new JsonArray();
         arena.getLoadProblems().forEach(problems::add);
         a.add("problems", problems);
+        boolean inGame = arena.getState() == ArenaState.PLAYING || arena.getState() == ArenaState.ENDING;
         JsonArray teams = new JsonArray();
         for (TeamView team : arena.getTeams()) {
             JsonObject t = new JsonObject();
             t.addProperty("name", team.getName());
             t.addProperty("color", hex(team.getColor()));
             t.addProperty("players", team.getPlayers().size());
-            t.addProperty("alive", team.isAlive());
-            t.addProperty("bed", !team.isBedDestroyed());
+            t.addProperty("alive", !inGame || team.isAlive());
+            t.addProperty("bed", !inGame || !team.isBedDestroyed());
             teams.add(t);
         }
         a.add("teams", teams);

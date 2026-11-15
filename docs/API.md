@@ -9,6 +9,8 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 > - [Statistics and leaderboards](#statistics-and-leaderboards): `getLeaderboard`, `loadStats` (offline players too), `findPlayers`.
 > - [Game control](#game-control): `NewBedwarsAPI.getGameControl()` starts, stops, skips phases and broadcasts like `/bw game`; `ArenaView.getNextPhase()` / `getPhaseTimeLeft()`.
 > - [Shop editor](#shop-editor): `NewBedwarsAPI.getShop()` reads and changes shop items, their texts and shop GUIs; `ArenaView.getShopGui()` / `getUpgradeGui()`, `ArenaEditor.setShopGui()` / `setUpgradeGui()`.
+> - `ArenaView.getQuickVoidY()` / `getSetupPlayers()`, `TeamView.getBed()`, `NewBedwarsAPI.getSetupArena(Player)` / `getSetupPlayers()`: who is in setup mode and for which arena, the team's bed and the arena's quick void level.
+> - [Shop items from addons](#shop-items): `registerShopItem` adds an `items.yml` entry (material, price, item logic) when it does not exist yet.
 > - New [events](#events): `GamePhaseChangeEvent`, `ArenaChatEvent`, `BedsDestroyedEvent`, `TeamEliminatedEvent`, `GeneratorUpgradeEvent`.
 > - [Subcommands](#subcommands) in several contexts at once (`registerCommand(owner, command, LOBBY, GAME, CONSOLE)`), and the new `CONSOLE` context with `AddonCommand.performConsole` / `tabCompleteConsole`.
 >
@@ -53,15 +55,16 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | `getArenas()` | all arenas |
 | `getArena(String name)` / `getArena(World)` / `getArena(Player)` | `Optional<ArenaView>` (the player variant also finds spectators) |
 | `getGroups()` / `getGroup(String name)` **(2.6-beta)** | arena groups (maps voted between), `Optional<ArenaGroupView>` |
+| `getSetupArena(Player)` / `getSetupPlayers()` **(2.7-beta)** | the arena a player is setting up (in setup mode), `Optional<ArenaView>`; everyone in setup mode as `Map<Player, ArenaView>` |
 | `getNetworkMode()` **(2.6-beta)** | `NONE`, `GAME` or `LOBBY` (`Network.Mode`) |
 | `getNetworkArenas()` **(2.6-beta)** | on `LOBBY` and `GAME` servers: the arenas of all game servers (`NetworkArenaView`: server, name, group, state, players, `isJoinable()`, `getFreeSlots()`), empty otherwise |
 | `getServerId()` **(2.6-beta)** | this server's name in the proxy, empty when not in network mode |
 | `getNetworkRejoin(Player)` **(2.6-beta)** | on a `LOBBY` server: the network arena the player can still rejoin |
 | `getStats(String name)` **(2.6-beta)** | `PlayerStatsView` (wins, losses, kills, deaths, final kills, beds, games; zeros when unknown). With MySQL storage these are network-wide; only online/loaded players are known |
 
-**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine).
+**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine), **`getQuickVoidY` / `getSetupPlayers` (NEW in 2.7-beta)** (the quick void level, null while not set; online players who are setting the arena up).
 
-**`TeamView`**: `getName`, `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
+**`TeamView`**: `getName`, `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), **`getBed` (NEW in 2.7-beta, may be null)**, `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
 
 **`ArenaGroupView`** **(2.6-beta)**: `getName`, `getArenaNames` (as configured, may include missing arenas), `getArenas` (existing ones), `getDisplayItem`, `getProblems` (missing arenas, different team sizes).
 
@@ -136,6 +139,20 @@ api.registerShopLogic(this, "LIGHTNING", (player, arena) -> {
 });
 ```
 
+### Shop items
+
+`registerShopItem` writes an item into `items.yml` when no item with that name exists yet, so server owners do not have to add it by hand. An existing item is never changed (the owner may have edited it) and stays when your addon is disabled. Register the item logic first, call it on the server thread (e.g. in `onEnable`), and note that the item still has to be put into a shop GUI (the panel or a GUI file) to be sold. It returns `true` when the item was added and throws `IllegalArgumentException` for invalid values (same rules as `ShopEditor#saveItem`). **(2.7-beta)**
+
+```java
+api.registerShopLogic(this, "EMERALD_GOLEM", (player, arena) -> { /* spawn it */ return true; });
+api.registerShopItem(this,
+        ShopItem.of("EmeraldGolemEgg", "SNOWBALL", 1, 24, "IRON", "EMERALD_GOLEM"),
+        Map.of("en", new ItemTexts("&fEmerald Golem", "&7Spawns a emerald golem;&7for /price/", ""),
+               "pl", new ItemTexts("&fSmaragdowy golem", "", "")));
+```
+
+`ShopItem.of(name, material, amount, price, priceType, logic)` covers the common case; use the full `ShopItem` constructor for permanent items, enchantments, flags or another `onBuy` action. The texts are optional (without them the item is named after its `name`).
+
 ### Armor tiers
 
 A shop item with `onBuyEvent: GIVE_ARMOR` and a piece of the tier gives the buyer the whole tier; higher rank replaces lower. Built-in ranks: leather 0, gold 1, chainmail 2, iron 3, diamond 4, netherite 5.
@@ -147,7 +164,7 @@ api.registerArmorTier(this, new ArmorTierDefinition("COPPER", 1,
 
 ### Upgrades and traps
 
-Use in the upgrade GUI files as `upg:<name>`; prices can be overridden in `config.yml` under `UpgradePrices.<NAME>`. Read the level with `TeamView#getUpgradeLevel`.
+Use in the upgrade GUI files as `upg:<name>`; its prices are added to `data/upgrades.yml` on the first registration and are changed there (or in the panel) afterwards. Read the level with `TeamView#getUpgradeLevel`.
 
 ```java
 api.registerUpgrade(this, UpgradeDefinition.upgrade("SPEED", 2, Material.SUGAR, List.of(4, 8),

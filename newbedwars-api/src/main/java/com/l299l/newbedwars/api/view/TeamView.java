@@ -23,6 +23,11 @@ public interface TeamView {
     /** May be {@code null} while the spawn is not configured. */
     Location getSpawn();
 
+    /** Location of the team's bed (its head block), or {@code null} while it is not configured. Available from 2.7-beta. */
+    default Location getBed() {
+        return null;
+    }
+
     /** Bought level of an upgrade or trap (0 when not bought or unknown). */
     int getUpgradeLevel(String upgradeName);
 

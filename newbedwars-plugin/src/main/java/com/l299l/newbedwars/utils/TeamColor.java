@@ -93,6 +93,37 @@ public final class TeamColor {
         return kind == null ? material : block(color, kind);
     }
 
+    public static ChatColor fromDye(DyeColor dye) {
+        if (dye == null) return null;
+        try {
+            ChatColor color = parse(dye.name());
+            return dye(color) == dye ? color : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public static ChatColor fromMaterial(Material material) {
+        if (material == null || kindOf(material) == null) return null;
+        String name = material.name();
+        Kind kind = kindOf(material);
+        String dye = name.substring(0, name.length() - kind.suffix.length() - 1);
+        try {
+            return fromDye(DyeColor.valueOf(dye));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public static String displayName(ChatColor color) {
+        DyeColor dye = dye(color);
+        StringBuilder out = new StringBuilder();
+        for (String part : dye.name().split("_")) {
+            out.append(part.charAt(0)).append(part.substring(1).toLowerCase());
+        }
+        return out.toString();
+    }
+
     public static ChatColor parse(String name) {
         return switch (name.toUpperCase()) {
             case "PINK" -> ChatColor.LIGHT_PURPLE;

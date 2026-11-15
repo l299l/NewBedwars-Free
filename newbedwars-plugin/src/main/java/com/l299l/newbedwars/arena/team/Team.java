@@ -29,7 +29,6 @@ public class Team {
 
     private Location teamBasePos1;
     private Location teamBasePos2;
-    private Location teamAccessories;
     private TeamShop teamShop;
     private TeamUpgrades teamUpgrades;
     private boolean isAlive;
@@ -195,10 +194,6 @@ public class Team {
         return bx >= minX && bx <= maxX && by >= minY && by <= maxY && bz >= minZ && bz <= maxZ;
     }
 
-    public void setTeamAccessories(Location teamAccessories) {
-        this.teamAccessories = teamAccessories;
-    }
-
     public void setTeamShop(TeamShop teamShop) {
         this.teamShop = teamShop;
     }
@@ -217,10 +212,6 @@ public class Team {
 
     public Location getTeamSpawn() {
         return teamSpawn;
-    }
-
-    public Location getTeamAccessories() {
-        return teamAccessories;
     }
 
     public TeamShop getTeamShop() {
@@ -268,10 +259,6 @@ public class Team {
         return teamSpawn != null;
     }
 
-    public Boolean isAccessoriesSet() {
-        return teamAccessories != null;
-    }
-
     public Boolean isShopSet() {
         return teamShop != null;
     }
@@ -290,7 +277,6 @@ public class Team {
         if (teamBuildProtAreaPos2 != null) teamBuildProtAreaPos2.setWorld(world);
         if (teamBasePos1 != null) teamBasePos1.setWorld(world);
         if (teamBasePos2 != null) teamBasePos2.setWorld(world);
-        if (teamAccessories != null) teamAccessories.setWorld(world);
         if (teamBed != null) teamBed.getLocation().setWorld(world);
         if (teamShop != null) teamShop.getLocation().setWorld(world);
         if (teamUpgrades != null) teamUpgrades.getLocation().setWorld(world);
@@ -316,7 +302,6 @@ public class Team {
                 "\"teamBuildProtAreaPos2\": " + (teamBuildProtAreaPos2 == null ? "null" : JsonUtils.locationToJson(teamBuildProtAreaPos2)) + "," +
                 "\"teamBasePos1\": " + (teamBasePos1 == null ? "null" : JsonUtils.locationToJson(teamBasePos1)) + "," +
                 "\"teamBasePos2\": " + (teamBasePos2 == null ? "null" : JsonUtils.locationToJson(teamBasePos2)) + "," +
-                "\"teamAccessories\": " + (teamAccessories == null ? "null" : JsonUtils.locationToJson(teamAccessories)) + "," +
                 "\"teamShop\": " + (teamShop == null ? "null" : teamShop.toJson()) + "," +
                 "\"teamUpgrades\": " + (teamUpgrades == null ? "null" : teamUpgrades.toJson()) + "," +
                 "\"generator\": " + (generator == null ? "null" : JsonUtils.generatorToJson(generator)) +

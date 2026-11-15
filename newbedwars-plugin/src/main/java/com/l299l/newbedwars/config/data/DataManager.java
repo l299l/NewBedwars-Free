@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.config.data;
 
 import com.l299l.newbedwars.arena.ArenaRegistry;
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradePricing;
 import com.l299l.newbedwars.config.StorageType;
 import com.l299l.newbedwars.config.data.json.PlayerDataJson;
 import com.l299l.newbedwars.config.data.json.PlayerStatsDataJson;
@@ -24,11 +25,13 @@ public class DataManager {
     private final ArenaDataManager arenaDataManager;
     private final ItemsDataManager itemsDataManager;
     private final GUIDataManager guiDataManager;
+    private final UpgradePricing upgradePricing;
 
     public DataManager() {
         arenaDataManager = new ArenaDataManager();
         itemsDataManager = new ItemsDataManager();
         guiDataManager = new GUIDataManager();
+        upgradePricing = new UpgradePricing();
         playerStatsDataJson = new PlayerStatsDataJson();
         this.storageType = Properties.StorageType;
 
@@ -36,10 +39,11 @@ public class DataManager {
         playerDataSql = storageType == StorageType.MYSQL ? new PlayerDataSql(com.l299l.newbedwars.NewBedwars.plugin) : null;
     }
 
-    public void load() {
+    public void load(java.util.Map<String, Object> legacyUpgradePrices) {
         playerDataJson.load();
         playerStatsDataJson.load();
         if (playerDataSql != null) playerDataSql.load();
+        upgradePricing.load(legacyUpgradePrices);
         itemsDataManager.load();
         guiDataManager.load();
     }
@@ -105,6 +109,10 @@ public class DataManager {
 
     public ItemsDataManager getItemsDataManager() {
         return itemsDataManager;
+    }
+
+    public UpgradePricing getUpgradePricing() {
+        return upgradePricing;
     }
 
     public GUIDataManager getGuiDataManager() {

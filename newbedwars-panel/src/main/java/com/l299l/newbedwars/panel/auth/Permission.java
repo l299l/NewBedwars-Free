@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.panel.auth;
 
 import java.util.List;
+import java.util.Set;
 
 public final class Permission {
     public static final String DASHBOARD_VIEW = "dashboard.view";
@@ -20,10 +21,13 @@ public final class Permission {
     public static final String GAME_MANAGE = "game.manage";
     public static final String GAME_LOG = "game.log";
     public static final String SHOP_EDIT = "shop.edit";
+    public static final String NETWORK_SERVERS = "network.servers";
 
     public static final List<String> ALL = List.of(
             DASHBOARD_VIEW, STATS_VIEW, GAME_MANAGE, GAME_LOG, SHOP_EDIT, ARENA_ENABLE, ARENA_DISABLE, ARENA_BACKUP, ARENA_RESTORE, ARENA_RESETMAP,
-            ARENA_EXPORT, ARENA_IMPORT, ARENA_COPY, ARENA_DELETE, USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW);
+            ARENA_EXPORT, ARENA_IMPORT, ARENA_COPY, ARENA_DELETE, USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW, NETWORK_SERVERS);
+
+    public static final Set<String> LOCAL_ONLY = Set.of(USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW, NETWORK_SERVERS);
 
     private Permission() {}
 

@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.api.shop;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A shop or upgrade GUI (a file in {@code data/guis/}).
@@ -19,14 +20,24 @@ import java.util.List;
  * @param problems           read-only: references that could not be resolved; ignored when saving
  * @param usedBy             read-only: where the GUI is used ({@code arena:<name>}, {@code config:DefaultTeamShopGui});
  *                           ignored when saving
+ * @param upgradePrices      price overrides per upgrade for arenas that use this GUI as their upgrade GUI
+ *                           (same shape as {@link UpgradePrice#tiers()}); {@code null} when saving keeps the
+ *                           current overrides, an empty map removes them
  */
 public record ShopGui(String id, String title, int size, int headerSize, int footerSize, boolean closeOnTransaction,
                       String fill, String empty, List<String> slots, List<ShopCategory> categories,
-                      List<String> problems, List<String> usedBy) {
+                      List<String> problems, List<String> usedBy, Map<String, List<UpgradeTier>> upgradePrices) {
     public ShopGui {
         slots = slots == null ? List.of() : List.copyOf(slots);
         categories = categories == null ? List.of() : List.copyOf(categories);
         problems = problems == null ? List.of() : List.copyOf(problems);
         usedBy = usedBy == null ? List.of() : List.copyOf(usedBy);
+        upgradePrices = upgradePrices == null ? null : Map.copyOf(upgradePrices);
+    }
+
+    public ShopGui(String id, String title, int size, int headerSize, int footerSize, boolean closeOnTransaction,
+                   String fill, String empty, List<String> slots, List<ShopCategory> categories,
+                   List<String> problems, List<String> usedBy) {
+        this(id, title, size, headerSize, footerSize, closeOnTransaction, fill, empty, slots, categories, problems, usedBy, null);
     }
 }

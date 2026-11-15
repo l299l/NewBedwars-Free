@@ -13,7 +13,14 @@ import com.l299l.newbedwars.panel.command.UserCommands;
 import com.l299l.newbedwars.panel.dashboard.DashboardService;
 import com.l299l.newbedwars.panel.gamelog.GameLog;
 import com.l299l.newbedwars.panel.gamelog.GameLogService;
+import com.l299l.newbedwars.panel.network.NetworkConfig;
+import com.l299l.newbedwars.panel.network.NetworkRole;
+import com.l299l.newbedwars.panel.network.NetworkService;
+import com.l299l.newbedwars.panel.network.NodeAuth;
+import com.l299l.newbedwars.panel.network.PeerClient;
+import com.l299l.newbedwars.panel.network.PeerPins;
 import com.l299l.newbedwars.panel.routes.AdminRoutes;
+import com.l299l.newbedwars.panel.routes.NetworkRoutes;
 import com.l299l.newbedwars.panel.routes.GameRoutes;
 import com.l299l.newbedwars.panel.routes.ShopRoutes;
 import com.l299l.newbedwars.panel.routes.StatsRoutes;
@@ -69,6 +76,11 @@ public final class NewBedwarsPanel extends JavaPlugin {
     private String url;
     private boolean https;
     private String fingerprint;
+    private NetworkRole networkRole = NetworkRole.STANDALONE;
+    private String networkId;
+    private PeerPins peerPins;
+    private NetworkService network;
+    private NodeAuth.Verifier nodeVerifier;
 
     @Override
     public void onEnable() {
@@ -105,7 +117,7 @@ public final class NewBedwarsPanel extends JavaPlugin {
 
     void start() {
         reloadConfig();
-        config = PanelConfig.read(getConfig()::get);
+        config = PanelConfig.read(key -> plain(getConfig().get(key)));
         Path folder = getDataFolder().toPath();
         byte[] key;
         try {
@@ -146,14 +158,16 @@ public final class NewBedwarsPanel extends JavaPlugin {
                     + "by anyone on the network unless a reverse proxy adds HTTPS in front of it.");
         }
 
+        setUpNetwork(folder);
         SessionCookie cookies = new SessionCookie(tls != null, config.trustProxyHeaders());
         Router router = new Router();
         registerRoutes(router, cookies);
         boolean hsts = tls != null && !tls.selfSigned();
         server = new PanelServer(router, sessions, accounts, cookies,
-                hsts, getLogger());
+                hsts, getLogger(), nodeVerifier);
         try {
-            server.start(new InetSocketAddress(config.bind(), config.port()), tls == null ? null : tls.context());
+            server.start(new InetSocketAddress(config.bind(), config.port()), tls == null ? null : tls.context(),
+                    network != null ? PanelServer.GATEWAY_THREADS : PanelServer.THREADS);
         } catch (BindException e) {
             getLogger().severe("The panel did not start: port " + config.port() + " on " + config.bind() + " is already in use.");
             server = null;
@@ -184,9 +198,67 @@ public final class NewBedwarsPanel extends JavaPlugin {
         }
     }
 
+    private void setUpNetwork(Path folder) {
+        NetworkConfig net = config.network();
+        networkRole = net.role();
+        network = null;
+        nodeVerifier = null;
+        peerPins = null;
+        networkId = net.id().isEmpty()
+                ? NewBedwarsAPI.get().getServerId().filter(NetworkConfig::isValidId).orElse(networkRole == NetworkRole.GATEWAY ? "gateway" : "server")
+                : net.id();
+        if (networkRole == NetworkRole.STANDALONE) return;
+        if (!net.hasUsableSecret()) {
+            getLogger().severe("Network.Role is " + networkRole + " but Network.Secret is missing or shorter than "
+                    + NetworkConfig.MIN_SECRET + " characters. Run /nbwpanel network secret, put the result into Network.Secret on every "
+                    + "server of the network and restart. The panel runs as a standalone panel until then.");
+            networkRole = NetworkRole.STANDALONE;
+            return;
+        }
+        if (networkRole == NetworkRole.NODE) {
+            nodeVerifier = new NodeAuth.Verifier(net.secret(), networkId, System::currentTimeMillis);
+            getLogger().info("Panel network role: NODE (" + networkId + "). Accepts requests signed by a gateway panel"
+                    + (net.nodeLogin() ? ", its own logins are enabled." : "; its own logins are disabled (Network.NodeLogin)."));
+            return;
+        }
+        peerPins = new PeerPins(folder.resolve("peers.json"), getLogger());
+        List<PeerClient> clients = new java.util.ArrayList<>();
+        for (NetworkConfig.Peer peer : net.peers()) {
+            if (peer.id().equals(networkId)) {
+                getLogger().warning("Network.Peers." + peer.id() + " has the same id as this server and is ignored.");
+                continue;
+            }
+            if (!peer.https()) {
+                getLogger().warning("Network.Peers." + peer.id() + " uses plain http://. Requests are signed, but anyone on the "
+                        + "network path can read them and swap uploaded arena files. Use https:// unless both servers are on one machine.");
+                if (!peer.fingerprint().isEmpty()) {
+                    getLogger().warning("Network.Peers." + peer.id() + ".Fingerprint is ignored: it only applies to https:// URLs.");
+                }
+            }
+            clients.add(new PeerClient(peer, net.secret(), peerPins, getLogger()));
+        }
+        for (String rejected : net.rejectedPeers()) {
+            getLogger().warning("Network.Peers." + rejected + " is ignored: it needs an id of letters, digits, _ and -, a Url like "
+                    + "https://host:8150 and a Fingerprint that is empty, \"system\" or a SHA-256 fingerprint.");
+        }
+        network = new NetworkService(networkId, clients, System::currentTimeMillis, getLogger());
+        getLogger().info("Panel network role: GATEWAY (" + networkId + ") with " + clients.size() + " server(s).");
+    }
+
+    private static Object plain(Object value) {
+        if (value instanceof org.bukkit.configuration.ConfigurationSection section) {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            for (String key : section.getKeys(false)) map.put(key, plain(section.get(key)));
+            return map;
+        }
+        return value;
+    }
+
     void shutdown() {
         if (cleanup != null) cleanup.cancel();
         cleanup = null;
+        if (network != null) network.stop();
+        network = null;
         if (dashboard != null) dashboard.stop();
         if (server != null) server.stop();
         server = null;
@@ -235,12 +307,20 @@ public final class NewBedwarsPanel extends JavaPlugin {
     }
 
     private void registerRoutes(Router router, SessionCookie cookies) {
-        new AuthRoutes(accounts, sessions, limiter, hasher, cookies, audit, config.language()).register(router);
+        new AuthRoutes(accounts, sessions, limiter, hasher, cookies, audit, config.language(),
+                new AuthRoutes.NetworkInfo(networkRole, networkRole == NetworkRole.GATEWAY ? networkId : null, config.network().nodeLogin())).register(router);
         new ArenaRoutes(NewBedwarsAPI.get().getMaintenance(), audit, config.uploadMaxMegabytes() * 1024L * 1024L).register(router);
         new AdminRoutes(accounts, userCommands, audit).register(router);
         new StatsRoutes(NewBedwarsAPI.get()).register(router);
         new GameRoutes(NewBedwarsAPI.get().getGameControl(), gameLog, audit).register(router);
         new ShopRoutes(NewBedwarsAPI.get().getShop(), audit).register(router);
+        if (network != null) {
+            new NetworkRoutes(router, network, () -> {
+                DashboardState.Snapshot snapshot = dashboard.snapshot();
+                if (snapshot == null) throw new com.l299l.newbedwars.panel.web.HttpError(503, "not_ready");
+                return snapshot.data();
+            }).register(router);
+        }
         router.allowed("GET", "/api/dashboard", Set.of(Permission.DASHBOARD_VIEW), request -> {
             DashboardState.Snapshot snapshot = dashboard.snapshot();
             String known = request.query("rev");
@@ -267,6 +347,22 @@ public final class NewBedwarsPanel extends JavaPlugin {
 
     public LoginLimiter limiter() {
         return limiter;
+    }
+
+    public NetworkRole networkRole() {
+        return networkRole;
+    }
+
+    public String networkId() {
+        return networkId;
+    }
+
+    public NetworkService network() {
+        return network;
+    }
+
+    public PeerPins peerPins() {
+        return peerPins;
     }
 
     public PanelConfig panelConfig() {

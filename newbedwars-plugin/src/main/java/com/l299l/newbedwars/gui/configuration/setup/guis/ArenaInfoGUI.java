@@ -100,7 +100,7 @@ public class ArenaInfoGUI implements InventoryHolder {
             List<String> teamLore = new ArrayList<>();
             teamLore.add(ChatColor.GRAY + text("Info-TeamClick"));
             teamLore.add("");
-            for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team, isAdvanced)) {
+            for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team)) {
                 teamLore.add(ChatColor.GRAY + setting.label(viewer) + ": " + tick(setting.set()));
             }
             teamMeta.setLore(teamLore);

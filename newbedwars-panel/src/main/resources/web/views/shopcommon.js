@@ -1,4 +1,4 @@
-import { api, h, t, toast } from '../app.js';
+import { api, busy, confirmDialog, errorText, h, isGateway, serverPicker, state, t, toast } from '../app.js';
 
 const COLORS = {
   '0': '#000000', '1': '#0000aa', '2': '#00aa00', '3': '#00aaaa', '4': '#aa0000', '5': '#aa00aa', '6': '#ffaa00', '7': '#aaaaaa',
@@ -72,8 +72,13 @@ export function mcText(text, lineSplit) {
 
 let optionsCache = null;
 
+let optionsServer = null;
+
 export async function shopOptions() {
-  if (!optionsCache) optionsCache = api('GET', '/api/shop/options').catch(err => { optionsCache = null; throw err; });
+  if (!optionsCache || optionsServer !== state.server) {
+    optionsServer = state.server;
+    optionsCache = api('GET', '/api/shop/options').catch(err => { optionsCache = null; throw err; });
+  }
   return optionsCache;
 }
 
@@ -94,12 +99,12 @@ export function usageText(usage) {
 }
 
 export function shopTabs(active) {
-  const tabs = [['items', 'shop.tab.items'], ['guis', 'shop.tab.guis'], ['arenas', 'shop.tab.arenas']];
-  return h('nav', { class: 'tabs', 'aria-label': t('nav.shop') },
+  const tabs = [['items', 'shop.tab.items'], ['guis', 'shop.tab.guis'], ['upgrades', 'shop.tab.upgrades'], ['arenas', 'shop.tab.arenas']];
+  return h('div', {}, serverPicker(), h('nav', { class: 'tabs', 'aria-label': t('nav.shop') },
     tabs.map(([route, key]) => h('a', {
       href: '#/shop/' + route, class: 'tab' + (route === active ? ' is-active' : ''),
       'aria-current': route === active ? 'page' : null,
-    }, t(key))));
+    }, t(key)))));
 }
 
 export function select(id, values, selected, labels = {}) {
@@ -110,4 +115,126 @@ export function select(id, values, selected, labels = {}) {
 
 export function datalist(id, values) {
   return h('datalist', { id }, values.map(v => h('option', { value: v })));
+}
+
+async function pushItems(source, target) {
+  const list = (await api('GET', '/api/shop/items', undefined, { server: source })).items;
+  let failed = 0;
+  for (const item of list) {
+    try {
+      const detail = await api('GET', '/api/shop/items/' + encodeURIComponent(item.name), undefined, { server: source });
+      const { name, usedBy, ...payload } = detail.item;
+      const saved = await api('POST', '/api/shop/items/' + encodeURIComponent(item.name), payload, { server: target });
+      if (!saved.ok) { failed++; continue; }
+      if (Object.keys(detail.texts).length) {
+        const texts = await api('POST', '/api/shop/items/' + encodeURIComponent(item.name) + '/texts', { texts: detail.texts }, { server: target });
+        if (!texts.ok) failed++;
+      }
+    } catch (e) {
+      failed++;
+    }
+  }
+  return { total: list.length, failed };
+}
+
+export function tierEditor(prefix, tiers, maxLevel, currencies) {
+  const rows = h('ol', { class: 'tier-rows' });
+  const empty = h('p', { class: 'hint' }, t('shop.upgrades.noLevels'));
+  const add = h('button', { class: 'btn btn-small', type: 'button' }, t('shop.upgrades.addLevel'));
+  let next = 0;
+  const refresh = () => {
+    add.disabled = rows.children.length >= maxLevel;
+    empty.hidden = rows.children.length > 0;
+    [...rows.children].forEach((li, i) => { li.querySelector('.tier-level').textContent = t('shop.upgrades.level', { level: i + 1 }); });
+  };
+  function row(tier) {
+    const n = next++;
+    const price = h('input', { type: 'number', min: '0', max: '2304', step: '1', required: true, value: String(tier.price), id: prefix + '-price-' + n });
+    const currency = select(prefix + '-cur-' + n, currencies, tier.currency);
+    price.setAttribute('aria-label', t('shop.upgrades.price'));
+    currency.setAttribute('aria-label', t('shop.upgrades.currency'));
+    const remove = h('button', { class: 'btn btn-small btn-quiet', type: 'button' }, t('common.remove'));
+    const li = h('li', { class: 'inline-form tier-row' }, h('span', { class: 'tier-level' }), price, currency, remove);
+    remove.addEventListener('click', () => { li.remove(); refresh(); });
+    rows.append(li);
+  }
+  tiers.forEach(row);
+  add.addEventListener('click', () => {
+    const last = rows.lastElementChild;
+    row(last ? { price: Number(last.querySelector('input').value) || 0, currency: last.querySelector('select').value }
+      : { price: 1, currency: currencies.includes('DIAMOND') ? 'DIAMOND' : currencies[0] });
+    refresh();
+  });
+  refresh();
+  return {
+    el: h('div', { class: 'tier-editor' }, rows, empty, add),
+    read: () => [...rows.children].map(li => ({ price: Number(li.querySelector('input').value), currency: li.querySelector('select').value })),
+  };
+}
+
+async function pushUpgrades(source, target) {
+  const list = (await api('GET', '/api/shop/upgrades', undefined, { server: source })).upgrades;
+  let failed = 0;
+  for (const u of list) {
+    try {
+      const saved = await api('POST', '/api/shop/upgrades/' + encodeURIComponent(u.name), { tiers: u.tiers }, { server: target });
+      if (!saved.ok) failed++;
+    } catch (e) {
+      failed++;
+    }
+  }
+  return { total: list.length, failed };
+}
+
+async function pushGuis(source, target) {
+  const list = (await api('GET', '/api/shop/guis', undefined, { server: source })).guis;
+  let failed = 0;
+  for (const g of list) {
+    try {
+      const { problems, usedBy, ...payload } = g;
+      let saved = await api('POST', '/api/shop/guis', payload, { server: target });
+      if (!saved.ok && saved.code === 'NAME_TAKEN') saved = await api('POST', '/api/shop/guis/' + encodeURIComponent(g.id), payload, { server: target });
+      if (!saved.ok) failed++;
+    } catch (e) {
+      failed++;
+    }
+  }
+  return { total: list.length, failed };
+}
+
+export function syncButton(kind) {
+  if (!isGateway()) return null;
+  const button = h('button', { class: 'btn', type: 'button' }, t('shop.sync.' + kind));
+  button.addEventListener('click', async () => {
+    const source = state.server;
+    let servers;
+    try {
+      servers = (await api('GET', '/api/network')).servers;
+    } catch (err) {
+      toast(errorText(err), 'error');
+      return;
+    }
+    const sourceId = (servers.find(s => s.local) || {}).id;
+    const from = source || sourceId;
+    const targets = servers.filter(s => s.status === 'ONLINE' && (s.local ? null : s.id) !== source);
+    if (!targets.length) { toast(t('shop.sync.none'), 'error'); return; }
+    const names = targets.map(s => s.id).join(', ');
+    if (!await confirmDialog(t('shop.sync.confirm.' + kind, { source: from, targets: names }), { confirm: t('shop.sync.' + kind) })) return;
+    await busy(button, async () => {
+      const results = await Promise.all(targets.map(async s => {
+        try {
+          const push = { items: pushItems, guis: pushGuis, upgrades: pushUpgrades }[kind];
+          return { id: s.id, ...(await push(source, s.local ? null : s.id)) };
+        } catch (err) {
+          return { id: s.id, total: 0, failed: -1, error: errorText(err) };
+        }
+      }));
+      for (const r of results) {
+        if (r.failed === 0) toast(t('shop.sync.done', { server: r.id, count: r.total }));
+        else if (r.failed < 0) toast(t('shop.sync.failedServer', { server: r.id, error: r.error }), 'error');
+        else toast(t('shop.sync.partial', { server: r.id, failed: r.failed, count: r.total }), 'error');
+      }
+    });
+  });
+  return button;
 }

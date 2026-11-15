@@ -56,7 +56,7 @@ Optional integrations:
 1. Download the jar from the [latest release](https://modrinth.com/plugin/new-bedwars/versions) and put it in `plugins/`.
 2. Start the server so the configs are generated.
 3. `/bw setlobby` at your lobby spawn.
-4. `/bw arena create myArena`, then follow the checklist shown by `/bw arena`.
+4. `/bw arena create myArena`, then follow the checklist shown by `/bw info`.
 5. `/bw save`, then `/bw arena enable myArena`.
 6. Players join with `/bw join myArena`.
 
@@ -94,7 +94,7 @@ Put `NewBedwars-Panel-<version>.jar` next to the NewBedwars jar and restart. The
 1. Create the first account in the console: `nbwpanel user create <name> admin`. This prints a one-time password.
 2. Log in with it in the browser and choose your own password.
 
-The panel shows every arena live (state, players, phase, teams and beds), online players, TPS and memory. From it you can enable, disable, back up, restore, reset, copy, export, import and delete arenas. It has accounts with roles (`admin`, view-only `staff` and your own), a login lock, an activity log, and English and Polish. Setup, certificates, reverse proxy and roles: [docs/PANEL.md](docs/PANEL.md).
+The panel shows every arena live (state, players, phase, teams and beds), online players, TPS and memory. From it you can enable, disable, back up, restore, reset, copy, export, import and delete arenas. It has accounts with roles (`admin`, view-only `staff` and your own), a login lock, an activity log, and English and Polish. On a network, the panel of the lobby server can manage every game server's arenas, shops and stats with one login. Setup, certificates, reverse proxy and roles: [docs/PANEL.md](docs/PANEL.md).
 
 ## Documentation
 

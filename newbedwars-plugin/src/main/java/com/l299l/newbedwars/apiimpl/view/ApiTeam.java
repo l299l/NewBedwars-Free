@@ -50,6 +50,11 @@ public final class ApiTeam implements TeamView {
     }
 
     @Override
+    public Location getBed() {
+        return team.getTeamBed() == null ? null : team.getTeamBed().getLocation();
+    }
+
+    @Override
     public int getUpgradeLevel(String upgradeName) {
         if (team.getTeamUpgrades() == null) return 0;
         try {

@@ -21,7 +21,8 @@ public final class Request {
 
     final HttpExchange exchange;
     final Map<String, String> params;
-    final String ip;
+    String ip;
+    byte[] buffered;
     SessionManager.Session session;
     Account account;
     Role role;
@@ -78,15 +79,41 @@ public final class Request {
         return query.get(name);
     }
 
+    public String rawQuery() {
+        return exchange.getRequestURI().getRawQuery();
+    }
+
+    public String rawPath() {
+        return exchange.getRequestURI().getRawPath();
+    }
+
+    public String method() {
+        return exchange.getRequestMethod();
+    }
+
+    public String contentType() {
+        return header("Content-Type");
+    }
+
+    public long contentLength() {
+        String length = header("Content-Length");
+        if (length == null) return -1;
+        try {
+            return Long.parseLong(length.trim());
+        } catch (NumberFormatException e) {
+            throw new HttpError(400, "bad_length");
+        }
+    }
+
     public InputStream body() {
-        return exchange.getRequestBody();
+        return buffered != null ? new java.io.ByteArrayInputStream(buffered) : exchange.getRequestBody();
     }
 
     public JsonObject json() throws IOException {
         if (json != null) return json;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] buffer = new byte[8192];
-        try (InputStream in = exchange.getRequestBody()) {
+        try (InputStream in = body()) {
             int n;
             while ((n = in.read(buffer)) > 0) {
                 if (out.size() + n > MAX_JSON_BYTES) throw new HttpError(413, "too_large");

@@ -2,8 +2,10 @@ package com.l299l.newbedwars.panel.web;
 
 import com.l299l.newbedwars.panel.auth.Account;
 import com.l299l.newbedwars.panel.auth.AccountStore;
+import com.l299l.newbedwars.panel.auth.Permission;
 import com.l299l.newbedwars.panel.auth.Role;
 import com.l299l.newbedwars.panel.auth.SessionManager;
+import com.l299l.newbedwars.panel.network.NodeAuth;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -22,6 +24,7 @@ import java.security.MessageDigest;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +33,7 @@ import java.util.logging.Logger;
 
 public final class PanelServer implements HttpHandler {
     public static final int THREADS = 4;
+    public static final int GATEWAY_THREADS = 16;
     private static final String CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
             + "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
     private static final Map<String, String> TYPES = Map.of(
@@ -47,11 +51,19 @@ public final class PanelServer implements HttpHandler {
     private final SessionCookie cookies;
     private final boolean hsts;
     private final Logger logger;
+    private final NodeAuth.Verifier nodeAuth;
+    private final Set<String> warnedTargets = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private HttpServer server;
     private ExecutorService executor;
 
     public PanelServer(Router router, SessionManager sessions, AccountStore accounts, SessionCookie cookies,
                        boolean hsts, Logger logger) {
+        this(router, sessions, accounts, cookies, hsts, logger, null);
+    }
+
+    public PanelServer(Router router, SessionManager sessions, AccountStore accounts, SessionCookie cookies,
+                       boolean hsts, Logger logger, NodeAuth.Verifier nodeAuth) {
+        this.nodeAuth = nodeAuth;
         this.router = router;
         this.sessions = sessions;
         this.accounts = accounts;
@@ -61,6 +73,10 @@ public final class PanelServer implements HttpHandler {
     }
 
     public void start(InetSocketAddress address, SSLContext tls) throws IOException {
+        start(address, tls, THREADS);
+    }
+
+    public void start(InetSocketAddress address, SSLContext tls, int threads) throws IOException {
         HttpServer created;
         if (tls == null) {
             created = HttpServer.create(address, 64);
@@ -70,7 +86,7 @@ public final class PanelServer implements HttpHandler {
             created = https;
         }
         AtomicInteger counter = new AtomicInteger();
-        executor = Executors.newFixedThreadPool(THREADS, r -> {
+        executor = Executors.newFixedThreadPool(threads, r -> {
             Thread t = new Thread(r, "NewBedwars-Panel-" + counter.incrementAndGet());
             t.setDaemon(true);
             return t;
@@ -123,6 +139,12 @@ public final class PanelServer implements HttpHandler {
         boolean safe = method.equals("GET") || method.equals("HEAD");
         if (!safe && !cookies.sameOrigin(exchange)) throw new HttpError(403, "bad_origin");
 
+        Router.Route route = match.route();
+        if (request.header(NodeAuth.SIGNATURE) != null) {
+            authenticateNode(request, method, path, route);
+            return route.handler().handle(request);
+        }
+
         Optional<SessionManager.Session> session = sessions.get(cookies.read(exchange));
         if (session.isPresent()) {
             Optional<Account> account = accounts.find(session.get().user());
@@ -135,7 +157,6 @@ public final class PanelServer implements HttpHandler {
             }
         }
 
-        Router.Route route = match.route();
         if (route.access() != Router.Access.PUBLIC) {
             if (request.session == null) throw new HttpError(401, "login_required");
             if (!safe && !csrfMatches(request.session.csrf(), request.header("X-CSRF-Token"))) {
@@ -148,6 +169,39 @@ public final class PanelServer implements HttpHandler {
             }
         }
         return route.handler().handle(request);
+    }
+
+    private void authenticateNode(Request request, String method, String path, Router.Route route) throws IOException {
+        if (nodeAuth == null) throw new HttpError(403, "not_a_node");
+        NodeAuth.Verdict verdict = nodeAuth.verify(method, path, request.rawQuery(), request::header);
+        if (!verdict.ok()) {
+            if (verdict.failure() == NodeAuth.Failure.TARGET && warnedTargets.size() < 16 && warnedTargets.add(verdict.body())) {
+                logger.warning("The gateway panel calls this server \"" + verdict.body() + "\" but its Network.Id is \""
+                        + nodeAuth.selfId() + "\". Use the same name in Network.Peers on the gateway and in Network.Id here.");
+            }
+            throw new HttpError(401, "node_auth");
+        }
+        boolean unsigned = NodeAuth.UNSIGNED.equals(verdict.body());
+        if (unsigned) {
+            if (!(method.equals("POST") && path.equals("/api/import"))) throw new HttpError(401, "node_auth");
+        } else {
+            byte[] bytes = request.body().readNBytes(Request.MAX_JSON_BYTES + 1);
+            if (bytes.length > Request.MAX_JSON_BYTES) throw new HttpError(413, "too_large");
+            if (!MessageDigest.isEqual(NodeAuth.sha256(bytes).getBytes(StandardCharsets.UTF_8), verdict.body().getBytes(StandardCharsets.UTF_8))) {
+                throw new HttpError(401, "node_auth");
+            }
+            request.buffered = bytes;
+        }
+        if (route.access() != Router.Access.PERMISSION
+                || route.permissions().stream().anyMatch(Permission.LOCAL_ONLY::contains)) {
+            throw new HttpError(403, "node_forbidden");
+        }
+        NodeAuth.Identity identity = verdict.identity();
+        Role role = new Role("node", identity.permissions(), false);
+        if (route.permissions().stream().noneMatch(role::has)) throw new HttpError(403, "forbidden");
+        if (!identity.ip().isEmpty()) request.ip = identity.ip();
+        request.account = new Account(identity.account(), "", "node", false, 0);
+        request.role = role;
     }
 
     static boolean csrfMatches(String expected, String given) {
@@ -183,6 +237,19 @@ public final class PanelServer implements HttpHandler {
         response.headers.forEach(headers::set);
         if (response.contentType != null) headers.set("Content-Type", response.contentType);
         boolean head = exchange.getRequestMethod().equalsIgnoreCase("HEAD");
+        if (response.stream != null) {
+            try (java.io.InputStream in = response.stream) {
+                if (head) {
+                    exchange.sendResponseHeaders(response.status, -1);
+                    return;
+                }
+                exchange.sendResponseHeaders(response.status, response.streamLength >= 0 ? response.streamLength : 0);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    in.transferTo(out);
+                }
+            }
+            return;
+        }
         if (response.file != null) {
             long size = Files.size(response.file);
             exchange.sendResponseHeaders(response.status, head ? -1 : size);

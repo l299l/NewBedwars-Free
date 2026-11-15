@@ -54,4 +54,14 @@ public interface ShopEditor {
 
     /** Values for editors (materials, enchantments, logic keys, ...). */
     CompletableFuture<ShopOptions> getOptions();
+
+    /** The server-wide prices of every upgrade and trap ({@code data/upgrades.yml}). */
+    CompletableFuture<List<UpgradePrice>> getUpgradePrices();
+
+    /**
+     * Replaces the server-wide prices of one upgrade. {@link ShopResult.Code#NOT_FOUND} for an unknown upgrade,
+     * {@link ShopResult.Code#INVALID} for a negative price, an unknown currency or more tiers than
+     * {@link UpgradePrice#maxLevel()}.
+     */
+    CompletableFuture<ShopResult> saveUpgradePrices(String upgrade, List<UpgradeTier> tiers);
 }

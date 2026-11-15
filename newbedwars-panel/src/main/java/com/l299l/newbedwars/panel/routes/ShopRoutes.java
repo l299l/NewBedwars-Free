@@ -11,6 +11,8 @@ import com.l299l.newbedwars.api.shop.ShopGui;
 import com.l299l.newbedwars.api.shop.ShopItem;
 import com.l299l.newbedwars.api.shop.ShopOptions;
 import com.l299l.newbedwars.api.shop.ShopResult;
+import com.l299l.newbedwars.api.shop.UpgradePrice;
+import com.l299l.newbedwars.api.shop.UpgradeTier;
 import com.l299l.newbedwars.panel.AuditLog;
 import com.l299l.newbedwars.panel.auth.Permission;
 import com.l299l.newbedwars.panel.web.HttpError;
@@ -31,6 +33,7 @@ import java.util.concurrent.TimeoutException;
 
 public final class ShopRoutes {
     private static final int MAX_LIST = 64;
+    private static final List<String> CURRENCIES = List.of("IRON", "GOLD", "DIAMOND", "EMERALD");
 
     private final ShopEditor shop;
     private final AuditLog audit;
@@ -55,6 +58,8 @@ public final class ShopRoutes {
         router.allowed("POST", "/api/shop/guis/{id}/delete", edit, this::deleteGui);
         router.allowed("GET", "/api/shop/arenas", edit, this::arenas);
         router.allowed("POST", "/api/shop/arenas/{name}", edit, this::setArena);
+        router.allowed("GET", "/api/shop/upgrades", edit, this::upgrades);
+        router.allowed("POST", "/api/shop/upgrades/{name}", edit, this::saveUpgrade);
     }
 
     private Response items(Request r) throws Exception {
@@ -168,6 +173,27 @@ public final class ShopRoutes {
         return result(r, "shop.arena", r.param("name"), await(shop.setArenaShops(r.param("name"), shopGui, upgradeGui)));
     }
 
+    private Response upgrades(Request r) throws Exception {
+        JsonArray out = new JsonArray();
+        for (UpgradePrice u : await(shop.getUpgradePrices())) {
+            JsonObject o = new JsonObject();
+            o.addProperty("name", u.name());
+            o.add("tiers", tiers(u.tiers()));
+            o.addProperty("maxLevel", u.maxLevel());
+            o.addProperty("builtIn", u.builtIn());
+            out.add(o);
+        }
+        JsonObject body = new JsonObject();
+        body.add("upgrades", out);
+        body.add("currencies", array(CURRENCIES));
+        return Response.ok(body);
+    }
+
+    private Response saveUpgrade(Request r) throws Exception {
+        List<UpgradeTier> tiers = parseTiers(r.json().get("tiers"));
+        return result(r, "shop.upgrade.save", r.param("name"), await(shop.saveUpgradePrices(r.param("name"), tiers)));
+    }
+
     private Response result(Request r, String action, String target, ShopResult result) {
         audit.record(r.user(), r.ip(), action, target, result.code().name());
         JsonObject o = new JsonObject();
@@ -189,9 +215,38 @@ public final class ShopRoutes {
                         strings(o.get("items"))));
             }
         }
+        Map<String, List<UpgradeTier>> prices = null;
+        JsonElement p = j.get("upgradePrices");
+        if (p != null && !p.isJsonNull()) {
+            if (!p.isJsonObject() || p.getAsJsonObject().size() > MAX_LIST) throw new HttpError(400, "bad_upgradePrices");
+            prices = new LinkedHashMap<>();
+            for (Map.Entry<String, JsonElement> e : p.getAsJsonObject().entrySet()) prices.put(e.getKey(), parseTiers(e.getValue()));
+        }
         return new ShopGui(id, str(j, "title"), integer(j.get("size")), integer(j.get("headerSize")),
                 integer(j.get("footerSize")), bool(j, "closeOnTransaction"), str(j, "fill"), str(j, "empty"),
-                strings(j.get("slots")), categories, List.of(), List.of());
+                strings(j.get("slots")), categories, List.of(), List.of(), prices);
+    }
+
+    static List<UpgradeTier> parseTiers(JsonElement e) {
+        List<UpgradeTier> out = new ArrayList<>();
+        if (e == null || e.isJsonNull()) return out;
+        if (!e.isJsonArray() || e.getAsJsonArray().size() > MAX_LIST) throw new HttpError(400, "bad_tiers");
+        for (JsonElement t : e.getAsJsonArray()) {
+            if (!t.isJsonObject()) throw new HttpError(400, "bad_tiers");
+            out.add(new UpgradeTier(integer(t.getAsJsonObject().get("price")), str(t.getAsJsonObject(), "currency")));
+        }
+        return out;
+    }
+
+    static JsonArray tiers(List<UpgradeTier> tiers) {
+        JsonArray a = new JsonArray();
+        for (UpgradeTier t : tiers) {
+            JsonObject o = new JsonObject();
+            o.addProperty("price", t.price());
+            o.addProperty("currency", t.currency());
+            a.add(o);
+        }
+        return a;
     }
 
     static JsonObject item(ShopItem i) {
@@ -237,6 +292,9 @@ public final class ShopRoutes {
         o.add("categories", cats);
         o.add("problems", array(g.problems()));
         o.add("usedBy", array(g.usedBy()));
+        JsonObject prices = new JsonObject();
+        if (g.upgradePrices() != null) g.upgradePrices().forEach((name, list) -> prices.add(name, tiers(list)));
+        o.add("upgradePrices", prices);
         return o;
     }
 

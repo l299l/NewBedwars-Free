@@ -10,6 +10,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.inventory.ArmorContents;
 import com.l299l.newbedwars.arena.player.inventory.ArmorTier;
 import com.l299l.newbedwars.arena.shops.Upgrade;
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradePurchase;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.CustomLogic;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
 import com.l299l.newbedwars.arena.team.Team;
@@ -142,6 +143,15 @@ public class CustomItem implements GUIEntry {
         if (needsTeam && team == null) {
             return false;
         }
+        if (onBuyEvent == OnBuyEvent.UPGRADE) {
+            Upgrade upgrade;
+            try {
+                upgrade = Upgrade.valueOf(name);
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+            return team.getTeamUpgrades() != null && UpgradePurchase.buy(player, arena, team, upgrade, name).bought();
+        }
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
             ArmorTier newType = ArmorTier.getArmorTier(material);
 
@@ -153,32 +163,18 @@ public class CustomItem implements GUIEntry {
         if (priceMaterial != null && !player.getInventory().contains(priceMaterial, price)) {
             return false;
         }
-        Upgrade upgrade = null;
-        if (onBuyEvent == OnBuyEvent.UPGRADE) {
-            upgrade = Upgrade.valueOf(name.toUpperCase());
-            if (team.getTeamUpgrades().getUpgradeLevel(upgrade) >= upgrade.maxLevel) {
-                return false;
-            }
-        }
         if (arena != null) {
             ShopPurchaseEvent.Kind kind = switch (onBuyEvent) {
                 case GIVE_ARMOR -> ShopPurchaseEvent.Kind.ARMOR;
                 case GIVE_TOOL -> ShopPurchaseEvent.Kind.TOOL;
-                case UPGRADE -> ShopPurchaseEvent.Kind.UPGRADE;
                 default -> ShopPurchaseEvent.Kind.ITEM;
             };
             if (!ApiEvents.shopPurchase(arena, player, name, kind, String.valueOf(priceType), price)) return false;
-            if (upgrade != null && !ApiEvents.teamUpgrade(arena, team, upgrade.name(),
-                    team.getTeamUpgrades().getUpgradeLevel(upgrade) + 1, player)) return false;
         }
         if (priceMaterial != null) {
             player.getInventory().removeItem(new ItemStack(priceMaterial, price));
         }
         switch (onBuyEvent) {
-            case UPGRADE -> {
-                team.getTeamUpgrades().upgrade(upgrade);
-                return true;
-            }
             case GIVE_ITEM -> {
                 ArmorContents.giveOrDrop(player, getItem(player));
                 if (isPermanent && team != null) {
@@ -289,7 +285,7 @@ public class CustomItem implements GUIEntry {
             desc = msg.getMsg(language, iconDesc);
         }
         if (desc == null) desc = "";
-        if (onBuyEvent == OnBuyEvent.UPGRADE && price < 0) {
+        if (onBuyEvent == OnBuyEvent.UPGRADE) {
 
             desc = Arrays.stream(desc.split(";"))
                     .filter(line -> !line.contains("/price/"))

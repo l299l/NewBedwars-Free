@@ -6,7 +6,11 @@ import com.l299l.newbedwars.api.shop.ShopCategory;
 import com.l299l.newbedwars.api.shop.ShopGui;
 import com.l299l.newbedwars.api.shop.ShopItem;
 import com.l299l.newbedwars.api.shop.ShopResult.Code;
+import com.l299l.newbedwars.api.shop.UpgradePrice;
+import com.l299l.newbedwars.api.shop.UpgradeTier;
 import com.l299l.newbedwars.arena.ArenaRegistry;
+import com.l299l.newbedwars.arena.shops.Upgrade;
+import com.l299l.newbedwars.arena.shops.upgrades.UpgradePricing;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.arena.shops.customitems.PriceType;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
@@ -47,6 +51,7 @@ class ShopEditServiceTest {
     private CustomItemManager items;
     private GUIDataManager guis;
     private ItemsDataManager itemsData;
+    private UpgradePricing pricing;
     private GUIManager guiManager;
     private Messages messages;
     private final Map<Language, YamlConfiguration> langs = new EnumMap<>(Language.class);
@@ -89,6 +94,9 @@ class ShopEditServiceTest {
         DataManager data = mock(DataManager.class);
         when(data.getGuiDataManager()).thenReturn(guis);
         when(data.getItemsDataManager()).thenReturn(itemsData);
+        pricing = new UpgradePricing(dir, Runnable::run, Logger.getLogger("test"), 3);
+        pricing.load(null);
+        when(data.getUpgradePricing()).thenReturn(pricing);
         when(plugin.getDataManager()).thenReturn(data);
         oldSword = Properties.BasicSword;
         oldShop = Properties.DefaultTeamShopGui;
@@ -141,6 +149,43 @@ class ShopEditServiceTest {
         assertEquals(12, wool.getPrice());
         assertEquals(PriceType.GOLD, wool.getPriceType());
         verify(guiManager, atLeastOnce()).refresh();
+    }
+
+    @Test
+    void addonShopItemIsAddedOnceAndNeverOverwritten() {
+        var api = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
+        var owner = mock(org.bukkit.plugin.Plugin.class);
+        try (var bukkit = mockStatic(org.bukkit.Bukkit.class)) {
+            bukkit.when(org.bukkit.Bukkit::isPrimaryThread).thenReturn(true);
+            ShopItem egg = ShopItem.of("EmeraldGolemEgg", "SNOWBALL", 1, 24, "IRON", "NONE");
+            assertTrue(api.registerShopItem(owner, egg, Map.of("en", new ItemTexts("&fEmerald Golem", "", ""))));
+            var created = items.getCustomItem("EmeraldGolemEgg");
+            assertEquals(Material.SNOWBALL, created.getMaterial());
+            assertEquals(24, created.getPrice());
+            assertEquals(PriceType.IRON, created.getPriceType());
+            assertEquals("&fEmerald Golem", langs.get(Language.English).getString("CustomItemsNames.EmeraldGolemEgg-name"));
+
+            ShopEditService.saveItem(new ShopItem("EmeraldGolemEgg", "SNOWBALL", 1, 50, "GOLD", "GIVE_ITEM", "NONE", false, "", null, null, null));
+            assertFalse(api.registerShopItem(owner, egg));
+            assertEquals(50, items.getCustomItem("EmeraldGolemEgg").getPrice());
+            assertFalse(api.registerShopItem(owner, ShopItem.of("Wool", "STONE", 1, 1, "IRON", "NONE")));
+            assertEquals(Material.WHITE_WOOL, items.getCustomItem("Wool").getMaterial());
+        }
+    }
+
+    @Test
+    void addonShopItemWithInvalidValuesThrowsAndAddsNothing() {
+        var api = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
+        var owner = mock(org.bukkit.plugin.Plugin.class);
+        try (var bukkit = mockStatic(org.bukkit.Bukkit.class)) {
+            bukkit.when(org.bukkit.Bukkit::isPrimaryThread).thenReturn(true);
+            assertThrows(IllegalArgumentException.class, () -> api.registerShopItem(owner, ShopItem.of("Egg", "NOT_A_MATERIAL", 1, 1, "IRON", "NONE")));
+            assertThrows(IllegalArgumentException.class, () -> api.registerShopItem(owner, ShopItem.of("Egg", "STONE", 1, 1, "IRON", "NO_SUCH_LOGIC")));
+            assertThrows(IllegalArgumentException.class, () -> api.registerShopItem(owner, ShopItem.of("Egg", "STONE", 1, 1, "IRON", "NONE"), Map.of("xx", new ItemTexts("", "", ""))));
+            assertNull(items.getCustomItem("Egg"));
+            bukkit.when(org.bukkit.Bukkit::isPrimaryThread).thenReturn(false);
+            assertThrows(IllegalStateException.class, () -> api.registerShopItem(owner, ShopItem.of("Egg", "STONE", 1, 1, "IRON", "NONE")));
+        }
     }
 
     @Test
@@ -254,5 +299,58 @@ class ShopEditServiceTest {
         assertNull(guis.get("shop").getItem(2));
         ShopEditService.saveItem(spec("OldThing", "STONE"));
         assertNotNull(guis.get("shop").getItem(2));
+    }
+
+    @Test
+    void upgradePricesAreListedAndSaved() {
+        UpgradePrice forge = ShopEditService.upgradePrices().stream().filter(u -> u.name().equals("FORGE")).findFirst().orElseThrow();
+        assertEquals(8, forge.tiers().size());
+        assertEquals(new UpgradeTier(2, "DIAMOND"), forge.tiers().get(0));
+        assertTrue(forge.builtIn());
+        assertTrue(ShopEditService.upgradePrices().stream().noneMatch(u -> u.name().equals("CUSTOMTRAP")));
+
+        assertEquals(Code.OK, ShopEditService.saveUpgradePrices("forge",
+                List.of(new UpgradeTier(3, "iron"), new UpgradeTier(5, "EMERALD"))).code());
+        assertEquals(List.of(new com.l299l.newbedwars.arena.shops.upgrades.UpgradeTier(3, PriceType.IRON),
+                new com.l299l.newbedwars.arena.shops.upgrades.UpgradeTier(5, PriceType.EMERALD)), pricing.tiers(Upgrade.FORGE));
+        assertEquals(Code.OK, ShopEditService.saveUpgradePrices("HEALPOOL", List.of()).code());
+        assertTrue(pricing.tiers(Upgrade.HEALPOOL).isEmpty());
+    }
+
+    @Test
+    void invalidUpgradePricesAreRefused() {
+        assertEquals(Code.NOT_FOUND, ShopEditService.saveUpgradePrices("NOPE", List.of()).code());
+        assertEquals(Code.NOT_FOUND, ShopEditService.saveUpgradePrices("CUSTOMTRAP", List.of()).code());
+        assertEquals(Code.INVALID, ShopEditService.saveUpgradePrices("HASTE", List.of(new UpgradeTier(-1, "IRON"))).code());
+        assertEquals(Code.INVALID, ShopEditService.saveUpgradePrices("HASTE", List.of(new UpgradeTier(1, "NONE"))).code());
+        assertEquals(Code.INVALID, ShopEditService.saveUpgradePrices("HASTE", List.of(new UpgradeTier(1, null))).code());
+        assertEquals(Code.INVALID, ShopEditService.saveUpgradePrices("HEALPOOL",
+                List.of(new UpgradeTier(1, "IRON"), new UpgradeTier(2, "IRON"))).code());
+    }
+
+    @Test
+    void guiPriceOverridesAreSavedKeptAndRemoved() {
+        ShopGui current = ShopEditService.gui("shop").orElseThrow();
+        assertTrue(current.upgradePrices().isEmpty());
+        ShopGui withOverride = new ShopGui("shop", current.title(), 9, 0, 0, false, current.fill(), current.empty(),
+                current.slots(), current.categories(), List.of(), List.of(),
+                Map.of("haste", List.of(new UpgradeTier(1, "GOLD"))));
+        assertEquals(Code.OK, ShopEditService.saveGui(withOverride).code());
+        assertEquals(Map.of("HASTE", List.of(new UpgradeTier(1, "GOLD"))), ShopEditService.gui("shop").orElseThrow().upgradePrices());
+        assertEquals(1, pricing.maxLevel(Upgrade.HASTE, guis.get("shop").getDefinition()));
+
+        ShopGui keep = new ShopGui("shop", "Renamed", 9, 0, 0, false, current.fill(), current.empty(),
+                current.slots(), current.categories(), List.of(), List.of());
+        assertEquals(Code.OK, ShopEditService.saveGui(keep).code());
+        assertEquals(1, ShopEditService.gui("shop").orElseThrow().upgradePrices().size());
+
+        assertEquals(Code.INVALID, ShopEditService.saveGui(new ShopGui("shop", "R", 9, 0, 0, false, current.fill(),
+                current.empty(), current.slots(), current.categories(), List.of(), List.of(),
+                Map.of("NOPE", List.of()))).code());
+
+        assertEquals(Code.OK, ShopEditService.saveGui(new ShopGui("shop", "R", 9, 0, 0, false, current.fill(),
+                current.empty(), current.slots(), current.categories(), List.of(), List.of(), Map.of())).code());
+        assertTrue(ShopEditService.gui("shop").orElseThrow().upgradePrices().isEmpty());
+        assertFalse(guis.get("shop").getDefinition().extra().containsKey(UpgradePricing.GUI_KEY));
     }
 }

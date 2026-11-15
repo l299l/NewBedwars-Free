@@ -4,8 +4,6 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.phases.GamePhases;
 import com.l299l.newbedwars.arena.phases.Phase;
 import com.l299l.newbedwars.arena.phases.PhaseAction;
-import com.l299l.newbedwars.arena.shops.Upgrade;
-import com.l299l.newbedwars.arena.shops.customitems.PriceType;
 import com.l299l.newbedwars.common.sql.JdbcConnector;
 import com.l299l.newbedwars.config.StorageType;
 import org.bukkit.Material;
@@ -42,8 +40,6 @@ public class Properties{
     public static Set<Material> DragonIndestructibleBlocks = new HashSet<>();
     public static HashMap<String, Boolean> DefaultGamerules = new HashMap<>();
     public static HashMap<String, GamePhases> GamePhases = new HashMap<>();
-    public static HashMap<String, List<Integer>> UpgradePrices = new HashMap<>();
-    public static PriceType UpgradePriceType = PriceType.DIAMOND;
     public static String DefaultLanguage;
     public static StorageType StorageType;
     public static Boolean ArenaChatEnabled;
@@ -64,6 +60,12 @@ public class Properties{
     public static Integer RollbackUnloadRetryTicks = 10;
     public static List<String> RollbackTemplateExcludes = new ArrayList<>();
     public static Integer BackupsKeep = 5;
+    public static Integer AutoSetupDefaultRadius = 150;
+    public static Integer AutoSetupMaxRadius = 400;
+    public static Integer AutoSetupGeneratorRadius = 20;
+    public static Integer AutoSetupBasePadding = 8;
+    public static Integer AutoSetupBaseBelow = 5;
+    public static Integer AutoSetupBaseAbove = 15;
     public static Integer MapVoteItemSlot = 2;
     public static String MapVoteItemMaterial = "PAPER";
     public static Integer JoinNpcUpdateSeconds = 2;
@@ -168,6 +170,13 @@ public class Properties{
         Object bk = get("Backups.Keep");
         BackupsKeep = bk instanceof Integer i && i >= 0 ? i : 5;
 
+        AutoSetupMaxRadius = positive(get("AutomaticSetup.MaxRadius"), 400);
+        AutoSetupDefaultRadius = Math.min(positive(get("AutomaticSetup.DefaultRadius"), 150), AutoSetupMaxRadius);
+        AutoSetupGeneratorRadius = positive(get("AutomaticSetup.GeneratorSearchRadius"), 20);
+        AutoSetupBasePadding = positive(get("AutomaticSetup.BasePadding"), 8);
+        AutoSetupBaseBelow = positive(get("AutomaticSetup.BaseBelow"), 5);
+        AutoSetupBaseAbove = positive(get("AutomaticSetup.BaseAbove"), 15);
+
         Object mvs = get("MapVote.Item.Slot");
         MapVoteItemSlot = mvs instanceof Integer i && i >= 0 && i <= 8 ? i : 2;
         Object mvm = get("MapVote.Item.Material");
@@ -221,43 +230,6 @@ public class Properties{
             }
             GamePhases.put(ID, new GamePhases(ID, phaseList));
         }
-
-        try {
-            UpgradePriceType = PriceType.valueOf(((String) get("UpgradePrices.PriceType")).toUpperCase());
-        } catch (Exception ignored) {
-            UpgradePriceType = PriceType.DIAMOND;
-        }
-        UpgradePrices.clear();
-        for (Upgrade upgrade : Upgrade.values()) {
-            Object pricesObj = get("UpgradePrices." + upgrade.name());
-            if (pricesObj instanceof List<?> list) {
-                List<Integer> prices = new ArrayList<>();
-                for (Object o : list) {
-                    if (o instanceof Integer i) prices.add(i);
-                }
-                UpgradePrices.put(upgrade.name(), prices);
-            }
-        }
-    }
-
-    public static int getUpgradePrice(Upgrade upgrade, int currentLevel) {
-        List<Integer> prices = UpgradePrices.get(upgrade.name());
-        if (prices == null) {
-
-            List<Integer> configured = NewBedwars.plugin.getConfig().getIntegerList("UpgradePrices." + upgrade.name());
-            prices = configured.isEmpty() ? upgrade.defaultPrices() : configured;
-        }
-        if (currentLevel >= prices.size()) return 999;
-        return prices.get(currentLevel);
-    }
-
-    public static Material getMaterialForPriceType(PriceType priceType) {
-        return switch (priceType) {
-            case EMERALD -> Material.EMERALD;
-            case GOLD -> Material.GOLD_INGOT;
-            case IRON -> Material.IRON_INGOT;
-            default -> Material.DIAMOND;
-        };
     }
 
     private void loadNetwork() {
@@ -279,6 +251,10 @@ public class Properties{
         NetworkStatePublishSeconds = get("Network.StatePublishSeconds") instanceof Integer i && i > 0 ? i : 5;
         NetworkMySQLEnabled = get("Network.MySQL.Enabled") instanceof Boolean b ? b : false;
         NetworkMySQLHeartbeatSeconds = get("Network.MySQL.HeartbeatSeconds") instanceof Integer i && i > 0 ? i : 5;
+    }
+
+    private static int positive(Object value, int fallback) {
+        return value instanceof Integer i && i > 0 ? i : fallback;
     }
 
     private Object get(String text) {

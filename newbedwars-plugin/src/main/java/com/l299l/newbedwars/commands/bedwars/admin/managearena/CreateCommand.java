@@ -91,6 +91,8 @@ public class CreateCommand extends BwCommand {
                 arena.getArenaWorld().save();
                 player.setGameMode(GameMode.CREATIVE);
                 player.teleport(new Location(arena.getArenaWorld(), 0, 100, 0));
+                player.setAllowFlight(true);
+                player.setFlying(true);
                 arena.getPlayersOnSetup().add(player.getUniqueId());
                 player.openInventory(new BasicConfigurationGUI(NewBedwars.plugin.getGuiManager(), player).getInventory());
             } catch (Exception e) {

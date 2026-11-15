@@ -93,6 +93,40 @@ class ApiViewsTest {
     }
 
     @Test
+    void setupPlayersAndTheirArenaAreExposed() {
+        UUID admin = UUID.randomUUID();
+        UUID gone = UUID.randomUUID();
+        Player player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(admin);
+        Player other = mock(Player.class);
+        when(other.getUniqueId()).thenReturn(UUID.randomUUID());
+        ArrayList<UUID> setup = new ArrayList<>(List.of(admin, gone));
+        when(arena.getPlayersOnSetup()).thenReturn(setup);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(admin)).thenReturn(player);
+            bukkit.when(() -> Bukkit.getPlayer(gone)).thenReturn(null);
+            assertEquals(List.of(player), new ApiArena(arena).getSetupPlayers());
+            assertEquals("A1", api.getSetupArena(player).orElseThrow().getName());
+            assertTrue(api.getSetupArena(other).isEmpty());
+            assertEquals(java.util.Set.of(player), api.getSetupPlayers().keySet());
+            assertEquals("A1", api.getSetupPlayers().get(player).getName());
+        }
+    }
+
+    @Test
+    void quickVoidAndBedAreNullUntilConfigured() {
+        when(arena.getQuickVoidY()).thenReturn(null);
+        assertNull(new ApiArena(arena).getQuickVoidY());
+        when(arena.getQuickVoidY()).thenReturn(-40);
+        assertEquals(-40, new ApiArena(arena).getQuickVoidY());
+        TeamView team = new ApiArena(arena).getTeam("Red").orElseThrow();
+        assertNull(team.getBed());
+        org.bukkit.Location bed = mock(org.bukkit.Location.class);
+        red.setTeamBed(bed);
+        assertSame(bed, team.getBed());
+    }
+
+    @Test
     void teamViewReflectsTeamAndNullBedIsNotDestroyed() {
         Optional<TeamView> team = new ApiArena(arena).getTeam("Red");
         assertTrue(team.isPresent());

@@ -10,6 +10,7 @@ import com.l299l.newbedwars.panel.auth.PasswordHasher;
 import com.l299l.newbedwars.panel.auth.Permission;
 import com.l299l.newbedwars.panel.auth.Role;
 import com.l299l.newbedwars.panel.auth.SessionManager;
+import com.l299l.newbedwars.panel.network.NetworkRole;
 import com.l299l.newbedwars.panel.web.HttpError;
 import com.l299l.newbedwars.panel.web.Request;
 import com.l299l.newbedwars.panel.web.Response;
@@ -31,10 +32,21 @@ public final class AuthRoutes {
     private final SessionCookie cookies;
     private final AuditLog audit;
     private final String defaultLanguage;
+    private final NetworkInfo network;
     private volatile String dummyHash;
+
+    public record NetworkInfo(NetworkRole role, String serverId, boolean nodeLogin) {
+        public static final NetworkInfo NONE = new NetworkInfo(NetworkRole.STANDALONE, null, true);
+    }
 
     public AuthRoutes(AccountStore accounts, SessionManager sessions, LoginLimiter limiter, PasswordHasher hasher,
                       SessionCookie cookies, AuditLog audit, String defaultLanguage) {
+        this(accounts, sessions, limiter, hasher, cookies, audit, defaultLanguage, NetworkInfo.NONE);
+    }
+
+    public AuthRoutes(AccountStore accounts, SessionManager sessions, LoginLimiter limiter, PasswordHasher hasher,
+                      SessionCookie cookies, AuditLog audit, String defaultLanguage, NetworkInfo network) {
+        this.network = network;
         this.accounts = accounts;
         this.sessions = sessions;
         this.limiter = limiter;
@@ -48,6 +60,9 @@ public final class AuthRoutes {
         router.open("GET", "/api/info", r -> {
             JsonObject o = new JsonObject();
             o.addProperty("language", defaultLanguage);
+            o.addProperty("networkRole", network.role().name());
+            if (network.serverId() != null) o.addProperty("serverId", network.serverId());
+            if (network.role() == NetworkRole.NODE) o.addProperty("nodeLogin", network.nodeLogin());
             return Response.ok(o);
         });
         router.open("POST", "/api/login", this::login);
@@ -57,6 +72,7 @@ public final class AuthRoutes {
     }
 
     private Response login(Request request) throws IOException {
+        if (network.role() == NetworkRole.NODE && !network.nodeLogin()) throw new HttpError(403, "node_login_disabled");
         String name = request.string("name");
         String password = request.string("password");
         if (name == null || password == null || name.length() > MAX_NAME || password.length() > MAX_PASSWORD) {

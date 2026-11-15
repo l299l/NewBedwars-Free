@@ -55,11 +55,15 @@ public final class Router {
     }
 
     private static Map<String, String> matchPath(String[] pattern, String[] parts) {
-        if (pattern.length != parts.length) return null;
+        boolean tail = pattern.length > 0 && pattern[pattern.length - 1].startsWith("{*") && pattern[pattern.length - 1].endsWith("}");
+        if (tail ? parts.length < pattern.length : pattern.length != parts.length) return null;
         Map<String, String> params = new HashMap<>();
         for (int i = 0; i < pattern.length; i++) {
             String p = pattern[i];
-            if (p.startsWith("{") && p.endsWith("}")) {
+            if (tail && i == pattern.length - 1) {
+                if (parts[i].isEmpty()) return null;
+                params.put(p.substring(2, p.length() - 1), String.join("/", java.util.Arrays.copyOfRange(parts, i, parts.length)));
+            } else if (p.startsWith("{") && p.endsWith("}")) {
                 if (parts[i].isEmpty()) return null;
                 params.put(p.substring(1, p.length() - 1), decode(parts[i]));
             } else if (!p.equals(parts[i])) {

@@ -16,7 +16,7 @@ import java.util.List;
 public class ArenaInfoCommand extends SubCommand {
     @Override
     public String getName() {
-        return "arena";
+        return "info";
     }
 
     @Override
@@ -26,12 +26,12 @@ public class ArenaInfoCommand extends SubCommand {
 
     @Override
     public String getSyntax() {
-        return "/bw arena [gui]";
+        return "/bw info [gui]";
     }
 
     @Override
     public String getExample() {
-        return "/bw arena";
+        return "/bw info";
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ArenaInfoCommand extends SubCommand {
         for (Team team : teams.values()) {
             player.sendMessage(team.getColor() + "" + ChatColor.BOLD + team.getName()
                     + ChatColor.RESET + ":");
-            for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team, isAdvanced)) {
+            for (ArenaInfo.TeamSetting setting : ArenaInfo.teamSettings(team)) {
                 String where = !setting.set() ? ""
                         : setting.area() ? ArenaInfo.loc(player, setting.pos1()) + " → " + ArenaInfo.loc(player, setting.pos2())
                         : ArenaInfo.loc(player, setting.pos1());

@@ -1,5 +1,5 @@
 import { api, busy, confirmDialog, errorText, go, h, t } from '../app.js';
-import { mcText, select, shopOptions, shopTabs, showResult, swatch, usageText } from './shopcommon.js';
+import { mcText, select, shopOptions, shopTabs, showResult, swatch, syncButton, tierEditor, usageText } from './shopcommon.js';
 
 const ID_PATTERN = '[A-Za-z0-9_\\-]{1,32}';
 
@@ -30,7 +30,7 @@ export function guiList(root) {
   root.append(h('h1', {}, t('shop.title')), shopTabs('guis'));
   const add = h('a', { class: 'btn btn-primary', href: '#/shop/gui' }, t('shop.guis.new'));
   const list = h('div', { class: 'table-wrap' }, h('p', { class: 'muted' }, t('common.working')));
-  root.append(h('div', { class: 'inline-form shop-toolbar' }, add), list);
+  root.append(h('div', { class: 'inline-form shop-toolbar' }, add, syncButton('guis')), list);
   api('GET', '/api/shop/guis').then(data => {
     if (!data.guis.length) { list.replaceChildren(h('p', { class: 'empty' }, t('shop.guis.none'))); return; }
     list.replaceChildren(h('table', { class: 'table' },
@@ -52,13 +52,14 @@ export function guiPage(root, id) {
   root.append(h('a', { class: 'back', href: '#/shop/guis' }, t('shop.back')), h('h1', {}, creating ? t('shop.gui.newTitle') : id));
   const body = h('div', {}, h('p', { class: 'muted' }, t('common.working')));
   root.append(body);
-  Promise.all([shopOptions(), api('GET', '/api/shop/items'), creating ? null : api('GET', '/api/shop/guis/' + encodeURIComponent(id))])
-    .then(([options, items, data]) => editor(body, options, items.items, data ? data.gui : null))
+  Promise.all([shopOptions(), api('GET', '/api/shop/items'), creating ? null : api('GET', '/api/shop/guis/' + encodeURIComponent(id)),
+    api('GET', '/api/shop/upgrades').catch(() => null)])
+    .then(([options, items, data, upgrades]) => editor(body, options, items.items, data ? data.gui : null, upgrades))
     .catch(err => body.replaceChildren(h('p', { class: 'form-error' }, err.status === 404 ? t('shop.gui.notFound') : errorText(err))));
   return null;
 }
 
-function editor(body, options, items, loaded) {
+function editor(body, options, items, loaded, upgrades) {
   const creating = !loaded;
   const gui = loaded ? structuredClone(loaded) : {
     id: '', title: '&8Shop', size: 54, headerSize: 18, footerSize: 0, closeOnTransaction: false, fill: 'empty', empty: 'empty',
@@ -333,6 +334,36 @@ function editor(body, options, items, loaded) {
     drawCategories();
   }
 
+  const overrideEditors = new Map();
+  const overrideRows = h('div', {});
+  const addOverrideBox = h('div', { class: 'inline-form override-add' });
+  const upgradeInfo = upgrades ? Object.fromEntries(upgrades.upgrades.map(u => [u.name, u])) : {};
+  function addOverride(name, tiers) {
+    const info = upgradeInfo[name] || { maxLevel: tiers.length };
+    const ed = tierEditor('ovr-' + name, tiers, info.maxLevel, upgrades.currencies);
+    const remove = h('button', { class: 'btn btn-small btn-quiet', type: 'button' }, t('shop.gui.removeOverride'));
+    const row = h('div', { class: 'override-row' }, h('div', { class: 'row-between' }, h('h3', {}, name), remove), ed.el);
+    remove.addEventListener('click', () => { overrideEditors.delete(name); row.remove(); drawAddOverride(); });
+    overrideEditors.set(name, ed);
+    overrideRows.append(row);
+  }
+  function drawAddOverride() {
+    const free = upgrades.upgrades.map(u => u.name).filter(n => !overrideEditors.has(n));
+    if (!free.length) { addOverrideBox.replaceChildren(); return; }
+    const choice = select('ovr-add', free, free[0]);
+    choice.setAttribute('aria-label', t('shop.gui.overrideUpgrade'));
+    const add = h('button', { class: 'btn btn-small', type: 'button' }, t('shop.gui.addOverride'));
+    add.addEventListener('click', () => { addOverride(choice.value, upgradeInfo[choice.value].tiers); drawAddOverride(); });
+    addOverrideBox.replaceChildren(choice, add);
+  }
+  let pricesBox = null;
+  if (upgrades) {
+    for (const [name, tiers] of Object.entries(gui.upgradePrices || {})) addOverride(name, tiers);
+    drawAddOverride();
+    pricesBox = h('section', { class: 'panel-section' }, h('h2', {}, t('shop.gui.prices')),
+      h('p', { class: 'hint measure' }, t('shop.gui.pricesHint')), overrideRows, addOverrideBox);
+  }
+
   const error = h('p', { class: 'form-error', role: 'alert' });
   const save = h('button', { class: 'btn btn-primary', type: 'submit' }, creating ? t('shop.gui.create') : t('common.save'));
   const del = creating ? null : h('button', { class: 'btn btn-danger', type: 'button', disabled: gui.usedBy.length > 0 }, t('common.delete'));
@@ -365,6 +396,7 @@ function editor(body, options, items, loaded) {
     h('div', { class: 'gui-editor' }, h('div', { class: 'grid-wrap' }, grid), inspector),
     h('section', { class: 'panel-section' }, palette),
     h('section', { class: 'panel-section' }, categoriesBox),
+    pricesBox,
     gui.usedBy.length ? h('p', { class: 'hint' }, t('shop.gui.usedBy', { list: gui.usedBy.map(usageText).join(', ') })) : null,
     error,
     h('div', { class: 'row-end' }, del, save));
@@ -380,6 +412,7 @@ function editor(body, options, items, loaded) {
       closeOnTransaction: close.checked, fill: fill.value, empty: empty.value, slots: gui.slots,
       categories: gui.categories.map(c => ({ id: c.id, name: c.name, icon: c.icon, description: c.description, items: c.items })),
     };
+    if (upgrades) payload.upgradePrices = Object.fromEntries([...overrideEditors].map(([name, ed]) => [name, ed.read()]));
     busy(save, async () => {
       try {
         const result = creating

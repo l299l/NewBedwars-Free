@@ -14,7 +14,10 @@ import com.l299l.newbedwars.api.view.ArenaState;
 import com.l299l.newbedwars.api.edit.ArenaEditor;
 import com.l299l.newbedwars.api.maintenance.ArenaMaintenance;
 import com.l299l.newbedwars.api.game.GameControl;
+import com.l299l.newbedwars.api.shop.ItemTexts;
 import com.l299l.newbedwars.api.shop.ShopEditor;
+import com.l299l.newbedwars.api.shop.ShopItem;
+import com.l299l.newbedwars.api.shop.ShopOptions;
 import com.l299l.newbedwars.api.command.AddonCommand;
 import com.l299l.newbedwars.api.command.CommandContext;
 import com.l299l.newbedwars.api.registry.UpgradeDefinition;
@@ -27,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -128,6 +132,12 @@ public interface NewBedwarsAPI {
     /** Shop items, their texts and shop GUIs: read and change them like the web panel's shop editor. Available from 2.7-beta. */
     ShopEditor getShop();
 
+    /** The arena {@code player} is setting up (is in setup mode for). Available from 2.7-beta. */
+    Optional<ArenaView> getSetupArena(Player player);
+
+    /** Everyone who is in setup mode right now, with the arena each one is setting up. Available from 2.7-beta. */
+    Map<Player, ArenaView> getSetupPlayers();
+
     /** Adds an action usable in {@code GamePhases} in config.yml as {@code NAME} or {@code NAME:argument}. */
     void registerPhaseAction(Plugin owner, String name, PhaseActionHandler handler);
 
@@ -154,6 +164,27 @@ public interface NewBedwarsAPI {
 
     /** Adds a team upgrade or trap, and its shop icon item (named like the upgrade) when it does not exist. */
     void registerUpgrade(Plugin owner, UpgradeDefinition upgrade);
+
+    /**
+     * Adds a shop item to {@code items.yml} when no item with that name exists yet, so server owners do not have to
+     * add it by hand. An existing item is never changed (the owner may have edited it) and is also not removed when
+     * the addon is disabled. Register the {@link ShopLogic} the item uses first. The item still has to be placed
+     * in a shop GUI (the web panel or a GUI file) to be sold. Call it on the server thread, e.g. in {@code onEnable}.
+     * Available from 2.7-beta.
+     *
+     * @param texts display texts per language code (see {@link ShopOptions#languages()}), or {@code null} to use the
+     *              item name; server owners can change them later
+     * @return {@code true} when the item was added, {@code false} when an item with that name already exists
+     * @throws IllegalArgumentException when a value of {@code item} or {@code texts} is not valid (same rules as
+     *                                  {@link ShopEditor#saveItem})
+     * @throws IllegalStateException    when not called on the server thread
+     */
+    boolean registerShopItem(Plugin owner, ShopItem item, Map<String, ItemTexts> texts);
+
+    /** Same as {@link #registerShopItem(Plugin, ShopItem, Map)} without texts. */
+    default boolean registerShopItem(Plugin owner, ShopItem item) {
+        return registerShopItem(owner, item, null);
+    }
 
     /** Removes everything {@code owner} registered. Done automatically when the plugin is disabled. */
     void unregisterAll(Plugin owner);

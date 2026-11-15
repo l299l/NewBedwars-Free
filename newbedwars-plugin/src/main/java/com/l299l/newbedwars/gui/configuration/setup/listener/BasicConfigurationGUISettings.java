@@ -42,7 +42,9 @@ public class BasicConfigurationGUISettings implements Listener {
             msg.sendConf(player, Setup.ADVANCED_SETUP);
             player.closeInventory();
         } else if (e.getSlot() == 15) {
-            msg.send(player, "SetupModeNotImplemented");
+            arena.changeSetup(Setup.AUTOMATIC_SETUP);
+            msg.sendConf(player, Setup.AUTOMATIC_SETUP);
+            player.closeInventory();
         }
     }
 

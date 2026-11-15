@@ -1,4 +1,4 @@
-import { api, errorText, h, t } from '../app.js';
+import { api, errorText, h, serverPicker, t } from '../app.js';
 
 const STATS = ['wins', 'kills', 'final_kills', 'beds_broken', 'deaths', 'losses', 'games_played'];
 const LIMITS = [10, 25, 100];
@@ -95,9 +95,9 @@ export function render(root) {
     if (search.value.trim()) openPlayer(search.value.trim());
   });
 
-  root.append(h('h1', {}, t('stats.title')),
+  root.append(...[h('h1', {}, t('stats.title')), serverPicker(),
     h('section', { class: 'panel-section' }, form, playerBox),
-    h('section', { class: 'panel-section' }, h('h2', {}, t('stats.leaderboard')), tabs, limits, table));
+    h('section', { class: 'panel-section' }, h('h2', {}, t('stats.leaderboard')), tabs, limits, table)].filter(Boolean));
   drawTabs();
   load();
   return () => clearTimeout(searchTimer);

@@ -10,8 +10,8 @@ import java.util.List;
 
 /**
  * A team upgrade or trap added by an addon. After {@link NewBedwarsAPI#registerUpgrade} it can be used in the
- * upgrade shop GUI files as {@code upg:<name>}, and its prices can be set in config.yml under
- * {@code UpgradePrices.<NAME>}.
+ * upgrade shop GUI files as {@code upg:<name>}. Its prices are written to {@code data/upgrades.yml} on the first
+ * registration and can be changed there (or in the web panel) afterwards.
  */
 public final class UpgradeDefinition {
     /** Applies an upgrade to a player. */
@@ -46,7 +46,7 @@ public final class UpgradeDefinition {
     /**
      * An upgrade whose {@code effect} is applied to every team member when bought. Use
      * {@link TeamView#getUpgradeLevel} to read the level later.
-     * @param prices price per level (in the configured upgrade currency), used when config.yml has none
+     * @param prices default price per level (in the default upgrade currency), used when data/upgrades.yml has no entry yet
      */
     public static UpgradeDefinition upgrade(String name, int maxLevel, Material icon, List<Integer> prices, Effect effect) {
         return new UpgradeDefinition(name, maxLevel, icon, prices, effect, null);

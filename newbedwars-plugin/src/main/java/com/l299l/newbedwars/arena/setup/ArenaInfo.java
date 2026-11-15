@@ -34,7 +34,7 @@ public final class ArenaInfo {
         }
     }
 
-    public static List<TeamSetting> teamSettings(Team team, boolean advanced) {
+    public static List<TeamSetting> teamSettings(Team team) {
         List<TeamSetting> list = new ArrayList<>();
         list.add(TeamSetting.point("Info-Bed", Material.RED_BED, team.isBedSet(),
                 team.isBedSet() ? team.getTeamBed().getLocation() : null));
@@ -49,10 +49,6 @@ public final class ArenaInfo {
                 team.getTeamBuildProtAreaPos1(), team.getTeamBuildProtAreaPos2()));
         list.add(TeamSetting.area("Info-BaseArea", Material.RED_STAINED_GLASS, team.isBasePosSet(),
                 team.getTeamBasePos1(), team.getTeamBasePos2()));
-        if (advanced) {
-            list.add(TeamSetting.point("Info-Accessories", Material.DIAMOND_HORSE_ARMOR, team.isAccessoriesSet(),
-                    team.isAccessoriesSet() ? team.getTeamAccessories() : null));
-        }
         return list;
     }
 

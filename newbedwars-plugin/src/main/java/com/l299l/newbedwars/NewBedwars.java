@@ -168,7 +168,7 @@ public final class NewBedwars extends JavaPlugin {
         properties = new Properties();
         if (dataManager != null) dataManager.stop();
         dataManager = new DataManager();
-        dataManager.load();
+        dataManager.load(updater.takeLegacyUpgradePrices());
         arenaGroupManager.load();
         mapVoteManager.clear();
         partyManager = new PartyManager(this, messages);

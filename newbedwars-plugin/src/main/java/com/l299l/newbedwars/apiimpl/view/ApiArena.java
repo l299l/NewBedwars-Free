@@ -33,6 +33,21 @@ public final class ApiArena implements ArenaView {
     }
 
     @Override
+    public Integer getQuickVoidY() {
+        return arena.getQuickVoidY();
+    }
+
+    @Override
+    public List<Player> getSetupPlayers() {
+        List<Player> result = new ArrayList<>();
+        for (UUID id : arena.getPlayersOnSetup()) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) result.add(player);
+        }
+        return result;
+    }
+
+    @Override
     public ArenaState getState() {
         return switch (arena.status()) {
             case waiting -> ArenaState.WAITING;

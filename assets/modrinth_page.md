@@ -62,7 +62,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 2. Start the server. Config files generate automatically.
 3. Set your lobby spawn: `/bw setLobby`
 4. Create your first arena: `/bw arena create myArena`
-5. Follow the setup checklist shown by `/bw arena`.
+5. Follow the setup checklist shown by `/bw info`.
 6. Save the arena: `/bw save`
 7. Enable it when ready: `/bw arena enable myArena`
 
@@ -121,9 +121,9 @@ Used inside the arena world after `/bw arena setup <name>`. Pick a mode with `/b
 
 | Mode | Commands |
 |---|---|
-| All | `/bw arena`, `/bw setupMode`, `/bw setupHelp`, `/bw save`, `/bw remove`, `/bw leave` |
+| All | `/bw info`, `/bw setupMode`, `/bw setupHelp`, `/bw save`, `/bw remove`, `/bw leave` |
 | Normal | `/bw createTeam <color> <name>`, `setTeamSpawn`, `setTeamBed`, `setTeamShop`, `setTeamUpgrades`, `setGenerator <type> [team]`, `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `setWaitingPos1/2`, `setWaitingTime`, `setQuickVoidY`, `setTeamBasePos1/2`, `setTeamBuildProtAreaPos1/2` |
-| Advanced | `/bw gamerule <name> <true\|false>`, `setGui`, `setGeneratorLeveling`, `setResourcePack`, `setTeamAccessories` |
+| Advanced | `/bw gamerule <name> <true\|false>`, `setGui`, `setGeneratorLeveling`, `setResourcePack` |
 
 The complete list with every argument is in the [command reference](https://github.com/l299l/NewBedwars-Free/blob/master/docs/COMMANDS.md).
 
@@ -152,12 +152,13 @@ Files are created in `plugins/NewBedwars/`:
 
 | File | What it controls |
 |---|---|
-| `config.yml` | Defaults, gamerules, game phases, upgrade prices, rejoin |
+| `config.yml` | Defaults, gamerules, game phases, rejoin |
 | `language/*.yml` | All messages (add or edit translations) |
 | `bossBars.yml` / `scoreboards.yml` | Boss bar and scoreboard templates |
 | `generators/defaultGenerators.yml` | Resource generator speeds and levels |
 | `data/guis/*.yml` | Shop and upgrade GUIs |
 | `data/items.yml` | Shop items |
+| `data/upgrades.yml` | Upgrade and trap prices per level |
 | `data/arenas/*.json` | Saved arenas (edited by the setup commands) |
 
 ## PlaceholderAPI

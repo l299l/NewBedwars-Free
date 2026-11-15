@@ -1,6 +1,18 @@
 const LANGUAGES = ['en', 'pl'];
 
-export const state = { me: null, lang: 'en', strings: {}, fallback: {} };
+export const state = { me: null, lang: 'en', strings: {}, fallback: {}, info: {}, server: null };
+
+const LOCAL_PATHS = ['/api/info', '/api/login', '/api/logout', '/api/me', '/api/password', '/api/users', '/api/roles', '/api/audit', '/api/network', '/api/s'];
+
+export function routed(path, server = state.server) {
+  if (!server || !path.startsWith('/api/')) return path;
+  if (LOCAL_PATHS.some(local => path === local || path.startsWith(local + '/') || path.startsWith(local + '?'))) return path;
+  return '/api/s/' + encodeURIComponent(server) + path.slice(4);
+}
+
+export function isGateway() {
+  return state.info.networkRole === 'GATEWAY' && !!state.me && state.me.permissions.includes('network.servers');
+}
 
 export function t(key, vars = {}) {
   let text = state.strings[key] ?? state.fallback[key] ?? key;
@@ -51,7 +63,7 @@ export async function api(method, path, body, options = {}) {
   }
   let response;
   try {
-    response = await fetch(path, { method, headers, body: payload, credentials: 'same-origin', cache: 'no-store', signal: options.signal });
+    response = await fetch(routed(path, options.server !== undefined ? options.server : state.server), { method, headers, body: payload, credentials: 'same-origin', cache: 'no-store', signal: options.signal });
   } catch (e) {
     if (e.name === 'AbortError') throw e;
     throw new ApiError(0, 'network');
@@ -140,6 +152,23 @@ export function formatUptime(seconds) {
   if (d > 0) return d + ' d ' + hr + ' h';
   if (hr > 0) return hr + ' h ' + m + ' min';
   return Math.max(1, m) + ' min';
+}
+
+let serverRoute = null;
+
+export function serverPicker() {
+  if (!isGateway()) return null;
+  const select = h('select', { id: 'server-picker', class: 'lang', 'aria-label': t('net.server') });
+  const label = h('label', { class: 'server-picker', for: 'server-picker' }, t('net.server'), ' ', select);
+  api('GET', '/api/network').then(data => {
+    select.replaceChildren(...data.servers.filter(s => s.status === 'ONLINE' || s.local || s.id === state.server).map(s =>
+      h('option', { value: s.local ? '' : s.id, selected: (s.local ? null : s.id) === state.server }, s.id + (s.local ? ' (' + t('net.thisServer') + ')' : ''))));
+  }).catch(() => {});
+  select.addEventListener('change', () => {
+    state.server = select.value || null;
+    render();
+  });
+  return label;
 }
 
 export function go(route) {
@@ -243,6 +272,9 @@ export async function render() {
   const app = document.getElementById('app');
   app.replaceChildren(route.shell ? shell(routeName, root) : root);
   const params = rest.map(decodeURIComponent);
+  if (routeName === 'arena') state.server = params.length >= 2 ? params[0] : null;
+  else if (routeName !== serverRoute) state.server = null;
+  serverRoute = routeName;
   cleanup = view.render(root, params) || null;
   const heading = root.querySelector('h1');
   if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
@@ -256,6 +288,7 @@ async function start() {
   state.fallback = await loadStrings('en');
   let info = { language: 'en' };
   try { info = await api('GET', '/api/info'); } catch (e) { }
+  state.info = info;
   try { state.me = await api('GET', '/api/me', undefined, { noRedirect: true }); } catch (e) { state.me = null; }
   window.addEventListener('hashchange', render);
   await setLanguage(pickLanguage(info.language));

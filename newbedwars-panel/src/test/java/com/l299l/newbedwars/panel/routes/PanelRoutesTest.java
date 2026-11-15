@@ -261,7 +261,7 @@ class PanelRoutesTest {
         assertEquals(UserCommands.PASSWORD_LENGTH, password.length());
         assertEquals(409, send("POST", "/api/users", boss, "{\"name\":\"keeper\",\"role\":\"staff\"}").statusCode());
 
-        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"managers\",\"permissions\":[\"dashboard.view\",\"stats.view\",\"users.manage\"]}").statusCode());
+        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"managers\",\"permissions\":[\"dashboard.view\",\"stats.view\",\"network.servers\",\"users.manage\"]}").statusCode());
         assertEquals(400, send("POST", "/api/roles", boss, "{\"name\":\"admin\",\"permissions\":[]}").statusCode());
         assertEquals(400, send("POST", "/api/roles", boss, "{\"name\":\"x\",\"permissions\":[\"nope\"]}").statusCode());
         assertEquals(200, send("POST", "/api/users/keeper/role", boss, "{\"role\":\"managers\"}").statusCode());
@@ -430,5 +430,44 @@ class PanelRoutesTest {
         assertEquals("arena:Castle", refused.get("detail").getAsString());
         assertEquals("BUSY", json(send("POST", "/api/shop/arenas/Castle", boss, "{\"shopGui\":\"shop\"}")).get("code").getAsString());
         assertFalse(json(send("GET", "/api/shop/arenas", boss, null)).getAsJsonArray("arenas").get(0).getAsJsonObject().get("waiting").getAsBoolean());
+    }
+
+    @Test
+    void upgradePricesAreListedAndSaved() throws Exception {
+        Login boss = login("boss", "boss-password");
+        Login helper = login("helper", "helper-password");
+        when(shop.getUpgradePrices()).thenReturn(CompletableFuture.completedFuture(List.of(
+                new com.l299l.newbedwars.api.shop.UpgradePrice("FORGE", List.of(
+                        new com.l299l.newbedwars.api.shop.UpgradeTier(2, "DIAMOND")), 8, true))));
+        when(shop.saveUpgradePrices(eq("FORGE"), any())).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.shop.ShopResult(com.l299l.newbedwars.api.shop.ShopResult.Code.OK, null)));
+
+        assertEquals(403, send("GET", "/api/shop/upgrades", helper, null).statusCode());
+        JsonObject list = json(send("GET", "/api/shop/upgrades", boss, null));
+        JsonObject forge = list.getAsJsonArray("upgrades").get(0).getAsJsonObject();
+        assertEquals(8, forge.get("maxLevel").getAsInt());
+        assertEquals("DIAMOND", forge.getAsJsonArray("tiers").get(0).getAsJsonObject().get("currency").getAsString());
+        assertEquals(4, list.getAsJsonArray("currencies").size());
+
+        assertTrue(json(send("POST", "/api/shop/upgrades/FORGE", boss,
+                "{\"tiers\":[{\"price\":3,\"currency\":\"IRON\"},{\"price\":5,\"currency\":\"EMERALD\"}]}")).get("ok").getAsBoolean());
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<List<com.l299l.newbedwars.api.shop.UpgradeTier>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(shop).saveUpgradePrices(eq("FORGE"), captor.capture());
+        assertEquals(List.of(new com.l299l.newbedwars.api.shop.UpgradeTier(3, "IRON"),
+                new com.l299l.newbedwars.api.shop.UpgradeTier(5, "EMERALD")), captor.getValue());
+        assertEquals(400, send("POST", "/api/shop/upgrades/FORGE", boss, "{\"tiers\":{}}").statusCode());
+        assertEquals(400, send("POST", "/api/shop/upgrades/FORGE", boss, "{\"tiers\":[{\"price\":\"x\"}]}").statusCode());
+        assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("shop.upgrade.save") && e.result().equals("OK")));
+    }
+
+    @Test
+    void guiUpgradePriceOverridesAreParsed() {
+        JsonObject body = com.google.gson.JsonParser.parseString("{\"title\":\"T\",\"size\":9,"
+                + "\"upgradePrices\":{\"HASTE\":[{\"price\":1,\"currency\":\"GOLD\"}]}}").getAsJsonObject();
+        var gui = ShopRoutes.parseGui(body, "g");
+        assertEquals(java.util.Map.of("HASTE", List.of(new com.l299l.newbedwars.api.shop.UpgradeTier(1, "GOLD"))), gui.upgradePrices());
+        assertNull(ShopRoutes.parseGui(com.google.gson.JsonParser.parseString("{\"size\":9}").getAsJsonObject(), "g").upgradePrices());
+        assertEquals(1, ShopRoutes.gui(gui).getAsJsonObject("upgradePrices").getAsJsonArray("HASTE").size());
     }
 }

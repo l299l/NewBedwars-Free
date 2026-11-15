@@ -67,6 +67,12 @@ public class SetupArenaCommand extends BwCommand {
             msg.sendConf(player, setupMessageMode(arena));
         }
         player.setGameMode(GameMode.CREATIVE);
+        fly(player);
+    }
+
+    private static void fly(Player player) {
+        player.setAllowFlight(true);
+        player.setFlying(true);
     }
 
     private void addAdmin(Player player, IArena arena, String name, Location loc) {
@@ -82,6 +88,7 @@ public class SetupArenaCommand extends BwCommand {
         p.teleport(loc);
         arena.getPlayersOnSetup().add(p.getUniqueId());
         p.setGameMode(GameMode.CREATIVE);
+        fly(p);
         msg.send(p, "AddedToSetupMode");
         msg.sendConf(p, setupMessageMode(arena));
     }
