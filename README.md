@@ -1,16 +1,16 @@
 <div align="center">
 
-![NewBedwars Banner](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
+![NewBedwars banner: Bedwars plugin for Paper 1.17 to 26.x](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
 
 Bedwars for Paper 1.17 to 26.x. Arenas are built and configured in-game, the shop, scoreboards and boss bars are YAML files, and the same plugin runs on a single server or behind a Velocity proxy.
 
-[![Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars)
-[![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free)
+[![Download NewBedwars on Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars)
+[![NewBedwars source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free)
 
-[![Latest version](https://img.shields.io/modrinth/v/new-bedwars?label=version&style=flat-square)](https://modrinth.com/plugin/new-bedwars/versions)
-![Minecraft](https://img.shields.io/badge/Minecraft-1.17%20to%2026.x-62B47A?style=flat-square)
-![Java](https://img.shields.io/badge/Java-16%2B-ED8B00?style=flat-square)
-[![License](https://img.shields.io/badge/license-GPLv3-blue?style=flat-square)](LICENSE.txt)
+[![Latest NewBedwars version on Modrinth](https://img.shields.io/modrinth/v/new-bedwars?label=version&style=flat-square)](https://modrinth.com/plugin/new-bedwars/versions)
+![Supports Minecraft 1.17 to 26.x](https://img.shields.io/badge/Minecraft-1.17%20to%2026.x-62B47A?style=flat-square)
+![Requires Java 16 or newer](https://img.shields.io/badge/Java-16%2B-ED8B00?style=flat-square)
+[![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue?style=flat-square)](LICENSE.txt)
 
 </div>
 
@@ -87,7 +87,7 @@ Put `NewBedwars-Proxy` on Velocity, the normal jar on every backend, set `Networ
 ## Web panel
 
 > [!NOTE]
-> **Available from 2.7-beta**, as the separate jar `NewBedwars-Panel`.
+> **Available from 2.7-beta**, as the separate jar `NewBedwars-Panel` ([download from GitHub releases](https://github.com/l299l/NewBedwars-Free/releases/latest)).
 
 Put `NewBedwars-Panel-<version>.jar` next to the NewBedwars jar and restart. The panel runs inside the server at `https://<server>:8150/`. On first start it creates a self-signed certificate; you can also use your own certificate or a reverse proxy.
 
@@ -108,7 +108,7 @@ The panel shows every arena live (state, players, phase, teams and beds), online
 
 ## Addon API
 
-[![JitPack](https://jitpack.io/v/l299l/NewBedwars-Free.svg)](https://jitpack.io/#l299l/NewBedwars-Free)
+[![JitPack build status](https://jitpack.io/v/l299l/NewBedwars-Free.svg)](https://jitpack.io/#l299l/NewBedwars-Free)
 
 Addons can read arenas, teams and players, listen to events, edit arenas that are waiting, and register shop logic, upgrades, armor tiers, commands and phase actions. Only the `com.l299l.newbedwars.api` package is stable. The full guide is [docs/API.md](docs/API.md).
 
@@ -184,24 +184,24 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/dashboard.png" width="100%"/><br><sub>Dashboard: live arenas, players, TPS</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/arena-game.png" width="100%"/><br><sub>Arena view with game control</sub></td>
+    <td align="center"><img alt="Dashboard: live arenas, players, TPS" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/dashboard.png" width="100%"/><br><sub>Dashboard: live arenas, players, TPS</sub></td>
+    <td align="center"><img alt="Arena view with game control" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/arena-game.png" width="100%"/><br><sub>Arena view with game control</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/game-log.png" width="100%"/><br><sub>Live game log</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/stats.png" width="100%"/><br><sub>Player stats and leaderboards</sub></td>
+    <td align="center"><img alt="Live game log" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/game-log.png" width="100%"/><br><sub>Live game log</sub></td>
+    <td align="center"><img alt="Player stats and leaderboards" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/stats.png" width="100%"/><br><sub>Player stats and leaderboards</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-gui-editor.png" width="100%"/><br><sub>Shop GUI editor (drag and drop)</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-item-edit.png" width="100%"/><br><sub>Shop item editor</sub></td>
+    <td align="center"><img alt="Shop GUI editor (drag and drop)" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-gui-editor.png" width="100%"/><br><sub>Shop GUI editor (drag and drop)</sub></td>
+    <td align="center"><img alt="Shop item editor" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-item-edit.png" width="100%"/><br><sub>Shop item editor</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-upgrades.png" width="100%"/><br><sub>Upgrade and trap prices</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/accounts-roles.png" width="100%"/><br><sub>Accounts and roles</sub></td>
+    <td align="center"><img alt="Upgrade and trap prices" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-upgrades.png" width="100%"/><br><sub>Upgrade and trap prices</sub></td>
+    <td align="center"><img alt="Accounts and roles" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/accounts-roles.png" width="100%"/><br><sub>Accounts and roles</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/network-servers.png" width="100%"/><br><sub>Network: every server on one panel</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/mobile-dashboard.png" width="100%"/><br><sub>Phone view</sub></td>
+    <td align="center"><img alt="Network: every server on one panel" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/network-servers.png" width="100%"/><br><sub>Network: every server on one panel</sub></td>
+    <td align="center"><img alt="Phone view" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/mobile-dashboard.png" width="100%"/><br><sub>Phone view</sub></td>
   </tr>
 </table>
 
@@ -212,8 +212,8 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110222.png" width="100%"/><br><sub>Arena selector GUI</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110543.png" width="100%"/><br><sub>Waiting lobby with bossbar & scoreboard</sub></td>
+    <td align="center"><img alt="Arena selector GUI" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110222.png" width="100%"/><br><sub>Arena selector GUI</sub></td>
+    <td align="center"><img alt="Waiting lobby with bossbar & scoreboard" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_110543.png" width="100%"/><br><sub>Waiting lobby with bossbar & scoreboard</sub></td>
   </tr>
 </table>
 
@@ -224,15 +224,15 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114731.png" width="100%"/><br><sub>In-game HUD, scoreboard, phase info, NPC labels</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121249.png" width="100%"/><br><sub>Respawn countdown</sub></td>
+    <td align="center"><img alt="In-game HUD, scoreboard, phase info, NPC labels" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114731.png" width="100%"/><br><sub>In-game HUD, scoreboard, phase info, NPC labels</sub></td>
+    <td align="center"><img alt="Respawn countdown" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121249.png" width="100%"/><br><sub>Respawn countdown</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120913.png" width="100%"/><br><sub>Bed destroyed announcement</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_1205111.png" width="100%"/><br><sub>Trap alarm</sub></td>
+    <td align="center"><img alt="Bed destroyed announcement" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120913.png" width="100%"/><br><sub>Bed destroyed announcement</sub></td>
+    <td align="center"><img alt="Trap alarm" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_1205111.png" width="100%"/><br><sub>Trap alarm</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121425.png" width="100%"/><br><sub>End game, spectator view with bossbar</sub></td>
+    <td align="center"><img alt="End game, spectator view with bossbar" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121425.png" width="100%"/><br><sub>End game, spectator view with bossbar</sub></td>
     <td></td>
   </tr>
 </table>
@@ -244,11 +244,11 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114843.png" width="100%"/><br><sub>Shop GUI</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114904.png" width="100%"/><br><sub>Bridge Egg, shop tooltip (cost: 4 Gold)</sub></td>
+    <td align="center"><img alt="Shop GUI" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114843.png" width="100%"/><br><sub>Shop GUI</sub></td>
+    <td align="center"><img alt="Bridge Egg, shop tooltip (cost: 4 Gold)" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114904.png" width="100%"/><br><sub>Bridge Egg, shop tooltip (cost: 4 Gold)</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114919.png" width="100%"/><br><sub>Team Upgrades shop</sub></td>
+    <td align="center"><img alt="Team Upgrades shop" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_114919.png" width="100%"/><br><sub>Team Upgrades shop</sub></td>
     <td></td>
   </tr>
 </table>
@@ -260,8 +260,8 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_115559.png" width="100%"/><br><sub>Emerald Generator, hologram</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120327.png" width="100%"/><br><sub>Diamond Generator, hologram</sub></td>
+    <td align="center"><img alt="Emerald Generator, hologram" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_115559.png" width="100%"/><br><sub>Emerald Generator, hologram</sub></td>
+    <td align="center"><img alt="Diamond Generator, hologram" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_120327.png" width="100%"/><br><sub>Diamond Generator, hologram</sub></td>
   </tr>
 </table>
 
@@ -272,11 +272,11 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121511.png" width="100%"/><br><sub>Help command output</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121720.png" width="100%"/><br><sub>Arena setup checklist (NORMAL_SETUP)</sub></td>
+    <td align="center"><img alt="Help command output" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121511.png" width="100%"/><br><sub>Help command output</sub></td>
+    <td align="center"><img alt="Arena setup checklist (NORMAL_SETUP)" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121720.png" width="100%"/><br><sub>Arena setup checklist (NORMAL_SETUP)</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121727.png" width="100%"/><br><sub>Team configuration checklist, missing fields highlighted</sub></td>
+    <td align="center"><img alt="Team configuration checklist, missing fields highlighted" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_121727.png" width="100%"/><br><sub>Team configuration checklist, missing fields highlighted</sub></td>
     <td></td>
   </tr>
 </table>
@@ -288,15 +288,15 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 <table>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122307.png" width="100%"/><br><sub>Arena map, aerial overview</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123438.png" width="100%"/><br><sub>Live gameplay, combat near a bed 1</sub></td>
+    <td align="center"><img alt="Arena map, aerial overview" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122307.png" width="100%"/><br><sub>Arena map, aerial overview</sub></td>
+    <td align="center"><img alt="Live gameplay, combat near a bed 1" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123438.png" width="100%"/><br><sub>Live gameplay, combat near a bed 1</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png" width="100%"/><br><sub>Live gameplay, bed protection</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122528.png" width="100%"/><br><sub>Live gameplay, building bridge</sub></td>
+    <td align="center"><img alt="Live gameplay, bed protection" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png" width="100%"/><br><sub>Live gameplay, bed protection</sub></td>
+    <td align="center"><img alt="Live gameplay, building bridge" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122528.png" width="100%"/><br><sub>Live gameplay, building bridge</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123625.png" width="100%"/><br><sub>Live gameplay, combat near a bed 2</sub></td>
+    <td align="center"><img alt="Live gameplay, combat near a bed 2" src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123625.png" width="100%"/><br><sub>Live gameplay, combat near a bed 2</sub></td>
     <td></td>
   </tr>
 </table>

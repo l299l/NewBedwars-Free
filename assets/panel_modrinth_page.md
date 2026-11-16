@@ -1,8 +1,8 @@
-![NewBedwars](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
+![NewBedwars banner](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
 
 <div align="center">
 
-[![NewBedwars](https://img.shields.io/badge/Requires-NewBedwars-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Docs](https://img.shields.io/badge/Docs-PANEL.md-555555?style=for-the-badge)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PANEL.md)
+[![Requires the NewBedwars plugin](https://img.shields.io/badge/Requires-NewBedwars-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![Source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Web panel documentation](https://img.shields.io/badge/Docs-PANEL.md-555555?style=for-the-badge)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PANEL.md)
 
 </div>
 
@@ -55,28 +55,53 @@ The panel runs inside your Paper server. You don't need a separate website, data
 
 ## Screenshots
 
-<table>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/dashboard.png" width="100%"/><br><sub>Dashboard: live arenas, players, TPS</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/arena-game.png" width="100%"/><br><sub>Arena view with game control</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/game-log.png" width="100%"/><br><sub>Live game log</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/stats.png" width="100%"/><br><sub>Player stats and leaderboards</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-gui-editor.png" width="100%"/><br><sub>Shop GUI editor (drag and drop)</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-item-edit.png" width="100%"/><br><sub>Shop item editor</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-upgrades.png" width="100%"/><br><sub>Upgrade and trap prices</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/accounts-roles.png" width="100%"/><br><sub>Accounts and roles</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/network-servers.png" width="100%"/><br><sub>Network: every server on one panel</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/mobile-dashboard.png" width="100%"/><br><sub>Phone view</sub></td>
-  </tr>
-</table>
+<details>
+<summary>Arenas & Game Control</summary>
+
+![Dashboard: live arenas, players, TPS](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/dashboard.png)
+*Dashboard: live arenas, players, TPS*
+
+![Arena view with game control](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/arena-game.png)
+*Arena view with game control*
+
+![Live game log](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/game-log.png)
+*Live game log*
+
+![Player stats and leaderboards](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/stats.png)
+*Player stats and leaderboards*
+
+</details>
+
+<details>
+<summary>Shop Editor</summary>
+
+![Shop items](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-items.png)
+*Shop items*
+
+![Shop item editor](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-item-edit.png)
+*Shop item editor*
+
+![Shop GUI editor (drag and drop)](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-gui-editor.png)
+*Shop GUI editor (drag and drop)*
+
+![Upgrade and trap prices](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-upgrades.png)
+*Upgrade and trap prices*
+
+</details>
+
+<details>
+<summary>Accounts, Network & Phone</summary>
+
+![Accounts and roles](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/accounts-roles.png)
+*Accounts and roles*
+
+![Network: every server on one panel](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/network-servers.png)
+*Network: every server on one panel*
+
+![Phone view](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/mobile-dashboard.png)
+*Phone view*
+
+</details>
 
 ## Security
 

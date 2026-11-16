@@ -1,8 +1,8 @@
-![NewBedwars](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
+![NewBedwars banner: Bedwars plugin for Paper 1.17 to 26.x](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/banner_main.svg)
 
 <div align="center">
 
-[![Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free)
+[![Download NewBedwars on Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![NewBedwars source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Download the NewBedwars web panel addon](https://img.shields.io/badge/Web_Panel-Download-0088ff?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free/releases/latest)
 
 </div>
 
@@ -84,6 +84,27 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 **Building an arena from a schematic.** Save your map as a `.schem` file in WorldEdit's schematics folder, then run `/bw arena create myArena -sche myMap`. The map is pasted at the world origin; continue with the normal setup checklist from there. This needs WorldEdit or FastAsyncWorldEdit.
 
 **Marker signs for the automatic setup.** Place a sign with `[spawn]`, `[shop]`, `[upgrades]` or `[gen]` on the first line and, optionally, the team colour on the second line (for example `red`). Signs without a colour belong to the team of the nearest bed. The used signs are removed after the scan.
+
+## Web panel (optional addon)
+
+**NewBedwars Panel** is a separate, free addon that lets you manage your Bedwars server from any browser. It runs inside your Paper server, with HTTPS out of the box, and needs no separate website or database.
+
+- **Live arenas:** state, players, phase and time left, teams and beds. Enable, back up, restore, reset, copy, export and import arenas.
+- **Game control and a live game log:** start, skip phase, stop and broadcast. The log shows chat, kills with the real death reason, beds and phases.
+- **Player stats and leaderboards.**
+- **Visual shop editor:** items, prices, languages, drag-and-drop shop and upgrade menus, and upgrade prices per level.
+- **Accounts:** accounts with roles and an activity log.
+- **Network mode:** one panel on the lobby manages every game server.
+
+<details>
+<summary>Web panel dashboard</summary>
+
+![Web panel dashboard](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/dashboard.png)
+*Web panel dashboard*
+
+</details>
+
+To install it, put `NewBedwars-Panel-<version>.jar` next to this plugin (same version), restart, and run `nbwpanel user create <name> admin` in the console. Then open `https://<server>:8150/`. Download `NewBedwars-Panel-<version>.jar` from the [GitHub releases](https://github.com/l299l/NewBedwars-Free/releases/latest). A Modrinth project for it is coming soon. Full guide: [PANEL.md](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PANEL.md).
 
 ## Commands
 
@@ -290,8 +311,8 @@ Found a bug in a beta? Please [report it](https://github.com/l299l/NewBedwars-Fr
 ![Live gameplay — combat near a bed 1](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_123438.png)
 *Live gameplay — combat near a bed 1*
 
-![](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png)
-**
+![Green team bed defended with end stone blocks, a player in green armor next to it](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122037.png)
+*Live gameplay — bed defense with end stone*
 
 ![Live gameplay — building bridge](https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/Screenshot_20260611_122528.png)
 *Live gameplay — building bridge*
