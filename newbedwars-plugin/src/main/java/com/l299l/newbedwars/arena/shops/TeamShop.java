@@ -51,6 +51,7 @@ public class TeamShop {
                 if (npc == null || !npc.isValid()) {
                     spawnNpc();
                 } else {
+                    if (TeamShop.drifted(npc.getLocation(), location)) npc.teleport(location);
                     if (npc.getFireTicks() > 0) {
                         npc.setFireTicks(0);
                         npc.setVisualFire(false);
@@ -58,6 +59,10 @@ public class TeamShop {
                 }
             }
         }.runTaskTimer(NewBedwars.plugin, 20L, 20L);
+    }
+
+    static boolean drifted(Location current, Location home) {
+        return current.getWorld() != home.getWorld() || current.distanceSquared(home) > 0.25;
     }
 
     private void spawnNpc() {

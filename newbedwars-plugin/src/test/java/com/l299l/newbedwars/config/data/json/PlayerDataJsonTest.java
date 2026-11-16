@@ -83,11 +83,11 @@ class PlayerDataJsonTest {
     void asyncSavesAreCoalescedAndWrittenAtomically() throws Exception {
         when(NewBedwars.plugin.isEnabled()).thenReturn(true);
         PlayerDataJson json = new PlayerDataJson();
-        HashMap<String, PlayerProfile> map = new HashMap<>();
+        HashMap<UUID, PlayerProfile> map = new HashMap<>();
         when(players.getPlayers()).thenReturn(map);
         UUID id = UUID.randomUUID();
         for (int i = 0; i < 20; i++) {
-            map.put("Leo", new PlayerProfile(id, "Leo", i % 2 == 0 ? Language.English : Language.Polish, new HashMap<>()));
+            map.put(id, new PlayerProfile(id, "Leo", i % 2 == 0 ? Language.English : Language.Polish, new HashMap<>()));
             json.save();
         }
         IOExecutor.flush();

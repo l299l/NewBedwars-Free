@@ -70,22 +70,22 @@ public class RemoveCommand extends BwCommand {
         switch (prop) {
             case "bed" -> {
                 if (!team.isBedSet()) { notSet(player, teamName); return; }
-                DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation());
+                DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation(), team.getColor() + "Bed");
                 team.clearTeamBed();
             }
             case "spawn" -> {
                 if (!team.isSpawnSet()) { notSet(player, teamName); return; }
-                DecoUtils.removeArmorStandAt(team.getTeamSpawn());
+                DecoUtils.removeArmorStandAt(team.getTeamSpawn(), team.getColor() + "Spawn");
                 team.setTeamSpawn(null);
             }
             case "shop" -> {
                 if (!team.isShopSet()) { notSet(player, teamName); return; }
-                DecoUtils.removeArmorStandAt(team.getTeamShop().getLocation());
+                DecoUtils.removeArmorStandAt(team.getTeamShop().getLocation(), team.getColor() + "Shop");
                 team.setTeamShop(null);
             }
             case "upgrades" -> {
                 if (!team.isUpgradesSet()) { notSet(player, teamName); return; }
-                DecoUtils.removeArmorStandAt(team.getTeamUpgrades().getLocation());
+                DecoUtils.removeArmorStandAt(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrades");
                 team.setTeamUpgrades(null);
             }
             case "buildprotpos1" -> {

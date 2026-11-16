@@ -82,7 +82,7 @@ public final class ApiStats {
             });
         }
         return onMain(() -> {
-            List<Map.Entry<String, PlayerStats>> all = new ArrayList<>(players.get().getAllStats().entrySet());
+            List<Map.Entry<String, PlayerStats>> all = players.get().namedStats();
             all.sort(Comparator.comparingInt((Map.Entry<String, PlayerStats> e) -> value(stat, e.getValue())).reversed()
                     .thenComparing(Map.Entry::getKey, String.CASE_INSENSITIVE_ORDER));
             List<LeaderboardEntry> out = new ArrayList<>();
@@ -98,21 +98,14 @@ public final class ApiStats {
         String wanted = name.trim();
         if (useSql.get()) {
             return onSql(c -> {
-                PlayerStats s = PlayerSqlRepo.loadStats(c, wanted);
+                PlayerStats s = PlayerSqlRepo.loadStatsByName(c, wanted);
                 return Optional.<PlayerStatsView>ofNullable(s == null ? null : new ApiPlayerStats(s));
             });
         }
         return onMain(() -> {
-            Map<String, PlayerStats> all = players.get().getAllStats();
-            PlayerStats s = all.get(wanted);
-            if (s == null) {
-                for (Map.Entry<String, PlayerStats> e : all.entrySet()) {
-                    if (e.getKey().equalsIgnoreCase(wanted)) {
-                        s = e.getValue();
-                        break;
-                    }
-                }
-            }
+            PlayerManager pm = players.get();
+            java.util.UUID id = pm.idOf(wanted);
+            PlayerStats s = id == null ? null : pm.getAllStats().get(id);
             return Optional.<PlayerStatsView>ofNullable(s == null ? null : new ApiPlayerStats(s));
         });
     }
@@ -124,8 +117,8 @@ public final class ApiStats {
         return onMain(() -> {
             String lower = p.toLowerCase(Locale.ROOT);
             List<String> names = new ArrayList<>();
-            for (String key : players.get().getAllStats().keySet()) {
-                if (key.toLowerCase(Locale.ROOT).startsWith(lower)) names.add(key);
+            for (Map.Entry<String, PlayerStats> e : players.get().namedStats()) {
+                if (e.getKey().toLowerCase(Locale.ROOT).startsWith(lower)) names.add(e.getKey());
             }
             names.sort(String.CASE_INSENSITIVE_ORDER);
             return names.subList(0, Math.min(n, names.size()));

@@ -28,9 +28,9 @@ class ApiStatsTest {
 
     @Test
     void jsonLeaderboardSortsByStatThenName() throws Exception {
-        players.addStats("bob", new PlayerStats(5, 1, 10, 2, 3, 1, 6));
-        players.addStats("Alice", new PlayerStats(5, 0, 20, 1, 1, 2, 5));
-        players.addStats("carl", new PlayerStats(1, 4, 30, 9, 0, 0, 5));
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("bob"), "bob", new PlayerStats(5, 1, 10, 2, 3, 1, 6));
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("Alice"), "Alice", new PlayerStats(5, 0, 20, 1, 1, 2, 5));
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("carl"), "carl", new PlayerStats(1, 4, 30, 9, 0, 0, 5));
         List<LeaderboardEntry> wins = json().leaderboard(StatType.WINS, 10).get();
         assertEquals(List.of("Alice", "bob", "carl"), wins.stream().map(LeaderboardEntry::getName).toList());
         List<LeaderboardEntry> kills = json().leaderboard(StatType.KILLS, 2).get();
@@ -42,7 +42,7 @@ class ApiStatsTest {
 
     @Test
     void jsonLoadIsCaseInsensitiveAndEmptyForUnknown() throws Exception {
-        players.addStats("Alice", new PlayerStats(5, 0, 20, 1, 1, 2, 5));
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("Alice"), "Alice", new PlayerStats(5, 0, 20, 1, 1, 2, 5));
         assertEquals(20, json().load("alice").get().orElseThrow().getKills());
         assertTrue(json().load("ghost").get().isEmpty());
         assertTrue(json().load("  ").get().isEmpty());
@@ -50,9 +50,9 @@ class ApiStatsTest {
 
     @Test
     void jsonFindByPrefix() throws Exception {
-        players.addStats("Alice", PlayerStats.empty());
-        players.addStats("alex", PlayerStats.empty());
-        players.addStats("Bob", PlayerStats.empty());
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("Alice"), "Alice", PlayerStats.empty());
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("alex"), "alex", PlayerStats.empty());
+        players.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("Bob"), "Bob", PlayerStats.empty());
         assertEquals(List.of("alex", "Alice"), json().find("AL", 10).get());
         assertEquals(1, json().find("a", 1).get().size());
     }

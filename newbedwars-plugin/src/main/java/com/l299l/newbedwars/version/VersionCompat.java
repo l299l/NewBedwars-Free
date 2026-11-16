@@ -133,23 +133,24 @@ public final class VersionCompat {
     }
 
     @SuppressWarnings("deprecation")
+    private static boolean potionWarned;
+
     public static void applyPotionType(PotionMeta meta, PotionType type) {
         if (type == null) return;
-        if (IS_1_20_5_PLUS) {
-            try {
-                meta.getClass()
-                        .getMethod("setBasePotionType", PotionType.class)
-                        .invoke(meta, type);
-            } catch (ReflectiveOperationException ignored) {}
-        } else {
-            try {
+        try {
+            if (IS_1_20_5_PLUS) {
+                PotionMeta.class.getMethod("setBasePotionType", PotionType.class).invoke(meta, type);
+            } else {
                 Class<?> pdClass = Class.forName("org.bukkit.potion.PotionData");
                 Object pd = pdClass.getConstructor(PotionType.class, boolean.class, boolean.class)
                         .newInstance(type, false, false);
-                meta.getClass()
-                        .getMethod("setBasePotionData", pdClass)
-                        .invoke(meta, pd);
-            } catch (ReflectiveOperationException ignored) {}
+                PotionMeta.class.getMethod("setBasePotionData", pdClass).invoke(meta, pd);
+            }
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            if (!potionWarned) {
+                potionWarned = true;
+                Bukkit.getLogger().warning("[NewBedwars] Could not set the potion type " + type + ": " + e);
+            }
         }
     }
 

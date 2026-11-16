@@ -30,6 +30,7 @@ public final class MapTemplateManager {
     public static final String META_FILE = "template.json";
     public static final String TEMPLATE_DIR = "template";
     public static final long MAX_UNZIPPED_BYTES = 2L * 1024 * 1024 * 1024;
+    static final int MAX_UNZIPPED_ENTRIES = 200_000;
     private static final Logger LOG = Logger.getLogger("NewBedwars");
 
     private MapTemplateManager() {}
@@ -254,13 +255,19 @@ public final class MapTemplateManager {
     }
 
     static void unzip(Path zip, Path target, long maxBytes) throws IOException {
+        unzip(zip, target, maxBytes, MAX_UNZIPPED_ENTRIES);
+    }
+
+    static void unzip(Path zip, Path target, long maxBytes, int maxEntries) throws IOException {
         long total = 0;
+        int entries = 0;
         byte[] buffer = new byte[8192];
         Path normalizedTarget = target.toAbsolutePath().normalize();
         Files.createDirectories(normalizedTarget);
         try (InputStream in = Files.newInputStream(zip); ZipInputStream zis = new ZipInputStream(in)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
+                if (++entries > maxEntries) throw new IOException("Zip " + zip.getFileName() + " has more than " + maxEntries + " entries");
                 Path out = normalizedTarget.resolve(entry.getName()).normalize();
                 if (!out.startsWith(normalizedTarget)) {
                     throw new IOException("Illegal zip entry: " + entry.getName());

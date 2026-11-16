@@ -21,7 +21,30 @@ public final class ArenaMigrator {
                     + " but this plugin only understands up to " + CURRENT_VERSION + " - update NewBedwars");
         }
         if (version < 2) migrate1To2(json);
+        fillMissing(json);
         return json;
+    }
+
+    static void fillMissing(JsonObject json) {
+        if (!isString(json, "arenaName")) throw new IllegalArgumentException("the arena file has no arenaName");
+        if (!isString(json, "worldName")) json.addProperty("worldName", json.get("arenaName").getAsString());
+        if (!json.has("enabled") || !json.get("enabled").isJsonPrimitive()) json.addProperty("enabled", false);
+        if (!json.has("gamerules") || !json.get("gamerules").isJsonObject()) json.add("gamerules", new JsonObject());
+        json.add("teams", keepObjectsWith(json.get("teams"), "name"));
+        json.add("generators", keepObjectsWith(json.get("generators"), "type"));
+    }
+
+    private static boolean isString(JsonObject json, String key) {
+        return json.has(key) && json.get(key).isJsonPrimitive() && !json.get(key).getAsString().isEmpty();
+    }
+
+    private static JsonArray keepObjectsWith(JsonElement element, String key) {
+        JsonArray out = new JsonArray();
+        if (element == null || !element.isJsonArray()) return out;
+        for (JsonElement entry : element.getAsJsonArray()) {
+            if (entry.isJsonObject() && isString(entry.getAsJsonObject(), key)) out.add(entry);
+        }
+        return out;
     }
 
     private static void migrate1To2(JsonObject json) {

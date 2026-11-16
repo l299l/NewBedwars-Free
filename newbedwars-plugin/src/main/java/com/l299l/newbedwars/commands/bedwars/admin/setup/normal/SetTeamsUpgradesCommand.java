@@ -46,7 +46,7 @@ public class SetTeamsUpgradesCommand extends BwCommand {
                 if (team != null) {
                     EntityType entityType = EntityType.valueOf(args[2].toUpperCase());
                     if(!(TabArgsUtils.wrongEntities().contains(entityType))) {
-                        if (team.isUpgradesSet()) DecoUtils.removeArmorStandAt(team.getTeamUpgrades().getLocation());
+                        if (team.isUpgradesSet()) DecoUtils.removeArmorStandAt(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrades");
                         team.setTeamUpgrades(new TeamUpgrades(loc, entityType, team));
                         player.sendMessage(msg.getMsg(player, "setTeamUpgradesSuccess") + team.getTeamUpgrades().getLocation().getBlockX() + " " + team.getTeamUpgrades().getLocation().getBlockY() + " " + team.getTeamUpgrades().getLocation().getBlockZ());
                         DecoUtils.summonSetupArmorStand(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrades");

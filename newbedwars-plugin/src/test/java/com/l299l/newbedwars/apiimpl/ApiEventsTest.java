@@ -154,17 +154,24 @@ class ApiEventsTest {
     @Test
     void killCarriesFinalFlagKillerAndCause() {
         Player killer = mock(Player.class);
-        ApiEvents.playerKill(arena, player, killer, true, DamageCause.VOID);
+        ApiEvents.playerKill(arena, player, killer, true, DamageCause.VOID, null);
         PlayerKillEvent e = captured(PlayerKillEvent.class);
         assertSame(player, e.getVictim());
         assertSame(killer, e.getKiller());
         assertTrue(e.isFinalKill());
         assertEquals(DamageCause.VOID, e.getCause());
+        assertTrue(e.getDragonTeam().isEmpty());
+    }
+
+    @Test
+    void killByDragonCarriesTheDragonTeam() {
+        ApiEvents.playerKill(arena, player, null, false, DamageCause.ENTITY_EXPLOSION, team);
+        assertEquals(team.getName(), captured(PlayerKillEvent.class).getDragonTeam().orElseThrow().getName());
     }
 
     @Test
     void killerMayBeNull() {
-        ApiEvents.playerKill(arena, player, null, false, DamageCause.FALL);
+        ApiEvents.playerKill(arena, player, null, false, DamageCause.FALL, null);
         assertNull(captured(PlayerKillEvent.class).getKiller());
     }
 

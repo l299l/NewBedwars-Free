@@ -14,7 +14,7 @@ Bedwars for Paper 1.17 to 26.x. Arenas are built and configured in-game, the sho
 
 </div>
 
-NewBedwars is in beta. Gameplay is stable; please report problems on the [issue tracker](https://github.com/l299l/NewBedwars-Free/issues).
+NewBedwars is in beta, close to its first stable release (see the [roadmap](#roadmap)). Gameplay is stable; please report problems on the [issue tracker](https://github.com/l299l/NewBedwars-Free/issues).
 
 ## Overview
 
@@ -67,7 +67,7 @@ Commands and permissions are listed in [docs/COMMANDS.md](docs/COMMANDS.md).
 ### Updates
 
 > [!NOTE]
-> **Available from 2.7-beta** (when it is released). Versions up to 2.6-beta do not check for updates, so update to 2.7-beta once by hand; after that NewBedwars tells you about new versions itself.
+> **Available from 2.7-beta.** Versions up to 2.6-beta do not check for updates, so update to 2.7-beta once by hand; after that NewBedwars tells you about new versions itself.
 
 NewBedwars looks for new versions on Modrinth (GitHub as a fallback) every 12 hours. When one exists, it writes one line to the console and admins with `newbedwars.update.notify` get one chat line when they join. `/bw update download` downloads it (checksum verified) into `plugins/update/`, and the server installs it on the next restart; `Updates.AutoDownload: true` does that automatically. `Updates.Notify: false` turns off the messages, and `Updates.Check: false` turns off checking completely. The proxy plugin only writes a console line and shows it in `/nbwproxy` (settings under `updates:` in its `config.yml`).
 
@@ -87,7 +87,7 @@ Put `NewBedwars-Proxy` on Velocity, the normal jar on every backend, set `Networ
 ## Web panel
 
 > [!NOTE]
-> **Available from 2.7-beta** (when it is released), as the separate jar `NewBedwars-Panel`.
+> **Available from 2.7-beta**, as the separate jar `NewBedwars-Panel`.
 
 Put `NewBedwars-Panel-<version>.jar` next to the NewBedwars jar and restart. The panel runs inside the server at `https://<server>:8150/`. On first start it creates a self-signed certificate; you can also use your own certificate or a reverse proxy.
 
@@ -129,7 +129,7 @@ Addons can read arenas, teams and players, listen to events, edit arenas that ar
     <dependency>
         <groupId>com.github.l299l.NewBedwars-Free</groupId>
         <artifactId>newbedwars-api</artifactId>
-        <version>v2.6-beta</version> <!-- a release tag -->
+        <version>v2.7-beta</version> <!-- a release tag -->
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -178,6 +178,34 @@ public class MyAddon extends JavaPlugin implements Listener {
 ---
 
 ## Screenshots
+
+<details>
+<summary><b>Web panel</b></summary>
+
+<table>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/dashboard.png" width="100%"/><br><sub>Dashboard: live arenas, players, TPS</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/arena-game.png" width="100%"/><br><sub>Arena view with game control</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/game-log.png" width="100%"/><br><sub>Live game log</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/stats.png" width="100%"/><br><sub>Player stats and leaderboards</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-gui-editor.png" width="100%"/><br><sub>Shop GUI editor (drag and drop)</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-item-edit.png" width="100%"/><br><sub>Shop item editor</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/shop-upgrades.png" width="100%"/><br><sub>Upgrade and trap prices</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/accounts-roles.png" width="100%"/><br><sub>Accounts and roles</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/network-servers.png" width="100%"/><br><sub>Network: every server on one panel</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/l299l/NewBedwars-Free/refs/heads/master/assets/screenshots/panel/mobile-dashboard.png" width="100%"/><br><sub>Phone view</sub></td>
+  </tr>
+</table>
+
+</details>
 
 <details>
 <summary><b>Joining & Waiting</b></summary>
@@ -277,8 +305,6 @@ public class MyAddon extends JavaPlugin implements Listener {
 
 ---
 
----
-
 ## Building
 
 ```bash
@@ -293,7 +319,14 @@ The modules are `newbedwars-api`, `newbedwars-common`, `newbedwars-plugin` (Pape
 
 ## Roadmap
 
-NewBedwars leaves beta once it has been verified on all supported server versions. Everything on the old roadmap is done (parties, PlaceholderAPI, schematics, stats, addon API, Citizens NPCs, map voting, network mode, and the web panel from 2.7-beta). Later panel versions may add public stats pages, match history and config editing.
+**2.7-beta is one of the last betas.** All planned features are done: parties, PlaceholderAPI, schematics, stats, the addon API, Citizens NPCs, map voting, network mode, automatic arena setup, update notifications and the web panel.
+
+What comes next:
+
+1. **One or two bug-fix betas** after 2.7-beta, depending on what is reported. They fix problems and don't add big features.
+2. **The first stable release.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
+
+Found a bug in a beta? Please [report it](https://github.com/l299l/NewBedwars-Free/issues). Every report brings the stable release closer.
 
 ---
 

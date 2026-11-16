@@ -102,6 +102,10 @@ public class GamePlayer {
         return virtualEnderChest;
     }
 
+    public boolean isRespawning() {
+        return respawnTask != null && !respawnTask.isCancelled();
+    }
+
     public void cancelRespawnTask() {
         if (respawnTask != null && !respawnTask.isCancelled()) {
             respawnTask.cancel();

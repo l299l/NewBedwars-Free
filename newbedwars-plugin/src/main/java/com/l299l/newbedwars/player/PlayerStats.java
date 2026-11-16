@@ -6,6 +6,11 @@ public record PlayerStats(int wins, int losses, int kills, int deaths, int final
         return new PlayerStats(0, 0, 0, 0, 0, 0, 0);
     }
 
+    public PlayerStats plus(PlayerStats other) {
+        return new PlayerStats(wins + other.wins, losses + other.losses, kills + other.kills, deaths + other.deaths,
+                finalKills + other.finalKills, bedsBroken + other.bedsBroken, gamesPlayed + other.gamesPlayed);
+    }
+
     public PlayerStats addGameResult(int k, int d, int fk, int bb, boolean won) {
         return new PlayerStats(
                 wins + (won ? 1 : 0),

@@ -29,11 +29,13 @@ class PlayerSqlRepoTest {
         when(c.prepareStatement(PlayerSqlRepo.ADD_STATS)).thenReturn(ps);
         PlayerStats delta = PlayerSqlRepo.gameDelta(3, 1, 2, 1, true);
         assertEquals(new PlayerStats(1, 0, 3, 1, 2, 1, 1), delta);
-        PlayerSqlRepo.addStats(c, "Leo", delta);
-        verify(ps).setString(1, "Leo");
-        verify(ps).setInt(2, 1);
-        verify(ps).setInt(4, 3);
-        verify(ps).setInt(8, 1);
+        java.util.UUID id = java.util.UUID.randomUUID();
+        PlayerSqlRepo.addStats(c, id, "Leo", delta);
+        verify(ps).setString(1, id.toString());
+        verify(ps).setString(2, "Leo");
+        verify(ps).setInt(3, 1);
+        verify(ps).setInt(5, 3);
+        verify(ps).setInt(9, 1);
         verify(ps).executeUpdate();
     }
 
@@ -64,9 +66,10 @@ class PlayerSqlRepoTest {
         when(rs.getString("uuid")).thenReturn("u");
         when(rs.getString("language")).thenReturn("Polish");
         when(rs.getString("fast_buy")).thenReturn(null);
-        PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, "Leo");
+        PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, java.util.UUID.randomUUID());
         assertEquals("Polish", row.language());
-        assertNull(PlayerSqlRepo.loadPlayer(c, "Nobody"));
+        assertEquals("Leo", row.name());
+        assertNull(PlayerSqlRepo.loadPlayer(c, java.util.UUID.randomUUID()));
     }
 
     @Test
@@ -75,7 +78,7 @@ class PlayerSqlRepoTest {
         assertThrows(IllegalArgumentException.class, () -> PlayerSqlRepo.top(c, "wins; DROP TABLE x", 10));
         PreparedStatement ps = mock(PreparedStatement.class);
         ResultSet rs = mock(ResultSet.class);
-        when(c.prepareStatement("SELECT * FROM nbw_stats ORDER BY final_kills DESC, name ASC LIMIT ?")).thenReturn(ps);
+        when(c.prepareStatement("SELECT * FROM nbw_player_stats ORDER BY final_kills DESC, name ASC LIMIT ?")).thenReturn(ps);
         when(ps.executeQuery()).thenReturn(rs);
         when(rs.next()).thenReturn(true, false);
         when(rs.getString("name")).thenReturn("Leo");
@@ -101,7 +104,7 @@ class PlayerSqlRepoTest {
     @Test
     void sharedLeaderboardsReplaceLocalOnes() {
         PlayerManager pm = new PlayerManager();
-        pm.addStats("Local", new PlayerStats(50, 0, 0, 0, 0, 0, 50));
+        pm.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("Local"), "Local", new PlayerStats(50, 0, 0, 0, 0, 0, 50));
         assertEquals("Local", pm.getTopByWins(10).get(0).getKey());
         pm.setSharedLeaderboards(Map.of("wins", List.of(Map.entry("Net1", new PlayerStats(99, 0, 0, 0, 0, 0, 99)),
                 Map.entry("Net2", new PlayerStats(80, 0, 0, 0, 0, 0, 80)))));
@@ -121,5 +124,35 @@ class PlayerSqlRepoTest {
         assertEquals(List.of("Al_x"), PlayerSqlRepo.findNames(c, "A%_!", 5));
         verify(ps).setString(1, "a!%!_!!%");
         verify(ps).setInt(2, 5);
+    }
+
+    @Test
+    void legacyRowsMoveToUuidRowsWithStatsOfOneUuidMerged() throws Exception {
+        Connection c = mock(Connection.class);
+        PreparedStatement players = mock(PreparedStatement.class);
+        PreparedStatement stats = mock(PreparedStatement.class);
+        when(c.prepareStatement(PlayerSqlRepo.IMPORT_PLAYER)).thenReturn(players);
+        when(c.prepareStatement(PlayerSqlRepo.IMPORT_STATS)).thenReturn(stats);
+        UUID leo = UUID.randomUUID();
+        Map<String, PlayerStats> legacyStats = new java.util.LinkedHashMap<>();
+        legacyStats.put("Leo", new PlayerStats(2, 0, 0, 0, 0, 0, 2));
+        legacyStats.put("leo", new PlayerStats(1, 0, 0, 0, 0, 0, 1));
+        legacyStats.put("Ghost", new PlayerStats(5, 0, 0, 0, 0, 0, 5));
+        PlayerSqlRepo.LegacyRows legacy = new PlayerSqlRepo.LegacyRows(
+                List.of(new PlayerSqlRepo.PlayerRow(leo.toString(), "Leo", "English", null),
+                        new PlayerSqlRepo.PlayerRow("broken", "Bad", "English", null)),
+                Map.of("Leo", 42L), legacyStats);
+
+        assertEquals(2, PlayerSqlRepo.migrateLegacy(c, legacy));
+
+        verify(players).setString(1, leo.toString());
+        verify(players).setLong(5, 42L);
+        verify(players, times(1)).executeUpdate();
+        verify(stats).setString(1, leo.toString());
+        verify(stats).setInt(3, 3);
+        verify(stats).setString(1, PlayerManager.offlineId("Ghost").toString());
+        verify(stats).setInt(3, 5);
+        verify(stats, times(2)).executeUpdate();
+        assertTrue(PlayerSqlRepo.IMPORT_STATS.startsWith("INSERT IGNORE"));
     }
 }

@@ -21,7 +21,7 @@ class ArenaMigratorTest {
 
     @Test
     void existingExtraIsPreserved() {
-        JsonObject json = JsonParser.parseString("{\"extra\":{\"k\":\"v\"},\"teams\":[]}").getAsJsonObject();
+        JsonObject json = JsonParser.parseString("{\"arenaName\":\"a\",\"extra\":{\"k\":\"v\"},\"teams\":[]}").getAsJsonObject();
         ArenaMigrator.migrate(json);
         assertEquals("v", json.getAsJsonObject("extra").get("k").getAsString());
     }
@@ -30,6 +30,44 @@ class ArenaMigratorTest {
     void newerSchemaIsRejected() {
         JsonObject json = JsonParser.parseString("{\"schemaVersion\":99}").getAsJsonObject();
         assertThrows(IllegalStateException.class, () -> ArenaMigrator.migrate(json));
+    }
+
+    @Test
+    void missingFieldsGetSafeDefaults() {
+        JsonObject json = JsonParser.parseString("{\"arenaName\":\"castle\",\"schemaVersion\":2}").getAsJsonObject();
+        ArenaMigrator.migrate(json);
+        assertEquals("castle", json.get("worldName").getAsString());
+        assertFalse(json.get("enabled").getAsBoolean());
+        assertTrue(json.get("gamerules").isJsonObject());
+        assertEquals(0, json.getAsJsonArray("teams").size());
+        assertEquals(0, json.getAsJsonArray("generators").size());
+    }
+
+    @Test
+    void teamsWithoutNameAndGeneratorsWithoutTypeAreDropped() {
+        JsonObject json = JsonParser.parseString("{\"arenaName\":\"a\",\"schemaVersion\":2,"
+                + "\"teams\":[{\"name\":\"Red\"},{\"color\":\"BLUE\"},null],"
+                + "\"generators\":[{\"type\":\"DIAMOND\"},{\"location\":{}}]}").getAsJsonObject();
+        ArenaMigrator.migrate(json);
+        assertEquals(1, json.getAsJsonArray("teams").size());
+        assertEquals("Red", json.getAsJsonArray("teams").get(0).getAsJsonObject().get("name").getAsString());
+        assertEquals(1, json.getAsJsonArray("generators").size());
+    }
+
+    @Test
+    void existingValuesAreKept() {
+        JsonObject json = JsonParser.parseString("{\"arenaName\":\"a\",\"worldName\":\"w\",\"enabled\":true,"
+                + "\"gamerules\":{\"x\":true},\"schemaVersion\":2}").getAsJsonObject();
+        ArenaMigrator.migrate(json);
+        assertEquals("w", json.get("worldName").getAsString());
+        assertTrue(json.get("enabled").getAsBoolean());
+        assertTrue(json.getAsJsonObject("gamerules").get("x").getAsBoolean());
+    }
+
+    @Test
+    void fileWithoutArenaNameIsRejected() {
+        JsonObject json = JsonParser.parseString("{\"schemaVersion\":2}").getAsJsonObject();
+        assertThrows(IllegalArgumentException.class, () -> ArenaMigrator.migrate(json));
     }
 
     @Test

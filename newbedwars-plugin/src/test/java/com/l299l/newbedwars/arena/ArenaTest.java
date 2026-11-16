@@ -185,9 +185,9 @@ class ArenaTest {
         arena.persistStats(winner);
 
         assertFalse(arena.isPlayerInArena(bob));
-        verify(playerManager).addGameResult("Alice", aliceGp, true);
-        verify(playerManager).addGameResult("Bob", bobGp, false);
-        verify(dataManager, times(2)).recordGameResult(anyString(), any());
+        verify(playerManager).addGameResult(any(), eq("Alice"), eq(aliceGp), eq(true));
+        verify(playerManager).addGameResult(any(), eq("Bob"), eq(bobGp), eq(false));
+        verify(dataManager, times(2)).recordGameResult(any(), anyString(), any());
         verify(dataManager).savePlayerStats();
     }
 
@@ -203,7 +203,7 @@ class ArenaTest {
         map("players").put(alice.getUniqueId(), gp);
         arena.persistStats(null);
 
-        verify(playerManager, times(1)).addGameResult("Alice", gp, false);
+        verify(playerManager, times(1)).addGameResult(any(), eq("Alice"), eq(gp), eq(false));
     }
 
     @Test
@@ -214,7 +214,7 @@ class ArenaTest {
         arena.retire(alice.getUniqueId());
         arena.persistStats(null);
 
-        verify(playerManager, never()).addGameResult(anyString(), any(), anyBoolean());
+        verify(playerManager, never()).addGameResult(any(), anyString(), any(), anyBoolean());
     }
 
     @Test
@@ -232,7 +232,7 @@ class ArenaTest {
         assertFalse(arena.isPlayerInArena(alice));
         verify(red).removePlayer(alice);
         arena.persistStats(blue);
-        verify(playerManager).addGameResult("Alice", gp, false);
+        verify(playerManager).addGameResult(any(), eq("Alice"), eq(gp), eq(false));
     }
 
     @Test
@@ -255,7 +255,7 @@ class ArenaTest {
 
         assertFalse(arena.isPlayerInArena(alice));
         arena.persistStats(blue);
-        verify(playerManager).addGameResult("Alice", gp, false);
+        verify(playerManager).addGameResult(any(), eq("Alice"), eq(gp), eq(false));
     }
 
     @Test

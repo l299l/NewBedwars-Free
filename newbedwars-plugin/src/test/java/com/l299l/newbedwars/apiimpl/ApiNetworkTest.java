@@ -51,7 +51,7 @@ class ApiNetworkTest {
     void statsComeFromThePlayerManager() {
         NewBedwars plugin = mock(NewBedwars.class);
         PlayerManager pm = new PlayerManager();
-        pm.addStats("Leo", new PlayerStats(1, 2, 3, 4, 5, 6, 7));
+        pm.addStats(com.l299l.newbedwars.player.PlayerManager.offlineId("Leo"), "Leo", new PlayerStats(1, 2, 3, 4, 5, 6, 7));
         when(plugin.getPlayerManager()).thenReturn(pm);
         NewBedwars.plugin = plugin;
         PlayerStatsView s = api.getStats("Leo");

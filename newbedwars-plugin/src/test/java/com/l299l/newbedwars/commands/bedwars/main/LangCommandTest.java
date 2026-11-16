@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 class LangCommandTest {
     private Messages messages;
     private PlayerManager players;
-    private HashMap<String, PlayerProfile> profiles;
+    private HashMap<UUID, PlayerProfile> profiles;
     private Player player;
     private LangCommand cmd;
 
@@ -48,7 +48,7 @@ class LangCommandTest {
 
     @Test
     void unchangedLanguageIsNotSaved() {
-        profiles.put("Leo", new PlayerProfile(player.getUniqueId(), "Leo", Language.Polish, new HashMap<>()));
+        profiles.put(player.getUniqueId(), new PlayerProfile(player.getUniqueId(), "Leo", Language.Polish, new HashMap<>()));
         cmd.perform(player, new String[]{"lang", "pl"}, null);
         verify(players, never()).updatePlayerLanguage(any(), any());
         verify(players, never()).save();
@@ -57,7 +57,7 @@ class LangCommandTest {
 
     @Test
     void changeSavesOnceAndSecondChangeWithinCooldownIsRefused() {
-        profiles.put("Leo", new PlayerProfile(player.getUniqueId(), "Leo", Language.English, new HashMap<>()));
+        profiles.put(player.getUniqueId(), new PlayerProfile(player.getUniqueId(), "Leo", Language.English, new HashMap<>()));
         cmd.perform(player, new String[]{"lang", "pl"}, null);
         verify(players).updatePlayerLanguage("Leo", Language.Polish);
         verify(players).save();

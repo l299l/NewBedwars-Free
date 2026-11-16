@@ -1,7 +1,7 @@
 # Web panel (NewBedwars-Panel)
 
 > [!NOTE]
-> **New in 2.7-beta** (not released yet). The panel needs NewBedwars 2.7-beta or newer on the same server.
+> **New in 2.7-beta.** The panel needs NewBedwars 2.7-beta or newer on the same server.
 
 `NewBedwars-Panel` is a separate addon jar that adds a browser admin panel to your server. With it you can:
 
@@ -347,6 +347,9 @@ Exports and uploaded imports are kept in `plugins/NewBedwars/data/exports/`, the
 - The page itself loads nothing from other sites (no CDN, no fonts, no tracking) and forbids being embedded in frames.
 - On a network, the secret is the key to every game server's panel. Keep `config.yml` private and don't expose node ports.
 - Check **Activity** (or `audit.log`) now and then. Failed and locked logins are recorded with the IP address.
+- `Bind: 0.0.0.0` makes the panel reachable from every network the server is on. If it doesn't have to be public, allow port 8150 only from your own IP in the firewall. The built-in web server has no protection against clients that keep many slow connections open, so a reverse proxy (nginx, Caddy) in front is the better choice for a panel that is open to the internet. The game itself is never slowed down by the panel.
+- Enable `TrustProxyHeaders` only behind your own reverse proxy. Otherwise anyone can fake their IP address, and with it the login lock.
+- Arena imports (upload and unzip) are limited to `Upload.MaxMegabytes`, 2 GB unpacked and 200 000 files, and files can only be written inside the server's export and map folders.
 
 ## Troubleshooting
 

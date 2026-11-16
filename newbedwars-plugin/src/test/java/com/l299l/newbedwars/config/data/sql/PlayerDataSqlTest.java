@@ -31,28 +31,32 @@ class PlayerDataSqlTest {
     void playerIsNotLoadedUntilApplied() {
         PlayerManager pm = mock(PlayerManager.class);
         PlayerDataSql sql = create(pm);
-        assertFalse(sql.isLoaded("Leo"));
-        sql.apply("Leo", UUID.randomUUID(), null, null);
-        assertTrue(sql.isLoaded("Leo"));
+        UUID id = UUID.randomUUID();
+        assertFalse(sql.isLoaded(id));
+        sql.apply("Leo", id, null, null);
+        assertTrue(sql.isLoaded(id));
+        verify(pm).identify(id, "Leo");
     }
 
     @Test
     void saveIsSkippedBeforeTheLoadSucceeded() {
         PlayerManager pm = mock(PlayerManager.class);
         PlayerDataSql sql = create(pm);
+        when(pm.idOf("Leo")).thenReturn(UUID.randomUUID());
         sql.savePlayer("Leo");
-        verify(pm, never()).getPlayer("Leo");
+        verify(pm, never()).getPlayer(any(UUID.class));
     }
 
     @Test
     void saveReadsTheProfileOnceLoaded() {
         PlayerManager pm = mock(PlayerManager.class);
         PlayerProfile profile = new PlayerProfile(UUID.randomUUID(), "Leo", null, PlayerProfile.defaultFastBuy());
-        when(pm.getPlayer("Leo")).thenReturn(profile);
+        when(pm.idOf("Leo")).thenReturn(profile.id());
+        when(pm.getPlayer(profile.id())).thenReturn(profile);
         PlayerDataSql sql = create(pm);
         sql.apply("Leo", profile.id(), null, PlayerStats.empty());
         clearInvocations(pm);
         sql.savePlayer("Leo");
-        verify(pm).getPlayer("Leo");
+        verify(pm).getPlayer(profile.id());
     }
 }

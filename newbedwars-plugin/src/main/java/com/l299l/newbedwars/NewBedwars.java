@@ -265,11 +265,14 @@ public final class NewBedwars extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new LanguageEvent(this), this);
         getServer().getPluginManager().registerEvents(new InitializationEvent(this), this);
         CombatTracker combat = new CombatTracker();
+        CombatListener deaths = new CombatListener(combat);
         for (org.bukkit.event.Listener listener : List.of(new ConnectionListener(this), new SpectatorListener(this),
-                new InventoryListener(), new CombatListener(combat), new MobListener(),
-                new BlockListener(this), new MovementListener(combat), new CustomItemListener(this))) {
+                new InventoryListener(), deaths, new MobListener(),
+                new BlockListener(this), new MovementListener(combat, deaths), new CustomItemListener(this))) {
             getServer().getPluginManager().registerEvents(listener, this);
         }
+        getServer().getScheduler().runTaskTimer(this, new ArenaSafetyTask(deaths),
+                ArenaSafetyTask.PERIOD_TICKS, ArenaSafetyTask.PERIOD_TICKS);
         getServer().getPluginManager().registerEvents(new ChatEvent(this), this);
         if (dataManager != null && dataManager.getPlayerDataSql() != null) {
             getServer().getPluginManager().registerEvents(dataManager.getPlayerDataSql(), this);

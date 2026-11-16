@@ -2,7 +2,7 @@
 
 All notable changes to NewBedwars are documented here.
 
-## [2.7-beta] - Coming soon
+## [2.7-beta] - 16.11.2026
 
 ### Added
 - **`/bw game broadcast <message>`** - Admins in a game can send a highlighted message (with `&` colours) to every player and spectator of their arena
@@ -15,6 +15,10 @@ All notable changes to NewBedwars are documented here.
 
 - **`/bw info [gui]`** - The setup status command was renamed from `/bw arena` to `/bw info` (it only exists while you are in setup mode)
 
+- **Complete German, Spanish, French and Russian translations** - About 380 messages that were still shown in English in these languages (setup, death causes, map voting, network mode, stats and more) are now translated
+
+- **Tidier `config.yml`** - The settings are grouped in a clearer order (general, arena defaults, gameplay, chat, phases, dragons, maps, setup, NPCs, storage, updates, network) with one short comment each. Nothing was renamed: your existing `config.yml` is put into the new order on the next start and keeps all its values
+
 ### Fixed
 - **Setup admins no longer fall** - Admins teleported into an arena by `/bw arena create` or `/bw arena setup` start flying, so they don't drop into the void when there are no blocks below
 - **Upgrade icons bought as shop items** - An upgrade icon placed in a GUI as a normal item (`ci:`) no longer sells the upgrade for free or for one flat price; it costs the same as the upgrade slot
@@ -26,6 +30,16 @@ All notable changes to NewBedwars are documented here.
 - **Item names in other languages** - Shop items without a translation now show the English name instead of the internal item name
 - **Addon commands in a game** - Addon `/bw` subcommands used by players inside a game now get the player's arena instead of none
 - **Dragons breaking protected blocks** - Blocks listed in `DragonIndestructibleBlocks` (e.g. obsidian) are no longer destroyed when an Ender Dragon flies through them
+- **Death reasons in the web panel** - The game log showed "custom" for players who fell below the quick-void height, and "explosion" or "hit" for Ender Dragon kills. It now shows void and dragon, also when another player knocked the victim into the void (the kill is still credited to that player)
+- **Death messages in the player's language** - Deaths without a killer (fall, fire, lava, explosions, ...) showed the cause in English; the cause now comes from the language files (`DeathCause-*` keys)
+- **Stats kept after a name change** - Player stats, language and quick-buy settings are now stored by UUID instead of player name, so a player who changes their Minecraft name keeps everything and a new player who takes an old name no longer inherits its stats. Existing data is moved automatically on the first start (old JSON file kept as `playerStats.json.before-uuid`; MySQL data is copied to the new tables `nbw_player_data` and `nbw_player_stats`, the old tables stay as a backup). Programs that read `nbw_stats` directly must switch to `nbw_player_stats`
+- **Arena import and restore no longer freeze the server** - Unpacking and copying the map of `/bw arena import` and `/bw arena restore` (and the same actions in the web panel) now happens in the background
+- **Arenas with incomplete files** - An arena file with missing fields (no teams, generators, gamerules, times or world name) now loads with defaults instead of not loading at all; broken generator entries are skipped and the arena is loaded disabled with a reason
+- **Setup markers** - Moving or removing a team's spawn, bed, shop, upgrades or generator no longer deletes the floating setup labels of other points next to it
+- **Potions in the shop** - Potion items could turn into water bottles on some server versions
+- **Shop and upgrade NPCs pushed away** - Villagers that were pushed by players are put back on their spot within a second
+- **Web panel hardening** - Arena imports are refused when the zip has more than 200 000 files, and two uploads with the same file name at the same time can no longer overwrite each other
+- **Players stuck after a death** - A death the game did not catch (for example a player falling out of the world without the quick-void check firing, or a death caused by another plugin) could leave the player as a spectator who never respawned. Deaths in a game are now always handled by NewBedwars, players below the quick-void line are caught even when they do not move, and a player whose respawn countdown stopped gets a new one
 - **`/bw game forcestop` tab completion** - Admins now get `forcestop` suggested while a game is ending
 
 ### Removed
@@ -34,6 +48,7 @@ All notable changes to NewBedwars are documented here.
 
 ### Addon API
 - **Shop items from addons** - `registerShopItem(owner, item[, texts])` adds an `items.yml` entry (material, price, item logic) when it does not exist yet, so server owners no longer add addon items by hand
+- **Dragon kills** - `PlayerKillEvent.getDragonTeam()` tells which team's dragon killed the player, and `getCause()` is `VOID` for every void death (also the quick-void height and knock-offs)
 - **Setup and arena details** - `getSetupArena(player)` / `getSetupPlayers()` (who is in setup mode and for which arena), `ArenaView.getSetupPlayers()` / `getQuickVoidY()` and `TeamView.getBed()`
 - **Upgrade prices** - `getShop().getUpgradePrices()` / `saveUpgradePrices(upgrade, tiers)` read and change the prices per level, `ShopGui.upgradePrices()` the price overrides of a GUI. Prices given to `registerUpgrade` are written to `data/upgrades.yml` on the first registration and can be changed there afterwards
 - **Statistics, leaderboards and game control** - `getLeaderboard`, `loadStats` (offline players too, from MySQL when used) and `findPlayers`; `getGameControl()` starts, stops, skips phases and broadcasts like `/bw game`; `ArenaView` shows the next phase and the time left in the current one

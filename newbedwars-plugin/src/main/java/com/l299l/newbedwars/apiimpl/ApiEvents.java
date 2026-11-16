@@ -103,8 +103,8 @@ public final class ApiEvents {
         return !call(new BedBreakEvent(view(arena), view(team), breaker)).isCancelled();
     }
 
-    public static void playerKill(IArena arena, Player victim, Player killer, boolean finalKill, DamageCause cause) {
-        call(new PlayerKillEvent(view(arena), victim, killer, finalKill, cause));
+    public static void playerKill(IArena arena, Player victim, Player killer, boolean finalKill, DamageCause cause, Team dragonTeam) {
+        call(new PlayerKillEvent(view(arena), victim, killer, finalKill, cause, view(dragonTeam)));
     }
 
     public static boolean shopPurchase(IArena arena, Player player, String item, ShopPurchaseEvent.Kind kind, String priceType, int price) {

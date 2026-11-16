@@ -54,7 +54,7 @@ public class BasicConfigurationGUISettings implements Listener {
         Player player = (Player) e.getPlayer();
         if (e.getInventory().getHolder() instanceof BasicConfigurationGUI) {
             IArena arena = ArenaRegistry.byWorld(player.getWorld());
-            if (arena.getSetupMode().equals(Setup.NO_SETUP)) {
+            if (arena != null && arena.getSetupMode() == Setup.NO_SETUP && player.isOnline()) {
                 NewBedwars.plugin.getMessages().send(player, "SetupModeNotChosen");
                 Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, () -> {
                     player.openInventory(e.getInventory());

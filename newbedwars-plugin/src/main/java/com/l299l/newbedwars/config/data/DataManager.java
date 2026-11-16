@@ -60,9 +60,9 @@ public class DataManager {
         if (playerDataSql != null) playerDataSql.savePlayer(name);
     }
 
-    public void recordGameResult(String name, com.l299l.newbedwars.player.PlayerStats delta) {
+    public void recordGameResult(java.util.UUID id, String name, com.l299l.newbedwars.player.PlayerStats delta) {
         if (playerDataSql != null) {
-            playerDataSql.recordGame(name, delta);
+            playerDataSql.recordGame(id, name, delta);
             playerDataSql.refreshLeaderboards();
         }
     }

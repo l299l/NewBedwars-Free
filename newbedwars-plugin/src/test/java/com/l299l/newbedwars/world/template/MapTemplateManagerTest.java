@@ -123,6 +123,20 @@ class MapTemplateManagerTest {
     }
 
     @Test
+    void unzipRejectsTooManyEntries() throws IOException {
+        Path zip = tmp.resolve("many.zip");
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip))) {
+            for (int i = 0; i < 4; i++) {
+                out.putNextEntry(new java.util.zip.ZipEntry("f" + i));
+                out.closeEntry();
+            }
+        }
+        assertThrows(IOException.class, () -> MapTemplateManager.unzip(zip, tmp.resolve("out-many"), 1000, 3));
+        MapTemplateManager.unzip(zip, tmp.resolve("out-four"), 1000, 4);
+        assertTrue(Files.exists(tmp.resolve("out-four").resolve("f3")));
+    }
+
+    @Test
     void unzipRejectsPathTraversal() throws IOException {
         Path zip = tmp.resolve("evil.zip");
         try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip))) {

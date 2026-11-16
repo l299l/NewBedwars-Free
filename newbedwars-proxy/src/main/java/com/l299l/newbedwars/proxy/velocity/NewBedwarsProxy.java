@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "newbedwars-proxy", name = "NewBedwars-Proxy", version = "2.6-beta",
+@Plugin(id = "newbedwars-proxy", name = "NewBedwars-Proxy", version = "2.7-beta",
         description = "Network mode for NewBedwars: routing, server states and parties", authors = {"l299l"})
 public final class NewBedwarsProxy {
     static final MinecraftChannelIdentifier CHANNEL = MinecraftChannelIdentifier.from(NetChannel.MAIN);

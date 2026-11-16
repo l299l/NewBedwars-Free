@@ -46,7 +46,7 @@ public class SetTeamsShopCommand extends BwCommand {
                 if (team != null) {
                     EntityType entityType = EntityType.valueOf(args[2].toUpperCase());
                     if(!(TabArgsUtils.wrongEntities().contains(entityType))) {
-                        if (team.isShopSet()) DecoUtils.removeArmorStandAt(team.getTeamShop().getLocation());
+                        if (team.isShopSet()) DecoUtils.removeArmorStandAt(team.getTeamShop().getLocation(), team.getColor() + "Shop");
                         team.setTeamShop(new TeamShop(loc, entityType, team));
                         player.sendMessage(msg.getMsg(player, "setTeamShopSuccess") + team.getTeamShop().getLocation().getBlockX() + " " + team.getTeamShop().getLocation().getBlockY() + " " + team.getTeamShop().getLocation().getBlockZ());
                         DecoUtils.summonSetupArmorStand(team.getTeamShop().getLocation(), team.getColor() + "Shop");

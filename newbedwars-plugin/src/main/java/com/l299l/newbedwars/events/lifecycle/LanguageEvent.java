@@ -3,7 +3,9 @@ package com.l299l.newbedwars.events.lifecycle;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.config.properties.Properties;
+import com.l299l.newbedwars.player.PlayerProfile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -14,14 +16,11 @@ public class LanguageEvent implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-        Language language;
-        try {
-            language = plugin.getPlayerManager().getPlayer(event.getPlayer().getName()).language();
-        } catch (Exception e) {
-            language = null;
-        }
+        plugin.getPlayerManager().identify(event.getPlayer().getUniqueId(), event.getPlayer().getName());
+        PlayerProfile profile = plugin.getPlayerManager().getPlayer(event.getPlayer().getUniqueId());
+        Language language = profile == null ? null : profile.language();
         if (!event.getPlayer().hasPlayedBefore() || language == null) {
             Language lang = Language.fromCode(Properties.DefaultLanguage);
             if (lang == null) lang = Language.English;

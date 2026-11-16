@@ -46,10 +46,13 @@ public interface IArena {
     int getActivePlayerCount();
     GamePlayer getPlayer(UUID player);
     void killPlayer(Player player);
+
+    boolean ensureRespawning(Player player);
     void cancelStart();
     boolean forfeitRejoin(Player player);
     void broadcast(String message);
     void broadcast(String message, java.util.Map<String, String> replace);
+    void broadcastEach(String message, java.util.function.Function<org.bukkit.entity.Player, java.util.Map<String, String>> replace);
     void broadcastTitle(String title, String subtitle, Integer fadeIn, Integer stay, Integer fadeOut);
     World getArenaWorld();
     void enable();

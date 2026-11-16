@@ -6,7 +6,6 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import org.bukkit.entity.*;
 import com.l299l.newbedwars.arena.team.Team;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -21,10 +20,12 @@ import static com.l299l.newbedwars.events.gameplay.GameplayUtil.*;
 
 public class MovementListener implements Listener {
     private final CombatTracker combat;
+    private final CombatListener deaths;
     private final HashMap<UUID, Set<String>> playersInBases = new HashMap<>();
 
-    public MovementListener(CombatTracker combat) {
+    public MovementListener(CombatTracker combat, CombatListener deaths) {
         this.combat = combat;
+        this.deaths = deaths;
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -60,16 +61,7 @@ public class MovementListener implements Listener {
         Integer voidY = arena.getQuickVoidY();
         if (voidY == null || e.getTo().getY() > voidY) return;
         if (!arena.isPlayerInArena(p)) return;
-        UUID attackerId = combat.lastAttacker(p.getUniqueId());
-        if (attackerId != null) {
-            Player attacker = Bukkit.getPlayer(attackerId);
-            if (attacker != null && attacker.isOnline() && arena.isPlayerInArena(attacker)) {
-                p.damage(p.getMaxHealth() * 1000, attacker);
-                return;
-            }
-        }
-        combat.markVoidDeath(p.getUniqueId());
-        p.damage(p.getMaxHealth() * 1000);
+        deaths.voidDeath(p, arena);
     }
 
     private void checkTraps(PlayerMoveEvent e) {

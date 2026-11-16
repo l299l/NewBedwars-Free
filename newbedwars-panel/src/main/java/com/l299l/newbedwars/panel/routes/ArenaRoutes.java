@@ -156,10 +156,13 @@ public final class ArenaRoutes {
         Path temp = Files.createTempFile(file.getParent(), ".upload-", ".tmp");
         try {
             copyLimited(r.body(), temp);
-            try {
-                Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE);
-            } catch (IOException e) {
-                Files.move(temp, file);
+            synchronized (this) {
+                if (Files.exists(file)) throw new HttpError(409, "file_exists");
+                try {
+                    Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE);
+                } catch (IOException e) {
+                    Files.move(temp, file);
+                }
             }
         } finally {
             Files.deleteIfExists(temp);

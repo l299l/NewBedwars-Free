@@ -24,6 +24,7 @@ public class CountdownTimer {
     }
 
     public void start() {
+        cancel();
         task = new BukkitRunnable() {
             int i = time;
 
@@ -51,5 +52,6 @@ public class CountdownTimer {
     public void cancel() {
         if (task == null) return;
         task.cancel();
+        task = null;
     }
 }

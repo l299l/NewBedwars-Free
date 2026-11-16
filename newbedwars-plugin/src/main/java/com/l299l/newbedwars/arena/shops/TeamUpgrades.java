@@ -63,6 +63,7 @@ public class TeamUpgrades {
                 if (npc == null || !npc.isValid()) {
                     spawnNpc();
                 } else {
+                    if (TeamShop.drifted(npc.getLocation(), location)) npc.teleport(location);
                     if (npc.getFireTicks() > 0) {
                         npc.setFireTicks(0);
                         npc.setVisualFire(false);

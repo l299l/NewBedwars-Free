@@ -58,6 +58,16 @@ class ArenaMaintenanceCommandTest {
         bukkit = mockStatic(Bukkit.class);
         bukkit.when(Bukkit::getWorldContainer).thenReturn(tempDir.resolve("worlds").toFile());
         bukkit.when(Bukkit::getWorlds).thenReturn(Collections.emptyList());
+        org.bukkit.scheduler.BukkitScheduler scheduler = mock(org.bukkit.scheduler.BukkitScheduler.class);
+        when(scheduler.runTaskAsynchronously(any(org.bukkit.plugin.Plugin.class), any(Runnable.class))).thenAnswer(i -> {
+            ((Runnable) i.getArgument(1)).run();
+            return null;
+        });
+        when(scheduler.runTask(any(org.bukkit.plugin.Plugin.class), any(Runnable.class))).thenAnswer(i -> {
+            ((Runnable) i.getArgument(1)).run();
+            return null;
+        });
+        bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
         Files.createDirectories(tempDir.resolve("data/exports"));
         command = new ArenaMaintenanceCommand(ArenaMaintenanceCommand.Action.IMPORT);
     }

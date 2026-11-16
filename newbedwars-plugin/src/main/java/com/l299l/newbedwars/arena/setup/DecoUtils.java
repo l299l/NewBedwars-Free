@@ -39,17 +39,19 @@ public class DecoUtils {
         return armorStand;
     }
 
-    public static void removeArmorStandAt(Location location) {
+    public static void removeArmorStandAt(Location location, String name) {
         armorStands.removeIf(as -> {
-            if (as.getLocation().getWorld() != location.getWorld()) return false;
-            if (Math.abs(as.getLocation().getBlockX() - location.getBlockX()) <= 1
-                    && Math.abs(as.getLocation().getBlockY() - location.getBlockY()) <= 2
-                    && Math.abs(as.getLocation().getBlockZ() - location.getBlockZ()) <= 1) {
-                as.remove();
-                return true;
-            }
-            return false;
+            if (!isNear(as.getLocation(), location) || !name.equals(as.getCustomName())) return false;
+            as.remove();
+            return true;
         });
+    }
+
+    static boolean isNear(Location marker, Location location) {
+        return marker.getWorld() == location.getWorld()
+                && Math.abs(marker.getBlockX() - location.getBlockX()) <= 1
+                && Math.abs(marker.getBlockY() - location.getBlockY()) <= 2
+                && Math.abs(marker.getBlockZ() - location.getBlockZ()) <= 1;
     }
 
     public static void summonAllArmorStands(IArena arena) {
@@ -57,7 +59,7 @@ public class DecoUtils {
             summonSetupArmorStand(team.getTeamSpawn(), team.getColor() + "Spawn");
             if (team.getTeamBed() != null) summonSetupArmorStand(team.getTeamBed().getLocation(), team.getColor() + "Bed");
             if (team.getTeamShop() != null) summonSetupArmorStand(team.getTeamShop().getLocation(), team.getColor() + "Shop");
-            if (team.getTeamUpgrades() != null) summonSetupArmorStand(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrade");
+            if (team.getTeamUpgrades() != null) summonSetupArmorStand(team.getTeamUpgrades().getLocation(), team.getColor() + "Upgrades");
             if (team.getGenerator() != null) summonSetupArmorStand(team.getGenerator().getLocation(), team.getColor() + "Generator");
         });
         arena.getGenerators().forEach((generator) -> {

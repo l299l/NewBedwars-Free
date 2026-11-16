@@ -86,6 +86,14 @@ class GameLogServiceTest {
     }
 
     @Test
+    void dragonDeathIsLoggedAsDragon() {
+        service.onKill(new PlayerKillEvent(arena, alice, null, true, DamageCause.ENTITY_EXPLOSION, blue));
+        Entry e = entries().get(0);
+        assertEquals(Type.DEATH, e.type());
+        assertEquals("FINAL DRAGON", e.detail());
+    }
+
+    @Test
     void chatPhaseLeaveAndEnd() {
         service.onChat(new ArenaChatEvent(arena, alice, "go mid", true, red));
         service.onPhase(new GamePhaseChangeEvent(arena, "One", "Two", true));

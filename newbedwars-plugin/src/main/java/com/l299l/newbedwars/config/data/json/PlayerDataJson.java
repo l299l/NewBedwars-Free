@@ -93,10 +93,17 @@ public class PlayerDataJson {
                     fastBuyPerCat.put(catId, items);
                 }
             }
+            if (!(player.get("id") instanceof String id)) continue;
+            Language language;
+            try {
+                language = Language.valueOf((String) player.get("language"));
+            } catch (RuntimeException e) {
+                language = Language.English;
+            }
             newHashMap.put(key, new PlayerProfile(
-                    UUID.fromString((String) player.get("id")),
-                    (String) player.get("name"),
-                    Language.valueOf((String) player.get("language")),
+                    UUID.fromString(id),
+                    player.get("name") instanceof String name ? name : key,
+                    language,
                     fastBuyPerCat
             ));
         }

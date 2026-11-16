@@ -1,6 +1,6 @@
 # Network mode (Velocity)
 
-> **Note:** Network mode and the `NewBedwars-Proxy` plugin will be available from **2.6-beta**. Version 2.5-beta and older can not run on a network.
+> **Note:** Network mode and the `NewBedwars-Proxy` plugin are available from **2.6-beta**. Version 2.5-beta and older can not run on a network.
 
 NewBedwars can run on a proxy network: **lobby servers** where players choose a game, and **game servers** that host the arenas. Players and parties are moved between them automatically.
 

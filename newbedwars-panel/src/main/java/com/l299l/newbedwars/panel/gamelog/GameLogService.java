@@ -115,7 +115,7 @@ public final class GameLogService implements Listener {
     public void onKill(PlayerKillEvent e) {
         ArenaView arena = e.getArena();
         TeamView victimTeam = teamOf(arena, e.getVictim());
-        String cause = e.getCause() == null ? null : e.getCause().name();
+        String cause = e.getDragonTeam().isPresent() ? "DRAGON" : e.getCause() == null ? null : e.getCause().name();
         if (e.getKiller() == null) {
             add(arena, Type.DEATH, e.getVictim(), victimTeam, null, null, (e.isFinalKill() ? "FINAL " : "") + cause);
         } else {

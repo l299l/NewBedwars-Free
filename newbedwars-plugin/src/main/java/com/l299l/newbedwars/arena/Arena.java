@@ -578,29 +578,43 @@ public class Arena implements IArena {
             checkWin();
         } else {
             addSpectator(player, false);
-            GamePlayer gp = players.get(player.getUniqueId());
-            BukkitTask task = new BukkitRunnable() {
-                int time = Math.max(1, respawnTime);
-                @Override
-                public void run() {
-
-                    if (gameStatus != GameStatus.playing || !isPlayerInArena(player)
-                            || !player.isOnline() || !spectatorsList.contains(player)) {
-                        cancel();
-                        return;
-                    }
-                    sendTitle(player, "RespawnCountdownTitle", "RespawnCountdownSubtitle",
-                            Map.of("/time/", Integer.toString(time)), 0, 20, 0);
-                    time--;
-                    if (time == 0) {
-                        sendTitle(player, "RespawnedTitle", null, Map.of(), 0, 20, 0);
-                        respawnPlayer(player);
-                        cancel();
-                    }
-                }
-            }.runTaskTimer(NewBedwars.plugin, 0, 20);
-            if (gp != null) gp.setRespawnTask(task);
+            startRespawnCountdown(player);
         }
+    }
+
+    private void startRespawnCountdown(Player player) {
+        GamePlayer gp = players.get(player.getUniqueId());
+        BukkitTask task = new BukkitRunnable() {
+            int time = Math.max(1, respawnTime);
+            @Override
+            public void run() {
+                if (gameStatus != GameStatus.playing || !isPlayerInArena(player)
+                        || !player.isOnline() || !spectatorsList.contains(player)) {
+                    cancel();
+                    return;
+                }
+                sendTitle(player, "RespawnCountdownTitle", "RespawnCountdownSubtitle",
+                        Map.of("/time/", Integer.toString(time)), 0, 20, 0);
+                time--;
+                if (time <= 0) {
+                    cancel();
+                    sendTitle(player, "RespawnedTitle", null, Map.of(), 0, 20, 0);
+                    respawnPlayer(player);
+                }
+            }
+        }.runTaskTimer(NewBedwars.plugin, 0, 20);
+        if (gp != null) gp.setRespawnTask(task);
+    }
+
+    @Override
+    public boolean ensureRespawning(Player player) {
+        if (gameStatus != GameStatus.playing || !player.isOnline() || !spectatorsList.contains(player)) return false;
+        GamePlayer gp = players.get(player.getUniqueId());
+        if (gp == null || gp.isRespawning() || rejoin.waiting().contains(player.getUniqueId())) return false;
+        Team team = getTeam(player);
+        if (team == null || team.isBedDestroyed()) return false;
+        startRespawnCountdown(player);
+        return true;
     }
 
     @Override
@@ -663,6 +677,13 @@ public class Arena implements IArena {
     public void broadcast(String message, Map<String, String> replace) {
         for (Player player : audience()) {
             player.sendMessage(text(player, message, replace));
+        }
+    }
+
+    @Override
+    public void broadcastEach(String message, java.util.function.Function<Player, Map<String, String>> replace) {
+        for (Player player : audience()) {
+            player.sendMessage(text(player, message, replace.apply(player)));
         }
     }
 
@@ -1265,6 +1286,7 @@ public class Arena implements IArena {
     private void starting() {
         gameStatus = GameStatus.starting;
         nextPhaseTime = waitingTime;
+        if (countdownTimer != null) countdownTimer.cancel();
         countdownTimer = new CountdownTimer(players.keySet(), waitingTime, this);
         countdownTimer.start();
     }
@@ -1390,7 +1412,13 @@ public class Arena implements IArena {
     private void addSpectatorInternal(Player player, boolean canExit) {
         if (!spectatorsList.contains(player)) spectatorsList.add(player);
         if (player.isDead()) {
-            player.spigot().respawn();
+            Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
+                if (!player.isOnline() || !spectatorsList.contains(player)) return;
+                if (player.isDead()) player.spigot().respawn();
+                player.teleport(waitingSpawn);
+                player.setAllowFlight(true);
+                player.setFlying(true);
+            });
         }
         PlayerStateResetter.reset(player, GameMode.ADVENTURE);
         player.setFallDistance(0f);
@@ -1528,8 +1556,8 @@ public class Arena implements IArena {
         everyone.putAll(players);
         for (GamePlayer gp : everyone.values()) {
             boolean won = winner != null && winner.getPlayers().contains(gp.getPlayer());
-            pm.addGameResult(gp.getPlayer().getName(), gp, won);
-            NewBedwars.plugin.getDataManager().recordGameResult(gp.getPlayer().getName(),
+            pm.addGameResult(gp.getPlayer().getUniqueId(), gp.getPlayer().getName(), gp, won);
+            NewBedwars.plugin.getDataManager().recordGameResult(gp.getPlayer().getUniqueId(), gp.getPlayer().getName(),
                     PlayerSqlRepo.gameDelta(gp.getKills(), gp.getDeaths(),
                             gp.getFinalKills(), gp.getBedsBroken(), won));
         }

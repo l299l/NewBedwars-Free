@@ -34,7 +34,7 @@ public final class PlayerDataSql implements Listener {
 
     private final NewBedwars plugin;
     private final Database db;
-    private final Set<String> loaded = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> loaded = ConcurrentHashMap.newKeySet();
     private BukkitTask leaderboardTask;
 
     public PlayerDataSql(NewBedwars plugin) {
@@ -50,10 +50,20 @@ public final class PlayerDataSql implements Listener {
         try {
             db.runNow(c -> {
                 PlayerSqlRepo.createTables(c);
-                if (PlayerSqlRepo.isEmpty(c) && (!pm().getAllStats().isEmpty() || !pm().getPlayers().isEmpty())) {
+                if (!PlayerSqlRepo.isEmpty(c)) return;
+                PlayerSqlRepo.LegacyRows legacy = PlayerSqlRepo.readLegacy(c);
+                if (!legacy.players().isEmpty() || !legacy.stats().isEmpty()) {
+                    int moved = PlayerSqlRepo.migrateLegacy(c, legacy);
+                    plugin.getLogger().info("[MySQL] Moved " + legacy.players().size() + " players and the stats of " + moved
+                            + " players to the UUID tables " + PlayerSqlRepo.PLAYERS + " and " + PlayerSqlRepo.STATS
+                            + " (the old tables " + PlayerSqlRepo.LEGACY_PLAYERS + " and " + PlayerSqlRepo.LEGACY_STATS + " are kept)");
+                } else if (!pm().getAllStats().isEmpty() || !pm().getPlayers().isEmpty()) {
                     long now = System.currentTimeMillis();
                     for (PlayerProfile p : pm().getPlayers().values()) PlayerSqlRepo.savePlayer(c, row(p), now);
-                    for (Map.Entry<String, PlayerStats> e : pm().getAllStats().entrySet()) PlayerSqlRepo.addStats(c, e.getKey(), e.getValue());
+                    for (Map.Entry<UUID, PlayerStats> e : pm().getAllStats().entrySet()) {
+                        String name = pm().nameOf(e.getKey());
+                        PlayerSqlRepo.addStats(c, e.getKey(), name != null ? name : e.getKey().toString(), e.getValue());
+                    }
                     plugin.getLogger().info("[MySQL] Imported " + pm().getPlayers().size() + " players and "
                             + pm().getAllStats().size() + " stats from the JSON files");
                 }
@@ -68,7 +78,7 @@ public final class PlayerDataSql implements Listener {
         leaderboardTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             refreshLeaderboards();
 
-            for (Player p : Bukkit.getOnlinePlayers()) refreshStats(p.getName());
+            for (Player p : Bukkit.getOnlinePlayers()) refreshStats(p.getUniqueId(), p.getName());
         }, 20L * 60, 20L * 60);
     }
 
@@ -85,55 +95,58 @@ public final class PlayerDataSql implements Listener {
     void loadPlayer(Player player) {
         String name = player.getName();
         UUID id = player.getUniqueId();
-        loaded.remove(name);
+        loaded.remove(id);
         db.submit("Loading " + name, c -> {
             try {
-                PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, name);
-                PlayerStats stats = PlayerSqlRepo.loadStats(c, name);
+                PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, id);
+                PlayerStats stats = PlayerSqlRepo.loadStats(c, id);
                 Bukkit.getScheduler().runTask(plugin, () -> apply(name, id, row, stats));
             } catch (SQLException | RuntimeException e) {
                 plugin.getLogger().log(Level.SEVERE, "[MySQL] Could not load the data of " + name + "; it will not be saved until it loads (retrying in 30s)", e);
-                Bukkit.getScheduler().runTask(plugin, () -> scheduleRetry(name));
+                Bukkit.getScheduler().runTask(plugin, () -> scheduleRetry(id));
             }
         });
     }
 
-    private void scheduleRetry(String name) {
+    private void scheduleRetry(UUID id) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            Player online = Bukkit.getPlayerExact(name);
-            if (online != null && !loaded.contains(name)) loadPlayer(online);
+            Player online = Bukkit.getPlayer(id);
+            if (online != null && !loaded.contains(id)) loadPlayer(online);
         }, 20L * 30);
     }
 
-    boolean isLoaded(String name) {
-        return loaded.contains(name);
+    boolean isLoaded(UUID id) {
+        return loaded.contains(id);
     }
 
-    private void refreshStats(String name) {
+    private void refreshStats(UUID id, String name) {
         db.submit("Reading the stats of " + name, c -> {
-            PlayerStats stats = PlayerSqlRepo.loadStats(c, name);
-            if (stats != null) Bukkit.getScheduler().runTask(plugin, () -> pm().addStats(name, stats));
+            PlayerStats stats = PlayerSqlRepo.loadStats(c, id);
+            if (stats != null) Bukkit.getScheduler().runTask(plugin, () -> pm().addStats(id, name, stats));
         });
     }
 
     void apply(String name, UUID id, PlayerSqlRepo.PlayerRow row, PlayerStats stats) {
-        loaded.add(name);
-        pm().addStats(name, stats != null ? stats : PlayerStats.empty());
+        loaded.add(id);
+        pm().identify(id, name);
+        pm().addStats(id, name, stats != null ? stats : PlayerStats.empty());
+        PlayerProfile current = pm().getPlayer(id);
         if (row == null) {
 
             savePlayer(name);
             return;
         }
         Language lang = parseLanguage(row.language());
-        PlayerProfile current = pm().getPlayer(name);
         Map<String, List<String>> fastBuy = parseFastBuy(row.fastBuyJson());
         pm().addPlayer(new PlayerProfile(id, name, lang != null ? lang : current != null ? current.language() : Language.English,
                 fastBuy != null ? fastBuy : current != null ? current.fastBuyPerCategory() : PlayerProfile.defaultFastBuy()));
+        if (!name.equals(row.name())) savePlayer(name);
     }
 
     public void savePlayer(String name) {
-        if (!loaded.contains(name)) return;
-        PlayerProfile p = pm().getPlayer(name);
+        UUID id = pm().idOf(name);
+        if (id == null || !loaded.contains(id)) return;
+        PlayerProfile p = pm().getPlayer(id);
         if (p == null) return;
         PlayerSqlRepo.PlayerRow row = row(p);
         db.submit("Saving " + name, c -> PlayerSqlRepo.savePlayer(c, row, System.currentTimeMillis()));
@@ -143,8 +156,8 @@ public final class PlayerDataSql implements Listener {
         for (Player p : Bukkit.getOnlinePlayers()) savePlayer(p.getName());
     }
 
-    public void recordGame(String name, PlayerStats delta) {
-        db.submit("Saving the stats of " + name, c -> PlayerSqlRepo.addStats(c, name, delta));
+    public void recordGame(UUID id, String name, PlayerStats delta) {
+        db.submit("Saving the stats of " + name, c -> PlayerSqlRepo.addStats(c, id, name, delta));
     }
 
     public void refreshLeaderboards() {
@@ -158,7 +171,7 @@ public final class PlayerDataSql implements Listener {
     }
 
     static PlayerSqlRepo.PlayerRow row(PlayerProfile p) {
-        return new PlayerSqlRepo.PlayerRow(p.name(), p.id() == null ? "" : p.id().toString(),
+        return new PlayerSqlRepo.PlayerRow(p.id() == null ? "" : p.id().toString(), p.name(),
                 p.language() == null ? Language.English.name() : p.language().name(),
                 p.fastBuyPerCategory() == null ? null : GSON.toJson(p.fastBuyPerCategory()));
     }

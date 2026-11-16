@@ -51,7 +51,7 @@ public class LangCommand extends BwCommand {
             return;
         }
         PlayerManager players = NewBedwars.plugin.getPlayerManager();
-        PlayerProfile current = players.getPlayers().get(player.getName());
+        PlayerProfile current = players.getPlayers().get(player.getUniqueId());
         if (current == null || current.language() != lang) {
             if (onCooldown(player.getUniqueId(), System.currentTimeMillis())) {
                 msg.send(player, "LanguageCooldown");

@@ -56,7 +56,7 @@ public class SetTeamBedCommand extends BwCommand {
             player.sendMessage(msg.getMsg(player, "placeBedFirst"));
             return;
         }
-        if (team.isBedSet()) DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation());
+        if (team.isBedSet()) DecoUtils.removeArmorStandAt(team.getTeamBed().getLocation(), team.getColor() + "Bed");
         team.setTeamBed(location);
         Location bed = team.getTeamBed().getLocation();
         player.sendMessage(msg.getMsg(player, "setTeamBedSuccess") + bed.getBlockX() + " " + bed.getBlockY() + " " + bed.getBlockZ());

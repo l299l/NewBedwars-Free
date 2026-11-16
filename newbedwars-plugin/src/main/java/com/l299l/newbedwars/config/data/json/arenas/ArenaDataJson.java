@@ -63,10 +63,10 @@ public class ArenaDataJson {
             String arenaName = jsonObject.get("arenaName").getAsString();
             loadingArena = arenaName;
             String worldName = jsonObject.get("worldName").getAsString();
-            int minPlayers = jsonObject.get("minPlayers").getAsInt();
-            int maxInTeam = jsonObject.get("maxInTeam").getAsInt();
-            int waitingTime = jsonObject.get("waitingTime").getAsInt();
-            int respawnTime = jsonObject.get("respawnTime").getAsInt();
+            Integer minPlayers = optionalInt(jsonObject, "minPlayers");
+            Integer maxInTeam = optionalInt(jsonObject, "maxInTeam");
+            Integer waitingTime = optionalInt(jsonObject, "waitingTime");
+            Integer respawnTime = optionalInt(jsonObject, "respawnTime");
             Setup setup = gson.fromJson(jsonObject.get("setup"), Setup.class);
             boolean enabled = jsonObject.get("enabled").getAsBoolean();
             List<LinkedTreeMap> teams = gson.fromJson(jsonObject.get("teams"), List.class);
@@ -94,11 +94,11 @@ public class ArenaDataJson {
             Location waitingPos1 = getLocation(gson.fromJson(jsonObject.get("waitingPos1"), Object.class));
             Location waitingPos2 = getLocation(gson.fromJson(jsonObject.get("waitingPos2"), Object.class));
             IArena arena = new Arena(arenaName, Objects.requireNonNull(NewBedwars.plugin.getServer().getWorld(worldName)));
-            arena.setMinPlayers(minPlayers);
-            arena.setMaxInTeam(maxInTeam);
-            arena.setWaitingTime(waitingTime);
-            arena.setRespawnTime(respawnTime);
-            arena.changeSetup(setup);
+            if (minPlayers != null) arena.setMinPlayers(minPlayers);
+            if (maxInTeam != null) arena.setMaxInTeam(maxInTeam);
+            if (waitingTime != null) arena.setWaitingTime(waitingTime);
+            if (respawnTime != null) arena.setRespawnTime(respawnTime);
+            if (setup != null) arena.changeSetup(setup);
             if (enabled) {
                 arena.enable();
             } else {
@@ -168,6 +168,10 @@ public class ArenaDataJson {
             for (LinkedTreeMap generator: generators) {
                 JsonObject generatorObject = gson.fromJson(gson.toJson(generator), JsonObject.class);
                 GeneratorType generatorType = gson.fromJson(generatorObject.get("type"), GeneratorType.class);
+                if (generatorType == null || getLocation(gson.fromJson(generatorObject.get("location"), Object.class)) == null) {
+                    arena.getLoadProblems().add("a generator without a valid type or location was skipped");
+                    continue;
+                }
                 switch (generatorType) {
                     case BASIC:
                         arena.addGenerator(new BasicGenerator(getLocation(gson.fromJson(generatorObject.get("location"), Object.class))));
@@ -278,11 +282,20 @@ public class ArenaDataJson {
         }
     }
 
+    private static Integer optionalInt(JsonObject json, String key) {
+        JsonElement value = json.get(key);
+        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) return null;
+        return value.getAsInt();
+    }
+
     private Location getLocation(Object object) {
         if (object == null) {
             return null;
         }
         if (object instanceof JsonObject jobject) {
+            for (String key : List.of("world", "x", "y", "z", "yaw", "pitch")) {
+                if (!jobject.has(key) || jobject.get(key).isJsonNull()) return null;
+            }
             return new Location(
                     NewBedwars.plugin.getServer().getWorld(jobject.get("world").getAsString()),
                     jobject.get("x").getAsDouble(),
@@ -294,6 +307,9 @@ public class ArenaDataJson {
         }else if (object instanceof Location) {
             return (Location) object;
         }else if (object instanceof LinkedTreeMap map) {
+            for (String key : List.of("world", "x", "y", "z", "yaw", "pitch")) {
+                if (map.get(key) == null) return null;
+            }
             return new Location(
                     NewBedwars.plugin.getServer().getWorld((String) map.get("world")),
                     Double.parseDouble(map.get("x").toString()),

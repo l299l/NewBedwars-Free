@@ -75,7 +75,7 @@ public class SetGeneratorCommand extends BwCommand {
                         return;
                     }
                     if (team.getGenerator() != null) {
-                        DecoUtils.removeArmorStandAt(team.getGenerator().getLocation());
+                        DecoUtils.removeArmorStandAt(team.getGenerator().getLocation(), team.getColor() + "Generator");
                     }
                     team.setGenerator(createGenerator(type, player.getLocation()));
                     player.sendMessage(msg.getMsg(player, "setGeneratorSuccess") + type.name() + " " + player.getLocation().getBlockX() + " " + player.getLocation().getBlockY() + " " + player.getLocation().getBlockZ());
@@ -90,7 +90,7 @@ public class SetGeneratorCommand extends BwCommand {
                             return;
                         }
                         if (team.getGenerator() != null) {
-                            DecoUtils.removeArmorStandAt(team.getGenerator().getLocation());
+                            DecoUtils.removeArmorStandAt(team.getGenerator().getLocation(), team.getColor() + "Generator");
                         }
                         int x = Integer.parseInt(args[3]);
                         int y = Integer.parseInt(args[4]);

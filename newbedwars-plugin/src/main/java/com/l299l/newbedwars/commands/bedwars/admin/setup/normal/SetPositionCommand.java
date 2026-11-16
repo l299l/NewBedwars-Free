@@ -108,7 +108,7 @@ public class SetPositionCommand extends BwCommand {
             return;
         }
         Location old = point.teamGetter.apply(team);
-        if (point.marker != null && old != null) DecoUtils.removeArmorStandAt(old);
+        if (point.marker != null && old != null) DecoUtils.removeArmorStandAt(old, team.getColor() + point.marker);
         point.teamSetter.accept(team, loc);
         Location set = point.teamGetter.apply(team);
         player.sendMessage(msg.getMsg(player, point.messageKey) + blockXYZ(set));

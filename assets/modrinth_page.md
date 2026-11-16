@@ -12,28 +12,35 @@ A modern, fully configurable Bedwars plugin built from the ground up for **Paper
 
 Whether you're running a small survival server and just want a Bedwars minigame, or building a full network, NewBedwars gives you the tools to build polished arenas without a headache.
 
-> **This is a beta release.** Core gameplay is stable and feature-complete. Please report issues on [GitHub](https://github.com/l299l/NewBedwars-Free/issues).
+> **This is a beta release, close to the first stable version** (see the roadmap below). Core gameplay is stable and feature-complete. Please report issues on [GitHub](https://github.com/l299l/NewBedwars-Free/issues).
 
 ## Why this exists
 
-A lot of free Bedwars plugins make you pick one: simple but bare-bones, or powerful but bloated with dependencies and a config file the size of a novel. NewBedwars tries to skip that trade-off. You set up an arena entirely in-game through a guided setup flow, so there is no hand-editing YAML just to place a bed or a generator. Everything from the shop GUI to the scoreboard is defined in YAML you can reshape without touching Java. PlaceholderAPI and WorldEdit are supported if you have them, but you don't need either.
+A lot of free Bedwars plugins make you pick one: simple but bare-bones, or powerful but bloated with dependencies and a config file the size of a novel. NewBedwars tries to skip that trade-off. You set up an arena entirely in-game through a guided setup flow, so there is no hand-editing YAML just to place a bed or a generator. Everything from the shop GUI to the scoreboard is defined in YAML you can reshape without touching Java. PlaceholderAPI, WorldEdit and Citizens are supported if you have them, but you don't need any of them.
 
 ## Features
 
 **Gameplay**
 - Multi-arena support: run as many arenas as you want at once, each in its own world
-- Automatic map reset after every game, with backups, export and import of arenas
+- Automatic map reset after every game, with backups, export, import and copying of arenas
 - Configurable team count, colors and player limits per arena
 - Quick Void: instant death below a configurable Y level
 - Per-team build protection zones
 - Rejoin system for players who get disconnected
 - Parties: `/party`, clickable invites, and the party admin leads everyone into an arena together
 - Configurable game phases: generator upgrades, bed destruction, Ender Dragons, and more
+- Smart Ender Dragons from the Dragon Buff upgrade: they hunt enemy players, dive at them, aim their fireballs and never hurt their own team
 - Resource generators (iron, gold, diamond, emerald) with levels, plus team Forge upgrades
+- Arena groups with map voting at the end of a game
+
+**Arena setup**
+- A guided in-game setup with a checklist (`/bw info`) and floating labels for every point you set
+- **Automatic setup:** build the map, run `/bw startAutomaticSetup`, and the plugin finds the beds (one team per bed colour), the generator blocks and marker signs (`[spawn]`, `[shop]`, `[upgrades]`, `[gen]`). It then guesses the team areas and walks you through whatever is still missing with clickable chat buttons
+- Create an arena from a WorldEdit schematic (optional)
 
 **Shop and upgrades**
 - YAML shop and upgrade GUIs, with fast-buy customization
-- Team upgrades (Forge, Heal Pool, Dragon Buff, traps and more)
+- Team upgrades (Forge, Heal Pool, Dragon Buff, traps and more), each level with its own price and currency (`data/upgrades.yml`), and optional different prices per upgrade GUI (for example cheaper upgrades in solo arenas)
 - Custom items: Bridge Egg, Fireball, custom potions, Iron Golem, Silverfish, Lucky Block, Portable Tower and more
 - Team-colored blocks: wool, terracotta, glass, concrete and more are given in the buyer's team color
 
@@ -43,18 +50,26 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Spectator mode with flight and a compass teleporter
 - Six languages: English, Polish, German, Spanish, French and Russian (missing keys fall back to English)
 - Per-arena resource packs
-- Player stats, leaderboards and a profile GUI
+- Player stats, leaderboards and a profile GUI. Stats are stored by UUID, so a name change keeps them
+
+**Servers and networks**
+- JSON storage by default, or MySQL/MariaDB to share stats between servers
+- Velocity network mode: lobby servers and game servers, with players and parties routed to the best free arena (needs the `NewBedwars-Proxy` jar on Velocity)
+- Update notifications: NewBedwars tells the console and admins about new versions and can download them for you (`/bw update`)
+- **Web admin panel:** the optional **NewBedwars Panel** addon adds a browser panel. It shows live arenas, game control, game logs, player stats and a visual shop editor, works across a whole network, and is published as a separate project on Modrinth
 
 **Integrations**
-- PlaceholderAPI: 26 placeholders under `%newbedwars_*%` (optional)
+- PlaceholderAPI: 34 placeholders under `%newbedwars_*%` (optional)
 - WorldEdit / FastAsyncWorldEdit: build an arena from a `.schem` file (optional)
+- Citizens: lobby join NPCs with a live hologram (optional; without Citizens, `/bw npc create` spawns a simple NPC)
 - Addon API with events and registration of your own shop items, upgrades, armor, commands and phase actions
 
 ## Requirements
 
 - **Server:** Paper 1.17 – 26.x
-- **Java:** 16 or higher
-- No other plugins are required. PlaceholderAPI and WorldEdit / FastAsyncWorldEdit are optional.
+- **Java:** 16 or higher, or whatever your Paper version needs
+- No other plugins are required. PlaceholderAPI, WorldEdit / FastAsyncWorldEdit and Citizens are optional.
+- For network mode: Velocity 4.x on Java 25, and the same NewBedwars version on every server
 
 ## Getting started
 
@@ -62,11 +77,13 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 2. Start the server. Config files generate automatically.
 3. Set your lobby spawn: `/bw setLobby`
 4. Create your first arena: `/bw arena create myArena`
-5. Follow the setup checklist shown by `/bw info`.
+5. Follow the setup checklist shown by `/bw info`. Or pick the **Automatic** setup mode and run `/bw startAutomaticSetup` to let the plugin find the beds, generators and marker signs for you.
 6. Save the arena: `/bw save`
 7. Enable it when ready: `/bw arena enable myArena`
 
 **Building an arena from a schematic.** Save your map as a `.schem` file in WorldEdit's schematics folder, then run `/bw arena create myArena -sche myMap`. The map is pasted at the world origin; continue with the normal setup checklist from there. This needs WorldEdit or FastAsyncWorldEdit.
+
+**Marker signs for the automatic setup.** Place a sign with `[spawn]`, `[shop]`, `[upgrades]` or `[gen]` on the first line and, optionally, the team colour on the second line (for example `red`). Signs without a colour belong to the team of the nearest bed. The used signs are removed after the scan.
 
 ## Commands
 
@@ -76,7 +93,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 
 | Command | Description |
 |---|---|
-| `/bw join [arena]` | Open the arena selector or join a specific arena |
+| `/bw join [arena\|group]` | Open the arena selector, join a specific arena, or join the fullest waiting arena of a group |
 | `/bw rejoin` | Rejoin the game you disconnected from |
 | `/bw spectate <arena>` | Join a running arena as a spectator |
 | `/bw lobby` (or `/lobby`) | Leave the arena and return to the lobby |
@@ -110,9 +127,14 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 | `/bw arena delete <name>` | Permanently delete an arena, its world and saved data |
 | `/bw arena backup <name>` / `backups <name>` / `restore <name> [id]` | Back up an arena, list its backups, restore one |
 | `/bw arena export <name>` / `import <file>` | Export an arena to a zip in `data/exports`, or import one (loaded disabled) |
+| `/bw arena copy <name> <newName>` | Copy an arena (settings and map) to a new arena |
 | `/bw arena resetmap <name>` | Put the arena map back to its saved state |
+| `/bw group <create\|delete\|add\|remove\|list\|info\|setitem> ...` | Arena groups for map voting |
+| `/bw npc <set\|clear\|info\|list\|create\|remove> ...` | Lobby join NPCs (Citizens or simple NPCs) |
 | `/bw setlobby` | Set the lobby spawn |
 | `/bw game <start\|forcestart\|stop\|forcestop\|nextPhase>` | Manage the game you are in or spectating |
+| `/bw game broadcast <message>` | Send a highlighted message to everyone in your arena |
+| `/bw update [check\|download]` | Look for a new version, or download it for the next restart |
 | `/bw reload` | Save arenas, send everyone to the lobby and reload the configuration |
 
 ### Setup commands
@@ -121,9 +143,10 @@ Used inside the arena world after `/bw arena setup <name>`. Pick a mode with `/b
 
 | Mode | Commands |
 |---|---|
-| All | `/bw info`, `/bw setupMode`, `/bw setupHelp`, `/bw save`, `/bw remove`, `/bw leave` |
+| All | `/bw info [gui]`, `/bw setupMode`, `/bw setupHelp`, `/bw save`, `/bw remove`, `/bw leave` |
 | Normal | `/bw createTeam <color> <name>`, `setTeamSpawn`, `setTeamBed`, `setTeamShop`, `setTeamUpgrades`, `setGenerator <type> [team]`, `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `setWaitingPos1/2`, `setWaitingTime`, `setQuickVoidY`, `setTeamBasePos1/2`, `setTeamBuildProtAreaPos1/2` |
 | Advanced | `/bw gamerule <name> <true\|false>`, `setGui`, `setGeneratorLeveling`, `setResourcePack` |
+| Automatic | Everything from Normal, plus `/bw startAutomaticSetup [radius\|next\|skip\|cancel]` |
 
 The complete list with every argument is in the [command reference](https://github.com/l299l/NewBedwars-Free/blob/master/docs/COMMANDS.md).
 
@@ -135,9 +158,13 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 |---|---|---|
 | `newbedwars.bw.admin` | op | All admin commands |
 | `newbedwars.bw.arena` | op | All `/bw arena ...` commands |
-| `newbedwars.bw.arena.<action>` | op | A single arena command: `create`, `delete`, `enable`, `disable`, `setup`, `list`, `backup`, `backups`, `restore`, `export`, `import`, `resetmap` |
+| `newbedwars.bw.arena.<action>` | op | A single arena command: `create`, `delete`, `enable`, `disable`, `setup`, `list`, `backup`, `backups`, `restore`, `export`, `import`, `copy`, `resetmap` |
+| `newbedwars.bw.group` | op | All `/bw group ...` commands |
+| `newbedwars.bw.npc` | op | `/bw npc ...` |
 | `newbedwars.bw.setlobby` | op | `/bw setlobby` |
 | `newbedwars.bw.managegame` | op | `/bw game ...` |
+| `newbedwars.bw.update` | op | `/bw update` |
+| `newbedwars.update.notify` | op | A chat line on join when a new version is out |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions |
 | `newbedwars.bw.player` | true | Bundle of all player permissions below |
 | `newbedwars.bw.join` / `lobby` / `rejoin` / `spectate` | true | Join arenas, go to the lobby, rejoin, spectate |
@@ -152,7 +179,7 @@ Files are created in `plugins/NewBedwars/`:
 
 | File | What it controls |
 |---|---|
-| `config.yml` | Defaults, gamerules, game phases, rejoin |
+| `config.yml` | Defaults, gamerules, game phases, dragons, rejoin, storage, updates, network mode |
 | `language/*.yml` | All messages (add or edit translations) |
 | `bossBars.yml` / `scoreboards.yml` | Boss bar and scoreboard templates |
 | `generators/defaultGenerators.yml` | Resource generator speeds and levels |
@@ -161,23 +188,26 @@ Files are created in `plugins/NewBedwars/`:
 | `data/upgrades.yml` | Upgrade and trap prices per level |
 | `data/arenas/*.json` | Saved arenas (edited by the setup commands) |
 
+More guides: [storage (JSON and MySQL)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/STORAGE.md), [network mode](https://github.com/l299l/NewBedwars-Free/blob/master/docs/NETWORK.md), [web panel](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PANEL.md).
+
 ## PlaceholderAPI
 
-If PlaceholderAPI is installed, NewBedwars registers 26 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. See the [full list](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PLACEHOLDERS.md).
+If PlaceholderAPI is installed, NewBedwars registers 34 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. See the [full list](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PLACEHOLDERS.md).
 
 ## Addon developers
 
-NewBedwars has an API with events, so other plugins can hook into it. You can register your own shop items, upgrades, armor tiers, commands and phase actions, store extra data on arenas and edit arenas. Documentation: [Addon API](https://github.com/l299l/NewBedwars-Free/blob/master/docs/API.md), with a [complete example addon](https://github.com/l299l/NewBedwars-Free/tree/master/docs/examples/event-logger).
+NewBedwars has an API with events, so other plugins can hook into it. You can register your own shop items, upgrades, armor tiers, commands and phase actions, read stats and leaderboards, control games, edit the shop, store extra data on arenas and edit arenas. Documentation: [Addon API](https://github.com/l299l/NewBedwars-Free/blob/master/docs/API.md), with a [complete example addon](https://github.com/l299l/NewBedwars-Free/tree/master/docs/examples/event-logger).
 
 ## Roadmap
 
-- [x] Parties, PlaceholderAPI, WorldEdit / FAWE schematics, per-arena resource packs
-- [x] Statistics, leaderboards and profile GUI
-- [x] Addon API and events
-- [ ] Citizens2 support
-- [ ] In-game map voting
-- [ ] Full translations for all languages
-- [ ] Network / BungeeCord / Velocity mode
+**2.7-beta is one of the last betas.** All planned features are done: parties, PlaceholderAPI, schematics, stats, the addon API, Citizens NPCs, map voting, network mode, automatic arena setup, update notifications and the web panel.
+
+What comes next:
+
+1. **One or two bug-fix betas** after 2.7-beta, depending on what is reported. They fix problems and don't add big features.
+2. **The first stable release.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
+
+Found a bug in a beta? Please [report it](https://github.com/l299l/NewBedwars-Free/issues). Every report brings the stable release closer.
 
 ## Screenshots
 
