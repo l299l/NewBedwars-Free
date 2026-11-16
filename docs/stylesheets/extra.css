@@ -1,5 +1,6 @@
 .md-grid {
-  max-width: 90rem;
+  /*max-width: 90rem;*/
+  max-width: none;
 }
 
 .md-main__inner {
