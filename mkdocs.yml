@@ -40,6 +40,9 @@ theme:
     - content.action.edit
     - toc.follow
 
+extra_css:
+  - stylesheets/extra.css
+
 markdown_extensions:
   - admonition
   - attr_list

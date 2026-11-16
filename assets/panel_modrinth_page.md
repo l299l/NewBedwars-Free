@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Requires the NewBedwars plugin](https://img.shields.io/badge/Requires-NewBedwars-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![Source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Web panel documentation](https://img.shields.io/badge/Docs-panel.md-555555?style=for-the-badge)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/panel.md)
+[![Requires the NewBedwars plugin](https://img.shields.io/badge/Requires-NewBedwars-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![Source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Web panel documentation](https://img.shields.io/badge/Docs-Website-D32F2F?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://l299l.github.io/NewBedwars-Free/panel/)
 
 </div>
 

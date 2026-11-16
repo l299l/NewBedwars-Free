@@ -7,7 +7,7 @@
 #   data/guis/*.yml       shop and upgrade GUIs
 #   generators/*.yml      generator speeds and levels
 #   scoreboards.yml, bossBars.yml, language/*.yml
-# Docs: https://github.com/l299l/NewBedwars-Free/tree/master/docs
+# Docs: https://l299l.github.io/NewBedwars-Free/
 
 
 # ----- General ------------------------------------

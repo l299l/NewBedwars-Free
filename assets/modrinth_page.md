@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Download NewBedwars on Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![NewBedwars source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Download the NewBedwars web panel addon](https://img.shields.io/badge/Web_Panel-Download-0088ff?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free/releases/latest)
+[![Download NewBedwars on Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![NewBedwars source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![NewBedwars documentation](https://img.shields.io/badge/Docs-Website-D32F2F?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://l299l.github.io/NewBedwars-Free/) [![Download the NewBedwars web panel addon](https://img.shields.io/badge/Web_Panel-Download-0088ff?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free/releases/latest)
 
 </div>
 

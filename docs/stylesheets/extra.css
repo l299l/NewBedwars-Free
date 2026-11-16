@@ -1,0 +1,14 @@
+.md-grid {
+  max-width: 90rem;
+}
+
+.md-main__inner {
+  margin-top: 0.8rem;
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-content__inner {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
