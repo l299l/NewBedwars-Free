@@ -11,7 +11,7 @@ import java.util.Map;
  * @param size               9, 18, 27, 36, 45 or 54
  * @param headerSize         slots on top that stay on every page (a multiple of 9)
  * @param footerSize         slots at the bottom that stay on every page (a multiple of 9)
- * @param closeOnTransaction close the GUI after a purchase
+ * @param closeOnTransaction deprecated, has no effect: always {@code false}, ignored when saving
  * @param fill               item used by {@code fill} slots: {@code ci:<item>} or {@code empty}
  * @param empty              item used by {@code empty} slots: {@code ci:<item>} or {@code empty}
  * @param slots              one entry per slot: {@code fill}, {@code empty}, {@code ci:<item>}, {@code cat:<category>}
@@ -24,10 +24,11 @@ import java.util.Map;
  *                           (same shape as {@link UpgradePrice#tiers()}); {@code null} when saving keeps the
  *                           current overrides, an empty map removes them
  */
-public record ShopGui(String id, String title, int size, int headerSize, int footerSize, boolean closeOnTransaction,
+public record ShopGui(String id, String title, int size, int headerSize, int footerSize, @Deprecated boolean closeOnTransaction,
                       String fill, String empty, List<String> slots, List<ShopCategory> categories,
                       List<String> problems, List<String> usedBy, Map<String, List<UpgradeTier>> upgradePrices) {
     public ShopGui {
+        closeOnTransaction = false;
         slots = slots == null ? List.of() : List.copyOf(slots);
         categories = categories == null ? List.of() : List.copyOf(categories);
         problems = problems == null ? List.of() : List.copyOf(problems);

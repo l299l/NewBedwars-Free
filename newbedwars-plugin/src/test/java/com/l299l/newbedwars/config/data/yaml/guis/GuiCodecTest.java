@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GuiCodecTest {
@@ -28,6 +29,13 @@ class GuiCodecTest {
             GuiDefinition parsed = GuiCodec.parse(resource(name));
             assertEquals(parsed, GuiCodec.parse(GuiCodec.toYaml(parsed)), name);
         }
+    }
+
+    @Test
+    void oldCloseOnTransactionKeyIsDroppedOnSave() {
+        GuiDefinition d = GuiCodec.parse("GuiId: old\nSize: 9\nCloseOnTransaction: true\n");
+        assertFalse(d.extra().containsKey("CloseOnTransaction"));
+        assertFalse(GuiCodec.toYaml(d).contains("CloseOnTransaction"));
     }
 
     @Test
@@ -49,7 +57,7 @@ class GuiCodecTest {
     void quotesColourCodesQuotesAndBackslashes() {
         List<String> slots = new ArrayList<>(Collections.nCopies(9, "empty"));
         slots.set(0, "ci:Wool");
-        GuiDefinition d = new GuiDefinition("t", "ShopGUI", "&a\"Shop\" \\ ünïcode: #1", 9, false, "empty", "empty", 0, 0,
+        GuiDefinition d = new GuiDefinition("t", "ShopGUI", "&a\"Shop\" \\ ünïcode: #1", 9, "empty", "empty", 0, 0,
                 slots, List.of(new GuiDefinition.Category("home", "&eHome", "Wool", "a; b", List.of("Wool", "upg:Forge"))), Map.of());
         GuiDefinition back = GuiCodec.parse(GuiCodec.toYaml(d));
         assertEquals(d, back);
@@ -59,7 +67,7 @@ class GuiCodecTest {
     void keepsUnknownTopLevelKeys() {
         Map<String, Object> extra = new LinkedHashMap<>();
         extra.put("Custom", Map.of("a", 1));
-        GuiDefinition d = new GuiDefinition("t", "ShopGUI", "T", 9, true, "empty", "empty", 0, 0,
+        GuiDefinition d = new GuiDefinition("t", "ShopGUI", "T", 9, "empty", "empty", 0, 0,
                 Collections.nCopies(9, "empty"), List.of(), extra);
         GuiDefinition back = GuiCodec.parse(GuiCodec.toYaml(d));
         assertEquals(Map.of("a", 1), back.extra().get("Custom"));

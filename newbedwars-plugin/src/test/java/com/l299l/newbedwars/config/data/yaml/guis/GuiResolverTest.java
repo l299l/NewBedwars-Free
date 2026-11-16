@@ -35,7 +35,7 @@ class GuiResolverTest {
         slots.set(1, "fill");
         slots.set(2, "ci:wool");
         slots.set(3, "upg:Forge");
-        GuiDefinition d = new GuiDefinition("g", "ShopGUI", "G", 9, true, "ci:Fill", "empty", 0, 0, slots,
+        GuiDefinition d = new GuiDefinition("g", "ShopGUI", "G", 9, "ci:Fill", "empty", 0, 0, slots,
                 List.of(new GuiDefinition.Category("blocks", "Blocks", "Wool", "", List.of("Wool", "upg:Forge"))), Map.of());
         GUISave save = resolver.resolve(d);
         assertTrue(save.getProblems().isEmpty(), save.getProblems().toString());
@@ -56,7 +56,7 @@ class GuiResolverTest {
         slots.set(1, "ci:Nope");
         slots.set(2, "upg:NoIcon");
         slots.set(3, "rubbish");
-        GuiDefinition d = new GuiDefinition("g", "ShopGUI", "G", 9, true, "ci:Gone", "empty", 0, 0, slots,
+        GuiDefinition d = new GuiDefinition("g", "ShopGUI", "G", 9, "ci:Gone", "empty", 0, 0, slots,
                 List.of(new GuiDefinition.Category("a", "A", "Missing", "", List.of()),
                         new GuiDefinition.Category("b", "B", "Wool", "", List.of("Nope", "Wool"))), Map.of());
         GUISave save = resolver.resolve(d);
@@ -69,7 +69,7 @@ class GuiResolverTest {
 
     @Test
     void headerAndFooterAreClamped() {
-        GuiDefinition d = new GuiDefinition("g", "ShopGUI", "G", 9, true, "empty", "empty", 18, 9,
+        GuiDefinition d = new GuiDefinition("g", "ShopGUI", "G", 9, "empty", "empty", 18, 9,
                 Collections.nCopies(9, "empty"), List.of(), Map.of());
         GUISave save = resolver.resolve(d);
         assertEquals(9, save.getHeaderSize());

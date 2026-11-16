@@ -5,6 +5,7 @@ import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.api.view.NetworkMode;
 import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
@@ -16,10 +17,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +32,10 @@ import java.util.logging.Level;
 
 public class ChatEvent implements Listener {
     static final String COLOR_PERMISSION = "newbedwars.chat.color";
+    static final String PRIVATE_CHAT_BYPASS = "newbedwars.bw.admin";
+    static final Set<String> PRIVATE_COMMANDS = Set.of("msg", "tell", "w", "whisper", "m", "t", "pm",
+            "emsg", "epm", "etell", "ewhisper", "r", "reply", "er", "ereply");
+    static final Set<String> REPLY_COMMANDS = Set.of("r", "reply", "er", "ereply");
     private final NewBedwars plugin;
 
     public ChatEvent(NewBedwars plugin) {
@@ -102,6 +110,37 @@ public class ChatEvent implements Listener {
         } else {
             plugin.getMessages().send(sender, "ArenaChatDisabled");
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPrivateMessage(PlayerCommandPreprocessEvent event) {
+        String[] parts = event.getMessage().trim().split("\\s+");
+        if (parts.length == 0 || parts[0].length() < 2) return;
+        String command = commandName(parts[0].substring(1));
+        if (!PRIVATE_COMMANDS.contains(command)) return;
+        Player sender = event.getPlayer();
+        if (sender.hasPermission(PRIVATE_CHAT_BYPASS)) return;
+        boolean blocked = privateChatBlocked(sender);
+        if (!blocked && !REPLY_COMMANDS.contains(command) && parts.length > 1) {
+            Player target = Bukkit.getPlayerExact(parts[1]);
+            blocked = target != null && privateChatBlocked(target);
+        }
+        if (!blocked) return;
+        event.setCancelled(true);
+        plugin.getMessages().send(sender, "PrivateChatDisabled");
+    }
+
+    static String commandName(String label) {
+        String name = label.toLowerCase(Locale.ROOT);
+        int colon = name.indexOf(':');
+        return colon >= 0 ? name.substring(colon + 1) : name;
+    }
+
+    static boolean privateChatBlocked(Player player) {
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
+        if (arena == null || arena.status() != GameStatus.playing || arena.getGamerules() == null) return false;
+        if (!arena.isPlayerInArena(player) && !arena.getSpectators().contains(player)) return false;
+        return Boolean.FALSE.equals(arena.getGamerules().AllowPrivateChat);
     }
 
     static String plain(String message) {

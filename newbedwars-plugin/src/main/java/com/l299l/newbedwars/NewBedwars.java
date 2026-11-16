@@ -108,6 +108,7 @@ public final class NewBedwars extends JavaPlugin {
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
         if (updateService != null) updateService.stop();
+        if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
         joinNpcManager.shutdown();
         int active = 0;
         for (IArena arena : ArenaRegistry.all()) {
@@ -172,8 +173,10 @@ public final class NewBedwars extends JavaPlugin {
         arenaGroupManager.load();
         mapVoteManager.clear();
         partyManager = new PartyManager(this, messages);
+        if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
         bossBarManager = new BossBarManager(updater.getBossBarsConf());
         bossBarManager.loadBossBars();
+        bossBarManager.startLobbyBossBar();
         scoreboardManager = new ScoreboardManager(updater.getScoreboardsConf());
         scoreboardManager.loadScoreboards();
         reloadGenerators();

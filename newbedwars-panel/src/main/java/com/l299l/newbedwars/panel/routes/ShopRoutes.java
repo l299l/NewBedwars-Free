@@ -223,7 +223,7 @@ public final class ShopRoutes {
             for (Map.Entry<String, JsonElement> e : p.getAsJsonObject().entrySet()) prices.put(e.getKey(), parseTiers(e.getValue()));
         }
         return new ShopGui(id, str(j, "title"), integer(j.get("size")), integer(j.get("headerSize")),
-                integer(j.get("footerSize")), bool(j, "closeOnTransaction"), str(j, "fill"), str(j, "empty"),
+                integer(j.get("footerSize")), false, str(j, "fill"), str(j, "empty"),
                 strings(j.get("slots")), categories, List.of(), List.of(), prices);
     }
 
@@ -275,7 +275,6 @@ public final class ShopRoutes {
         o.addProperty("size", g.size());
         o.addProperty("headerSize", g.headerSize());
         o.addProperty("footerSize", g.footerSize());
-        o.addProperty("closeOnTransaction", g.closeOnTransaction());
         o.addProperty("fill", g.fill());
         o.addProperty("empty", g.empty());
         o.add("slots", array(g.slots()));

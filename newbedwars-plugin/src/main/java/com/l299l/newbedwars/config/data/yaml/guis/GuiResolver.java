@@ -21,7 +21,7 @@ public final class GuiResolver {
     public GUISave resolve(GuiDefinition d) {
         List<String> problems = new ArrayList<>();
         Class<?> guiClass = d.guiClass().equalsIgnoreCase("ShopGui") ? ShopGUI.class : null;
-        GUISave save = new GUISave(guiClass, d.id(), d.title(), d.size(), d.closeOnTransaction());
+        GUISave save = new GUISave(guiClass, d.id(), d.title(), d.size());
         save.setDefinition(d);
         save.setHeaderSize(Math.max(0, Math.min(d.headerSize(), d.size())));
         save.setFooterSize(Math.max(0, Math.min(d.footerSize(), d.size() - save.getHeaderSize())));

@@ -352,7 +352,6 @@
   "shop.gui.footer": "Rzędy stopki",
   "shop.gui.fillItem": "Przedmiot wypełnienia",
   "shop.gui.emptyItem": "Przedmiot w pustych slotach",
-  "shop.gui.close": "Zamknij po zakupie",
   "shop.gui.nothing": "nic",
   "shop.gui.layoutHint": "Rzędy nagłówka i stopki są widoczne na każdej stronie. Rzędy pomiędzy pokazują stronę główną albo przedmioty otwartej kategorii.",
   "shop.gui.grid": "Sloty",

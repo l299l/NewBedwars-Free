@@ -3,6 +3,7 @@ package com.l299l.newbedwars.bossbar;
 import com.l299l.newbedwars.text.TextAnimator;
 import com.l299l.newbedwars.text.TextEffect;
 import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.properties.Properties;
 import org.bukkit.Bukkit;
@@ -11,6 +12,7 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -21,10 +23,13 @@ import java.util.Map;
 import java.util.Objects;
 
 public class BossBarManager {
+    public static final String LOBBY_BOSS_BAR = "MainLobby";
     private final HashMap<String, BossBarSave> bossBars;
     private final Map<BossBar, List<BukkitTask>> tasks = new HashMap<>();
     private final FileConfiguration bossBarsConf;
     private final BarActionManager barActionManager;
+    private BossBar lobbyBossBar;
+    private BukkitTask lobbySync;
 
     public BossBarManager(FileConfiguration bossBarsConf) {
         this.bossBarsConf = bossBarsConf;
@@ -119,7 +124,59 @@ public class BossBarManager {
         }.runTaskTimer(NewBedwars.plugin, animator.getEffect() == TextEffect.NONE ? 20 : 0, period);
     }
 
+    public void startLobbyBossBar() {
+        stopLobbyBossBar();
+        if (Properties.NetworkMode == com.l299l.newbedwars.api.view.NetworkMode.GAME) return;
+        lobbyBossBar = createBossBar(LOBBY_BOSS_BAR, null);
+        if (lobbyBossBar == null) return;
+        lobbySync = new BukkitRunnable() {
+            @Override
+            public void run() {
+                syncLobbyBossBar();
+            }
+        }.runTaskTimer(NewBedwars.plugin, 0, 20);
+    }
+
+    public void stopLobbyBossBar() {
+        if (lobbySync != null) {
+            lobbySync.cancel();
+            lobbySync = null;
+        }
+        if (lobbyBossBar != null) {
+            removeBossBar(lobbyBossBar);
+            lobbyBossBar = null;
+        }
+    }
+
+    private void syncLobbyBossBar() {
+        List<Player> shown = lobbyBossBar.getPlayers();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            boolean inLobby = ArenaRegistry.byWorld(player.getWorld()) == null;
+            boolean has = shown.contains(player);
+            if (inLobby && !has) lobbyBossBar.addPlayer(player);
+            else if (!inLobby && has) lobbyBossBar.removePlayer(player);
+        }
+    }
+
+    static String lobbyInfo(String text, int players, int maxPlayers) {
+        return text.replace("/arena_name/", "")
+                .replace("/players/", String.valueOf(players))
+                .replace("/max_players/", String.valueOf(maxPlayers))
+                .replace("/phase/", "");
+    }
+
     private String addInfo(String text, IArena arena) {
+        if (arena == null) {
+            int players = 0;
+            int max = 0;
+            for (IArena a : ArenaRegistry.all()) {
+                if (!a.isEnabled()) continue;
+                players += a.getActivePlayerCount();
+                max += a.getMaxPlayers();
+            }
+            return ChatColor.translateAlternateColorCodes('&',
+                    lobbyInfo(text.replace("/server_name/", Properties.ServerName), players, max));
+        }
         return ChatColor.translateAlternateColorCodes('&', text
                 .replace("/server_name/", Properties.ServerName)
                 .replace("/arena_name/", arena.getArenaName())

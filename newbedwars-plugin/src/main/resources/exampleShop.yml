@@ -22,7 +22,6 @@ GuiId: exampleShop
 GuiClass: ShopGUI
 GuiName: "Example Shop"
 Size: 54
-CloseOnTransaction: true
 
 Fill: ci:fill
 Empty: empty

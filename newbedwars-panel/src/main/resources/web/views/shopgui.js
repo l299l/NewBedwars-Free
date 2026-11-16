@@ -62,7 +62,7 @@ export function guiPage(root, id) {
 function editor(body, options, items, loaded, upgrades) {
   const creating = !loaded;
   const gui = loaded ? structuredClone(loaded) : {
-    id: '', title: '&8Shop', size: 54, headerSize: 18, footerSize: 0, closeOnTransaction: false, fill: 'empty', empty: 'empty',
+    id: '', title: '&8Shop', size: 54, headerSize: 18, footerSize: 0, fill: 'empty', empty: 'empty',
     slots: Array(54).fill('empty'), categories: [], problems: [], usedBy: [],
   };
   const itemNames = items.map(i => i.name);
@@ -77,8 +77,6 @@ function editor(body, options, items, loaded, upgrades) {
   const rows = h('select', { id: 'gui-rows' }, [1, 2, 3, 4, 5, 6].map(n => h('option', { value: String(n), selected: n * 9 === gui.size }, String(n))));
   const header = h('select', { id: 'gui-header' });
   const footer = h('select', { id: 'gui-footer' });
-  const close = h('input', { id: 'gui-close', type: 'checkbox', checked: gui.closeOnTransaction });
-  close.addEventListener('change', () => { gui.closeOnTransaction = close.checked; });
   const itemOrEmpty = (sel, value) => {
     const ref = parseToken(value);
     const s = select(sel, ['empty', ...itemNames.map(n => 'ci:' + n)], ref.kind === 'item' ? 'ci:' + canonical(ref.target) : value,
@@ -390,8 +388,7 @@ function editor(body, options, items, loaded, upgrades) {
       h('div', { class: 'stack' }, h('label', { for: 'gui-header' }, t('shop.gui.header')), header),
       h('div', { class: 'stack' }, h('label', { for: 'gui-footer' }, t('shop.gui.footer')), footer),
       h('div', { class: 'stack' }, h('label', { for: 'gui-fill' }, t('shop.gui.fillItem')), fill),
-      h('div', { class: 'stack' }, h('label', { for: 'gui-empty' }, t('shop.gui.emptyItem')), empty),
-      h('label', { class: 'check' }, close, ' ', t('shop.gui.close'))),
+      h('div', { class: 'stack' }, h('label', { for: 'gui-empty' }, t('shop.gui.emptyItem')), empty)),
     h('p', { class: 'hint measure' }, t('shop.gui.layoutHint')),
     h('div', { class: 'gui-editor' }, h('div', { class: 'grid-wrap' }, grid), inspector),
     h('section', { class: 'panel-section' }, palette),
@@ -409,7 +406,7 @@ function editor(body, options, items, loaded, upgrades) {
     const guiId = idInput.value.trim();
     const payload = {
       id: guiId, title: title.value, size: gui.size, headerSize: gui.headerSize, footerSize: gui.footerSize,
-      closeOnTransaction: close.checked, fill: fill.value, empty: empty.value, slots: gui.slots,
+      fill: fill.value, empty: empty.value, slots: gui.slots,
       categories: gui.categories.map(c => ({ id: c.id, name: c.name, icon: c.icon, description: c.description, items: c.items })),
     };
     if (upgrades) payload.upgradePrices = Object.fromEntries([...overrideEditors].map(([name, ed]) => [name, ed.read()]));

@@ -16,18 +16,16 @@ public class GUISave {
     private String guiId;
     private String name;
     private int size;
-    private boolean closeOnTransaction;
     private int headerSize;
     private int footerSize;
     private com.l299l.newbedwars.config.data.yaml.guis.GuiDefinition definition;
     private List<String> problems = List.of();
 
-    public GUISave(Class<?> guiClass, String id, String name, int size, boolean closeOnTransaction) {
+    public GUISave(Class<?> guiClass, String id, String name, int size) {
         this.guiClass = guiClass;
         this.guiId = id;
         this.name = name;
         this.size = size;
-        this.closeOnTransaction = closeOnTransaction;
         items = new ArrayList<>(Collections.nCopies(size, (GUIEntry) null));
     }
 
@@ -85,14 +83,6 @@ public class GUISave {
 
     public int getSize() {
         return size;
-    }
-
-    public boolean getCloseOnTransaction() {
-        return closeOnTransaction;
-    }
-
-    public void setCloseOnTransaction(boolean closeOnTransaction) {
-        this.closeOnTransaction = closeOnTransaction;
     }
 
     public void setName(String name) {

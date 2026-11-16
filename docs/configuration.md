@@ -22,7 +22,7 @@ Used for **new** arenas. Every arena can change them in setup mode.
 | Setting | Default | Meaning |
 |---|---|---|
 | `DefaultMinPlayers` | `4` | Players needed to start the countdown |
-| `DefaultMaxTeams` | `4` | Number of teams |
+| `DefaultMaxTeams` | `4` | **Known issue:** has no effect in 2.7-beta (an arena has as many teams as you create in setup). Removed in 2.8-beta |
 | `DefaultMaxInTeam` | `4` | Players per team |
 | `DefaultWaitingTime` | `20` | Seconds of countdown in the waiting lobby |
 | `DefaultRespawnTime` | `5` | Seconds a dead player waits before respawning |
@@ -42,7 +42,7 @@ Used for **new** arenas. Every arena can change them in setup mode.
 | `AllowSpectators` | `true` | Players can spectate running games |
 | `AllowTeamChat` | `true` | Team chat (messages starting with `!`) |
 | `AllowGlobalChat` | `true` | Chat with everyone in the arena |
-| `AllowPrivateChat` | `true` | Currently has no effect |
+| `AllowPrivateChat` | `true` | Private messages (`/msg`, `/tell`, `/w`, `/r`, ...) from and to players in a running game. **Known issue:** has no effect in 2.7-beta; fixed in 2.8-beta |
 | `AllowTeamDamage` | `false` | Team members can hurt each other |
 | `MakeSwordsPermanent` | `false` | Bought swords are kept after death |
 | `MakeToolsPermanent` | `true` | Pickaxe, axe and shears are kept after death; `false` = lost on respawn |

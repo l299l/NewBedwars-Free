@@ -68,7 +68,7 @@ class GUIDataManagerTest {
         GuiDefinition d = m.get("shop").getDefinition();
         List<String> slots = new ArrayList<>(d.slots());
         slots.set(0, "ci:Wool");
-        m.save(new GuiDefinition("shop", d.guiClass(), "&aNew", 9, false, "empty", "empty", 0, 0, slots, List.of(), Map.of()));
+        m.save(new GuiDefinition("shop", d.guiClass(), "&aNew", 9, "empty", "empty", 0, 0, slots, List.of(), Map.of()));
         assertSame(wool, m.get("shop").getItem(0));
         assertFalse(Files.exists(guis.resolve("shop.yml")));
         assertEquals("&aNew", GuiCodec.parse(Files.readString(file)).title());
@@ -85,7 +85,7 @@ class GUIDataManagerTest {
         guis();
         GUIDataManager m = manager();
         m.load();
-        m.save(new GuiDefinition("fresh", "ShopGUI", "F", 9, false, "empty", "empty", 0, 0,
+        m.save(new GuiDefinition("fresh", "ShopGUI", "F", 9, "empty", "empty", 0, 0,
                 Collections.nCopies(9, "empty"), List.of(), Map.of()));
         Path file = dir.resolve("data/guis/fresh.yml");
         assertTrue(Files.isRegularFile(file));

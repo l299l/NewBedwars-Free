@@ -352,7 +352,6 @@
   "shop.gui.footer": "Footer rows",
   "shop.gui.fillItem": "Fill item",
   "shop.gui.emptyItem": "Item in empty slots",
-  "shop.gui.close": "Close after a purchase",
   "shop.gui.nothing": "nothing",
   "shop.gui.layoutHint": "Header and footer rows are shown on every page. The rows between them show the home page, or the items of the open category.",
   "shop.gui.grid": "Slots",

@@ -24,7 +24,6 @@ DefaultLanguage: en
 # Used for new arenas. Every arena can change them in setup mode.
 
 DefaultMinPlayers: 4
-DefaultMaxTeams: 4
 DefaultMaxInTeam: 4
 # Seconds of countdown in the waiting lobby.
 DefaultWaitingTime: 20

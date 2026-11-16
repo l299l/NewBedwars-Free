@@ -2,6 +2,17 @@
 
 All notable changes to NewBedwars are documented here.
 
+## [2.8-beta] - Unreleased
+
+### Fixed
+- **`ShowNextSpawnTime` had no effect** - In `generators/*.yml`, `ShowNextSpawnTime: false` now hides the "next spawn in" countdown above diamond and emerald generators
+- **`AllowPrivateChat` gamerule had no effect** - With `AllowPrivateChat: false`, players and spectators of a running game can no longer send private messages (`/msg`, `/tell`, `/w`, `/r` and the EssentialsX variants), and nobody can send one to them. Admins with `newbedwars.bw.admin` can still send them
+- **Lobby boss bar** - A boss bar for players in the lobby (not in an arena), set up as `MainLobby` in `bossBars.yml`. It is off by default (`Enabled: false`); `/players/` and `/max_players/` count all enabled arenas. It replaces the old `Lobby` entry, which was never shown
+
+### Removed
+- **`DefaultMaxTeams`** - Removed from `config.yml`. It never had an effect: an arena has as many teams as are created in setup
+- **`CloseOnTransaction`** - Removed from shop and upgrade menu files and from the web panel's menu editor. It never had an effect; shops stay open after a purchase as before. Old menu files keep loading
+
 ## [2.7-beta] - 16.11.2026
 
 ### Added

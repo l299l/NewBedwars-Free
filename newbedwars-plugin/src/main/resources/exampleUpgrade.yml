@@ -24,7 +24,6 @@ GuiId: exampleUpgrade
 GuiClass: ShopGUI
 GuiName: "Example Upgrade"
 Size: 54
-CloseOnTransaction: true
 
 Fill: ci:fill
 Empty: empty

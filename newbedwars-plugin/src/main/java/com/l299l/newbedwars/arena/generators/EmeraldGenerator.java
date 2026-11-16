@@ -49,7 +49,11 @@ public class EmeraldGenerator implements Generator {
         if (task != null) { task.cancel(); task = null; }
         if (rotatingTask != null) { rotatingTask.cancel(); rotatingTask = null; }
         if (hologram != null) { hologram.remove(); hologram = null; }
-        hologram = new Hologram(NewBedwars.plugin.getMessages().getMsgToConsole("EmeraldGenerator"), location.clone(),
+        IArena owner = ArenaRegistry.byWorld(location.getWorld());
+        boolean showTime = owner == null || owner.getGeneratorsLeveling().getEmeraldGeneratorSettings() == null
+                || owner.getGeneratorsLeveling().getEmeraldGeneratorSettings().isShowNextSpawnTime();
+        hologram = new Hologram(GeneratorHologramText.of(
+                NewBedwars.plugin.getMessages().getMsgToConsole("EmeraldGenerator"), showTime), location.clone(),
                 new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(delayInSeconds()))));
         ArmorStand armorStand = hologram.getArmorStand();
         armorStand.setHelmet(new ItemStack(Material.EMERALD_BLOCK));

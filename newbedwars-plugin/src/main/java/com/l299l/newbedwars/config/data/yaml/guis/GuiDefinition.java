@@ -3,7 +3,7 @@ package com.l299l.newbedwars.config.data.yaml.guis;
 import java.util.List;
 import java.util.Map;
 
-public record GuiDefinition(String id, String guiClass, String title, int size, boolean closeOnTransaction,
+public record GuiDefinition(String id, String guiClass, String title, int size,
                             String fill, String empty, int headerSize, int footerSize,
                             List<String> slots, List<Category> categories, Map<String, Object> extra) {
 

@@ -30,7 +30,6 @@ public final class GuiCodec {
         String title = map.get("GuiName") == null ? id : map.get("GuiName").toString();
         int size = intValue(map.get("Size"), -1);
         if (size < 9 || size > 54 || size % 9 != 0) throw new IllegalArgumentException("Size must be 9, 18, 27, 36, 45 or 54");
-        boolean close = Boolean.TRUE.equals(map.get("CloseOnTransaction")) || "true".equalsIgnoreCase(String.valueOf(map.get("CloseOnTransaction")));
         String fill = map.get("Fill") == null ? "empty" : map.get("Fill").toString();
         String empty = map.get("Empty") == null ? "empty" : map.get("Empty").toString();
         int header = intValue(map.get("HeaderSize"), 0);
@@ -67,7 +66,7 @@ public final class GuiCodec {
             String key = String.valueOf(e.getKey());
             if (!KNOWN.contains(key)) extra.put(key, e.getValue());
         }
-        return new GuiDefinition(id, guiClass, title, size, close, fill, empty, header, footer, slots, categories, extra);
+        return new GuiDefinition(id, guiClass, title, size, fill, empty, header, footer, slots, categories, extra);
     }
 
     public static String toYaml(GuiDefinition d) {
@@ -76,7 +75,6 @@ public final class GuiCodec {
         sb.append("GuiClass: ").append(quote(d.guiClass())).append('\n');
         sb.append("GuiName: ").append(quote(d.title())).append('\n');
         sb.append("Size: ").append(d.size()).append('\n');
-        sb.append("CloseOnTransaction: ").append(d.closeOnTransaction()).append('\n');
         sb.append('\n');
         sb.append("Fill: ").append(quote(d.fill())).append('\n');
         sb.append("Empty: ").append(quote(d.empty())).append('\n');

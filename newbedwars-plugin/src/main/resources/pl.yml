@@ -205,6 +205,7 @@ RegenerationDisabled: "&b[NewBedwars] &8&l> &r&cNaturalna regeneracja została w
 ForgeDisabled: "&b[NewBedwars] &8&l> &r&cKuźnie drużyn zostały wyłączone!"
 AlarmTrapTriggered: "&b[NewBedwars] &8&l> &r&c⚠ Pułapka Alarmowa drużyny &e/team/ &czostała aktywowana!"
 ArenaChatDisabled: "&b[NewBedwars] &8&l> &cChat jest wyłączony na tej arenie!"
+PrivateChatDisabled: "&b[NewBedwars] &8&l> &cPrywatne wiadomości są wyłączone w tej grze!"
 #Użyj /player/ dla nazwy nadawcy, /team/ dla nazwy drużyny, /message/ dla treści wiadomości
 TeamChatFormat: "&7[&fDRUŻYNA&7] /player/ &8» &f/message/"
 ArenaChatFormat: "&7[&fARENA&7] /player/ &8» &f/message/"

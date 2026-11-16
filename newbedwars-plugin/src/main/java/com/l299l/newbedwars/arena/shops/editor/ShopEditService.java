@@ -299,7 +299,7 @@ public final class ShopEditService {
         for (Map.Entry<String, List<UpgradeTier>> e : pricing().overrides(d).entrySet()) {
             overrides.put(e.getKey(), toApi(e.getValue()));
         }
-        return new ShopGui(d.id(), d.title(), d.size(), d.headerSize(), d.footerSize(), d.closeOnTransaction(),
+        return new ShopGui(d.id(), d.title(), d.size(), d.headerSize(), d.footerSize(), false,
                 d.fill(), d.empty(), d.slots(), categories, save.getProblems(), guiUsages(d.id()), overrides);
     }
 
@@ -358,7 +358,7 @@ public final class ShopEditService {
             else extra.put(UpgradePricing.GUI_KEY, overrides);
         }
         GuiDefinition def = new GuiDefinition(gui.id(), previous == null ? "ShopGUI" : previous.guiClass(), gui.title(),
-                gui.size(), gui.closeOnTransaction(), blankToEmpty(gui.fill()), blankToEmpty(gui.empty()),
+                gui.size(), blankToEmpty(gui.fill()), blankToEmpty(gui.empty()),
                 gui.headerSize(), gui.footerSize(), gui.slots(), categories, extra);
         guiData().save(def);
         NewBedwars.plugin.getGuiManager().refresh();

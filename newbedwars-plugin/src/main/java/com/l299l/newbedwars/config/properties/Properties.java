@@ -18,7 +18,6 @@ import java.util.Set;
 public class Properties{
     public static String ServerName;
     public static Integer DefaultMinPlayers;
-    public static Integer DefaultMaxTeams;
     public static Integer DefaultMaxInTeam;
     public static Integer DefaultWaitingTime;
     public static String DefaultTeamShopGui;
@@ -107,7 +106,6 @@ public class Properties{
         RequireLobbyPermission = rlp instanceof Boolean b ? b : false;
 
         DefaultMinPlayers = (Integer) get("DefaultMinPlayers");
-        DefaultMaxTeams = (Integer) get("DefaultMaxTeams");
         DefaultMaxInTeam = (Integer) get("DefaultMaxInTeam");
         DefaultWaitingTime = (Integer) get("DefaultWaitingTime");
         DefaultTeamShopGui = (String) get("DefaultTeamShopGui");

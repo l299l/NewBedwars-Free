@@ -43,8 +43,9 @@ BossBars:
     Effects: ["NONE"]
     Action: "END_GAME"
 
-  Lobby:
-    Enabled: true
+  # Shown to players in the lobby (not in an arena). /players/ and /max_players/ count all enabled arenas.
+  MainLobby:
+    Enabled: false
     Time: 5
     Texts:
       - "&aPlaying on &e/server_name/&7!"

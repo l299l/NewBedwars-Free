@@ -155,7 +155,7 @@ class UpgradePricingTest {
     void guiOverrideWinsOverTheGlobalPrices() {
         UpgradePricing p = pricing();
         p.load(null);
-        GuiDefinition gui = new GuiDefinition("solo", "ShopGUI", "T", 9, false, "empty", "empty", 0, 0,
+        GuiDefinition gui = new GuiDefinition("solo", "ShopGUI", "T", 9, "empty", "empty", 0, 0,
                 List.of(), List.of(), Map.of(UpgradePricing.GUI_KEY, Map.of(
                 "forge", List.of(Map.of("price", 1, "currency", "IRON")),
                 "HASTE", "broken")));

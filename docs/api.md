@@ -337,6 +337,9 @@ All return `CompletableFuture<MaintenanceResult>` like [arena maintenance](#aren
 
 Changes return a `ShopResult` (`OK`, `NOT_FOUND`, `INVALID` with the field in `detail`, `IN_USE` with the places in `detail`, `BUSY`, `NAME_TAKEN`, `FAILED`).
 
+> [!WARNING]
+> **`ShopGui.closeOnTransaction` is deprecated.** The `CloseOnTransaction` setting of GUI files never had an effect (shops always stay open after a purchase), so it is removed from GUI files and the web panel in 2.8-beta. The record component stays so existing addons keep compiling, but from 2.8-beta it is always `false` and ignored when saving. Pass `false` and don't rely on it; it may be removed in a future version.
+
 ```java
 ShopEditor shop = api.getShop();
 shop.getItem("Wool").thenAccept(item -> item.ifPresent(wool ->

@@ -207,6 +207,7 @@ RegenerationDisabled: "&b[NewBedwars] &8&l> &r&cNatural regeneration has been di
 ForgeDisabled: "&b[NewBedwars] &8&l> &r&cTeam forges have been disabled!"
 AlarmTrapTriggered: "&b[NewBedwars] &8&l> &r&c⚠ &e/team/ &cteam Alarm Trap was triggered!"
 ArenaChatDisabled: "&b[NewBedwars] &8&l> &cChat is disabled in this arena!"
+PrivateChatDisabled: "&b[NewBedwars] &8&l> &cPrivate messages are disabled in this game!"
 #Use /player/ for sender name, /team/ for team name, /message/ for the chat text
 TeamChatFormat: "&7[&fTEAM&7] /player/ &8» &f/message/"
 ArenaChatFormat: "&7[&fARENA&7] /player/ &8» &f/message/"
