@@ -27,7 +27,7 @@
 }
 
 .md-grid {
-  max-width: 100rem;
+  max-width: 95rem;
 }
 
 .md-main__inner {
@@ -86,4 +86,21 @@
 .md-typeset table:not([class]) td:first-child code {
   white-space: nowrap;
   word-break: normal;
+}
+
+.md-typeset .admonition.important,
+.md-typeset details.important {
+  border-color: #8957e5;
+}
+
+.md-typeset .important > .admonition-title,
+.md-typeset .important > summary {
+  background-color: rgba(137, 87, 229, 0.1);
+}
+
+.md-typeset .important > .admonition-title::before,
+.md-typeset .important > summary::before {
+  background-color: #8957e5;
+  -webkit-mask-image: var(--md-admonition-icon--info);
+  mask-image: var(--md-admonition-icon--info);
 }

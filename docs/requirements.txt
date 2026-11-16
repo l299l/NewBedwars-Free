@@ -1,1 +1,2 @@
 mkdocs-material==9.5.39
+markdown-callouts==0.4.0

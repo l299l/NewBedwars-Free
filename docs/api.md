@@ -4,6 +4,7 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 
 > [!IMPORTANT]
 > **New in 2.7-beta:**
+>
 > - [Arena maintenance](#arena-maintenance): `NewBedwarsAPI.getMaintenance()` enables, disables, backs up, restores, exports, imports, copies, resets and deletes arenas like `/bw arena`.
 > - `ArenaView.getLoadProblems()`: why an arena was loaded disabled.
 > - [Statistics and leaderboards](#statistics-and-leaderboards): `getLeaderboard`, `loadStats` (offline players too), `findPlayers`.
