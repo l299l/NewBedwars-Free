@@ -40,13 +40,27 @@ TNT:
 | `price` / `priceType` | Cost and currency: `IRON`, `GOLD`, `DIAMOND`, `EMERALD`, or `NONE` (free) |
 | `onBuyEvent` | What buying does: `GIVE_ITEM` (into the inventory), `GIVE_ARMOR` (upgrade the armor tier), `GIVE_TOOL` (sword or tool that follows the tool rules), `UPGRADE` (a team upgrade icon) |
 | `itemLogic` | Special behaviour when the item is used: `NONE`, `TNT`, `FIREBALL`, `BRIDGE_EGG`, `LUCKY_BLOCK`, `POTION`, `BLAST_PROTECTION`, `IRON_GOLEM`, `SILVERFISH`, `PORTABLE_TOWER`. Addons can add their own |
-| `isPermanent` | Kept after death |
+| `isPermanent` | The item is unbreakable. A `GIVE_ITEM` item is also given back on every respawn once bought. See [Permanent items](#permanent-items) |
 | `permission` | Only players with this permission can buy it (empty = everyone) |
 | `description` / `iconDesc` | `default` takes the name and shop description from the language files (`CustomItemsNames` section: `<ID>-name` and `<ID>-icon-description`) |
 | `enchantments` | Enchantments and levels, for example `{SHARPNESS: 1}` |
 | `itemFlags` | Item flags, for example `[HIDE_ENCHANTS]` |
 
 An item with an unknown material, enchantment or flag (for example from a newer Minecraft version) is skipped with a console warning and kept in the file unchanged.
+
+### Permanent items
+
+What a player keeps after death depends on `onBuyEvent`, not only on `isPermanent`:
+
+| `onBuyEvent` | Kept after death | What `isPermanent` does |
+|---|---|---|
+| `GIVE_ITEM` | Only when `isPermanent: true` | Unbreakable, and given back on every respawn |
+| `GIVE_TOOL` (swords) | Gamerule `MakeSwordsPermanent` (`false` = back to the starting sword) | Unbreakable only |
+| `GIVE_TOOL` (pickaxe, axe, shears) | Gamerule `MakeToolsPermanent` (`false` = lost) | Unbreakable only |
+| `GIVE_TOOL` (any other material) | Always | Unbreakable only |
+| `GIVE_ARMOR` | Always (the armor tier stays) | Nothing |
+
+The gamerules have their defaults in [`config.yml`](configuration.md#default-gamerules) and can be changed per arena with `/bw gamerule` (advanced setup mode).
 
 The starting sword is the item named in `BasicSword` in [`config.yml`](configuration.md#gameplay).
 
@@ -59,7 +73,6 @@ GuiId: exampleShop
 GuiClass: ShopGUI
 GuiName: "Example Shop"
 Size: 54
-CloseOnTransaction: true
 Fill: ci:fill
 Empty: empty
 HeaderSize: 18

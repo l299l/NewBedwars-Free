@@ -31,6 +31,10 @@ public class RejoinCommand extends BwCommand {
 
     @Override
     public void perform(Player p, String[] args, IArena arena) {
+        if (!p.hasPermission("newbedwars.bw.rejoin") && !p.isOp()) {
+            msg.send(p, "NoPermissions");
+            return;
+        }
         if (args.length > 1) {
             usage(p);
             return;

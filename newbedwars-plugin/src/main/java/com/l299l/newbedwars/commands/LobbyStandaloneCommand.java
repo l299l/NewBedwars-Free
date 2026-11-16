@@ -6,7 +6,6 @@ import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.config.properties.Properties;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,7 +25,7 @@ public class LobbyStandaloneCommand implements CommandExecutor {
             sender.sendMessage(NewBedwars.plugin.getMessages().getMsgToConsole("OnlyPlayer"));
             return true;
         }
-        if (Properties.RequireLobbyPermission && !player.hasPermission("newbedwars.bw.lobby") && !player.isOp()) {
+        if (!player.hasPermission("newbedwars.bw.lobby") && !player.isOp()) {
             msg.send(player, "NoPermissions");
             return true;
         }

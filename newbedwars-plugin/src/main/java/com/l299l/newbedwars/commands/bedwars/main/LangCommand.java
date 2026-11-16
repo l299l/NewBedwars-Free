@@ -33,6 +33,10 @@ public class LangCommand extends BwCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena arena) {
+        if (!player.hasPermission("newbedwars.bw.lang") && !player.isOp()) {
+            msg.send(player, "NoPermissions");
+            return;
+        }
         if (args.length < 2) {
             usage(player);
             return;

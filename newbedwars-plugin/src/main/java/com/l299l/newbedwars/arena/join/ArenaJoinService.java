@@ -6,7 +6,6 @@ import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.parties.Party;
 import com.l299l.newbedwars.parties.PartyManager;
 import org.bukkit.Bukkit;
@@ -27,7 +26,7 @@ public final class ArenaJoinService {
 
     public static boolean mayJoin(Player p) {
         Messages msg = NewBedwars.plugin.getMessages();
-        if (Properties.RequireJoinPermission && !p.hasPermission("newbedwars.bw.join") && !p.isOp()) {
+        if (!p.hasPermission("newbedwars.bw.join") && !p.isOp()) {
             msg.send(p, "NoPermissions");
             return false;
         }

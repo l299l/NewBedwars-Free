@@ -75,12 +75,11 @@ Players with `newbedwars.chat.color` can use `&` colour codes in arena and team 
 
 ## Permissions
 
-| Setting | Default | Meaning |
-|---|---|---|
-| `RequireJoinPermission` | `false` | Players need `newbedwars.bw.join` to join arenas |
-| `RequireLobbyPermission` | `false` | Players need `newbedwars.bw.lobby` for `/bw lobby` |
+There are no permission settings in `config.yml`. Every player permission (join, lobby, rejoin, spectate, language, help, stats, profile, leaderboard, party) defaults to `true`, so without a permissions plugin everyone can use these commands. To take one away from some players or groups, deny it with a permissions plugin (LuckPerms or similar). Ops always bypass these checks.
 
-Ops always bypass these checks. All permissions: [Commands and permissions](commands.md#permissions).
+> **Removed in 2.8-beta:** `RequireJoinPermission` and `RequireLobbyPermission`. The join and lobby permissions are now always checked, like all other player permissions. Old `config.yml` files may still contain both keys; they are ignored.
+
+All permissions: [Commands and permissions](commands.md#permissions).
 
 ## Game phases
 

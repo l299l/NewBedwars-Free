@@ -2,7 +2,7 @@
 
 If PlaceholderAPI is installed, all of the placeholders below become available under the prefix `%newbedwars_<placeholder>%`.
 
-**In-game (per-player)**
+## In-game (per player)
 
 | Placeholder | Description |
 |---|---|
@@ -21,7 +21,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_phase%` | Current phase name, or `""` |
 | `%newbedwars_game_time%` | Seconds elapsed since game start, or `0` |
 
-**Lifetime stats (per-player)**
+## Lifetime stats (per player)
 
 | Placeholder | Description |
 |---|---|
@@ -35,7 +35,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_stat_kd%` | Kill/death ratio (1 decimal, e.g. `2.3`) |
 | `%newbedwars_stat_wl%` | Win/loss ratio (1 decimal) |
 
-**Per-arena**
+## Per arena
 
 | Placeholder | Description |
 |---|---|
@@ -44,7 +44,9 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_arena_<name>_max_players%` | Max players |
 | `%newbedwars_arena_<name>_phase%` | Current phase name |
 
-**Per-group** (arena groups from `/bw group`; group names may contain `_`)
+## Per group
+
+Arena groups from `/bw group`. Group names may contain `_`.
 
 | Placeholder | Description |
 |---|---|

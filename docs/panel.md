@@ -268,7 +268,7 @@ Without a `Network.Role` (or with `STANDALONE`) nothing changes: one panel per s
 
 ### Setting it up
 
-1. Install `NewBedwars-Panel` on the lobby server and on every game server. Each panel needs its own `Port` if they share a machine (for example 8150, 8151, 8152), and the gateway must be able to reach the nodes' ports. Keep node ports closed to everyone else (firewall, private network).
+1. Install `NewBedwars-Panel` on the lobby server and on every game server. The panel is a Paper plugin only: nothing is installed on the Velocity proxy, and the panels talk to each other directly over HTTPS, not through the proxy. Each panel needs its own `Port` if they share a machine (for example 8150, 8151, 8152), and the gateway must be able to reach the nodes' ports. Keep node ports closed to everyone else (firewall, private network).
 2. Make a secret: run `/nbwpanel network secret` on any server and copy the result.
 3. On every game server, in `plugins/NewBedwars-Panel/config.yml`:
 

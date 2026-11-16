@@ -81,10 +81,13 @@ Anything still missing is shown in chat with clickable **[Set here]** and **[Ski
 
 ```
 /bw save
+/bw leave
 /bw arena enable myArena
 ```
 
 `/bw save` saves the arena and stores the map as a clean template; after every game the arena is reset from it. Run `/bw save` again whenever you change the map.
+
+`/bw arena enable` only works outside setup mode, so leave it with `/bw leave` first.
 
 An arena can only be enabled when it has:
 

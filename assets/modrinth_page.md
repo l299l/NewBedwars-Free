@@ -192,7 +192,7 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.bw.lang` / `help` / `stats` / `profile` / `leaderboard` | true | Language, help, stats, profile and leaderboard commands |
 | `newbedwars.party` | true | All `/party` commands |
 
-`newbedwars.bw.join` and `newbedwars.bw.lobby` are only checked when `RequireJoinPermission` / `RequireLobbyPermission` is `true` in `config.yml`. Both default to `false`, which means everyone can use them.
+All player permissions default to `true`, so everyone can use them until you deny one with a permissions plugin.
 
 ## Configuration
 

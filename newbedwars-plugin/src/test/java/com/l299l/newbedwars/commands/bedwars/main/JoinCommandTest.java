@@ -5,7 +5,6 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.parties.Party;
 import com.l299l.newbedwars.parties.PartyManager;
 import org.bukkit.Bukkit;
@@ -44,7 +43,7 @@ class JoinCommandTest {
 
         when(mockPm.getParty(player)).thenReturn(null);
 
-        Properties.RequireJoinPermission = false;
+        when(player.hasPermission("newbedwars.bw.join")).thenReturn(true);
         ArenaRegistry.clear();
 
         cmd = new JoinCommand();

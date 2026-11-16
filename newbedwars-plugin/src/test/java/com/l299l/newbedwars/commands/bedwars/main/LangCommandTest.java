@@ -38,6 +38,7 @@ class LangCommandTest {
         player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
         when(player.getName()).thenReturn("Leo");
+        when(player.hasPermission("newbedwars.bw.lang")).thenReturn(true);
         cmd = new LangCommand();
     }
 

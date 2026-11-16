@@ -37,6 +37,21 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 | `/party kick <player>` | Kick a member (party admin only) |
 | `/party admin <player>` | Give the party admin role to another member (party admin only) |
 
+## Network commands
+
+Only used in [network mode](network.md). In network mode `/party` is also handled by the proxy (see [Party commands](#party-commands)).
+
+| Command | Where | Permission | Description |
+|---|---|---|---|
+| `/nbwproxy` | Velocity proxy | `newbedwars.proxy.admin` | List the game servers and arenas the proxy knows, and whether a newer proxy version exists |
+| `/bw join <server>:<arena>` | lobby server | `newbedwars.bw.join` | Join that arena on that game server |
+| `/bw arena list` | lobby server | `newbedwars.bw.arena.list` | The arenas of every game server (server, group, state, players) |
+| `/bw arena info` | lobby server | `newbedwars.bw.arena` | How to set arenas up on a network. All other `/bw arena` commands are refused on a lobby server; run them on the game server that has the arena |
+| `/bw group ...` | lobby server | `newbedwars.bw.group` | Arena groups for the whole network; `<server>:<arena>` adds only that server's arena. Game servers can only list groups |
+| `/nbwpanel network status` / `secret` / `forget <server>` | any server with the panel | `newbedwars.panel.manage` | Panel network mode, see [Web panel commands](#web-panel-commands) |
+
+`newbedwars.network.bypass` lets staff stay on a game server without a join request (setup, testing).
+
 ## Admin commands
 
 Available outside arenas to players with the permission shown.
@@ -209,4 +224,4 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.bw.leaderboard` | true | `/bw leaderboard` |
 | `newbedwars.party` | true | All `/party` commands |
 
-`newbedwars.bw.join` and `newbedwars.bw.lobby` are only checked when `RequireJoinPermission` / `RequireLobbyPermission` is `true` in `config.yml` (both default to `false`, which means everyone can use them).
+All player permissions default to `true`, so everyone can use these commands until you deny a permission with a permissions plugin. Ops always bypass the checks. `/lobby` and `/lang` need the same permissions as `/bw lobby` and `/bw lang`.

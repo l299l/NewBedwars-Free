@@ -5,7 +5,6 @@ import com.l299l.newbedwars.api.events.LeaveReason;
 import com.l299l.newbedwars.player.LobbyService;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
-import com.l299l.newbedwars.config.properties.Properties;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class LobbyCommand extends BwCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena arena) {
-        if (Properties.RequireLobbyPermission && !player.hasPermission("newbedwars.bw.lobby") && !player.isOp()) {
+        if (!player.hasPermission("newbedwars.bw.lobby") && !player.isOp()) {
             msg.send(player, "NoPermissions");
             return;
         }

@@ -43,8 +43,6 @@ public class Properties{
     public static StorageType StorageType;
     public static Boolean ArenaChatEnabled;
     public static Boolean TablistIsolationEnabled;
-    public static Boolean RequireJoinPermission;
-    public static Boolean RequireLobbyPermission;
     public static String MySQLHost;
     public static String MySQLUser;
     public static String MySQLPassword;
@@ -100,10 +98,6 @@ public class Properties{
         ArenaChatEnabled = ace instanceof Boolean b ? b : true;
         Object tie = get("TablistIsolationEnabled");
         TablistIsolationEnabled = tie instanceof Boolean b ? b : true;
-        Object rjp = get("RequireJoinPermission");
-        RequireJoinPermission = rjp instanceof Boolean b ? b : false;
-        Object rlp = get("RequireLobbyPermission");
-        RequireLobbyPermission = rlp instanceof Boolean b ? b : false;
 
         DefaultMinPlayers = (Integer) get("DefaultMinPlayers");
         DefaultMaxInTeam = (Integer) get("DefaultMaxInTeam");

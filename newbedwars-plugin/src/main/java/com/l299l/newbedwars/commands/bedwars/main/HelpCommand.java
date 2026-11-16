@@ -49,6 +49,10 @@ public class HelpCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args, IArena arena) {
         Messages msg = NewBedwars.plugin.getMessages();
+        if (!player.hasPermission("newbedwars.bw.help") && !player.isOp()) {
+            msg.send(player, "NoPermissions");
+            return;
+        }
         Map<SubCommand, Boolean> commands = available.apply(player);
         List<Map.Entry<SubCommand, Boolean>> entries = new ArrayList<>();
         for (Map.Entry<SubCommand, Boolean> entry : commands.entrySet()) {

@@ -6,7 +6,6 @@ import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
 import com.l299l.newbedwars.config.Messages;
-import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.parties.Party;
 import com.l299l.newbedwars.parties.PartyManager;
 import org.bukkit.Bukkit;
@@ -40,7 +39,7 @@ class JoinNpcExecutorTest {
         when(plugin.getPartyManager()).thenReturn(pm);
         player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
-        Properties.RequireJoinPermission = false;
+        when(player.hasPermission("newbedwars.bw.join")).thenReturn(true);
         ArenaRegistry.clear();
     }
 

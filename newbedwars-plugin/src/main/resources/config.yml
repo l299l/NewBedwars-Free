@@ -98,14 +98,6 @@ ArenaChatEnabled: true
 TablistIsolationEnabled: true
 
 
-# ----- Permissions --------------------------------
-# true = players need the permission newbedwars.bw.join / newbedwars.bw.lobby for the command.
-# Ops always bypass these checks.
-
-RequireJoinPermission: false
-RequireLobbyPermission: false
-
-
 # ----- Game phases --------------------------------
 # Each phase runs for Duration seconds, then executes its Actions.
 #

@@ -8,10 +8,12 @@ All notable changes to NewBedwars are documented here.
 - **Addon API documentation** - Corrected descriptions that were wrong, contradicted each other or were hard to understand, documented what was missing (threads, null values, errors, the meaning of each reason and purchase type), and replaced the "Available from" notes with version tags that IDEs show
 - **`ShowNextSpawnTime` had no effect** - In `generators/*.yml`, `ShowNextSpawnTime: false` now hides the "next spawn in" countdown above diamond and emerald generators
 - **`AllowPrivateChat` gamerule had no effect** - With `AllowPrivateChat: false`, players and spectators of a running game can no longer send private messages (`/msg`, `/tell`, `/w`, `/r` and the EssentialsX variants), and nobody can send one to them. Admins with `newbedwars.bw.admin` can still send them
+- **Player permissions had no effect** - `newbedwars.bw.rejoin`, `newbedwars.bw.spectate`, `newbedwars.bw.lang` and `newbedwars.bw.help` are now checked, and `newbedwars.bw.join` and `newbedwars.bw.lobby` are always checked. All of them still default to `true`, so nothing changes unless a permissions plugin denies one
 - **Lobby boss bar** - A boss bar for players in the lobby (not in an arena), set up as `MainLobby` in `bossBars.yml`. It is off by default (`Enabled: false`); `/players/` and `/max_players/` count all enabled arenas. It replaces the old `Lobby` entry, which was never shown
 
 ### Removed
 - **`DefaultMaxTeams`** - Removed from `config.yml`. It never had an effect: an arena has as many teams as are created in setup
+- **`RequireJoinPermission` and `RequireLobbyPermission`** - Removed from `config.yml`. The join and lobby permissions are now always checked like every other player permission; deny them with a permissions plugin to block players
 - **`CloseOnTransaction`** - Removed from shop and upgrade menu files and from the web panel's menu editor. It never had an effect; shops stay open after a purchase as before. Old menu files keep loading
 
 ## [2.7-beta] - 16.11.2026

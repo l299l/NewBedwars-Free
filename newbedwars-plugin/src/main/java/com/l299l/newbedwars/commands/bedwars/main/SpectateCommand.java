@@ -21,6 +21,10 @@ public class SpectateCommand extends BwCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena arena) {
+        if (!player.hasPermission("newbedwars.bw.spectate") && !player.isOp()) {
+            msg.send(player, "NoPermissions");
+            return;
+        }
         com.l299l.newbedwars.network.NetworkManager network = com.l299l.newbedwars.network.NetworkManager.get();
         if (network != null && com.l299l.newbedwars.network.NetworkManager.isLobby()) {
 
