@@ -27,7 +27,7 @@
 }
 
 .md-grid {
-  max-width: 110rem;
+  max-width: 100rem;
 }
 
 .md-main__inner {
@@ -39,25 +39,6 @@
     margin-left: 1rem;
     margin-right: 1rem;
   }
-}
-
-.nbw-hero {
-  text-align: center;
-  margin: 2.5rem 0 2.5rem;
-}
-
-.md-typeset .nbw-hero h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  margin: 0 0 0.4rem;
-  color: var(--md-default-fg-color);
-}
-
-.nbw-hero .nbw-tagline {
-  font-size: 1.05rem;
-  max-width: 46rem;
-  margin: 1.2rem auto;
 }
 
 .md-typeset .grid.cards > ul > li {

@@ -1,21 +1,13 @@
----
-title: Home
-hide:
-  - navigation
-  - toc
----
-
-<div class="nbw-hero" markdown>
-
 # NewBedwars
 
-<p class="nbw-tagline">A free Bedwars plugin for <strong>Paper 1.17 to 26.x</strong>. Build arenas in-game, shape the shop and scoreboards in YAML, and run it on one server or a whole Velocity network. PlaceholderAPI, WorldEdit and Citizens are supported but never required.</p>
+NewBedwars is a free Bedwars plugin for **Paper 1.17 to 26.x**. Arenas are built and configured in-game, the shop, scoreboards and boss bars are YAML files, and the same plugin runs on a single server or behind a Velocity proxy. PlaceholderAPI, WorldEdit and Citizens are supported but never required.
 
 [:material-download: Download on Modrinth](https://modrinth.com/plugin/new-bedwars){ .md-button .md-button--primary }
 [:material-rocket-launch: Get started](installation.md){ .md-button }
-[:fontawesome-brands-github: GitHub](https://github.com/l299l/NewBedwars-Free){ .md-button }
+[:fontawesome-brands-github: Source on GitHub](https://github.com/l299l/NewBedwars-Free){ .md-button }
 
-</div>
+!!! note "Beta"
+    NewBedwars is in beta, close to its first stable release. Gameplay is stable; please report problems on the [issue tracker](https://github.com/l299l/NewBedwars-Free/issues).
 
 ## Where to start
 
@@ -113,5 +105,8 @@ hide:
 
 </div>
 
-!!! note "Beta"
-    NewBedwars is in beta, close to its first stable release. Gameplay is stable; please report problems on the [issue tracker](https://github.com/l299l/NewBedwars-Free/issues). Changes in every version are in the [changelog](https://github.com/l299l/NewBedwars-Free/blob/master/CHANGELOG.md). License: GPLv3.
+## Help and support
+
+- Bugs and feature requests: [GitHub issues](https://github.com/l299l/NewBedwars-Free/issues)
+- Changes in every version: [changelog](https://github.com/l299l/NewBedwars-Free/blob/master/CHANGELOG.md)
+- License: GPLv3
