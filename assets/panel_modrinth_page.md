@@ -129,7 +129,7 @@ The panel runs inside your Paper server. You don't need a separate website, data
 3. Open `https://<your-server>:8150/`. The browser warns once about the self-signed certificate. You can compare its fingerprint with `nbwpanel status`. Log in and choose your own password.
 4. Open port 8150 in your firewall if you want to reach the panel from another computer.
 
-The full guide covers roles, your own certificate, reverse proxies, network mode and troubleshooting: **[docs/panel.md](https://github.com/l299l/NewBedwars-Free/blob/master/docs/panel.md)**
+The full guide covers roles, your own certificate, reverse proxies, network mode and troubleshooting: **[docs/panel.md](https://l299l.github.io/NewBedwars-Free/panel/)**
 
 ## Commands
 

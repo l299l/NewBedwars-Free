@@ -104,7 +104,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 
 </details>
 
-To install it, put `NewBedwars-Panel-<version>.jar` next to this plugin (same version), restart, and run `nbwpanel user create <name> admin` in the console. Then open `https://<server>:8150/`. Download `NewBedwars-Panel-<version>.jar` from the [GitHub releases](https://github.com/l299l/NewBedwars-Free/releases/latest). A Modrinth project for it is coming soon. Full guide: [panel.md](https://github.com/l299l/NewBedwars-Free/blob/master/docs/panel.md).
+To install it, put `NewBedwars-Panel-<version>.jar` next to this plugin (same version), restart, and run `nbwpanel user create <name> admin` in the console. Then open `https://<server>:8150/`. Download `NewBedwars-Panel-<version>.jar` from the [GitHub releases](https://github.com/l299l/NewBedwars-Free/releases/latest). A Modrinth project for it is coming soon. Full guide: [panel.md](https://l299l.github.io/NewBedwars-Free/panel/).
 
 ## Commands
 
@@ -169,7 +169,7 @@ Used inside the arena world after `/bw arena setup <name>`. Pick a mode with `/b
 | Advanced | `/bw gamerule <name> <true\|false>`, `setGui`, `setGeneratorLeveling`, `setResourcePack` |
 | Automatic | Everything from Normal, plus `/bw startAutomaticSetup [radius\|next\|skip\|cancel]` |
 
-The complete list with every argument is in the [command reference](https://github.com/l299l/NewBedwars-Free/blob/master/docs/commands.md).
+The complete list with every argument is in the [command reference](https://l299l.github.io/NewBedwars-Free/commands/).
 
 ## Permissions
 
@@ -209,15 +209,15 @@ Files are created in `plugins/NewBedwars/`:
 | `data/upgrades.yml` | Upgrade and trap prices per level |
 | `data/arenas/*.json` | Saved arenas (edited by the setup commands) |
 
-More guides: [storage (JSON and MySQL)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/storage.md), [network mode](https://github.com/l299l/NewBedwars-Free/blob/master/docs/network.md), [web panel](https://github.com/l299l/NewBedwars-Free/blob/master/docs/panel.md).
+More guides: [storage (JSON and MySQL)](https://l299l.github.io/NewBedwars-Free/storage/), [network mode](https://l299l.github.io/NewBedwars-Free/network/), [web panel](https://l299l.github.io/NewBedwars-Free/panel/).
 
 ## PlaceholderAPI
 
-If PlaceholderAPI is installed, NewBedwars registers 34 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. See the [full list](https://github.com/l299l/NewBedwars-Free/blob/master/docs/placeholders.md).
+If PlaceholderAPI is installed, NewBedwars registers 34 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. See the [full list](https://l299l.github.io/NewBedwars-Free/placeholders/).
 
 ## Addon developers
 
-NewBedwars has an API with events, so other plugins can hook into it. You can register your own shop items, upgrades, armor tiers, commands and phase actions, read stats and leaderboards, control games, edit the shop, store extra data on arenas and edit arenas. Documentation: [Addon API](https://github.com/l299l/NewBedwars-Free/blob/master/docs/api.md), with a [complete example addon](https://github.com/l299l/NewBedwars-Free/tree/master/docs/examples/event-logger).
+NewBedwars has an API with events, so other plugins can hook into it. You can register your own shop items, upgrades, armor tiers, commands and phase actions, read stats and leaderboards, control games, edit the shop, store extra data on arenas and edit arenas. Documentation: [Addon API](https://l299l.github.io/NewBedwars-Free/api/), with a [complete example addon](https://github.com/l299l/NewBedwars-Free/tree/master/docs/examples/event-logger).
 
 ## Roadmap
 

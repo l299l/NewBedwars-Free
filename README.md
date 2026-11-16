@@ -63,7 +63,7 @@ Optional integrations:
 
 To build the arena from a schematic, put the `.schem` in the WorldEdit (or FAWE) `schematics` folder and use `/bw arena create myArena -sche myMap`. The map is pasted at the world origin and you continue with the same checklist.
 
-Commands and permissions are listed in [docs/commands.md](docs/commands.md).
+Commands and permissions are listed in [docs/commands.md](https://l299l.github.io/NewBedwars-Free/commands/).
 
 ### Updates
 
@@ -83,7 +83,7 @@ Players -> Velocity + NewBedwars-Proxy -> Lobby servers  (Network.Mode: LOBBY)
 Optional: MySQL/MariaDB for shared stats and server status
 ```
 
-Put `NewBedwars-Proxy` on Velocity, the normal jar on every backend, set `Network.Mode` in each backend's `config.yml`, and use Velocity modern forwarding. Backend ports must not be reachable from the internet. Full setup, config and security notes are in [docs/network.md](docs/network.md).
+Put `NewBedwars-Proxy` on Velocity, the normal jar on every backend, set `Network.Mode` in each backend's `config.yml`, and use Velocity modern forwarding. Backend ports must not be reachable from the internet. Full setup, config and security notes are in [docs/network.md](https://l299l.github.io/NewBedwars-Free/network/).
 
 ## Web panel
 
@@ -95,23 +95,23 @@ Put `NewBedwars-Panel-<version>.jar` next to the NewBedwars jar and restart. The
 1. Create the first account in the console: `nbwpanel user create <name> admin`. This prints a one-time password.
 2. Log in with it in the browser and choose your own password.
 
-The panel shows every arena live (state, players, phase, teams and beds), online players, TPS and memory. From it you can enable, disable, back up, restore, reset, copy, export, import and delete arenas. It has accounts with roles (`admin`, view-only `staff` and your own), a login lock, an activity log, and English and Polish. On a network, the panel of the lobby server can manage every game server's arenas, shops and stats with one login. Setup, certificates, reverse proxy and roles: [docs/panel.md](docs/panel.md).
+The panel shows every arena live (state, players, phase, teams and beds), online players, TPS and memory. From it you can enable, disable, back up, restore, reset, copy, export, import and delete arenas. It has accounts with roles (`admin`, view-only `staff` and your own), a login lock, an activity log, and English and Polish. On a network, the panel of the lobby server can manage every game server's arenas, shops and stats with one login. Setup, certificates, reverse proxy and roles: [docs/panel.md](https://l299l.github.io/NewBedwars-Free/panel/).
 
 ## Documentation
 
-- [Commands and permissions](docs/commands.md)
-- [Placeholders](docs/placeholders.md)
-- [Storage (JSON and MySQL)](docs/storage.md)
-- [Network mode](docs/network.md)
-- [Web panel](docs/panel.md)
-- [Addon API](docs/api.md)
+- [Commands and permissions](https://l299l.github.io/NewBedwars-Free/commands/)
+- [Placeholders](https://l299l.github.io/NewBedwars-Free/placeholders/)
+- [Storage (JSON and MySQL)](https://l299l.github.io/NewBedwars-Free/storage/)
+- [Network mode](https://l299l.github.io/NewBedwars-Free/network/)
+- [Web panel](https://l299l.github.io/NewBedwars-Free/panel/)
+- [Addon API](https://l299l.github.io/NewBedwars-Free/api/)
 - [Changelog](CHANGELOG.md)
 
 ## Addon API
 
 [![JitPack build status](https://jitpack.io/v/l299l/NewBedwars-Free.svg)](https://jitpack.io/#l299l/NewBedwars-Free)
 
-Addons can read arenas, teams and players, listen to events, edit arenas that are waiting, and register shop logic, upgrades, armor tiers, commands and phase actions. Only the `com.l299l.newbedwars.api` package is stable. The full guide is [docs/api.md](docs/api.md).
+Addons can read arenas, teams and players, listen to events, edit arenas that are waiting, and register shop logic, upgrades, armor tiers, commands and phase actions. Only the `com.l299l.newbedwars.api` package is stable. The full guide is [docs/api.md](https://l299l.github.io/NewBedwars-Free/api/).
 
 <details>
 <summary>Example and event list</summary>
