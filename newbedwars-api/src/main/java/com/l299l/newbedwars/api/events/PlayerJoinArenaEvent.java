@@ -4,7 +4,7 @@ import com.l299l.newbedwars.api.view.ArenaView;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-/** Fired before a player joins (or rejoins) an arena. Cancelling it keeps the player out. */
+/** Fired before a player joins or rejoins an arena. Cancelling it keeps them out. */
 public class PlayerJoinArenaEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final Player player;
@@ -20,7 +20,7 @@ public class PlayerJoinArenaEvent extends CancellableArenaEvent {
         return player;
     }
 
-    /** True when the player returns to a running game they left. */
+    /** Whether the player is coming back to a game they left. */
     public boolean isRejoin() {
         return rejoin;
     }

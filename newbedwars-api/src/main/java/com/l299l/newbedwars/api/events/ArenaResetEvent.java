@@ -18,7 +18,7 @@ public class ArenaResetEvent extends ArenaEvent {
     }
 
     public enum Stage {
-        /** The reset is about to begin; the arena world is still the old one. */
+        /** The reset is about to start. The arena world is still the old one. */
         PRE,
         /** The map is restored and the arena world is ready again. */
         POST

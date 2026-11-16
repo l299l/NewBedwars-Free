@@ -7,8 +7,10 @@ import com.l299l.newbedwars.api.NewBedwarsAPI;
 @FunctionalInterface
 public interface PhaseActionHandler {
     /**
-     * @param arena the arena whose phase runs the action
-     * @param argument the text after the colon in {@code ACTION:argument} in config.yml, or "" when there is none
+     * Runs the action on the server thread.
+     *
+     * @param arena    the arena whose phase ended
+     * @param argument the text after the colon in {@code ACTION:argument}, or an empty string
      */
     void execute(ArenaView arena, String argument);
 }

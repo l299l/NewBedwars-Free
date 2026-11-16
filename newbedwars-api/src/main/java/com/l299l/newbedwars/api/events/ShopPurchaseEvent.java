@@ -4,7 +4,10 @@ import com.l299l.newbedwars.api.view.ArenaView;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-/** Fired before a shop purchase is charged. Cancelling it makes the purchase fail without charging. */
+/**
+ * Fired before a shop item, armor, tool or team upgrade is paid for. Cancelling it stops the purchase and
+ * nothing is charged.
+ */
 public class ShopPurchaseEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final Player player;
@@ -26,6 +29,7 @@ public class ShopPurchaseEvent extends CancellableArenaEvent {
         return player;
     }
 
+    /** The item's name in items.yml, or the upgrade's name for {@link Kind#UPGRADE}. */
     public String getItemName() {
         return itemName;
     }
@@ -34,19 +38,24 @@ public class ShopPurchaseEvent extends CancellableArenaEvent {
         return kind;
     }
 
-    /** Currency name: IRON, GOLD, DIAMOND or EMERALD. */
+    /** {@code IRON}, {@code GOLD}, {@code DIAMOND} or {@code EMERALD}. Free items use {@code NONE}. */
     public String getPriceType() {
         return priceType;
     }
 
+    /** How many of the currency the purchase costs. */
     public int getPrice() {
         return price;
     }
 
     public enum Kind {
+        /** An item that goes into the inventory. */
         ITEM,
+        /** An armor tier. */
         ARMOR,
+        /** A sword or a tool that follows the tool rules. */
         TOOL,
+        /** A team upgrade or trap. */
         UPGRADE
     }
 

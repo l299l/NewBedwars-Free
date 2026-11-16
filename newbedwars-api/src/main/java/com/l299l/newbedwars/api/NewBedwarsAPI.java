@@ -37,21 +37,25 @@ import java.util.Optional;
  * Entry point for addons. Get it with {@link #get()} (or from Bukkit's {@code ServicesManager}) after
  * NewBedwars has enabled; add {@code NewBedwars} to {@code depend}/{@code softdepend} in your plugin.yml.
  * <p>
- * Everything in the {@code com.l299l.newbedwars.api} package is the stable contract; other packages
- * can change in any update.
+ * The {@code com.l299l.newbedwars.api} package and its subpackages are the stable contract. The plugin's
+ * other classes can change in any update.
  * <p>
  * Everything an addon registers is removed again when that addon is disabled; registering a name that
  * already exists throws {@link IllegalArgumentException}.
  */
 public interface NewBedwarsAPI {
-    /** @throws IllegalStateException when NewBedwars is not enabled */
+    /**
+     * Returns the API instance.
+     *
+     * @throws IllegalStateException when NewBedwars is not enabled
+     */
     static NewBedwarsAPI get() {
         NewBedwarsAPI api = Bukkit.getServicesManager().load(NewBedwarsAPI.class);
         if (api == null) throw new IllegalStateException("NewBedwars is not enabled");
         return api;
     }
 
-    /** Version of the NewBedwars plugin. */
+    /** For example {@code 2.7-beta}. */
     String getVersion();
 
     Collection<ArenaView> getArenas();
@@ -66,16 +70,19 @@ public interface NewBedwarsAPI {
     /** All arena groups (maps that are voted between), read-only. */
     Collection<ArenaGroupView> getGroups();
 
-    /** The group with that name (case-insensitive). */
+    /** Case-insensitive. */
     Optional<ArenaGroupView> getGroup(String name);
 
-    /** How this server takes part in a proxy network ({@code Network.Mode}). */
+    /** How this server takes part in a Velocity network. */
     NetworkMode getNetworkMode();
 
-    /** Arenas of all game servers, as last reported by the proxy (lobby and game servers). Empty in {@link NetworkMode#NONE}. */
+    /**
+     * Arenas of all game servers, as last reported by the proxy. Filled on {@code LOBBY} and {@code GAME}
+     * servers, empty on {@link NetworkMode#NONE}.
+     */
     Collection<NetworkArenaView> getNetworkArenas();
 
-    /** This server's name in the proxy ({@code Network.ServerId}); empty in {@link NetworkMode#NONE}. */
+    /** This server's name in the proxy, empty on {@link NetworkMode#NONE}. */
     Optional<String> getServerId();
 
     /**
@@ -84,7 +91,7 @@ public interface NewBedwarsAPI {
      * checks as {@code /bw join} apply and the player gets the same messages.
      *
      * @return false when this is not a lobby server, a check failed, a {@link NetworkJoinRequestEvent} listener
-     *         cancelled it, or the proxy can not be reached
+     *         cancelled it, or the proxy can't be reached
      */
     boolean requestNetworkJoin(Player player, String target);
 
@@ -95,50 +102,83 @@ public interface NewBedwarsAPI {
     Optional<NetworkArenaView> getNetworkRejoin(Player player);
 
     /**
-     * A player's stats (all zeros when there are none). With {@code Storage.Type: MYSQL} these are the stats of
-     * the whole network; only players who are online (or were loaded since the start) are known then.
+     * Stats of a player this server has loaded, i.e. who is online or joined since the server started. Other
+     * players get all zeros; use {@link #loadStats(String)} for them. With MySQL storage the values are
+     * network-wide.
      */
     PlayerStatsView getStats(String playerName);
 
     /**
-     * The best players by one statistic, best first (ties by name). Works with JSON and MySQL storage; with MySQL
-     * the database is asked, so offline players are included. Can be called from any thread. Available from 2.7-beta.
+     * The best players by one statistic, best first, ties sorted by name. Offline players are included.
+     * <p>
+     * Can be called from any thread. With MySQL storage the future completes on a database thread, so switch to
+     * the server thread before using Bukkit.
      *
-     * @param limit 1 to 100
+     * @param limit clamped to 1..100
+     * @since 2.7-beta
      */
     CompletableFuture<List<LeaderboardEntry>> getLeaderboard(StatType stat, int limit);
 
     /**
-     * Statistics of any player who ever played, also offline (with MySQL they are read from the database).
-     * Empty when the player has no statistics. Can be called from any thread. Available from 2.7-beta.
+     * Stats of any player who ever played, online or not. Empty when the player has none. Threading as in
+     * {@link #getLeaderboard(StatType, int)}.
+     *
+     * @since 2.7-beta
      */
     CompletableFuture<Optional<PlayerStatsView>> loadStats(String playerName);
 
-    /** Names of players with statistics that start with {@code prefix} (case-insensitive), sorted. Available from 2.7-beta. */
+    /**
+     * Names of players with stats that start with {@code prefix}, case-insensitive and sorted. Threading as in
+     * {@link #getLeaderboard(StatType, int)}.
+     *
+     * @param limit clamped to 1..100
+     * @since 2.7-beta
+     */
     CompletableFuture<List<String>> findPlayers(String prefix, int limit);
 
     /**
      * Changes the setup of an arena.
-     * @throws IllegalStateException when the arena is not {@link ArenaState#WAITING}
+     *
+     * @throws IllegalStateException    when the arena is not {@link ArenaState#WAITING}
+     * @throws IllegalArgumentException when the arena no longer exists
      */
     ArenaEditor edit(ArenaView arena);
 
-    /** Arena actions of {@code /bw arena}: enable, disable, backups, export/import, copy, map reset, delete. */
+    /** Enables, disables, backs up, restores, exports, imports, copies, resets and deletes arenas. */
     ArenaMaintenance getMaintenance();
 
-    /** Start, stop, next phase and broadcast for running games, like {@code /bw game}. Available from 2.7-beta. */
+    /**
+     * Start, stop, skip a phase or broadcast in a game, like {@code /bw game}.
+     *
+     * @since 2.7-beta
+     */
     GameControl getGameControl();
 
-    /** Shop items, their texts and shop GUIs: read and change them like the web panel's shop editor. Available from 2.7-beta. */
+    /**
+     * Reads and changes shop items, their texts and shop GUIs, like the web panel's shop editor.
+     *
+     * @since 2.7-beta
+     */
     ShopEditor getShop();
 
-    /** The arena {@code player} is setting up (is in setup mode for). Available from 2.7-beta. */
+    /**
+     * The arena {@code player} is setting up in setup mode.
+     *
+     * @since 2.7-beta
+     */
     Optional<ArenaView> getSetupArena(Player player);
 
-    /** Everyone who is in setup mode right now, with the arena each one is setting up. Available from 2.7-beta. */
+    /**
+     * Everyone in setup mode right now, with the arena they are setting up.
+     *
+     * @since 2.7-beta
+     */
     Map<Player, ArenaView> getSetupPlayers();
 
-    /** Adds an action usable in {@code GamePhases} in config.yml as {@code NAME} or {@code NAME:argument}. */
+    /**
+     * Adds an action that admins can use in the {@code GamePhases} of config.yml, as {@code NAME} or
+     * {@code NAME:argument}. The handler runs on the server thread when the phase's time is over.
+     */
     void registerPhaseAction(Plugin owner, String name, PhaseActionHandler handler);
 
     /** Adds a {@code /bw} subcommand in one context. */
@@ -149,43 +189,48 @@ public interface NewBedwarsAPI {
     /**
      * Adds one {@code /bw} subcommand in several contexts, e.g. {@code LOBBY, GAME, CONSOLE}. It is the same
      * command object everywhere; {@code arena} in {@link AddonCommand#perform} is {@code null} outside arenas.
-     * Available from 2.7-beta.
      *
-     * @throws IllegalArgumentException when another subcommand with the same name is available in one of these
-     *                                  contexts (lobby and lobby admin count as one place, so do game and game admin,
-     *                                  and all setup modes)
+     * @throws IllegalArgumentException when a subcommand with the same name already exists in one of these
+     *                                  places. {@code LOBBY} and {@code LOBBY_ADMIN} count as one place, so do
+     *                                  {@code GAME} and {@code GAME_ADMIN}, and all {@code SETUP_*} contexts.
+     * @since 2.7-beta
      */
     void registerCommand(Plugin owner, AddonCommand command, CommandContext context, CommandContext... more);
 
-    /** Adds shop item logic; use {@code key} as {@code itemLogic} in {@code items.yml}. */
+    /** Adds shop item logic. Admins use {@code key} as {@code itemLogic} in items.yml. */
     void registerShopLogic(Plugin owner, String key, ShopLogic logic);
 
+    /** Adds an armor tier that shop items with {@code onBuyEvent: GIVE_ARMOR} can give. */
     void registerArmorTier(Plugin owner, ArmorTierDefinition tier);
 
-    /** Adds a team upgrade or trap, and its shop icon item (named like the upgrade) when it does not exist. */
+    /**
+     * Adds a team upgrade or trap. Its shop icon item, named like the upgrade, is added to items.yml when it
+     * doesn't exist yet.
+     */
     void registerUpgrade(Plugin owner, UpgradeDefinition upgrade);
 
     /**
-     * Adds a shop item to {@code items.yml} when no item with that name exists yet, so server owners do not have to
-     * add it by hand. An existing item is never changed (the owner may have edited it) and is also not removed when
-     * the addon is disabled. Register the {@link ShopLogic} the item uses first. The item still has to be placed
-     * in a shop GUI (the web panel or a GUI file) to be sold. Call it on the server thread, e.g. in {@code onEnable}.
-     * Available from 2.7-beta.
+     * Adds a shop item to items.yml unless an item with that name already exists. An existing item is never
+     * changed, since the server owner may have edited it, and the item stays when the addon is disabled.
+     * <p>
+     * Register the {@link ShopLogic} it uses first. To be sold, the item still has to be put into a shop GUI.
+     * Call it on the server thread, e.g. in {@code onEnable}.
      *
-     * @param texts display texts per language code (see {@link ShopOptions#languages()}), or {@code null} to use the
-     *              item name; server owners can change them later
+     * @param texts display texts per language code (see {@link ShopOptions#languages()}), or {@code null} to use
+     *              the item name
      * @return {@code true} when the item was added, {@code false} when an item with that name already exists
      * @throws IllegalArgumentException when a value of {@code item} or {@code texts} is not valid (same rules as
      *                                  {@link ShopEditor#saveItem})
      * @throws IllegalStateException    when not called on the server thread
+     * @since 2.7-beta
      */
     boolean registerShopItem(Plugin owner, ShopItem item, Map<String, ItemTexts> texts);
 
-    /** Same as {@link #registerShopItem(Plugin, ShopItem, Map)} without texts. */
+    /** {@link #registerShopItem(Plugin, ShopItem, Map)} without texts. */
     default boolean registerShopItem(Plugin owner, ShopItem item) {
         return registerShopItem(owner, item, null);
     }
 
-    /** Removes everything {@code owner} registered. Done automatically when the plugin is disabled. */
+    /** Removes everything {@code owner} registered. Happens automatically when the plugin is disabled. */
     void unregisterAll(Plugin owner);
 }

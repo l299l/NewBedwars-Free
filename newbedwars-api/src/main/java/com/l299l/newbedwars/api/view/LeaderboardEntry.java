@@ -1,6 +1,10 @@
 package com.l299l.newbedwars.api.view;
 
-/** One row of a leaderboard: the player's name and all their statistics. Available from 2.7-beta. */
+/**
+ * One row of a leaderboard: the player's name and all their statistics.
+ *
+ * @since 2.7-beta
+ */
 public final class LeaderboardEntry {
     private final String name;
     private final PlayerStatsView stats;

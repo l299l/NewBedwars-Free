@@ -6,7 +6,8 @@ public enum LeaveReason {
     COMMAND,
     /** The player left the server. */
     DISCONNECT,
-    /** The player was removed by the plugin (arena disabled, deleted or reset). */
+    /** The plugin removed the player, e.g. the arena was disabled, deleted or force-stopped. */
     KICKED,
+    /** Anything else, e.g. the game ended and everyone was sent out. */
     OTHER
 }

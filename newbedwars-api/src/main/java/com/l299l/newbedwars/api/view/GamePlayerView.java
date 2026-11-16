@@ -4,11 +4,11 @@ import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
-/** Read-only view of a player taking part in an arena. */
+/** A player taking part in an arena. */
 public interface GamePlayerView {
     Player getPlayer();
 
-    /** The team of the player, empty while the arena is waiting (teams are assigned at game start). */
+    /** Empty while the arena is waiting, since teams are assigned when the game starts. */
     Optional<TeamView> getTeam();
 
     int getKills();

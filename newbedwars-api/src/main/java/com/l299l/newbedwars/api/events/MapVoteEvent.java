@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 /**
- * Fired when a player of the ended arena {@link #getArena()} votes for the next map during the after-game time.
- * Cancelling it ignores the vote.
+ * Fired when a player votes for the next map during the after-game time of {@link #getArena()}. Cancelling it
+ * ignores the vote.
  */
 public class MapVoteEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
@@ -18,7 +18,11 @@ public class MapVoteEvent extends CancellableArenaEvent {
         this(arena, player, voted, null);
     }
 
-    /** @param votedNetwork the voted arena when it is on another game server (then {@code voted} is null) */
+    /**
+     * Creates the event.
+     *
+     * @param votedNetwork the voted arena when it is on another game server, {@code voted} is then {@code null}
+     */
     public MapVoteEvent(ArenaView arena, Player player, ArenaView voted, com.l299l.newbedwars.api.view.NetworkArenaView votedNetwork) {
         super(arena);
         this.player = player;
@@ -30,12 +34,12 @@ public class MapVoteEvent extends CancellableArenaEvent {
         return player;
     }
 
-    /** Network mode: the voted arena when it is on another game server ({@link #getVotedArena()} is null then). */
+    /** The voted arena when it is on another game server. {@link #getVotedArena()} is {@code null} then. */
     public java.util.Optional<com.l299l.newbedwars.api.view.NetworkArenaView> getVotedNetworkArena() {
         return java.util.Optional.ofNullable(votedNetwork);
     }
 
-    /** The voted arena on this server; null when it is on another game server (see {@link #getVotedNetworkArena()}). */
+    /** The voted arena on this server, or {@code null} when it is on another server. */
     public ArenaView getVotedArena() {
         return voted;
     }

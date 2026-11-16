@@ -9,40 +9,63 @@ import org.bukkit.Location;
 import java.util.Optional;
 
 /**
- * Changes an arena's setup from code: teams, spawns, beds, shops, upgrade NPCs and generators. Only possible
- * while the arena is {@link ArenaState#WAITING}; every method throws {@link IllegalStateException} otherwise.
- * Changes are kept in memory and written to the arena file shortly after (or call {@link #save()}).
- * Invalid input throws {@link IllegalArgumentException}.
+ * Changes an arena's setup: teams, spawns, beds, shops, upgrade NPCs and generators.
+ * <p>
+ * Only works while the arena is {@link ArenaState#WAITING}; otherwise every method throws
+ * {@link IllegalStateException}. Invalid input throws {@link IllegalArgumentException}, for example a
+ * location outside the arena's world. Changes are written to the arena file shortly after, or right away
+ * with {@link #save()}.
  */
 public interface ArenaEditor {
+    /** @param minPlayers at least 1 */
     void setMinPlayers(int minPlayers);
 
+    /** @param maxInTeam at least 1 */
     void setMaxInTeam(int maxInTeam);
 
     void setWaitingSpawn(Location location);
 
+    /**
+     * Adds a team.
+     *
+     * @param color a color, not a format code like {@code BOLD}
+     * @throws IllegalArgumentException when the name is blank or a team with that name exists
+     */
     TeamEditor createTeam(String name, ChatColor color);
 
     Optional<TeamEditor> getTeam(String name);
 
-    /** @return false when there is no such team */
+    /** Returns {@code false} when there is no such team. */
     boolean removeTeam(String name);
 
-    /** Adds a map generator ({@link GeneratorKind#DIAMOND} or {@link GeneratorKind#EMERALD}). */
+    /**
+     * Adds a diamond or emerald generator. Team generators are set with {@link TeamEditor#setGenerator}.
+     *
+     * @param kind {@link GeneratorKind#DIAMOND} or {@link GeneratorKind#EMERALD}
+     */
     void addGenerator(GeneratorKind kind, Location location);
 
-    /** @param index position in {@link ArenaView#getGenerators()} @return false for an invalid index */
+    /**
+     * Removes a diamond or emerald generator.
+     *
+     * @param index position in {@link ArenaView#getGenerators()}
+     * @return {@code false} for an invalid index
+     */
     boolean removeGenerator(int index);
 
     /**
-     * The shop GUI ({@code data/guis/}) the arena's item shop opens. Available from 2.7-beta.
+     * Sets the GUI the item shop opens.
+     *
      * @throws IllegalArgumentException when there is no GUI with that id
+     * @since 2.7-beta
      */
     void setShopGui(String guiId);
 
     /**
-     * The GUI the arena's team upgrade shop opens. Available from 2.7-beta.
+     * Sets the GUI the team upgrade shop opens.
+     *
      * @throws IllegalArgumentException when there is no GUI with that id
+     * @since 2.7-beta
      */
     void setUpgradeGui(String guiId);
 

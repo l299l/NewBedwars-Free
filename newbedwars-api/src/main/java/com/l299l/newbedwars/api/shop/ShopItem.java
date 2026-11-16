@@ -4,20 +4,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A shop item as stored in {@code items.yml}. Names are case-insensitive and can not be changed after creation.
+ * A shop item from items.yml. Names are case-insensitive and can't be changed once the item exists.
  *
  * @param name         letters, digits and {@code _}, 1 to 32 characters
  * @param material     a Bukkit {@code Material} name that is an item on this server
  * @param amount       1 to 64
- * @param price        0 to 100000 ({@code -1} for upgrade icons, whose price comes from {@code data/upgrades.yml})
+ * @param price        0 to 100000, or {@code -1} for upgrade icons, which use the upgrade prices
  * @param priceType    one of {@link ShopOptions#priceTypes()}
  * @param onBuy        what buying does, one of {@link ShopOptions#onBuyActions()}
  * @param logic        item logic key, one of {@link ShopOptions#logicKeys()}
- * @param permanent    kept after death (and unbreakable)
+ * @param permanent    kept after death, and unbreakable
  * @param permission   permission needed to buy, empty for none
- * @param enchantments enchantment key (e.g. {@code sharpness}) to level 1..255
+ * @param enchantments enchantment key (e.g. {@code sharpness}) to level, 1 to 255
  * @param flags        Bukkit {@code ItemFlag} names
- * @param usedBy       read-only: where the item is used ({@code gui:<id>}, {@code config:BasicSword}); ignored when saving
+ * @param usedBy       where the item is used ({@code gui:<id>}, {@code config:BasicSword}). Read-only, ignored
+ *                     when saving
+ * @since 2.7-beta
  */
 public record ShopItem(String name, String material, int amount, int price, String priceType, String onBuy, String logic,
                        boolean permanent, String permission, Map<String, Integer> enchantments, List<String> flags,
@@ -30,9 +32,9 @@ public record ShopItem(String name, String material, int amount, int price, Stri
     }
 
     /**
-     * A plain item sold for {@code price} of {@code priceType} ({@code IRON}, {@code GOLD}, {@code DIAMOND} or
-     * {@code EMERALD}) that gives {@code amount} of {@code material} and runs the item logic {@code logic}
-     * ({@code "NONE"} for no logic). Not permanent, no permission, enchantments or flags.
+     * A plain item: costs {@code price} {@code priceType} ({@code IRON}, {@code GOLD}, {@code DIAMOND} or
+     * {@code EMERALD}), gives {@code amount} {@code material} and uses the item logic {@code logic}
+     * ({@code "NONE"} for none). Not permanent, with no permission, enchantments or flags.
      */
     public static ShopItem of(String name, String material, int amount, int price, String priceType, String logic) {
         return new ShopItem(name, material, amount, price, priceType, "GIVE_ITEM", logic, false, "", null, null, null);

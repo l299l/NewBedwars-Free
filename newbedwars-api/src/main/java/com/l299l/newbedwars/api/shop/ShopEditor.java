@@ -6,56 +6,64 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Reads and changes shop items ({@code items.yml}), their texts (language files) and shop GUIs ({@code data/guis/}).
- * Get it with {@code NewBedwarsAPI.getShop()}. Every method can be called from any thread; the work runs on the
- * server thread. Changes apply at once: players see them the next time they open a shop. Files are written
- * atomically, the previous version is kept in {@code data/backups/shop/}. Available from 2.7-beta.
+ * Reads and changes shop items (items.yml), their texts (language files) and shop GUIs ({@code data/guis/}).
+ * Get it with {@code NewBedwarsAPI.getShop()}.
+ * <p>
+ * Every method can be called from any thread. The work runs on the server thread and the futures complete
+ * there. Changes apply at once; players see them the next time they open a shop. The previous version of
+ * every changed file is backed up.
+ *
+ * @since 2.7-beta
  */
 public interface ShopEditor {
-    /** All items in file order. Items that could not be loaded on this server are not included. */
+    /** All items in file order, without the ones this server couldn't load. */
     CompletableFuture<List<ShopItem>> getItems();
 
     CompletableFuture<Optional<ShopItem>> getItem(String name);
 
-    /** Creates an item (when the name is new) or changes it; {@link ShopItem#usedBy()} is ignored. */
+    /** Creates the item if the name is new, otherwise changes it. {@link ShopItem#usedBy()} is ignored. */
     CompletableFuture<ShopResult> saveItem(ShopItem item);
 
-    /** Deletes an item; refused with {@link ShopResult.Code#IN_USE} while a GUI or the config uses it. */
+    /** Refused with {@link ShopResult.Code#IN_USE} while a GUI or config.yml uses the item. */
     CompletableFuture<ShopResult> deleteItem(String name);
 
-    /** The texts of an item per language code; every language of {@link ShopOptions#languages()} is included. */
+    /** The item's texts per language code, one entry for every language in {@link ShopOptions#languages()}. */
     CompletableFuture<Optional<Map<String, ItemTexts>>> getItemTexts(String name);
 
-    /** Sets the texts of an item for the given languages (other languages are not changed). */
+    /** Sets the item's texts for the given languages. Other languages are left as they are. */
     CompletableFuture<ShopResult> saveItemTexts(String name, Map<String, ItemTexts> texts);
 
-    /** All GUIs. */
     CompletableFuture<List<ShopGui>> getGuis();
 
     CompletableFuture<Optional<ShopGui>> getGui(String id);
 
-    /** Creates a GUI; {@link ShopResult.Code#NAME_TAKEN} when the id or its file exists. */
+    /** {@link ShopResult.Code#NAME_TAKEN} when a GUI with that id, or its file, already exists. */
     CompletableFuture<ShopResult> createGui(ShopGui gui);
 
-    /** Changes an existing GUI. References that could not be resolved before may stay unchanged. */
+    /**
+     * Changes an existing GUI. References to unknown items, categories or upgrades are
+     * {@link ShopResult.Code#INVALID}, except ones the GUI already had (e.g. an item from a newer Minecraft
+     * version), which may stay.
+     */
     CompletableFuture<ShopResult> saveGui(ShopGui gui);
 
-    /** Deletes a GUI; refused with {@link ShopResult.Code#IN_USE} while an arena or the config uses it. */
+    /** Refused with {@link ShopResult.Code#IN_USE} while an arena or config.yml uses the GUI. */
     CompletableFuture<ShopResult> deleteGui(String id);
 
     /** The shop GUIs of every arena on this server. */
     CompletableFuture<List<ArenaShops>> getArenaShops();
 
     /**
-     * Sets which GUIs an arena's shops open ({@code null} = unchanged). Refused with {@link ShopResult.Code#BUSY}
-     * unless the arena is waiting; {@link ShopResult.Code#INVALID} for an unknown GUI.
+     * Sets which GUIs an arena's shops open. Pass {@code null} to keep one unchanged. Refused with
+     * {@link ShopResult.Code#BUSY} unless the arena is waiting, and with {@link ShopResult.Code#INVALID} for an
+     * unknown GUI.
      */
     CompletableFuture<ShopResult> setArenaShops(String arena, String shopGui, String upgradeGui);
 
-    /** Values for editors (materials, enchantments, logic keys, ...). */
+    /** The values an editor can offer: materials, enchantments, logic keys and so on. */
     CompletableFuture<ShopOptions> getOptions();
 
-    /** The server-wide prices of every upgrade and trap ({@code data/upgrades.yml}). */
+    /** The server-wide prices of every upgrade and trap. */
     CompletableFuture<List<UpgradePrice>> getUpgradePrices();
 
     /**

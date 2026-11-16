@@ -5,8 +5,8 @@ import com.l299l.newbedwars.api.view.ArenaView;
 import org.bukkit.event.HandlerList;
 
 /**
- * Fired when the after-game time of {@link #getArena()} is over and {@link #getChosenArena()} won the next-map
- * vote. The arena then stops and everyone still in it joins the chosen arena.
+ * Fired when the after-game time of {@link #getArena()} is over and a map won the next-map vote. The arena
+ * then stops and everyone still in it joins the winner.
  */
 public class MapChosenEvent extends ArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
@@ -18,7 +18,11 @@ public class MapChosenEvent extends ArenaEvent {
         this(arena, group, chosen, null);
     }
 
-    /** @param chosenNetwork the winner when it is on another game server (then {@code chosen} is null) */
+    /**
+     * Creates the event.
+     *
+     * @param chosenNetwork the winner when it is on another game server, {@code chosen} is then {@code null}
+     */
     public MapChosenEvent(ArenaView arena, ArenaGroupView group, ArenaView chosen,
                           com.l299l.newbedwars.api.view.NetworkArenaView chosenNetwork) {
         super(arena);
@@ -27,7 +31,7 @@ public class MapChosenEvent extends ArenaEvent {
         this.chosenNetwork = chosenNetwork;
     }
 
-    /** Network mode: the winner when it is on another game server ({@link #getChosenArena()} is null then). */
+    /** The winner when it is on another game server. {@link #getChosenArena()} is {@code null} then. */
     public java.util.Optional<com.l299l.newbedwars.api.view.NetworkArenaView> getChosenNetworkArena() {
         return java.util.Optional.ofNullable(chosenNetwork);
     }
@@ -36,7 +40,7 @@ public class MapChosenEvent extends ArenaEvent {
         return group;
     }
 
-    /** The winner on this server; null when it is on another game server (see {@link #getChosenNetworkArena()}). */
+    /** The winner on this server, or {@code null} when it is on another server. */
     public ArenaView getChosenArena() {
         return chosen;
     }

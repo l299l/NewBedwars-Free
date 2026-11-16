@@ -5,7 +5,12 @@ import com.l299l.newbedwars.api.view.TeamView;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-/** Fired after a chat message of a player in an arena was delivered (arena chat or team chat). Not cancellable; to block messages listen to Bukkit's chat event instead. Available from 2.7-beta. */
+/**
+ * Fired after a player's arena or team chat message was delivered. It can't be cancelled; to block messages,
+ * listen to Bukkit's chat event instead.
+ *
+ * @since 2.7-beta
+ */
 public class ArenaChatEvent extends ArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final Player player;
@@ -21,22 +26,21 @@ public class ArenaChatEvent extends ArenaEvent {
         this.team = team;
     }
 
-    /** The player who wrote the message. */
     public Player getPlayer() {
         return player;
     }
 
-    /** The message without colour codes. */
+    /** The message without color codes. */
     public String getMessage() {
         return message;
     }
 
-    /** {@code true} for team chat ({@code !message}), {@code false} for the whole arena. */
+    /** {@code true} for team chat ({@code !message}), {@code false} for arena chat. */
     public boolean isTeamChat() {
         return teamChat;
     }
 
-    /** The player's team, or {@code null} (spectators, waiting lobby). */
+    /** The player's team, or {@code null} for spectators and in the waiting lobby. */
     public TeamView getTeam() {
         return team;
     }

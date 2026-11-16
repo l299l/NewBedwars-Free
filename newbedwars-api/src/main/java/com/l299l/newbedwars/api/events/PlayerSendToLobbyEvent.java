@@ -7,8 +7,8 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * Fired whenever NewBedwars sends a player to the lobby. Cancel it and handle the player yourself (for example
- * send them to a lobby server on a network), or change the target.
+ * Fired whenever NewBedwars sends a player to the lobby. Change the target, or cancel it and handle the
+ * player yourself, e.g. send them to a lobby server of a network.
  */
 public class PlayerSendToLobbyEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
@@ -40,14 +40,23 @@ public class PlayerSendToLobbyEvent extends Event implements Cancellable {
     }
 
     public enum Reason {
+        /** Left an arena or was sent out of one, including after the game. */
         LEFT_ARENA,
+        /** Used {@code /bw lobby} or {@code /lobby}. */
         LOBBY_COMMAND,
+        /** Joined the server inside an arena world. */
         JOINED_IN_ARENA_WORLD,
+        /** Was in an arena world when its map was reset. */
         MAP_RESET,
+        /** Was in an arena world when the arena was unloaded. */
         ARENA_UNLOADED,
+        /** Was in an arena world when the arena was deleted. */
         ARENA_DELETED,
+        /** Left setup mode. */
         SETUP_ENDED,
+        /** The server is stopping. */
         SERVER_SHUTDOWN,
+        /** {@code /bw reload} sent players in setup mode out. */
         RELOAD
     }
 

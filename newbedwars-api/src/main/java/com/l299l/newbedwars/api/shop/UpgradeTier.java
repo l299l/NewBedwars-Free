@@ -5,6 +5,7 @@ package com.l299l.newbedwars.api.shop;
  *
  * @param price    amount of the currency, 0 or more
  * @param currency {@code IRON}, {@code GOLD}, {@code DIAMOND} or {@code EMERALD}
+ * @since 2.7-beta
  */
 public record UpgradeTier(int price, String currency) {
 }

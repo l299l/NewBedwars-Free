@@ -1,6 +1,6 @@
 package com.l299l.newbedwars.api.view;
 
-/** A player's saved stats (read-only snapshot). */
+/** A snapshot of a player's saved stats. It doesn't change when the stats do. */
 public interface PlayerStatsView {
     int getWins();
 

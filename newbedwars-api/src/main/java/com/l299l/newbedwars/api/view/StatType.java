@@ -1,6 +1,10 @@
 package com.l299l.newbedwars.api.view;
 
-/** A player statistic that can be ranked. Available from 2.7-beta. */
+/**
+ * A player statistic that can be ranked.
+ *
+ * @since 2.7-beta
+ */
 public enum StatType {
     WINS,
     LOSSES,
@@ -10,7 +14,6 @@ public enum StatType {
     BEDS_BROKEN,
     GAMES_PLAYED;
 
-    /** The value of this statistic in {@code stats}. */
     public int of(PlayerStatsView stats) {
         switch (this) {
             case WINS: return stats.getWins();

@@ -7,13 +7,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * The arena actions of {@code /bw arena} (enable, disable, backups, export/import, copy, map reset, delete) for
- * addons such as a web panel. Get it with {@link NewBedwarsAPI#getMaintenance()}.
+ * The actions of {@code /bw arena}: enable, disable, backups, export and import, copy, map reset and delete.
+ * Get it with {@link NewBedwarsAPI#getMaintenance()}.
  * <p>
- * The methods can be called from any thread; the work runs on the server thread (file copying in the
- * background) and the futures complete on the server thread. The same checks as the commands apply, so a
- * refused action completes normally with a {@link MaintenanceResult} that is not a success; a future only
- * completes exceptionally on an unexpected error.
+ * Every method can be called from any thread. The work runs on the server thread, file copying in the
+ * background, and the futures complete on the server thread. The commands' checks apply: a refused action
+ * completes normally with a result that is not a success. A future only completes exceptionally on an
+ * unexpected error.
+ *
+ * @since 2.7-beta
  */
 public interface ArenaMaintenance {
 
@@ -22,19 +24,27 @@ public interface ArenaMaintenance {
     /** Players waiting in the arena are sent out. */
     CompletableFuture<MaintenanceResult> disable(String arena);
 
-    /** Saves the arena file and its map; {@link MaintenanceResult#detail()} is the backup id. */
+    /** Backs up the arena file and its map. {@link MaintenanceResult#detail()} is the backup id. */
     CompletableFuture<MaintenanceResult> backup(String arena);
 
     /**
-     * The backups of an arena, newest first. Completes exceptionally with {@link java.util.NoSuchElementException}
-     * when the arena does not exist and with {@link java.io.IOException} when the backups can not be read.
+     * The backups of an arena, newest first. Completes exceptionally with
+     * {@link java.util.NoSuchElementException} for an unknown arena and with {@link java.io.IOException} when the
+     * backups can't be read.
      */
     CompletableFuture<List<ArenaBackup>> listBackups(String arena);
 
-    /** Restores the arena file and map from a backup; {@code backupId} null = the newest one. */
+    /**
+     * Restores the arena file and map from a backup.
+     *
+     * @param backupId {@code null} for the newest backup
+     */
     CompletableFuture<MaintenanceResult> restore(String arena, String backupId);
 
-    /** Writes a zip (arena file + map) into {@link #getExportFolder()}; {@link MaintenanceResult#detail()} is its path. */
+    /**
+     * Writes a zip with the arena file and map into {@link #getExportFolder()}. {@link MaintenanceResult#detail()}
+     * is the zip's path.
+     */
     CompletableFuture<MaintenanceResult> export(String arena);
 
     /** Loads an arena from a zip in {@link #getExportFolder()}. The new arena is disabled. */
@@ -43,12 +53,12 @@ public interface ArenaMaintenance {
     /** Copies settings and map to a new arena, which joins the same group. */
     CompletableFuture<MaintenanceResult> copy(String arena, String newName);
 
-    /** Puts the map back to its saved state; completes when the reset was started. */
+    /** Puts the map back to its saved state. Completes when the reset has started, not when it is done. */
     CompletableFuture<MaintenanceResult> resetMap(String arena);
 
-    /** Permanently deletes the arena file, its world and its saved map; backups in {@code data/backups} are kept. */
+    /** Permanently deletes the arena file, its world and its saved map. Its backups are kept. */
     CompletableFuture<MaintenanceResult> delete(String arena);
 
-    /** {@code plugins/NewBedwars/data/exports}: where exports are written and imports are read from. */
+    /** Where exports are written and imports are read from ({@code plugins/NewBedwars/data/exports}). */
     Path getExportFolder();
 }

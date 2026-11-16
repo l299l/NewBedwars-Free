@@ -4,30 +4,31 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 
-/** Changes one team of an arena; see {@link ArenaEditor} for the rules. */
+/** Changes one team of an arena. The rules of {@link ArenaEditor} apply. */
 public interface TeamEditor {
     String getName();
 
+    /** @param color a color, not a format code like {@code BOLD} */
     void setColor(ChatColor color);
 
     void setSpawn(Location location);
 
-    /** @param location the bed block; a bed must be placed there */
+    /** @param location either half of a bed that is already placed there */
     void setBed(Location location);
 
     void clearBed();
 
-    /** @param npcType living entity type of the shop NPC */
+    /** @param npcType the shop NPC's entity type, must be a living entity */
     void setShop(Location location, EntityType npcType);
 
     void clearShop();
 
-    /** @param npcType living entity type of the upgrades NPC */
+    /** @param npcType the upgrades NPC's entity type, must be a living entity */
     void setUpgrades(Location location, EntityType npcType);
 
     void clearUpgrades();
 
-    /** Sets the team's iron/gold generator. */
+    /** Sets the team's iron and gold generator. */
     void setGenerator(Location location);
 
     void clearGenerator();

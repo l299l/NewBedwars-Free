@@ -4,19 +4,19 @@ import org.bukkit.Material;
 
 import java.util.List;
 
-/** Read-only view of an arena group: maps the waiting lobby votes between. */
+/** An arena group: the maps players vote between at the end of a game. */
 public interface ArenaGroupView {
     String getName();
 
-    /** Names of the group's arenas, in the order they were added (some may not exist any more). */
+    /** Arena names in the order they were added. Some of them may not exist anymore. */
     List<String> getArenaNames();
 
-    /** The group's arenas that exist. */
+    /** Only the arenas that exist. */
     List<ArenaView> getArenas();
 
     /** Icon of the group's maps in the vote menu. */
     Material getDisplayItem();
 
-    /** Why the group does not work as it should (missing arenas, different team sizes); empty when fine. */
+    /** What is wrong with the group, e.g. missing arenas or different team sizes. Empty when nothing is. */
     List<String> getProblems();
 }

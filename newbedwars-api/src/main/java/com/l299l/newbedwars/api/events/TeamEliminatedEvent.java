@@ -4,7 +4,11 @@ import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.view.TeamView;
 import org.bukkit.event.HandlerList;
 
-/** Fired when a team is out of the game (no bed and no living players left). Available from 2.7-beta. */
+/**
+ * Fired when a team is out of the game because its last player is out.
+ *
+ * @since 2.7-beta
+ */
 public class TeamEliminatedEvent extends ArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final TeamView team;
@@ -14,7 +18,6 @@ public class TeamEliminatedEvent extends ArenaEvent {
         this.team = team;
     }
 
-    /** The team that is out. */
     public TeamView getTeam() {
         return team;
     }

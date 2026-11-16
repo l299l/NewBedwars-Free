@@ -17,7 +17,6 @@ public class BedBreakEvent extends CancellableArenaEvent {
         this.breaker = breaker;
     }
 
-    /** The team whose bed is broken. */
     public TeamView getTeam() {
         return team;
     }

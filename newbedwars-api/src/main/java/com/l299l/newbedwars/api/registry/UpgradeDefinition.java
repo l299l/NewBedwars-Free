@@ -9,20 +9,28 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 /**
- * A team upgrade or trap added by an addon. After {@link NewBedwarsAPI#registerUpgrade} it can be used in the
- * upgrade shop GUI files as {@code upg:<name>}. Its prices are written to {@code data/upgrades.yml} on the first
- * registration and can be changed there (or in the web panel) afterwards.
+ * A team upgrade or trap added by an addon. After {@link NewBedwarsAPI#registerUpgrade} it can be put into
+ * upgrade GUIs as {@code upg:<name>}. Its prices are saved on the first registration; server owners can change
+ * them afterwards.
  */
 public final class UpgradeDefinition {
-    /** Applies an upgrade to a player. */
+    /**
+     * Applies the upgrade to one player. Runs on the server thread for every team member when a level is
+     * bought, and on respawn when {@link #reapplyOnRespawn()} is set.
+     */
     @FunctionalInterface
     public interface Effect {
+        /** @param level the team's level of this upgrade, 1 or higher */
         void apply(Player player, TeamView team, int level);
     }
 
-    /** Runs when an enemy enters a base protected by the trap. */
+    /**
+     * Runs on the server thread when an enemy walks into the base of a team that owns the trap. Every bought
+     * level is one use.
+     */
     @FunctionalInterface
     public interface Trap {
+        /** @param team the team that owns the trap */
         void trigger(Player enemy, TeamView team, ArenaView arena);
     }
 
@@ -46,18 +54,24 @@ public final class UpgradeDefinition {
     /**
      * An upgrade whose {@code effect} is applied to every team member when bought. Use
      * {@link TeamView#getUpgradeLevel} to read the level later.
-     * @param prices default price per level (in the default upgrade currency), used when data/upgrades.yml has no entry yet
+     *
+     * @param prices starting price of each level, in diamonds unless the server owner changed the default
+     *               currency
      */
     public static UpgradeDefinition upgrade(String name, int maxLevel, Material icon, List<Integer> prices, Effect effect) {
         return new UpgradeDefinition(name, maxLevel, icon, prices, effect, null);
     }
 
-    /** A trap: it does nothing when bought and is used up when an enemy enters the base. */
+    /**
+     * A trap. Buying it does nothing yet; it fires when an enemy enters the base.
+     *
+     * @param prices starting price of each level, as in {@link #upgrade}
+     */
     public static UpgradeDefinition trap(String name, int maxLevel, Material icon, List<Integer> prices, Trap trap) {
         return new UpgradeDefinition(name, maxLevel, icon, prices, null, trap);
     }
 
-    /** Also apply the effect again when a team member respawns (for effects that do not survive death). */
+    /** Applies the effect again when a team member respawns, for effects that don't survive death. */
     public UpgradeDefinition reapplyOnRespawn() {
         this.reapplyOnRespawn = true;
         return this;
@@ -71,7 +85,6 @@ public final class UpgradeDefinition {
         return maxLevel;
     }
 
-    /** Shop icon material. */
     public Material getIcon() {
         return icon;
     }

@@ -4,7 +4,11 @@ import com.l299l.newbedwars.api.view.ArenaView;
 import com.l299l.newbedwars.api.view.GeneratorKind;
 import org.bukkit.event.HandlerList;
 
-/** Fired when a game phase upgrades the diamond or emerald generators. Available from 2.7-beta. */
+/**
+ * Fired when a game phase upgrades the diamond or emerald generators.
+ *
+ * @since 2.7-beta
+ */
 public class GeneratorUpgradeEvent extends ArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final GeneratorKind kind;
@@ -16,12 +20,11 @@ public class GeneratorUpgradeEvent extends ArenaEvent {
         this.level = level;
     }
 
-    /** Which generators were upgraded. */
     public GeneratorKind getKind() {
         return kind;
     }
 
-    /** The new level (tier). */
+    /** The new tier. */
     public int getLevel() {
         return level;
     }

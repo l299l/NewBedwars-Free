@@ -6,7 +6,7 @@ import org.bukkit.event.HandlerList;
 
 import java.util.Collection;
 
-/** Fired on a lobby server when the list of network arenas ({@code NewBedwarsAPI.getNetworkArenas()}) changed. */
+/** Fired on a lobby server when the list of network arenas ({@code NewBedwarsAPI.getNetworkArenas()}) changes. */
 public class NetworkArenasUpdateEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
     private final Collection<NetworkArenaView> arenas;
@@ -15,7 +15,7 @@ public class NetworkArenasUpdateEvent extends Event {
         this.arenas = arenas;
     }
 
-    /** The new list (unmodifiable). */
+    /** The new list. Unmodifiable. */
     public Collection<NetworkArenaView> getArenas() {
         return arenas;
     }

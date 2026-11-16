@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Read-only view of an arena. Obtained from {@link NewBedwarsAPI}. */
+/** Read-only view of an arena. Get one from {@link NewBedwarsAPI}. */
 public interface ArenaView {
     String getName();
 
@@ -18,14 +18,14 @@ public interface ArenaView {
 
     boolean isEnabled();
 
-    /** The arena world; it is replaced after every map reset, so do not keep it. */
+    /** The arena's world. It is replaced after every map reset, so don't keep a reference to it. */
     World getWorld();
 
     int getMinPlayers();
 
     int getMaxInTeam();
 
-    /** Players of the arena (not spectators). */
+    /** Players taking part, without spectators. */
     List<Player> getPlayers();
 
     List<Player> getSpectators();
@@ -36,42 +36,66 @@ public interface ArenaView {
 
     Optional<GamePlayerView> getGamePlayer(UUID player);
 
-    /** Name of the current game phase, or {@code null} when none is running. */
+    /** The current phase's name, or {@code null} when no game is running. */
     String getCurrentPhase();
 
-    /** Seconds since the game started. */
+    /** Seconds since the game started, 0 when no game is running. */
     int getGameTime();
 
-    /** Name of the phase that comes after the current one, or {@code null} when there is none. Available from 2.7-beta. */
+    /**
+     * The next phase's name, or {@code null} when there is none.
+     *
+     * @since 2.7-beta
+     */
     String getNextPhase();
 
-    /** Seconds until the current phase ends while a game runs, or -1 when no phase timer runs. Available from 2.7-beta. */
+    /**
+     * Seconds until the current phase ends, or -1 when no phase timer runs.
+     *
+     * @since 2.7-beta
+     */
     int getPhaseTimeLeft();
 
-    /** Id of the shop GUI the arena's item shop opens. Available from 2.7-beta. */
+    /**
+     * Id of the GUI the item shop opens.
+     *
+     * @since 2.7-beta
+     */
     String getShopGui();
 
-    /** Id of the GUI the arena's team upgrade shop opens. Available from 2.7-beta. */
+    /**
+     * Id of the GUI the team upgrade shop opens.
+     *
+     * @since 2.7-beta
+     */
     String getUpgradeGui();
 
-    /** Y level below which players die instantly, or {@code null} while it is not configured. Available from 2.7-beta. */
+    /**
+     * The Y level below which players die instantly, or {@code null} while it isn't set.
+     *
+     * @since 2.7-beta
+     */
     default Integer getQuickVoidY() {
         return null;
     }
 
-    /** Online players who are setting this arena up (in setup mode). Available from 2.7-beta. */
+    /**
+     * Online players who are setting this arena up in setup mode.
+     *
+     * @since 2.7-beta
+     */
     default List<Player> getSetupPlayers() {
         return List.of();
     }
 
-    /** Map generators (diamond, emerald) in the order used by {@link ArenaEditor#removeGenerator}. */
+    /** Diamond and emerald generators, in the order {@link ArenaEditor#removeGenerator} uses. */
     List<GeneratorView> getGenerators();
 
-    /** Why the arena was loaded disabled (broken or missing settings); empty when it loaded fine. */
+    /** Why the arena was loaded disabled, e.g. broken or missing settings. Empty when it loaded fine. */
     default List<String> getLoadProblems() {
         return List.of();
     }
 
-    /** Settings {@code owner} keeps on this arena; saved with the arena file. */
+    /** Data {@code owner} keeps on this arena, saved with the arena file. */
     ExtraData getExtra(Plugin owner);
 }

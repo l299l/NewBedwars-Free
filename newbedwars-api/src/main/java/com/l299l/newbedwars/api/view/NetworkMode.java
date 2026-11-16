@@ -1,8 +1,8 @@
 package com.l299l.newbedwars.api.view;
 
-/** How this server takes part in a proxy network ({@code Network.Mode} in config.yml). */
+/** How this server takes part in a Velocity network. */
 public enum NetworkMode {
-    /** A single server (no network). */
+    /** A single server, no network. */
     NONE,
     /** Hosts arenas; players come from and return to lobby servers. */
     GAME,

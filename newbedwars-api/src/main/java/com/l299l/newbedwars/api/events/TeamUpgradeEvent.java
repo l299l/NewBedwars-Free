@@ -5,7 +5,7 @@ import com.l299l.newbedwars.api.view.TeamView;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-/** Fired before a team upgrade or trap is bought. Cancelling it makes the purchase fail without charging. */
+/** Fired before a team upgrade or trap is bought. Cancelling it stops the purchase and nothing is charged. */
 public class TeamUpgradeEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final TeamView team;
@@ -25,7 +25,7 @@ public class TeamUpgradeEvent extends CancellableArenaEvent {
         return team;
     }
 
-    /** Upgrade or trap name, e.g. SHARPNESS or ALARMTRAP. */
+    /** For example {@code SHARPNESS} or {@code ALARMTRAP}. */
     public String getUpgrade() {
         return upgrade;
     }

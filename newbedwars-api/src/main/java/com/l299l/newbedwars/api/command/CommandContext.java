@@ -1,6 +1,9 @@
 package com.l299l.newbedwars.api.command;
 
-/** Where a {@code /bw} subcommand is available. */
+/**
+ * Where a {@code /bw} subcommand is available. Arena setup has three modes that admins pick from: normal,
+ * advanced (normal plus more settings) and automatic.
+ */
 public enum CommandContext {
     /** Outside any arena, for everyone. */
     LOBBY,
@@ -12,16 +15,17 @@ public enum CommandContext {
     GAME_ADMIN,
     /** While setting up an arena, in every setup mode. */
     SETUP_BASIC,
-    /** While setting up an arena in normal and advanced setup. */
+    /** While setting up an arena in normal or advanced mode. */
     SETUP_NORMAL,
-    /** While setting up an arena in advanced setup. */
+    /** While setting up an arena in advanced mode. */
     SETUP_ADVANCED,
-    /** While setting up an arena in automatic setup. */
+    /** While setting up an arena in automatic mode. */
     SETUP_AUTOMATIC,
     /**
-     * Typed in the server console (or by a command block). The command runs
+     * Typed in the server console or run by a command block. The command runs
      * {@link AddonCommand#performConsole(org.bukkit.command.CommandSender, String[])}.
-     * Available from 2.7-beta.
+     *
+     * @since 2.7-beta
      */
     CONSOLE,
     /**

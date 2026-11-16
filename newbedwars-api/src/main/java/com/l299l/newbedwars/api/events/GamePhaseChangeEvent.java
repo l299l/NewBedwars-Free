@@ -3,7 +3,11 @@ package com.l299l.newbedwars.api.events;
 import com.l299l.newbedwars.api.view.ArenaView;
 import org.bukkit.event.HandlerList;
 
-/** Fired when a game moves to its next phase (by the phase timer or an admin). Available from 2.7-beta. */
+/**
+ * Fired when a game moves to its next phase, after the phase timer or because an admin skipped it.
+ *
+ * @since 2.7-beta
+ */
 public class GamePhaseChangeEvent extends ArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final String previous;
@@ -17,17 +21,17 @@ public class GamePhaseChangeEvent extends ArenaEvent {
         this.forced = forced;
     }
 
-    /** Name of the phase that ended, or {@code null} at the first phase. */
+    /** The phase that ended, or {@code null} when the first phase starts. */
     public String getPrevious() {
         return previous;
     }
 
-    /** Name of the phase that starts now. */
+    /** The phase that starts now. */
     public String getNext() {
         return next;
     }
 
-    /** {@code true} when an admin skipped to it ({@code /bw game nextPhase} or the API). */
+    /** Whether an admin skipped to it with {@code /bw game nextPhase} or the API. */
     public boolean isForced() {
         return forced;
     }

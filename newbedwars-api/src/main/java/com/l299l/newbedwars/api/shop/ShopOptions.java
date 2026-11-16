@@ -10,9 +10,10 @@ import java.util.List;
  * @param flags        item flag names
  * @param logicKeys    built-in and addon item logic keys
  * @param upgrades     team upgrade and trap names
- * @param priceTypes   price types ({@code IRON}, {@code GOLD}, ...)
+ * @param priceTypes   currencies ({@code IRON}, {@code GOLD}, ...)
  * @param onBuyActions what buying an item can do
  * @param languages    language codes of the language files ({@code en}, {@code pl}, ...)
+ * @since 2.7-beta
  */
 public record ShopOptions(List<String> materials, List<String> enchantments, List<String> flags, List<String> logicKeys,
                           List<String> upgrades, List<String> priceTypes, List<String> onBuyActions, List<String> languages) {

@@ -8,7 +8,10 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import java.util.Optional;
 
-/** Fired when a player dies in a running game. */
+/**
+ * Fired when a player dies in a running game, before they are turned into a spectator to wait for their
+ * respawn or, after a final kill, for good.
+ */
 public class PlayerKillEvent extends ArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
     private final Player victim;
@@ -34,25 +37,28 @@ public class PlayerKillEvent extends ArenaEvent {
         return victim;
     }
 
-    /** The player credited with the kill, or {@code null} (void, fall, environment). */
+    /**
+     * The player credited with the kill, or {@code null} when nobody gets it (fall damage, lava, a dragon...).
+     * A player who hit the victim shortly before a fall or void death still gets the kill.
+     */
     public Player getKiller() {
         return killer;
     }
 
-    /** True when the victim's bed was already destroyed, so they will not respawn. */
+    /** Whether the victim's bed was already gone, so they won't respawn. */
     public boolean isFinalKill() {
         return finalKill;
     }
 
     /**
-     * What killed the victim. {@code VOID} for every fall into the void, also below the arena's quick-void height
-     * and when another player knocked the victim off; {@code CUSTOM} only when the server reported no cause.
+     * What killed the victim. Every death in the void is {@code VOID}, including the arena's quick void and
+     * being knocked off by a player. {@code CUSTOM} means the server reported no cause.
      */
     public DamageCause getCause() {
         return cause;
     }
 
-    /** The team whose Dragon Buff dragon killed the victim, or empty when no dragon did. */
+    /** The team whose dragon killed the victim. Empty when it wasn't a dragon. */
     public Optional<TeamView> getDragonTeam() {
         return Optional.ofNullable(dragonTeam);
     }

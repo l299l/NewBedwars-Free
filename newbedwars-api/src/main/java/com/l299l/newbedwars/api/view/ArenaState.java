@@ -1,6 +1,5 @@
 package com.l299l.newbedwars.api.view;
 
-/** Lifecycle state of an arena. */
 public enum ArenaState {
     WAITING,
     STARTING,

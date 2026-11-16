@@ -7,30 +7,38 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.List;
 
-/** Read-only view of an arena team. */
+/** A team of an arena. */
 public interface TeamView {
     String getName();
 
     ChatColor getColor();
 
-    /** Players currently in the team (a team is alive while it has players). */
+    /**
+     * Players in the team, including ones waiting to respawn. A player leaves the team after a final kill or
+     * when they leave the game.
+     */
     List<Player> getPlayers();
 
+    /** Whether the team still has players. A team that lost its bed stays alive until its last player is out. */
     boolean isAlive();
 
     boolean isBedDestroyed();
 
-    /** May be {@code null} while the spawn is not configured. */
+    /** {@code null} while the spawn isn't set. */
     Location getSpawn();
 
-    /** Location of the team's bed (its head block), or {@code null} while it is not configured. Available from 2.7-beta. */
+    /**
+     * Where the bed was set (usually its head block), or {@code null} while the bed isn't set.
+     *
+     * @since 2.7-beta
+     */
     default Location getBed() {
         return null;
     }
 
-    /** Bought level of an upgrade or trap (0 when not bought or unknown). */
+    /** The bought level of an upgrade or trap, 0 when it isn't bought or doesn't exist. */
     int getUpgradeLevel(String upgradeName);
 
-    /** Settings {@code owner} keeps on this team; saved with the arena file. */
+    /** Data {@code owner} keeps on this team, saved with the arena file. */
     ExtraData getExtra(Plugin owner);
 }
