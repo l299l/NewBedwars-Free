@@ -4,7 +4,9 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 
 - [Player commands](#player-commands)
 - [Party commands](#party-commands)
+- [Network commands](#network-commands)
 - [Admin commands](#admin-commands)
+- [Web panel commands](#web-panel-commands)
 - [Setup commands](#setup-commands)
 - [Permissions](#permissions)
 
