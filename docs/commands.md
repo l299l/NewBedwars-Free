@@ -26,7 +26,7 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 
 ## Party commands
 
-`/party` (alias `/p`). All of them need `newbedwars.party`. In network mode (see [NETWORK.md](NETWORK.md)) the same commands are handled by the NewBedwars-Proxy plugin on Velocity.
+`/party` (alias `/p`). All of them need `newbedwars.party`. In network mode (see [network.md](network.md)) the same commands are handled by the NewBedwars-Proxy plugin on Velocity.
 
 | Command | Description |
 |---|---|
@@ -78,14 +78,14 @@ Available outside arenas to players with the permission shown.
 `/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
 
 > [!NOTE]
-> `/bw update` is **available from 2.7-beta**. `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see the README).
+> `/bw update` is **available from 2.7-beta**. `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see [Configuration](configuration.md#updates)).
 
 Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, and `SELECTOR [group]` opens the arena selector. On a network lobby server all three send players to the game servers. A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
 
 ## Web panel commands
 
 > [!NOTE]
-> **Available from 2.7-beta**, only with the `NewBedwars-Panel` addon installed. See [PANEL.md](PANEL.md).
+> **Available from 2.7-beta**, only with the `NewBedwars-Panel` addon installed. See [panel.md](panel.md).
 
 | Command | Permission | Description |
 |---|---|---|

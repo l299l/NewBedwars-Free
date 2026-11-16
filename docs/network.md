@@ -22,7 +22,7 @@ Set up Velocity forwarding as usual (`player-info-forwarding-mode = "MODERN"` in
 `/server/` in `scoreboards.yml` shows the server's name (`Network.ServerId`); the default waiting scoreboard has a `Server:` line. A line with `/server/` is left out on a single server. Existing `scoreboards.yml` files are not changed by an update: add the line yourself.
 
 ## Is MySQL required?
-(For a single server see [STORAGE.md](STORAGE.md).)
+(For a single server see [storage.md](storage.md).)
 
 No. Every feature works without a database, on one server or on a network. MySQL/MariaDB only adds:
 
@@ -73,7 +73,7 @@ MySQL:
 ### Lobby servers (`Mode: LOBBY`)
 - No arenas are loaded.
 - `/bw join` opens the arena selector with the arenas of all game servers; clicking an arena takes you to exactly that server's arena. `/bw join <group|arena>` asks the proxy for the best game: an arena name that exists on several servers means the fullest of them that has room. `/bw join <server>:<arena>` (and `ARENA <server>:<arena>` join NPCs) go only to that server's arena.
-- **Arena groups are made here** with `/bw group` (see [COMMANDS.md](COMMANDS.md)). `/bw group add <group> <arena>` adds that arena on **every** game server that has it; `/bw group add <group> <server>:<arena>` only one server's arena. Problems and team sizes are checked against the arenas the game servers report. The proxy uses them right away for routing and the arena lists, also for game servers nobody is on, and sends them to every game server (each keeps the last copy in `data/network-groups.json`, so it still knows them after a restart); joining a group, its NPCs and placeholders and the map vote across servers all use them. With several lobby servers the last edit wins and is copied to the other lobbies.
+- **Arena groups are made here** with `/bw group` (see [commands.md](commands.md)). `/bw group add <group> <arena>` adds that arena on **every** game server that has it; `/bw group add <group> <server>:<arena>` only one server's arena. Problems and team sizes are checked against the arenas the game servers report. The proxy uses them right away for routing and the arena lists, also for game servers nobody is on, and sends them to every game server (each keeps the last copy in `data/network-groups.json`, so it still knows them after a restart); joining a group, its NPCs and placeholders and the map vote across servers all use them. With several lobby servers the last edit wins and is copied to the other lobbies.
 - `/bw arena list` shows the arenas of all game servers (server, group, state, players); `/bw arena info` explains how to set arenas up on a network. All other `/bw arena` subcommands (create, setup, backup, …) are refused here: run them on the game server that has the arena.
 - `/bw spectate` opens a menu of the running games on all game servers; `/bw spectate <arena>` watches that game.
 - Join NPCs: `GROUP`, `ARENA` and `SELECTOR` send players to game servers (the old `NETWORK` action was removed; NPCs that still have it work as `GROUP`). Holograms and the `%newbedwars_group_<name>_...%` placeholders show the network's numbers.

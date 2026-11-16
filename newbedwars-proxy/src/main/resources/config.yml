@@ -1,4 +1,4 @@
-# NewBedwars-Proxy: network mode for NewBedwars on Velocity. See docs/NETWORK.md in the NewBedwars repository.
+# NewBedwars-Proxy: network mode for NewBedwars on Velocity. See docs/network.md in the NewBedwars repository.
 #
 # Server names are the names from velocity.toml [servers].
 # Game servers: NewBedwars with Network.Mode: GAME. Servers that send arenas are added automatically;

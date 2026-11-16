@@ -309,7 +309,7 @@ JoinNpc:
 # JSON  = files in plugins/NewBedwars/data (default, one server).
 # MYSQL = the MySQL/MariaDB database below. Use MYSQL on every server of a network so stats are shared.
 #         On the first start with an empty database, the JSON data of this server is imported.
-#         When MySQL is useful (also on one server): docs/STORAGE.md in the NewBedwars repository.
+#         When MySQL is useful (also on one server): docs/storage.md in the NewBedwars repository.
 
 Storage:
   Type: JSON
@@ -347,7 +347,7 @@ Updates:
 # NONE  = single server (default, nothing below is used).
 # GAME  = this server hosts arenas; players come from the proxy and go back to a lobby server.
 # LOBBY = this server has no arenas; /bw join, the arena selector and join NPCs send players to game servers.
-# Needs the NewBedwars-Proxy plugin on Velocity. See docs/NETWORK.md.
+# Needs the NewBedwars-Proxy plugin on Velocity. See docs/network.md.
 
 Network:
   Mode: NONE

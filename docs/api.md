@@ -28,7 +28,27 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 
 ## Setup
 
-Add the dependency (JitPack, see the README for the repository block) with `provided` scope and depend on the plugin in `plugin.yml`:
+Add the dependency from [JitPack](https://jitpack.io/#l299l/NewBedwars-Free) with `provided` scope:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.github.l299l.NewBedwars-Free</groupId>
+        <artifactId>newbedwars-api</artifactId>
+        <version>v2.7-beta</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+Then depend on the plugin in `plugin.yml`:
 
 ```yaml
 name: MyAddon
@@ -333,4 +353,4 @@ shop.getItem("Wool").thenAccept(item -> item.ifPresent(wool ->
 
 ## Full example
 
-[`docs/examples/event-logger`](examples/event-logger) is a complete, buildable addon (`pom.xml`, `plugin.yml`, [`EventLoggerPlugin.java`](examples/event-logger/src/main/java/com/example/nbwlogger/EventLoggerPlugin.java)). It logs every API event and registers a phase action, shop logic, armor tier, upgrade, trap and subcommands, and uses extra data and the arena editor. Its README says how to try each one.
+[`docs/examples/event-logger`](https://github.com/l299l/NewBedwars-Free/tree/master/docs/examples/event-logger) is a complete, buildable addon (`pom.xml`, `plugin.yml`, [`EventLoggerPlugin.java`](https://github.com/l299l/NewBedwars-Free/blob/master/docs/examples/event-logger/src/main/java/com/example/nbwlogger/EventLoggerPlugin.java)). It logs every API event and registers a phase action, shop logic, armor tier, upgrade, trap and subcommands, and uses extra data and the arena editor. Its README says how to try each one.

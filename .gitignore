@@ -47,11 +47,8 @@ hs_err_pid*
 .DS_Store
 .AppleDouble
 .LSOverride
-CLAUDE.md
 latest.log
 .claude/
-.junie/
-PLAN.md
 graphify-out/
 
 # Icon must end with two \r
@@ -118,6 +115,7 @@ buildNumber.properties
 # Common working directory
 run/
 # Personal notes
-LFY.txt
-TESTING-SCHEME.md
 docs/dev/
+
+# MkDocs build output
+site/

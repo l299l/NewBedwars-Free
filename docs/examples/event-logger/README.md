@@ -1,6 +1,6 @@
 # NewBedwarsEventLogger
 
-Example addon for the NewBedwars API (see [docs/API.md](../../API.md)). It logs every API event (console + chat of ops) and uses the registration, extra data and editor APIs, so it doubles as a test of each in a real game.
+Example addon for the NewBedwars API (see [docs/api.md](../../api.md)). It logs every API event (console + chat of ops) and uses the registration, extra data and editor APIs, so it doubles as a test of each in a real game.
 
 Build: `mvn package` here (the NewBedwars API comes from JitPack), copy `target/NewBedwarsEventLogger-1.0.jar` to the server's `plugins/` next to NewBedwars.
 

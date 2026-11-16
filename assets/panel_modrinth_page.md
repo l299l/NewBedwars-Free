@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Requires the NewBedwars plugin](https://img.shields.io/badge/Requires-NewBedwars-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![Source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Web panel documentation](https://img.shields.io/badge/Docs-PANEL.md-555555?style=for-the-badge)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PANEL.md)
+[![Requires the NewBedwars plugin](https://img.shields.io/badge/Requires-NewBedwars-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![Source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![Web panel documentation](https://img.shields.io/badge/Docs-panel.md-555555?style=for-the-badge)](https://github.com/l299l/NewBedwars-Free/blob/master/docs/panel.md)
 
 </div>
 
@@ -129,7 +129,7 @@ The panel runs inside your Paper server. You don't need a separate website, data
 3. Open `https://<your-server>:8150/`. The browser warns once about the self-signed certificate. You can compare its fingerprint with `nbwpanel status`. Log in and choose your own password.
 4. Open port 8150 in your firewall if you want to reach the panel from another computer.
 
-The full guide covers roles, your own certificate, reverse proxies, network mode and troubleshooting: **[docs/PANEL.md](https://github.com/l299l/NewBedwars-Free/blob/master/docs/PANEL.md)**
+The full guide covers roles, your own certificate, reverse proxies, network mode and troubleshooting: **[docs/panel.md](https://github.com/l299l/NewBedwars-Free/blob/master/docs/panel.md)**
 
 ## Commands
 

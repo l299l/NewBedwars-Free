@@ -25,7 +25,7 @@ MySQL is still worth it on a single server when:
 3. **You have many players.** With JSON, all stats are held in memory and the whole file is rewritten on save. With MySQL, a player's row is loaded when they join, and a game result only adds to their numbers.
 4. **You want database tools.** You can make dumps and scheduled backups, or fix one player's stats with a query while the server is running.
 
-**On a Velocity network:** use `MYSQL` on every server if stats and leaderboards should be the same everywhere. Without it, each server counts its own stats. Network mode has one more optional database feature, the server status table. See [NETWORK.md](NETWORK.md#is-mysql-required).
+**On a Velocity network:** use `MYSQL` on every server if stats and leaderboards should be the same everywhere. Without it, each server counts its own stats. Network mode has one more optional database feature, the server status table. See [network.md](network.md#is-mysql-required).
 
 ## Switching to MySQL
 

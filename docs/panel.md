@@ -255,7 +255,7 @@ Set `X-Forwarded-For` to the client address (`$remote_addr`), not by appending t
 
 ## Network mode
 
-By default a panel only controls the server it is installed on. On a network (see [NETWORK.md](NETWORK.md)) you can instead log in **once**, on the lobby server's panel, and work with every game server from there.
+By default a panel only controls the server it is installed on. On a network (see [network.md](network.md)) you can instead log in **once**, on the lobby server's panel, and work with every game server from there.
 
 - **Lobby server (the gateway)**: `Network.Role: GATEWAY`. Its dashboard shows every server (status, players, TPS, arenas) and one arena list for all of them. Arena pages, the game log, the shop editor, stats and arena import/export work for any server, picked by the server tag, the arena link or the **Server** selector.
 - **Game servers (the nodes)**: `Network.Role: NODE`. A node answers only its gateway. It has no login of its own unless you set `Network.NodeLogin: true`.
