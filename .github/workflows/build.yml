@@ -48,7 +48,7 @@ jobs:
           retention-days: 14
 
   jitpack:
-    name: JitPack build (JDK 17, api + common + plugin)
+    name: Build and test (JDK 17, api + common + plugin)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,4 +57,4 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: maven
-      - run: ./mvnw -B -ntp -DskipTests -pl newbedwars-api,newbedwars-common,newbedwars-plugin -am clean install
+      - run: ./mvnw -B -ntp -pl newbedwars-api,newbedwars-common,newbedwars-plugin -am clean verify

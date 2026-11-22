@@ -8,6 +8,7 @@ Bedwars for Paper 1.17 to 26.x. Arenas are built and configured in-game, the sho
 [![NewBedwars source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free)
 [![NewBedwars documentation](https://img.shields.io/badge/Docs-Website-D32F2F?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://l299l.github.io/NewBedwars-Free/)
 
+[![Build status](https://img.shields.io/github/actions/workflow/status/l299l/NewBedwars-Free/build.yml?branch=master&label=build&style=flat-square)](https://github.com/l299l/NewBedwars-Free/actions/workflows/build.yml)
 [![Latest NewBedwars version on Modrinth](https://img.shields.io/modrinth/v/new-bedwars?label=version&style=flat-square)](https://modrinth.com/plugin/new-bedwars/versions)
 ![Supports Minecraft 1.17 to 26.x](https://img.shields.io/badge/Minecraft-1.17%20to%2026.x-62B47A?style=flat-square)
 ![Requires Java 16 or newer](https://img.shields.io/badge/Java-16%2B-ED8B00?style=flat-square)
