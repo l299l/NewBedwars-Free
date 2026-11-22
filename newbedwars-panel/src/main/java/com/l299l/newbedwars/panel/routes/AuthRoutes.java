@@ -82,7 +82,9 @@ public final class AuthRoutes {
         String ipKey = "ip:" + request.ip();
         long locked = Math.max(limiter.lockedFor(userKey), limiter.lockedFor(ipKey));
         if (locked > 0) {
-            audit.record(name, request.ip(), "login", null, "locked");
+            if (limiter.noticeLock(userKey) | limiter.noticeLock(ipKey)) {
+                audit.record(name, request.ip(), "login", null, "locked");
+            }
             JsonObject o = new JsonObject();
             o.addProperty("error", "locked");
             o.addProperty("retryAfter", (locked + 999) / 1000);

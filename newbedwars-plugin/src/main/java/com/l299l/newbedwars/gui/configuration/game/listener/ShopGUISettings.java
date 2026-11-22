@@ -7,6 +7,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
+import com.l299l.newbedwars.arena.shops.customitems.PurchaseResult;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
 import com.l299l.newbedwars.arena.shops.upgrades.UpgradePurchase;
 import com.l299l.newbedwars.arena.team.Team;
@@ -49,23 +50,20 @@ public class ShopGUISettings implements Listener {
             if (upgrade != null) buyUpgrade(player, upgrade, it);
         } else if (item instanceof CustomItem it) {
             Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
-                if (it.buyItem(player)) {
-                    msg.send(player, "BoughtItem", Map.of(
-                            "/item/", it.getName(),
-                            "/price/", String.valueOf(it.getPrice()),
-                            "/priceType/", it.getPriceType().toString(),
-                            "/amount/", String.valueOf(it.getAmount())));
-                } else {
-                    msg.send(player, "NotEnoughMoney", Map.of(
-                            "/item/", it.getName(),
-                            "/price/", String.valueOf(it.getPrice()),
-                            "/priceType/", it.getPriceType().toString(),
-                            "/amount/", String.valueOf(it.getAmount())));
+                Map<String, String> values = Map.of(
+                        "/item/", it.getName(),
+                        "/price/", String.valueOf(it.getPrice()),
+                        "/priceType/", it.priceLabel(),
+                        "/amount/", String.valueOf(it.getAmount()));
+                PurchaseResult result = it.buyItem(player);
+                if (result.bought()) {
+                    boolean freeMenuLink = it.getOnBuyEvent() == OnBuyEvent.OPEN_GUI && it.getPrice() <= 0;
+                    if (!freeMenuLink) msg.send(player, "BoughtItem", values);
+                } else if (result.messageKey() != null) {
+                    msg.send(player, result.messageKey(), values);
                 }
             });
         } else if (item instanceof GUICategory cat) {
-            player.closeInventory();
-
             GUICategory target = cat.id().equalsIgnoreCase("home") ? null : cat;
             ShopGUI newGui = new ShopGUI(NewBedwars.plugin.getGuiManager(), player, gui.getGuiSave(), target);
             player.openInventory(newGui.getInventory());
@@ -78,10 +76,21 @@ public class ShopGUISettings implements Listener {
     private void buyUpgrade(Player player, Upgrade upgrade, CustomItem icon) {
         Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
             IArena arena = ArenaRegistry.byWorld(player.getWorld());
-            if (arena == null) return;
+            if (!UpgradePurchase.canBuy(arena, player)) {
+                msg.send(player, PurchaseResult.UNAVAILABLE.messageKey());
+                return;
+            }
             Team team = arena.getTeam(player);
             if (team == null || team.getTeamUpgrades() == null) return;
             UpgradePurchase.Result result = UpgradePurchase.buy(player, arena, team, upgrade, icon.getName());
+            if (result.outcome() == UpgradePurchase.Outcome.MAXED) {
+                msg.send(player, PurchaseResult.MAXED.messageKey(), Map.of("/item/", icon.getName()));
+                return;
+            }
+            if (result.outcome() == UpgradePurchase.Outcome.UNAVAILABLE) {
+                msg.send(player, PurchaseResult.UNAVAILABLE.messageKey());
+                return;
+            }
             if (result.tier() == null || result.outcome() == UpgradePurchase.Outcome.CANCELLED) return;
             Map<String, String> values = Map.of(
                     "/item/", icon.getName(),

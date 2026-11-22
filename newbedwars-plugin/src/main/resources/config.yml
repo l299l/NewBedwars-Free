@@ -317,6 +317,12 @@ MySQL:
   # Only needed for MySQL 8 accounts with caching_sha2_password on a connection without SSL. Less secure.
   AllowPublicKeyRetrieval: false
 
+# ----- Leaderboards -------------------------------
+# PlaceholderAPI: %newbedwars_top_<stat>_<position>_name% and %newbedwars_top_<stat>_<position>_value%
+# (stat: wins, kills, final_kills or beds; position 1-10), for example in a hologram plugin.
+# How often these placeholders are refreshed, in seconds (at least 5).
+Leaderboards:
+  RefreshSeconds: 60
 
 # ----- Updates ------------------------------------
 # NewBedwars looks for new versions on Modrinth (and GitHub as a fallback). Nothing about your server is sent.

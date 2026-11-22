@@ -106,6 +106,58 @@ class ItemsDataManagerTest {
         assertTrue(Files.isDirectory(dir.resolve("data/backups/shop/items")));
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void buyActionsAndOtherPriceLoadAndSave() throws IOException {
+        Files.writeString(dir.resolve("data/items.yml"), """
+                Reward:
+                  material: NETHER_STAR
+                  price: 2
+                  priceType: OTHER
+                  priceMaterial: diamond_block
+                  onBuyEvent: COMMANDS
+                  commands:
+                  - say {player}
+                  - 'player: spawn'
+                Menu:
+                  material: CHEST
+                  priceType: NONE
+                  onBuyEvent: OPEN_GUI
+                  gui: shop
+                Fly:
+                  material: FEATHER
+                  price: 5
+                  priceType: EMERALD
+                  onBuyEvent: GIVE_PERM
+                  givePermission: fly.use
+                NoMaterial:
+                  material: STONE
+                  priceType: OTHER
+                NoCommands:
+                  material: STONE
+                  onBuyEvent: COMMANDS
+                NoPermission:
+                  material: STONE
+                  onBuyEvent: GIVE_PERM
+                """);
+        data.load();
+        assertEquals(3, items.getCustomItems().size());
+        assertEquals(List.of("NoMaterial", "NoCommands", "NoPermission"), data.getBrokenNames());
+        assertEquals(Material.DIAMOND_BLOCK, items.getCustomItem("Reward").getOtherPriceMaterial());
+        assertEquals(List.of("say {player}", "player: spawn"), items.getCustomItem("Reward").getCommands());
+        assertEquals("shop", items.getCustomItem("Menu").getOpenGui());
+        assertEquals("fly.use", items.getCustomItem("Fly").getGivePermission());
+
+        data.save();
+        Map<String, Object> saved = SafeYaml.create().load(Files.readString(dir.resolve("data/items.yml")));
+        Map<String, Object> reward = (Map<String, Object>) saved.get("Reward");
+        assertEquals("DIAMOND_BLOCK", reward.get("priceMaterial"));
+        assertEquals(List.of("say {player}", "player: spawn"), reward.get("commands"));
+        assertEquals("shop", ((Map<String, Object>) saved.get("Menu")).get("gui"));
+        assertEquals("fly.use", ((Map<String, Object>) saved.get("Fly")).get("givePermission"));
+        assertFalse(((Map<String, Object>) saved.get("Fly")).containsKey("commands"));
+    }
+
     @Test
     void reloadingDoesNotDuplicateItems() {
         data.load();
@@ -143,5 +195,39 @@ class ItemsDataManagerTest {
         data.save();
         Map<String, Object> saved = SafeYaml.create().load(Files.readString(dir.resolve("data/items.yml")));
         assertEquals(List.of("Wool", "FutureBlock", "Speed", "Extra"), new ArrayList<>(saved.keySet()));
+    }
+
+    @Test
+    void anUnreadableFileIsNeverSavedOver() throws IOException {
+        Files.writeString(dir.resolve("data/items.yml"), "Wool: [broken");
+        data.load();
+        assertTrue(data.isReadOnly());
+        items.addCustomItem(new CustomItem("Extra", "default", Material.STONE, 1,
+                com.l299l.newbedwars.arena.shops.customitems.PriceType.IRON, 1, "default", "",
+                new com.l299l.newbedwars.arena.shops.customitems.customitemlogic.logics.NoneLogic(),
+                com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent.GIVE_ITEM, false,
+                new java.util.HashMap<>(), new ArrayList<>(), true));
+        data.save();
+        assertEquals("Wool: [broken", Files.readString(dir.resolve("data/items.yml")));
+        Files.writeString(dir.resolve("data/items.yml"), FILE);
+        data.load();
+        assertFalse(data.isReadOnly());
+    }
+
+    @Test
+    void aPriceTypoMakesTheItemBrokenNotFree() throws IOException {
+        Files.writeString(dir.resolve("data/items.yml"), """
+                Typo:
+                  material: STONE
+                  price: 1O
+                  priceType: IRON
+                Fine:
+                  material: STONE
+                  price: '4'
+                  priceType: IRON
+                """);
+        data.load();
+        assertEquals(List.of("Typo"), data.getBrokenNames());
+        assertEquals(4, items.getCustomItem("Fine").getPrice());
     }
 }

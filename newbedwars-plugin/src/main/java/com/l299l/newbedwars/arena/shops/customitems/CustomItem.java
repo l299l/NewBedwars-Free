@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CustomItem implements GUIEntry {
+    private static final java.util.regex.Pattern SAFE_NAME = java.util.regex.Pattern.compile("[A-Za-z0-9_.]{1,32}");
     private final UUID uuid = UUID.randomUUID();
     private final Messages msg;
     private final GUIManager guiManager;
@@ -50,6 +51,10 @@ public class CustomItem implements GUIEntry {
     private boolean isPermanent;
     private HashMap<Enchantment, Integer> enchantments;
     private List<ItemFlag> itemFlags;
+    private List<String> commands = new ArrayList<>();
+    private String openGui = "";
+    private String givePermission = "";
+    private Material otherPriceMaterial;
 
     public CustomItem(String name, String description, Material material, int price, PriceType priceType, int amount, String iconDesc,
                       String permission, CustomLogic event, OnBuyEvent onBuyEvent, boolean isPermanent, HashMap<Enchantment, Integer> enchantments,
@@ -117,7 +122,7 @@ public class CustomItem implements GUIEntry {
         NamespacedKey key = new NamespacedKey(NewBedwars.plugin, "custom_item_name");
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, name);
         item.setItemMeta(meta);
-        return item;
+        return ApiEvents.shopItemStack(player, name, com.l299l.newbedwars.api.events.ShopItemStackEvent.Use.GIVEN, item);
     }
 
     private static PotionType getPotionTypeByName(String name) {
@@ -129,50 +134,82 @@ public class CustomItem implements GUIEntry {
         };
     }
 
-    public boolean buyItem(Player player) {
-        if (onBuyEvent == OnBuyEvent.CANCEL || onBuyEvent == OnBuyEvent.COMMANDS
-                || onBuyEvent == OnBuyEvent.OPEN_GUI || onBuyEvent == OnBuyEvent.GIVE_PERM) {
-            return false;
+    public PurchaseResult buyItem(Player player) {
+        if (onBuyEvent == OnBuyEvent.CANCEL) {
+            return PurchaseResult.CANCELLED;
         }
         if (permission != null && !permission.isEmpty() && !permission.equalsIgnoreCase("default") && !player.hasPermission(permission)) {
-            return false;
+            return PurchaseResult.NO_PERMISSION;
         }
         IArena arena = ArenaRegistry.byWorld(player.getWorld());
-        Team team = arena == null ? null : arena.getTeam(player);
+        if (!UpgradePurchase.canBuy(arena, player)) {
+            return PurchaseResult.UNAVAILABLE;
+        }
+        Team team = arena.getTeam(player);
         boolean needsTeam = onBuyEvent == OnBuyEvent.GIVE_ARMOR || onBuyEvent == OnBuyEvent.GIVE_TOOL || onBuyEvent == OnBuyEvent.UPGRADE;
         if (needsTeam && team == null) {
-            return false;
+            return PurchaseResult.UNAVAILABLE;
         }
         if (onBuyEvent == OnBuyEvent.UPGRADE) {
             Upgrade upgrade;
             try {
                 upgrade = Upgrade.valueOf(name);
             } catch (IllegalArgumentException e) {
-                return false;
+                return PurchaseResult.UNAVAILABLE;
             }
-            return team.getTeamUpgrades() != null && UpgradePurchase.buy(player, arena, team, upgrade, name).bought();
+            if (team.getTeamUpgrades() == null) return PurchaseResult.UNAVAILABLE;
+            return switch (UpgradePurchase.buy(player, arena, team, upgrade, name).outcome()) {
+                case BOUGHT -> PurchaseResult.BOUGHT;
+                case MAXED -> PurchaseResult.MAXED;
+                case NOT_ENOUGH -> PurchaseResult.NOT_ENOUGH;
+                case CANCELLED -> PurchaseResult.CANCELLED;
+                case UNAVAILABLE -> PurchaseResult.UNAVAILABLE;
+            };
         }
         if (onBuyEvent == OnBuyEvent.GIVE_ARMOR) {
             ArmorTier newType = ArmorTier.getArmorTier(material);
 
-            if (newType == ArmorTier.OTHER || team.getArmorContents(player).getArmor().rank() >= newType.rank()) {
-                return false;
+            if (newType == ArmorTier.OTHER) {
+                return PurchaseResult.UNAVAILABLE;
             }
+            if (team.getArmorContents(player).getArmor().rank() >= newType.rank()) {
+                return PurchaseResult.ALREADY_OWNED;
+            }
+        }
+        if (onBuyEvent == OnBuyEvent.COMMANDS && commands.isEmpty()) {
+            return PurchaseResult.UNAVAILABLE;
+        }
+        if (onBuyEvent == OnBuyEvent.OPEN_GUI && guiManager.getGui(openGui) == null) {
+            return PurchaseResult.UNAVAILABLE;
+        }
+        if (onBuyEvent == OnBuyEvent.GIVE_PERM && (arena == null || givePermission.isEmpty())) {
+            return PurchaseResult.UNAVAILABLE;
+        }
+        if (onBuyEvent == OnBuyEvent.GIVE_PERM && GamePermissions.has(player.getUniqueId(), givePermission)) {
+            return PurchaseResult.ALREADY_OWNED;
+        }
+        if (priceType == PriceType.OTHER && otherPriceMaterial == null) {
+            return PurchaseResult.UNAVAILABLE;
         }
         Material priceMaterial = priceMaterial();
         if (priceMaterial != null && !player.getInventory().contains(priceMaterial, price)) {
-            return false;
+            return PurchaseResult.NOT_ENOUGH;
         }
+        int charged = price;
         if (arena != null) {
             ShopPurchaseEvent.Kind kind = switch (onBuyEvent) {
                 case GIVE_ARMOR -> ShopPurchaseEvent.Kind.ARMOR;
                 case GIVE_TOOL -> ShopPurchaseEvent.Kind.TOOL;
                 default -> ShopPurchaseEvent.Kind.ITEM;
             };
-            if (!ApiEvents.shopPurchase(arena, player, name, kind, String.valueOf(priceType), price)) return false;
+            charged = ApiEvents.shopPurchase(arena, player, name, kind, priceLabel(), price, team);
+            if (charged < 0) return PurchaseResult.CANCELLED;
+            if (priceMaterial != null && charged > 0 && !player.getInventory().contains(priceMaterial, charged)) {
+                return PurchaseResult.NOT_ENOUGH;
+            }
         }
-        if (priceMaterial != null) {
-            player.getInventory().removeItem(new ItemStack(priceMaterial, price));
+        if (priceMaterial != null && charged > 0) {
+            player.getInventory().removeItem(new ItemStack(priceMaterial, charged));
         }
         switch (onBuyEvent) {
             case GIVE_ITEM -> {
@@ -180,13 +217,13 @@ public class CustomItem implements GUIEntry {
                 if (isPermanent && team != null) {
                     team.getArmorContents(player).addOther(this);
                 }
-                return true;
+                return PurchaseResult.BOUGHT;
             }
             case GIVE_ARMOR -> {
                 ArmorContents armorContents = team.getArmorContents(player);
                 armorContents.setArmor(ArmorTier.getArmorTier(material));
                 armorContents.applyArmor(player);
-                return true;
+                return PurchaseResult.BOUGHT;
             }
             case GIVE_TOOL -> {
                 ArmorContents armorContents = team.getArmorContents(player);
@@ -201,12 +238,87 @@ public class CustomItem implements GUIEntry {
                 if (isSword) {
                     team.getTeamUpgrades().applyPlayerUpgrades(player);
                 }
-                return true;
+                return PurchaseResult.BOUGHT;
+            }
+            case COMMANDS -> {
+                runCommands(player, arena, team);
+                return PurchaseResult.BOUGHT;
+            }
+            case OPEN_GUI -> {
+                player.openInventory(new com.l299l.newbedwars.gui.configuration.game.guis.ShopGUI(guiManager, player,
+                        guiManager.getGui(openGui), null).getInventory());
+                return PurchaseResult.BOUGHT;
+            }
+            case GIVE_PERM -> {
+                GamePermissions.grant(NewBedwars.plugin, player, arena.getArenaName(), givePermission);
+                return PurchaseResult.BOUGHT;
             }
             default -> {
-                return false;
+                return PurchaseResult.UNAVAILABLE;
             }
         }
+    }
+
+    private void runCommands(Player player, IArena arena, Team team) {
+        for (String line : commands) {
+            String command = line.trim();
+            boolean asPlayer = command.regionMatches(true, 0, "player:", 0, 7);
+            if (asPlayer) command = command.substring(7).trim();
+            if (command.startsWith("/")) command = command.substring(1);
+            if (!asPlayer && command.contains("{player}") && !SAFE_NAME.matcher(player.getName()).matches()) {
+                NewBedwars.plugin.getLogger().warning("Shop item " + name + " did not run '" + command
+                        + "' as the console because the player name " + player.getName() + " is not a normal Minecraft name");
+                continue;
+            }
+            command = command.replace("{player}", player.getName())
+                    .replace("{team}", team == null ? "" : team.getName())
+                    .replace("{arena}", arena == null ? "" : arena.getArenaName());
+            if (command.isEmpty()) continue;
+            try {
+                if (asPlayer) player.performCommand(command);
+                else org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(), command);
+            } catch (RuntimeException e) {
+                NewBedwars.plugin.getLogger().log(java.util.logging.Level.WARNING,
+                        "Shop item " + name + " could not run the command '" + command + "'", e);
+            }
+        }
+    }
+
+    public String priceLabel() {
+        if (priceType == PriceType.OTHER) return otherPriceMaterial == null ? PriceType.OTHER.name() : otherPriceMaterial.name();
+        return priceType.name();
+    }
+
+    public List<String> getCommands() {
+        return commands;
+    }
+
+    public void setCommands(List<String> commands) {
+        this.commands = commands == null ? new ArrayList<>() : new ArrayList<>(commands);
+    }
+
+    public String getOpenGui() {
+        return openGui;
+    }
+
+    public void setOpenGui(String openGui) {
+        this.openGui = openGui == null ? "" : openGui;
+    }
+
+    public String getGivePermission() {
+        return givePermission;
+    }
+
+    public void setGivePermission(String givePermission) {
+        this.givePermission = givePermission == null ? "" : givePermission;
+    }
+
+    public Material getOtherPriceMaterial() {
+        return otherPriceMaterial;
+    }
+
+    public void setOtherPriceMaterial(Material otherPriceMaterial) {
+        this.otherPriceMaterial = otherPriceMaterial;
     }
 
     public UUID getUuid() {
@@ -262,7 +374,11 @@ public class CustomItem implements GUIEntry {
     }
 
     public ItemStack getIcon(Language language) {
-        return buildIcon(language, material);
+        return buildIcon(language, material, null);
+    }
+
+    public ItemStack getIcon(Language language, Player viewer) {
+        return buildIcon(language, material, viewer);
     }
 
     @Override
@@ -276,10 +392,10 @@ public class CustomItem implements GUIEntry {
                 if (team != null) iconMaterial = TeamColor.recolor(material, team.getColor());
             }
         }
-        return buildIcon(language, iconMaterial);
+        return buildIcon(language, iconMaterial, player);
     }
 
-    private ItemStack buildIcon(Language language, Material iconMaterial) {
+    private ItemStack buildIcon(Language language, Material iconMaterial, Player viewer) {
         String desc = msg.getMsg(language, name + "-icon-description");
         if (desc == null || desc.isEmpty()) {
             desc = msg.getMsg(language, iconDesc);
@@ -291,12 +407,16 @@ public class CustomItem implements GUIEntry {
                     .filter(line -> !line.contains("/price/"))
                     .collect(Collectors.joining(";"));
         }
-        desc = desc.replace("/price/", price + " " + priceType.name());
+        desc = desc.replace("/price/", price + " " + priceLabel());
         desc = desc.replace("/amount/", String.valueOf(amount));
         String displayName = msg.getMsg(language, name + "-name");
         if (displayName == null) displayName = name;
         desc = desc.replace("/name/", displayName);
-        return guiManager.createIcon(iconMaterial.name(), displayName, desc, (enchantments != null && !enchantments.isEmpty()));
+        displayName = com.l299l.newbedwars.placeholder.PapiText.apply(viewer, displayName);
+        desc = com.l299l.newbedwars.placeholder.PapiText.apply(viewer, desc);
+        ItemStack icon = guiManager.createIcon(iconMaterial.name(), displayName, desc, (enchantments != null && !enchantments.isEmpty()));
+        if (viewer == null) return icon;
+        return ApiEvents.shopItemStack(viewer, name, com.l299l.newbedwars.api.events.ShopItemStackEvent.Use.ICON, icon);
     }
 
     public void setIconDesc(String iconDesc) {
@@ -373,6 +493,10 @@ public class CustomItem implements GUIEntry {
         map.put("isPermanent", isPermanent);
         map.put("enchantments", getEnchantmentsAsHashMap());
         map.put("itemFlags", itemFlagNames());
+        if (!commands.isEmpty()) map.put("commands", new ArrayList<>(commands));
+        if (!openGui.isEmpty()) map.put("gui", openGui);
+        if (!givePermission.isEmpty()) map.put("givePermission", givePermission);
+        if (otherPriceMaterial != null) map.put("priceMaterial", otherPriceMaterial.name());
         return map;
     }
 
@@ -382,6 +506,7 @@ public class CustomItem implements GUIEntry {
             case DIAMOND -> Material.DIAMOND;
             case GOLD -> Material.GOLD_INGOT;
             case IRON -> Material.IRON_INGOT;
+            case OTHER -> otherPriceMaterial;
             default -> null;
         };
     }

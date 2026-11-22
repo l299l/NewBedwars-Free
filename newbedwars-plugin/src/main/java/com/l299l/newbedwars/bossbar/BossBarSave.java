@@ -26,7 +26,7 @@ public class BossBarSave {
         this.style = style;
         this.effects = effects;
         this.action = action;
-        animated = texts.length != 1;
+        animated = texts.length > 1 && time > 0;
     }
 
     public boolean isEnabled() {

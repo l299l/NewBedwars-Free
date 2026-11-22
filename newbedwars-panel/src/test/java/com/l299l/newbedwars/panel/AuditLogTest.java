@@ -42,4 +42,46 @@ class AuditLogTest {
         assertEquals(AuditLog.KEEP_IN_MEMORY, recent.size());
         assertEquals("a" + (AuditLog.KEEP_IN_MEMORY + 19), recent.get(0).action());
     }
+
+    @Test
+    void controlCharactersNeverReachTheConsole() {
+        Logger logger = Logger.getAnonymousLogger();
+        logger.setUseParentHandlers(false);
+        List<String> lines = new java.util.ArrayList<>();
+        logger.addHandler(new java.util.logging.Handler() {
+            @Override
+            public void publish(java.util.logging.LogRecord record) {
+                lines.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() {
+            }
+        });
+        AuditLog log = new AuditLog(dir.resolve("audit.log"), logger, () -> 1);
+        log.record("evil\r\n[Server] fake", "1.2.3.4\n", "login", "t\u0000\u001b[31mx\u2028y", "ok");
+        assertEquals(1, lines.size());
+        assertEquals("[Audit] evil[Server] fake (1.2.3.4) login t[31mxy -> ok", lines.get(0));
+        assertEquals("evil\r\n[Server] fake", log.recent(1).get(0).user());
+        assertNull(AuditLog.clean(null));
+        assertEquals("plain", AuditLog.clean("plain"));
+    }
+
+    @Test
+    void aGrowingLogIsRotatedWhileRunning() throws Exception {
+        Path file = dir.resolve("audit.log");
+        AuditLog log = new AuditLog(file, Logger.getAnonymousLogger(), () -> 1);
+        log.record("u", "ip", "first", null, "ok");
+        Files.write(file, new byte[5 * 1024 * 1024 + 1], java.nio.file.StandardOpenOption.APPEND);
+        log.record("u", "ip", "second", null, "ok");
+        Path rotated = dir.resolve("audit.log.1");
+        assertTrue(Files.isRegularFile(rotated));
+        assertTrue(Files.size(file) < 1024);
+        assertTrue(Files.readString(file).contains("second"));
+        assertEquals(2, log.recent(10).size());
+    }
 }

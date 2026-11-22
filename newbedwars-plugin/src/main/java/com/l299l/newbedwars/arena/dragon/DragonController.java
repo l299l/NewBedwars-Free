@@ -69,7 +69,7 @@ public final class DragonController {
                     new Location(world, start.getX(), start.getY(), start.getZ()), EntityType.ENDER_DRAGON);
             dragon.setInvulnerable(true);
             dragon.setPersistent(false);
-            dragon.setCustomName(team.getColor() + team.getName() + " Dragon");
+            dragon.setCustomName(NewBedwars.plugin.getMessages().getMsgToConsole("DragonName").replace("/team/", team.getColor() + team.getDisplayName()));
             dragon.setCustomNameVisible(true);
             String key = arena.getArenaName() + ":" + team.getName();
             tag(dragon, key);

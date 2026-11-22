@@ -83,9 +83,79 @@ class NetworkConfigTest {
     }
 
     @Test
-    void brokenPinFileIsIgnored(@TempDir Path dir) throws Exception {
+    void brokenPinFileIsMovedAsideAndNotTrustedAgain(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("peers.json");
         Files.writeString(file, "{not json");
-        assertNull(new PeerPins(file, Logger.getAnonymousLogger()).get("x"));
+        PeerPins pins = new PeerPins(file, Logger.getAnonymousLogger());
+        assertNull(pins.get("x"));
+        try (var files = Files.list(dir)) {
+            assertEquals(1, files.filter(f -> f.getFileName().toString().startsWith("peers.json.corrupt-")).count());
+        }
+        assertFalse(pins.firstUseAllowed("x"));
+        assertTrue(pins.remove("x"));
+        assertTrue(pins.firstUseAllowed("x"));
+        assertFalse(pins.firstUseAllowed("y"));
+    }
+
+    @Test
+    void lockSurvivesARestartAndReleasesArePersisted(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("peers.json");
+        Files.writeString(file, "{not json");
+        new PeerPins(file, Logger.getAnonymousLogger());
+        assertTrue(Files.isRegularFile(file));
+        assertTrue(Files.isRegularFile(dir.resolve("peers.json.locked")));
+
+        PeerPins restarted = new PeerPins(file, Logger.getAnonymousLogger());
+        assertFalse(restarted.firstUseAllowed("x"));
+        assertTrue(restarted.remove("x"));
+        assertTrue(restarted.firstUseAllowed("x"));
+
+        PeerPins again = new PeerPins(file, Logger.getAnonymousLogger());
+        assertTrue(again.firstUseAllowed("x"));
+        assertFalse(again.firstUseAllowed("y"));
+    }
+
+    @Test
+    void goodPinsOfAPartlyBrokenFileSurviveARestart(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("peers.json");
+        Files.writeString(file, "{\"game1\":\"" + FP + "\",\"game2\":{}}");
+        PeerPins pins = new PeerPins(file, Logger.getAnonymousLogger());
+        assertEquals(FP, pins.get("game1"));
+        assertFalse(pins.firstUseAllowed("game2"));
+
+        PeerPins restarted = new PeerPins(file, Logger.getAnonymousLogger());
+        assertEquals(FP, restarted.get("game1"));
+        assertFalse(restarted.firstUseAllowed("game2"));
+        assertFalse(restarted.firstUseAllowed("game3"));
+    }
+
+    @Test
+    void deletingTheLockFileClearsTheLock(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("peers.json");
+        Files.writeString(file, "{not json");
+        new PeerPins(file, Logger.getAnonymousLogger());
+        Files.delete(dir.resolve("peers.json.locked"));
+        assertTrue(new PeerPins(file, Logger.getAnonymousLogger()).firstUseAllowed("x"));
+    }
+
+    @Test
+    void anUnreadableLockFileStaysLocked(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("peers.json.locked"), "garbage");
+        assertFalse(new PeerPins(dir.resolve("peers.json"), Logger.getAnonymousLogger()).firstUseAllowed("x"));
+    }
+
+    @Test
+    void oldPinFileWithoutLockAllowsFirstUse(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("peers.json");
+        Files.writeString(file, "{\"game1\":\"" + FP + "\"}");
+        PeerPins pins = new PeerPins(file, Logger.getAnonymousLogger());
+        assertEquals(FP, pins.get("game1"));
+        assertTrue(pins.firstUseAllowed("other"));
+        assertFalse(Files.exists(dir.resolve("peers.json.locked")));
+    }
+
+    @Test
+    void healthyPinFileAllowsFirstUse(@TempDir Path dir) {
+        assertTrue(new PeerPins(dir.resolve("peers.json"), Logger.getAnonymousLogger()).firstUseAllowed("x"));
     }
 }

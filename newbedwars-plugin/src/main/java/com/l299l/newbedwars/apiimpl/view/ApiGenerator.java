@@ -17,8 +17,14 @@ public final class ApiGenerator implements GeneratorView {
         return switch (generator.getType()) {
             case DIAMOND -> GeneratorKind.DIAMOND;
             case EMERALD -> GeneratorKind.EMERALD;
+            case OTHER -> GeneratorKind.CUSTOM;
             default -> GeneratorKind.BASIC;
         };
+    }
+
+    @Override
+    public String getCustomId() {
+        return generator instanceof com.l299l.newbedwars.arena.generators.CustomGenerator custom ? custom.getId() : null;
     }
 
     @Override

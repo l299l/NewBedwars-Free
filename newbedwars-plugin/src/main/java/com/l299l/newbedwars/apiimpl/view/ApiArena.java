@@ -158,6 +158,24 @@ public final class ApiArena implements ArenaView {
     }
 
     @Override
+    public int getMaxPlayers() {
+        return arena.getMaxPlayers();
+    }
+
+    @Override
+    public boolean isSpectator(Player player) {
+        return player != null && arena.getSpectators().contains(player);
+    }
+
+    @Override
+    public List<String> getCustomGeneratorIds() {
+        if (arena.getGeneratorsLeveling() == null) return List.of();
+        List<String> ids = new ArrayList<>();
+        for (var custom : arena.getGeneratorsLeveling().getCustomGenerators().values()) ids.add(custom.id());
+        return ids;
+    }
+
+    @Override
     public ExtraData getExtra(org.bukkit.plugin.Plugin owner) {
         return new ApiExtra(arena::getExtra, owner.getName(), () -> ApiPersistence.requestSave(arena));
     }

@@ -6,6 +6,10 @@ import org.bukkit.entity.Player;
 public interface CustomLogic {
 
     boolean perform(Player player, IArena arena);
+
+    default boolean perform(Player player, IArena arena, String itemName) {
+        return perform(player, arena);
+    }
     LogicType getType();
 
     default String getKey() {

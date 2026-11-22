@@ -28,7 +28,6 @@ public class BasicGenerator implements Generator {
     private int emeraldSpawnAmount;
     private int diamondSpawnAmount;
     private int level;
-    private final int maxLevel;
     private double spawnDelay;
     private BukkitTask task;
 
@@ -39,13 +38,27 @@ public class BasicGenerator implements Generator {
         if (arena == null) {
             throw new RuntimeException("Arena not found");
         }
-        GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        maxLevel = generatorLeveling.getDefaultGeneratorSettings().getMaxLevel();
         upgrade();
+    }
+
+    private GeneratorSettings settings() {
+        IArena arena = ArenaRegistry.byWorld(location.getWorld());
+        GeneratorLeveling leveling = arena == null ? null : arena.getGeneratorsLeveling();
+        return leveling == null ? null : leveling.getDefaultGeneratorSettings();
+    }
+
+    public int getMaxLevel() {
+        GeneratorSettings settings = settings();
+        return settings == null ? 0 : settings.getMaxLevel();
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     @Override
     public void start() {
+        if (level == 0) upgrade();
         schedule(0);
     }
 
@@ -65,16 +78,11 @@ public class BasicGenerator implements Generator {
 
     @Override
     public boolean upgrade() {
-        if (level >= maxLevel) {
+        GeneratorSettings settings = settings();
+        if (settings == null || level >= settings.getMaxLevel()) {
             return false;
         }
         level++;
-        IArena arena = ArenaRegistry.byWorld(location.getWorld());
-        if (arena == null) {
-            throw new RuntimeException("Arena not found");
-        }
-        GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        GeneratorSettings settings = generatorLeveling.getDefaultGeneratorSettings();
         int index = level - 1;
         ironSpawnRate = rate(settings.getIronSpawnRate(), index);
         goldSpawnRate = rate(settings.getGoldSpawnRate(), index);
@@ -84,7 +92,7 @@ public class BasicGenerator implements Generator {
         goldSpawnAmount = amount(settings.getGoldSpawnAmount(), index);
         emeraldSpawnAmount = amount(settings.getEmeraldSpawnAmount(), index);
         diamondSpawnAmount = amount(settings.getDiamondSpawnAmount(), index);
-        spawnDelay = settings.getSpawnDelay().get(index);
+        spawnDelay = GeneratorLists.doubleAt(settings.getSpawnDelay(), index, 1.0);
 
         if (task != null) schedule(Math.max(1L, Math.round(spawnDelay * 20)));
         return true;
@@ -100,7 +108,7 @@ public class BasicGenerator implements Generator {
 
     @Override
     public boolean upgrade(Integer level) {
-        level = Math.min(level, maxLevel);
+        level = Math.min(level, getMaxLevel());
         if (this.level >= level) {
             return false;
         }

@@ -87,7 +87,7 @@ Available outside arenas to players with the permission shown.
 | `/bw npc list` | `newbedwars.bw.npc` | List all join NPCs with their action and location |
 | `/bw npc create <entityType> <action> [target]` | `newbedwars.bw.npc` | Without Citizens: spawn a simple join NPC (e.g. a villager) where you stand |
 | `/bw npc remove <id>` | `newbedwars.bw.npc` | Remove a simple join NPC |
-| `/bw reload` | `newbedwars.bw.admin` | Save arenas, send everyone to the lobby and reload the configuration |
+| `/bw reload` | `newbedwars.bw.admin` | Save arenas, send everyone to the lobby and reload the configuration. Parties are disbanded. Refused while an arena map is being reset |
 | `/bw update [check\|download]` **(2.7-beta)** | `newbedwars.bw.update` | Look for a new NewBedwars version on Modrinth/GitHub; `download` saves it (checksum verified) to `plugins/update/`, installed on the next restart |
 | `/bw game <start\|forcestart\|stop\|forcestop\|nextPhase>` | `newbedwars.bw.managegame` | Manage the running game you are in or spectating (start, stop, skip a phase) |
 | `/bw game broadcast <message>` | `newbedwars.bw.managegame` | Send a highlighted message (`&` colours allowed) to everyone in your arena. **Available from 2.7-beta** |
@@ -139,7 +139,7 @@ Used inside the arena world after `/bw arena setup <name>`. Choose the mode with
 | `/bw setTeamBed <team> [x y z]` | Team bed |
 | `/bw setTeamShop <team> <entityType> [x y z]` | Team shop NPC |
 | `/bw setTeamUpgrades <team> <entityType> [x y z]` | Team upgrades NPC |
-| `/bw setGenerator <type> [team] [x y z]` | Diamond, emerald or team generator |
+| `/bw setGenerator <type> [team\|id] [x y z]` | Diamond, emerald or team generator; in advanced setup also `OTHER <id>`, a [custom generator](shop-and-upgrades.md#custom-generators) |
 | `/bw setMinPlayers <n>` | Minimum players to start |
 | `/bw setMaxInTeam <n>` | Players per team |
 | `/bw setWaitingSpawn [x y z]` | Waiting lobby spawn |
@@ -196,8 +196,8 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 |---|---|---|
 | `newbedwars.bw.admin` | op | All admin commands (grants `arena`, `setlobby`, `managegame`, `npc`, `group`, `update`, `update.notify`) |
 | `newbedwars.bw.arena` | op | All `/bw arena ...` commands (grants the `arena.*` permissions) |
-| `newbedwars.bw.arena.create` / `.delete` / `.enable` / `.disable` / `.setup` / `.list` | op | The matching `/bw arena <action>` |
-| `newbedwars.bw.arena.backup` / `.backups` / `.restore` / `.export` / `.import` / `.copy` / `.resetmap` | op | The matching `/bw arena <action>` |
+| `newbedwars.bw.arena.create` / `.delete` / `.enable` / `.disable` / `.setup` / `.list` | op | The matching `/bw arena <action>`. Holding only one of these is enough: the player can use that action (and sees only the actions they may use in `/bw help` and tab completion). `.setup` also allows the setup-mode commands |
+| `newbedwars.bw.arena.backup` / `.backups` / `.restore` / `.export` / `.import` / `.copy` / `.resetmap` | op | The matching `/bw arena <action>`. `.import` is trusted like console access: an imported map can contain command blocks (they run when `enable-command-block=true` in `server.properties`) and datapacks. Grant it only to people you would give console access |
 | `newbedwars.bw.setlobby` | op | `/bw setlobby` |
 | `newbedwars.bw.managegame` | op | `/bw game ...` |
 | `newbedwars.bw.npc` | op | `/bw npc ...` |
@@ -206,7 +206,7 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.network.bypass` | op | Network GAME mode: stay on a game server without a join request (staff, setup) |
 | `newbedwars.proxy.admin` | - | Velocity: `/nbwproxy` (list the game servers and arenas the proxy knows, and whether a newer proxy version exists) |
 | `newbedwars.panel.manage` | op | `/nbwpanel` (web panel addon: status and panel accounts) |
-| `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`) |
+| `newbedwars.bw.group` | op | All `/bw group ...` commands (grants `group.create` / `.delete` / `.add` / `.remove` / `.list` / `.info` / `.setitem`; each one alone allows only that `/bw group <sub>`) |
 | `newbedwars.bw.bypass` | op | Bypass setup-mode restrictions (for example entering setup worlds) |
 | `newbedwars.chat.color` | op | Use `&` colour codes in arena and team chat messages (others have them stripped) |
 

@@ -1,7 +1,7 @@
 # Web panel (NewBedwars-Panel)
 
 > [!NOTE]
-> **New in 2.7-beta.** The panel needs NewBedwars 2.7-beta or newer on the same server.
+> **New in 2.7-beta.** The panel needs NewBedwars 2.8-beta or newer on the same server.
 
 `NewBedwars-Panel` is a separate addon jar that adds a browser admin panel to your server. With it you can:
 
@@ -44,7 +44,7 @@ The panel runs inside the Paper server (no extra program, no database). It speak
 
 Requirements:
 
-- Paper 1.17 to 26.x with NewBedwars 2.7-beta or newer.
+- Paper 1.17 to 26.x with NewBedwars 2.8-beta or newer.
 - A Java runtime with the built-in web server (module `jdk.httpserver`). Standard JDK/JRE builds (e.g. Eclipse Temurin) have it. Only stripped-down custom runtimes made with `jlink` may lack it. In that case the console says so and the panel stays off.
 
 Changes to `plugins/NewBedwars-Panel/config.yml` take effect after a server restart.
@@ -109,6 +109,7 @@ Under **Roles**, admins (or anyone with `roles.manage`) can create their own rol
 | `stats.view` | player stats and leaderboards |
 | `game.manage` | start, stop, skip phases of games and broadcast to an arena (like `/bw game`) |
 | `shop.edit` | the shop editor: items, their texts, shop GUIs and which GUIs the arenas use |
+| `shop.commands` | changing the commands of shop items (**Run commands**, `onBuyEvent: COMMANDS`) and the permission an item gives (**Give a permission for the game**, `GIVE_PERM`), and switching an item's action to or from those two. Commands run as the server console and a given permission can be any permission, so this gives full control of the server: give it only to people you would give console access. Without it, both fields are shown read-only and the action can not be switched |
 | `network.servers` | on a gateway panel: the server list and everything on the other servers of the network (what you may do there still depends on your other permissions). Never forwarded to other servers |
 | `game.log` | the game log of each arena. **It includes team chat**, so give it only to people who may read that |
 
@@ -143,7 +144,7 @@ References a GUI file already had but that can't be resolved on this server (for
 
 ## Commands
 
-Permission `newbedwars.panel.manage` (default: op). The console can always use them.
+Permission `newbedwars.panel.manage` (default: op). The console can always use them. In game, `user create`, `user reset`, `user delete` and `network forget` also need op, even when a permissions plugin gives `newbedwars.panel.manage` to someone else. Command blocks and other senders that are neither the console nor a player can not use them.
 
 | Command | Does |
 |---|---|
@@ -154,7 +155,7 @@ Permission `newbedwars.panel.manage` (default: op). The console can always use t
 | `/nbwpanel user list` | all accounts with their role; marks passwords that were not changed yet |
 | `/nbwpanel network status` | the panel's network role and, on a gateway, every server with its status and how its certificate is trusted |
 | `/nbwpanel network secret` | prints a new random `Network.Secret` (it is not saved anywhere) |
-| `/nbwpanel network forget <server>` | gateway: forgets the remembered certificate of a server, so the next connection trusts the certificate it sees |
+| `/nbwpanel network forget <server>` | gateway: forgets the remembered certificate of a server, so the next connection trusts the certificate it sees (console or op only) |
 
 Account names have 3 to 32 characters: letters, digits, `_`, `.` and `-`. They are not case-sensitive.
 
@@ -253,6 +254,8 @@ Caddy sets the forwarding headers itself.
 
 Set `X-Forwarded-For` to the client address (`$remote_addr`), not by appending to an incoming header. The panel uses the last address in the header.
 
+The panel closes connections that send a request more slowly than 10 seconds (30 seconds without data during an upload). A reverse proxy also protects it from many slow connections at once, because it receives the whole request before passing it on.
+
 ## Network mode
 
 By default a panel only controls the server it is installed on. On a network (see [network.md](network.md)) you can instead log in **once**, on the lobby server's panel, and work with every game server from there.
@@ -350,6 +353,13 @@ Exports and uploaded imports are kept in `plugins/NewBedwars/data/exports/`, the
 - `Bind: 0.0.0.0` makes the panel reachable from every network the server is on. If it doesn't have to be public, allow port 8150 only from your own IP in the firewall. The built-in web server has no protection against clients that keep many slow connections open, so a reverse proxy (nginx, Caddy) in front is the better choice for a panel that is open to the internet. The game itself is never slowed down by the panel.
 - Enable `TrustProxyHeaders` only behind your own reverse proxy. Otherwise anyone can fake their IP address, and with it the login lock.
 - Arena imports (upload and unzip) are limited to `Upload.MaxMegabytes`, 2 GB unpacked and 200 000 files, and files can only be written inside the server's export and map folders.
+- **Network mode uses one shared secret.** Anyone who has it (for example from a game server whose files leaked) can send signed requests to every other server's panel with any permission except the local-only ones. Treat every server that has the secret as trusted, keep node panels reachable only from the gateway, and change the secret (`/nbwpanel network secret` on one server, then on all) if one server is compromised.
+- Between the gateway and the game servers, use HTTPS (the default). The contents of an arena zip sent to another server are not covered by the request signature, only by the encrypted connection.
+- The login lock counts failed attempts per IP address and per account. Someone who knows an account name can lock it for 10 minutes by guessing wrong 5 times. Behind a reverse proxy without `TrustProxyHeaders`, every visitor shares one IP address, so failed logins of anyone count for everyone.
+- Commands typed in an arena world are shown in the game log. `/login`, `/register` and similar are never logged, but other plugins may have their own secret commands (for example 2FA codes): add them to `GameLog.IgnoredCommands`.
+- The `shop.commands` permission lets a role make shop items that run console commands or give any permission (this includes switching an item's action to or from those two). Give it only to people you would give console access.
+- The `arena.import` permission is trusted like console access. An imported map is not scanned or stripped: it can contain command blocks (they run when `enable-command-block=true` in `server.properties`) and datapacks. Give it only to people you would give console access. The same goes for `/bw arena import` (`newbedwars.bw.arena.import`).
+- If the pinned certificate file of the network peers (`peers.json`) is damaged, the panel moves it aside as `peers.json.corrupt-<time>`, logs a SEVERE message and refuses contact with the peers it can no longer verify. Check the peers' certificate fingerprints, then run `/nbwpanel network forget <peer>` to trust a peer again. The pins that could still be read are written back to a fresh `peers.json`, and a marker file `peers.json.locked` keeps this protection active after a restart: peers without a pin are refused until you release each one with `forget`. The lock stays until you delete `peers.json.locked` yourself (only do that after you checked every peer's fingerprint).
 
 ## Troubleshooting
 

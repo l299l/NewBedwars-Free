@@ -42,11 +42,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public final class ArenaMaintenanceService {
-    private static final Set<String> IMPORTING = java.util.concurrent.ConcurrentHashMap.newKeySet();
-
     private static final String TEMPLATE_PREFIX = "template/";
 
     public record Outcome(Code code, String key, String arena, String detail) {
@@ -65,6 +62,34 @@ public final class ArenaMaintenanceService {
 
     private ArenaMaintenanceService() {}
 
+    private static final Set<String> IN_FLIGHT = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private static String key(String name) {
+        return name.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private static boolean claim(String name) {
+        return IN_FLIGHT.add(key(name));
+    }
+
+    private static void release(String name) {
+        IN_FLIGHT.remove(key(name));
+    }
+
+    private static final Set<String> EDIT_LOCKED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public static boolean editLocked(String name) {
+        return EDIT_LOCKED.contains(key(name));
+    }
+
+    public static boolean inFlight(String name) {
+        return IN_FLIGHT.contains(key(name));
+    }
+
+    public static String anyInFlight() {
+        return IN_FLIGHT.stream().findFirst().orElse(null);
+    }
+
     private static CompletableFuture<Outcome> done(Code code, String key, String arena, String detail) {
         return CompletableFuture.completedFuture(new Outcome(code, key, arena, detail));
     }
@@ -81,7 +106,8 @@ public final class ArenaMaintenanceService {
         GameStatus s = arena.status();
         return !arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()
                 || s == GameStatus.playing || s == GameStatus.starting || s == GameStatus.ending
-                || (arena.isEnabled() && s != GameStatus.waiting);
+                || (arena.isEnabled() && s != GameStatus.waiting)
+                || inFlight(arena.getArenaName());
     }
 
     private static boolean inGame(IArena arena) {
@@ -95,23 +121,70 @@ public final class ArenaMaintenanceService {
         String name = arena.getArenaName();
         if (arena.isEnabled()) return done(Code.ALREADY_DONE, "AlreadyEnabled", name, null);
         if (!arena.canBeEnabled()) return done(Code.NOT_READY, "ArenaCantBeEnabled", name, null);
-        if (ArenaMaps.isEnabled()) {
-            try {
-                ArenaMaps.createTemplate(name, arena.getArenaWorld());
-            } catch (IOException e) {
-                NewBedwars.plugin.getLogger().warning("Could not save map template of " + name + ": " + e.getMessage());
-                return done(Code.FAILED, "MapTemplateFailed", name, e.getMessage());
-            }
+        if (!ArenaMaps.isEnabled()) {
+            arena.enable();
+            return done(Code.OK, "ArenaEnabled", name, null);
         }
-        arena.enable();
-        return done(Code.OK, "ArenaEnabled", name, null);
+        if (com.l299l.newbedwars.world.template.ArenaResetPipeline.isCopying(name) || !claim(name)) return busy(name);
+        EDIT_LOCKED.add(key(name));
+        CompletableFuture<Outcome> future = new CompletableFuture<>();
+        try {
+            ArenaMaps.createTemplateAsync(name, arena.getArenaWorld(), error -> {
+                release(name);
+                EDIT_LOCKED.remove(key(name));
+                if (error != null) {
+                    NewBedwars.plugin.getLogger().warning("Could not save map template of " + name + ": " + error.getMessage());
+                    future.complete(new Outcome(Code.FAILED, "MapTemplateFailed", name, error.getMessage()));
+                    return;
+                }
+                if (ArenaRegistry.byName(name) != arena || arena.isEnabled()) {
+                    future.complete(new Outcome(Code.FAILED, "MapTemplateFailed", name, "the arena changed while its map was saved"));
+                    return;
+                }
+                if (!arena.canBeEnabled()) {
+                    future.complete(new Outcome(Code.NOT_READY, "ArenaCantBeEnabled", name, null));
+                    return;
+                }
+                arena.enable();
+                future.complete(new Outcome(Code.OK, "ArenaEnabled", name, null));
+            });
+        } catch (RuntimeException e) {
+            release(name);
+            EDIT_LOCKED.remove(key(name));
+            return done(Code.FAILED, "MapTemplateFailed", name, e.getMessage());
+        }
+        return future;
+    }
+
+    public static boolean saveTemplate(IArena arena, java.util.function.Consumer<Exception> done) {
+        String name = arena.getArenaName();
+        if (com.l299l.newbedwars.world.template.ArenaResetPipeline.isCopying(name) || !claim(name)) return false;
+        EDIT_LOCKED.add(key(name));
+        try {
+            ArenaMaps.createTemplateAsync(name, arena.getArenaWorld(), error -> {
+                release(name);
+                EDIT_LOCKED.remove(key(name));
+                done.accept(error);
+            });
+        } catch (RuntimeException e) {
+            release(name);
+            EDIT_LOCKED.remove(key(name));
+            done.accept(e);
+        }
+        return true;
     }
 
     public static CompletableFuture<Outcome> disable(String arenaName) {
         IArena arena = ArenaRegistry.byName(arenaName);
         if (arena == null) return notFound(arenaName);
         String name = arena.getArenaName();
-        if (!arena.isEnabled()) return done(Code.ALREADY_DONE, "AlreadyDisabled", name, null);
+        if (!arena.isEnabled()) {
+            if (arena instanceof Arena loaded && loaded.isAutoDisabled()) {
+                loaded.clearAutoDisabled();
+                return done(Code.OK, "ArenaDisabled", name, null);
+            }
+            return done(Code.ALREADY_DONE, "AlreadyDisabled", name, null);
+        }
         if (arena.status() != GameStatus.waiting) return done(Code.BUSY, "ArenaCantBeDisabled", name, null);
         arena.disable();
         return done(Code.OK, "ArenaDisabled", name, null);
@@ -121,21 +194,28 @@ public final class ArenaMaintenanceService {
         IArena arena = ArenaRegistry.byName(arenaName);
         if (arena == null) return notFound(arenaName);
         String name = arena.getArenaName();
-        if (isBusy(arena)) return busy(name);
-        String id = MapTemplateManager.timestamp();
+        if (isBusy(arena) || !claim(name)) return busy(name);
+        String id = MapTemplateManager.timestamp() + MapTemplateManager.MANUAL_SUFFIX;
         try {
             String json = JsonUtils.beautifyJson(arena.toJson());
             Path dir = ArenaMaps.arenaBackupDir(name);
             Files.createDirectories(dir);
             Files.writeString(dir.resolve(id + ".json"), json, StandardCharsets.UTF_8);
         } catch (IOException e) {
+            release(name);
             return done(Code.FAILED, "BackupFailed", name, e.getMessage());
         }
-        if (!ArenaMaps.hasTemplate(name)) return done(Code.OK, "BackupCreated", name, id);
+        if (!ArenaMaps.hasTemplate(name)) {
+            release(name);
+            return done(Code.OK, "BackupCreated", name, id);
+        }
         Path zip = ArenaMaps.mapBackupDir(name).resolve(id + ".zip");
-        return runAsync(() -> MapTemplateManager.zipTemplate(ArenaMaps.mapsRoot(), name, zip), error -> error == null
-                ? new Outcome(Code.OK, "BackupCreated", name, id)
-                : new Outcome(Code.FAILED, "BackupFailed", name, error.getMessage()));
+        return runAsync(() -> MapTemplateManager.zipTemplate(ArenaMaps.mapsRoot(), name, zip), error -> {
+            release(name);
+            return error == null
+                    ? new Outcome(Code.OK, "BackupCreated", name, id)
+                    : new Outcome(Code.FAILED, "BackupFailed", name, error.getMessage());
+        });
     }
 
     public static List<Backup> backups(String name) throws IOException {
@@ -159,25 +239,50 @@ public final class ArenaMaintenanceService {
         IArena arena = ArenaRegistry.byName(arenaName);
         if (arena == null) return notFound(arenaName);
         String name = arena.getArenaName();
-        if (isBusy(arena)) return busy(name);
+        if (isBusy(arena) || com.l299l.newbedwars.world.template.ArenaResetPipeline.isCopying(name)) return busy(name);
+        if (!claim(name)) return busy(name);
         try {
-            Path json = pickBackup(ArenaMaps.arenaBackupDir(name), requestedId, ".json");
-            Path zip = pickBackup(ArenaMaps.mapBackupDir(name), requestedId, ".zip");
-            if (json == null && zip == null) return done(Code.NOT_FOUND, "RestoreNothing", name, requestedId);
+            String id = requestedId == null ? newestManualBackup(name) : requestedId;
+            Path json = pickBackup(ArenaMaps.arenaBackupDir(name), id, ".json");
+            Path zip = pickBackup(ArenaMaps.mapBackupDir(name), id, ".zip");
+            if (json == null && zip == null) {
+                release(name);
+                return done(Code.NOT_FOUND, "RestoreNothing", name, requestedId);
+            }
             ArenaDataManager manager = NewBedwars.plugin.getDataManager().getArenaDataManager();
             IOExecutor.flush();
             String worldName = manager.unloadArena(name);
-            if (worldName == null) return done(Code.FAILED, "RestoreFailed", name, "the arena world could not be unloaded");
+            if (worldName == null) {
+                release(name);
+                return done(Code.FAILED, "RestoreFailed", name, "the arena world could not be unloaded");
+            }
+            Path restoreTarget = ArenaMaps.worldFolder(worldName);
+            List<String> restoreExcludes = List.copyOf(Properties.RollbackTemplateExcludes);
             return runAsync(() -> {
-                if (json != null) {
-                    AtomicFileWriter.write(arenaFile(name), Files.readString(json, StandardCharsets.UTF_8),
+                String restoredJson = json == null ? null : Files.readString(json, StandardCharsets.UTF_8);
+                if (zip != null) MapTemplateManager.restoreTemplateFromZip(ArenaMaps.mapsRoot(), name, zip);
+                if (restoredJson != null) {
+                    AtomicFileWriter.write(arenaFile(name), restoredJson,
                             ArenaMaps.arenaBackupDir(name), Math.max(1, Properties.BackupsKeep));
                 }
-                if (zip != null) MapTemplateManager.restoreTemplateFromZip(ArenaMaps.mapsRoot(), name, zip);
-                if (ArenaMaps.hasTemplate(name)) ArenaMaps.restoreOffline(name, worldName);
-            }, error -> finishRestore(manager, name, error));
+                if (ArenaMaps.hasTemplate(name)) {
+                    ArenaMaps.markDirty(name);
+                    ArenaMaps.restoreOffline(name, restoreTarget, restoreExcludes);
+                }
+            }, error -> {
+                release(name);
+                return finishRestore(manager, name, error);
+            });
         } catch (Exception e) {
+            release(name);
             NewBedwars.plugin.getLogger().log(Level.SEVERE, "Restore of arena " + name + " failed", e);
+            if (ArenaRegistry.byName(name) == null) {
+                try {
+                    NewBedwars.plugin.getDataManager().getArenaDataManager().loadArena(name);
+                } catch (RuntimeException again) {
+                    NewBedwars.plugin.getLogger().log(Level.SEVERE, "Arena " + name + " could not be loaded again", again);
+                }
+            }
             return done(Code.FAILED, "RestoreFailed", name, e.getMessage());
         }
     }
@@ -198,6 +303,13 @@ public final class ArenaMaintenanceService {
         return loaded != null
                 ? new Outcome(Code.OK, "RestoreDone", name, null)
                 : new Outcome(Code.FAILED, "RestoreFailed", name, "the restored arena could not be loaded");
+    }
+
+    private static String newestManualBackup(String name) throws IOException {
+        for (String id : backupIds(name)) {
+            if (id.endsWith(MapTemplateManager.MANUAL_SUFFIX)) return id;
+        }
+        return null;
     }
 
     private static Path pickBackup(Path dir, String id, String extension) throws IOException {
@@ -222,28 +334,31 @@ public final class ArenaMaintenanceService {
         IArena arena = ArenaRegistry.byName(arenaName);
         if (arena == null) return notFound(arenaName);
         String name = arena.getArenaName();
-        if (isBusy(arena)) return busy(name);
+        if (isBusy(arena) || !claim(name)) return busy(name);
         String json;
         try {
             json = JsonUtils.beautifyJson(arena.toJson());
         } catch (IOException e) {
+            release(name);
             return done(Code.FAILED, "ExportFailed", name, e.getMessage());
         }
         String fileName = name + "-" + MapTemplateManager.timestamp() + ".zip";
         Path target = exportsDir().resolve(fileName);
         return runAsync(() -> {
-            Files.createDirectories(target.getParent());
-            try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(target))) {
+            MapTemplateManager.writeZip(target, zip -> {
                 zip.putNextEntry(new ZipEntry(ArenaTransfer.ARENA_ENTRY));
                 zip.write(json.getBytes(StandardCharsets.UTF_8));
                 zip.closeEntry();
                 if (ArenaMaps.hasTemplate(name)) {
                     MapTemplateManager.addTree(zip, MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name), TEMPLATE_PREFIX);
                 }
-            }
-        }, error -> error == null
-                ? new Outcome(Code.OK, "ExportDone", name, "data/exports/" + fileName)
-                : new Outcome(Code.FAILED, "ExportFailed", name, error.getMessage()));
+            });
+        }, error -> {
+            release(name);
+            return error == null
+                    ? new Outcome(Code.OK, "ExportDone", name, "data/exports/" + fileName)
+                    : new Outcome(Code.FAILED, "ExportFailed", name, error.getMessage());
+        });
     }
 
     public static CompletableFuture<Outcome> copy(String arenaName, String newName) {
@@ -260,8 +375,12 @@ public final class ArenaMaintenanceService {
                 || MapTemplateManager.hasTemplate(ArenaMaps.mapsRoot(), newName)) {
             return done(Code.NAME_TAKEN, "CopyFailed", newName, "an arena, map or world with that name already exists");
         }
+        if (inFlight(name) || inFlight(newName) || com.l299l.newbedwars.world.template.ArenaResetPipeline.isCopying(name)) {
+            return busy(name);
+        }
         Path mapSource;
-        if (ArenaMaps.hasTemplate(name)) {
+        boolean fromWorld = !ArenaMaps.hasTemplate(name);
+        if (!fromWorld) {
             mapSource = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name);
         } else {
             if (isBusy(source)) return busy(name);
@@ -280,11 +399,25 @@ public final class ArenaMaintenanceService {
             return done(Code.FAILED, "CopyFailed", newName, e.getMessage());
         }
         List<String> excludes = List.copyOf(Properties.RollbackTemplateExcludes);
+        if (!claim(newName)) return busy(newName);
+        if (!claim(name)) {
+            release(newName);
+            return busy(name);
+        }
+        if (fromWorld) EDIT_LOCKED.add(key(name));
+        Path copyTarget = ArenaMaps.worldFolder(newName);
         return runAsync(() -> {
             MapTemplateManager.createTemplate(ArenaMaps.mapsRoot(), newName, mapSource, excludes);
             ArenaTransfer.stripWorldIdentity(MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), newName));
+            ArenaMaps.markDirty(newName);
             AtomicFileWriter.write(arenaFile, json, null, 0);
-        }, error -> finishCopy(name, newName, arenaFile, error));
+            ArenaMaps.restoreOffline(newName, copyTarget, excludes);
+        }, error -> {
+            release(newName);
+            release(name);
+            EDIT_LOCKED.remove(key(name));
+            return finishCopy(name, newName, arenaFile, error);
+        });
     }
 
     private static Outcome finishCopy(String name, String newName, Path arenaFile, Exception error) {
@@ -295,10 +428,9 @@ public final class ArenaMaintenanceService {
         }
         IArena loaded = null;
         try {
-            ArenaMaps.restoreOffline(newName, newName);
             loaded = NewBedwars.plugin.getDataManager().getArenaDataManager().loadArena(newName);
-        } catch (IOException e) {
-            NewBedwars.plugin.getLogger().warning("Copy of arena " + name + " to " + newName + " failed: " + e);
+        } catch (RuntimeException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Copy of arena " + name + " to " + newName + " could not be loaded", e);
         }
         if (loaded == null) {
             removeFiles(newName, newName, arenaFile);
@@ -339,27 +471,33 @@ public final class ArenaMaintenanceService {
         String name = imported.name();
         String worldName = imported.worldName();
         Path arenaFile = arenaFile(name);
-        if (IMPORTING.contains(name) || ArenaRegistry.contains(name) || Files.exists(arenaFile)
+        if (inFlight(name) || ArenaRegistry.contains(name) || Files.exists(arenaFile)
                 || Files.exists(ArenaMaps.worldFolder(worldName))
-                || Bukkit.getWorld(worldName) != null || ArenaMaps.hasTemplate(name)) {
+                || Bukkit.getWorld(worldName) != null || ArenaMaps.hasTemplate(name) || worldUsedByArena(worldName)) {
             Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin, () -> deleteTemp(tmp));
             return done(Code.NAME_TAKEN, "ImportFailed", fileName,
                     "an arena or world named '" + name + "' / '" + worldName + "' already exists");
         }
-        IMPORTING.add(name);
+        if (!claim(name)) {
+            Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin, () -> deleteTemp(tmp));
+            return busy(name);
+        }
+        Path importTarget = ArenaMaps.worldFolder(worldName);
+        List<String> importExcludes = List.copyOf(Properties.RollbackTemplateExcludes);
         return runAsync(() -> {
             try {
                 Path mapTemplate = MapTemplateManager.templateDir(ArenaMaps.mapsRoot(), name);
                 Files.createDirectories(mapTemplate.getParent());
                 MapTemplateManager.copyTree(imported.template(), mapTemplate, List.of());
                 ArenaTransfer.stripWorldIdentity(mapTemplate);
+                ArenaMaps.markDirty(name);
                 AtomicFileWriter.write(arenaFile, JsonUtils.beautifyJson(imported.json().toString()), null, 0);
-                ArenaMaps.restoreOffline(name, worldName);
+                ArenaMaps.restoreOffline(name, importTarget, importExcludes);
             } finally {
                 deleteTemp(tmp);
             }
         }, error -> {
-            IMPORTING.remove(name);
+            release(name);
             if (error != null) {
                 NewBedwars.plugin.getLogger().log(Level.WARNING, "Import of " + fileName + " failed", error);
                 removeFiles(name, worldName, arenaFile);
@@ -380,6 +518,13 @@ public final class ArenaMaintenanceService {
         });
     }
 
+    private static boolean worldUsedByArena(String worldName) {
+        for (IArena a : ArenaRegistry.all()) {
+            if (a.getArenaWorld() != null && a.getArenaWorld().getName().equalsIgnoreCase(worldName)) return true;
+        }
+        return false;
+    }
+
     private static void deleteTemp(Path tmp) {
         try {
             MapTemplateManager.deleteTree(tmp);
@@ -392,7 +537,10 @@ public final class ArenaMaintenanceService {
         IArena arena = ArenaRegistry.byName(arenaName);
         if (arena == null) return notFound(arenaName);
         String name = arena.getArenaName();
-        if (inGame(arena)) return done(Code.BUSY, "ArenaCannotBeDeleted", name, null);
+        if (inGame(arena) || (arena.isEnabled() && arena.status() == GameStatus.restarting) || inFlight(name)
+                || com.l299l.newbedwars.world.template.ArenaResetPipeline.isCopying(name)) {
+            return done(Code.BUSY, "ArenaCannotBeDeleted", name, null);
+        }
         World arenaWorld = arena.getArenaWorld();
         if (arenaWorld.equals(Bukkit.getWorlds().get(0))) return done(Code.FAILED, "ArenaDeleteFailed", name, null);
         Path worldFolder = arenaWorld.getWorldFolder().toPath();
@@ -409,17 +557,29 @@ public final class ArenaMaintenanceService {
             }
         }
 
-        arenaWorld.setAutoSave(false);
-        if (!Bukkit.unloadWorld(arenaWorld, false)) return done(Code.FAILED, "ArenaDeleteFailed", name, null);
+        boolean loaded = Bukkit.getWorld(arenaWorld.getUID()) != null;
+        if (loaded) {
+            arenaWorld.setAutoSave(false);
+            if (!Bukkit.unloadWorld(arenaWorld, false)) return done(Code.FAILED, "ArenaDeleteFailed", name, null);
+        }
         ArenaRegistry.unregister(name, arenaWorld);
+        claim(name);
 
         IOExecutor.flush();
-        boolean complete = deleteQuietly(worldFolder);
-        complete &= deleteQuietly(arenaFile(name));
-        complete &= deleteQuietly(ArenaMaps.mapsRoot().resolve(name));
-        return complete
-                ? done(Code.OK, "ArenaDeleted", name, null)
-                : done(Code.PARTIAL, "ArenaDeletedPartially", name, null);
+        java.util.concurrent.atomic.AtomicBoolean complete = new java.util.concurrent.atomic.AtomicBoolean(true);
+        Path arenaFile = arenaFile(name);
+        Path maps = ArenaMaps.mapsRoot().resolve(name);
+        return runAsync(() -> {
+            if (!deleteQuietly(worldFolder)) complete.set(false);
+            if (!deleteQuietly(arenaFile)) complete.set(false);
+            if (!deleteQuietly(maps)) complete.set(false);
+        }, error -> {
+            release(name);
+            if (error != null || !complete.get()) return new Outcome(Code.PARTIAL, "ArenaDeletedPartially", name, null);
+            ArenaGroupManager groups = ArenaGroupManager.get();
+            if (groups != null) groups.removeArena(name);
+            return new Outcome(Code.OK, "ArenaDeleted", name, null);
+        });
     }
 
     private static boolean deleteQuietly(Path path) {
@@ -479,19 +639,26 @@ public final class ArenaMaintenanceService {
         CompletableFuture<Outcome> future = new CompletableFuture<>();
         Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin, () -> {
             Exception error = null;
+            com.l299l.newbedwars.world.template.BackgroundTasks.started();
             try {
                 task.run();
             } catch (Exception e) {
                 error = e;
+            } catch (Throwable t) {
+                NewBedwars.plugin.getLogger().log(Level.SEVERE, "Arena maintenance task failed", t);
+                error = new IOException(t.toString(), t);
+            } finally {
+                com.l299l.newbedwars.world.template.BackgroundTasks.finished();
             }
             Exception result = error;
-            Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
+            boolean scheduled = com.l299l.newbedwars.utils.MainThread.run(NewBedwars.plugin, () -> {
                 try {
                     future.complete(finish.apply(result));
                 } catch (RuntimeException e) {
                     future.completeExceptionally(e);
                 }
             });
+            if (!scheduled) future.completeExceptionally(new IllegalStateException("NewBedwars is shutting down"));
         });
         return future;
     }

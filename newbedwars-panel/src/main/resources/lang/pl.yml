@@ -2,6 +2,7 @@
 Prefix: "&8[&bNBW Panel&8] &7"
 NoPermission: "&cNie masz uprawnień do zarządzania panelem."
 NotRunning: "&cPanel nie działa. Powód znajdziesz w konsoli."
+UserNeedsOp: "&cTworzenie, resetowanie i usuwanie kont panelu oraz zapominanie certyfikatów sieci jest możliwe tylko z konsoli lub jako operator."
 Usage: "&7Komendy: &f/nbwpanel status&7, &f/nbwpanel user create <nazwa> <rola>&7, &f/nbwpanel user reset <nazwa>&7, &f/nbwpanel user delete <nazwa>&7, &f/nbwpanel user list"
 UsageCreate: "&7Użycie: &f/nbwpanel user create <nazwa> <rola> &7(role: {0})"
 UsageReset: "&7Użycie: &f/nbwpanel user reset <nazwa>"

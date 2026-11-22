@@ -33,7 +33,7 @@ public record GUIUpgrade(String id, CustomItem icon) implements GUIEntry {
 
     @Override
     public ItemStack getIcon(Player player) {
-        ItemStack item = icon.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language());
+        ItemStack item = icon.getIcon(NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language(), player);
         Upgrade upgrade = upgrade();
         if (upgrade == null) return item;
         Arena arena = (Arena) ArenaRegistry.byWorld(player.getWorld());

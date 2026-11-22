@@ -11,7 +11,8 @@ import java.util.Map;
  * @param size               9, 18, 27, 36, 45 or 54
  * @param headerSize         slots at the top that stay the same on every page, a multiple of 9
  * @param footerSize         slots at the bottom that stay the same on every page, a multiple of 9
- * @param closeOnTransaction deprecated and without effect. Always {@code false}, ignored when saving
+ * @param closeOnTransaction deprecated and without effect. Always {@code false}, ignored when saving. Will be
+ *                           removed in the first stable release (3.0.0)
  * @param fill               item used by {@code fill} slots: {@code ci:<item>} or {@code empty}
  * @param empty              item used by {@code empty} slots: {@code ci:<item>} or {@code empty}
  * @param slots              one entry per slot: {@code fill}, {@code empty}, {@code ci:<item>},
@@ -25,7 +26,7 @@ import java.util.Map;
  *                           current overrides and an empty map removes them
  * @since 2.7-beta
  */
-public record ShopGui(String id, String title, int size, int headerSize, int footerSize, @Deprecated boolean closeOnTransaction,
+public record ShopGui(String id, String title, int size, int headerSize, int footerSize, @Deprecated(since = "2.8-beta", forRemoval = true) boolean closeOnTransaction,
                       String fill, String empty, List<String> slots, List<ShopCategory> categories,
                       List<String> problems, List<String> usedBy, Map<String, List<UpgradeTier>> upgradePrices) {
     public ShopGui {

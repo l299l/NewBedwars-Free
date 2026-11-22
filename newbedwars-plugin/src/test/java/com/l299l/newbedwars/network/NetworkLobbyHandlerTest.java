@@ -148,4 +148,55 @@ class NetworkLobbyHandlerTest {
         verify(player).setGameMode(org.bukkit.GameMode.SPECTATOR);
         verify(messenger).connect(player, "lobby");
     }
+
+    @Test
+    void withoutLocalLobbyTheSendIsRetriedAFewTimesWhileThePlayerWaits() {
+        bukkit.when(Bukkit::getWorlds).thenReturn(List.of());
+        when(player.getWorld()).thenReturn(mock(org.bukkit.World.class));
+        when(player.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        NetworkLobbyHandler h = new NetworkLobbyHandler(plugin, messenger, "game1", "lobby", p -> false, false);
+        h.onSendToLobby(event(PlayerSendToLobbyEvent.Reason.LEFT_ARENA));
+        ArgumentCaptor<Runnable> first = ArgumentCaptor.forClass(Runnable.class);
+        verify(scheduler).runTaskLater(eq(plugin), first.capture(), eq(NetworkLobbyHandler.SHORT_DELAY_TICKS));
+        first.getValue().run();
+        for (int i = 1; i <= NetworkLobbyHandler.RETRIES; i++) {
+            ArgumentCaptor<Runnable> retry = ArgumentCaptor.forClass(Runnable.class);
+            verify(scheduler, times(i)).runTaskLater(eq(plugin), retry.capture(), eq(NetworkLobbyHandler.RETRY_TICKS));
+            retry.getValue().run();
+        }
+        verify(messenger, times(NetworkLobbyHandler.RETRIES + 1)).connect(player, "lobby");
+        verify(scheduler, times(NetworkLobbyHandler.RETRIES)).runTaskLater(eq(plugin), any(Runnable.class), eq(NetworkLobbyHandler.RETRY_TICKS));
+    }
+
+    @Test
+    void retryStopsOnceThePlayerLeftOrIsNoLongerHidden() {
+        bukkit.when(Bukkit::getWorlds).thenReturn(List.of());
+        when(player.getWorld()).thenReturn(mock(org.bukkit.World.class));
+        when(player.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        NetworkLobbyHandler h = new NetworkLobbyHandler(plugin, messenger, "game1", "lobby", p -> false, false);
+        h.onSendToLobby(event(PlayerSendToLobbyEvent.Reason.LEFT_ARENA));
+        ArgumentCaptor<Runnable> first = ArgumentCaptor.forClass(Runnable.class);
+        verify(scheduler).runTaskLater(eq(plugin), first.capture(), eq(NetworkLobbyHandler.SHORT_DELAY_TICKS));
+        first.getValue().run();
+        ArgumentCaptor<Runnable> retry = ArgumentCaptor.forClass(Runnable.class);
+        verify(scheduler).runTaskLater(eq(plugin), retry.capture(), eq(NetworkLobbyHandler.RETRY_TICKS));
+        when(player.getGameMode()).thenReturn(org.bukkit.GameMode.SURVIVAL);
+        assertFalse(h.awaitingLobby(player));
+        retry.getValue().run();
+        when(player.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        when(player.isOnline()).thenReturn(false);
+        assertFalse(h.awaitingLobby(player));
+        verify(messenger, times(1)).connect(player, "lobby");
+        verify(scheduler, times(1)).runTaskLater(eq(plugin), any(Runnable.class), eq(NetworkLobbyHandler.RETRY_TICKS));
+    }
+
+    @Test
+    void withLocalLobbyThereIsNoRetry() {
+        NetworkLobbyHandler h = new NetworkLobbyHandler(plugin, messenger, "game1", "lobby", p -> false);
+        when(player.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        h.onSendToLobby(event(PlayerSendToLobbyEvent.Reason.LEFT_ARENA));
+        scheduled().run();
+        verify(messenger, times(1)).connect(player, "lobby");
+        verify(scheduler, never()).runTaskLater(eq(plugin), any(Runnable.class), eq(NetworkLobbyHandler.RETRY_TICKS));
+    }
 }

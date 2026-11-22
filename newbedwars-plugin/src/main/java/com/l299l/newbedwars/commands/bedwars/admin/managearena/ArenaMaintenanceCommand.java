@@ -6,6 +6,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService;
 import com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService.Outcome;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
+import com.l299l.newbedwars.commands.bedwars.admin.ArenaCommand;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class ArenaMaintenanceCommand extends BwCommand {
 
     @Override
     public void perform(Player player, String[] args, IArena old) {
-        if (!player.hasPermission("newbedwars.bw.arena." + action.command)) {
+        if (!ArenaCommand.canUse(player, action.command)) {
             msg.send(player, "NoPermissions");
             return;
         }

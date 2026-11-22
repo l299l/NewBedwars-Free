@@ -49,6 +49,7 @@ class ApiMaintenanceTest {
         NewBedwars plugin = mock(NewBedwars.class);
         Messages messages = mock(Messages.class);
         when(plugin.getDataFolder()).thenReturn(tempDir.toFile());
+        when(plugin.isEnabled()).thenReturn(true);
         when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
         when(plugin.getMessages()).thenReturn(messages);
         when(messages.getMsgToConsole(any())).thenAnswer(i -> "§b[NewBedwars] §8> §a" + i.getArgument(0) + " §e/arenaname/§7 /info/");

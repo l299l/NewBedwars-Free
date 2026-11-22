@@ -44,10 +44,14 @@ public class BlockListener implements Listener {
         Player p = e.getPlayer();
         IArena arena = ArenaRegistry.byWorld(p.getWorld());
         if (arena == null) return;
+        if (ConnectionListener.isOutsider(arena, p)) {
+            e.setCancelled(true);
+            return;
+        }
         if (!arena.isPlayerInArena(p) || arena.status() != GameStatus.playing) return;
         Arena arenaImpl = (Arena) arena;
         if (arenaImpl.isInTeamBase(e.getBlock().getLocation())
-                || arenaImpl.isNearDiamondOrEmeraldGenerator(e.getBlock().getLocation())) {
+                || arenaImpl.isNearIslandGenerator(e.getBlock().getLocation())) {
             e.setCancelled(true);
             return;
         }
@@ -62,9 +66,9 @@ public class BlockListener implements Listener {
         if (placed.getType() == Material.TNT) {
             placed.setType(Material.AIR, false);
             arena.removeBlastProtBlock(placed.getLocation());
-            TNTPrimed tnt = (TNTPrimed) placed.getWorld().spawnEntity(
-                    placed.getLocation().add(0.5, 0, 0.5), EntityType.PRIMED_TNT);
+            TNTPrimed tnt = placed.getWorld().spawn(placed.getLocation().add(0.5, 0, 0.5), TNTPrimed.class);
             tnt.setFuseTicks(60);
+            tnt.setSource(p);
         }
     }
 
@@ -72,12 +76,17 @@ public class BlockListener implements Listener {
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {
         Player p = e.getPlayer();
         IArena arena = ArenaRegistry.byWorld(p.getWorld());
-        if (arena == null || arena.status() != GameStatus.playing) return;
+        if (arena == null) return;
+        if (ConnectionListener.isOutsider(arena, p)) {
+            e.setCancelled(true);
+            return;
+        }
+        if (arena.status() != GameStatus.playing) return;
         if (!arena.isPlayerInArena(p) || arena.getSpectators().contains(p)) return;
         org.bukkit.block.Block target = e.getBlock().getRelative(e.getBlockFace());
         Arena arenaImpl = (Arena) arena;
         if (arenaImpl.isInTeamBase(target.getLocation())
-                || arenaImpl.isNearDiamondOrEmeraldGenerator(target.getLocation())) {
+                || arenaImpl.isNearIslandGenerator(target.getLocation())) {
             e.setCancelled(true);
         }
     }
@@ -87,8 +96,12 @@ public class BlockListener implements Listener {
         Player p = e.getPlayer();
         if (ArenaRegistry.byWorld(p.getWorld()) != null) {
             IArena arena = ArenaRegistry.byWorld(p.getWorld());
+            if (ConnectionListener.isOutsider(arena, p)) {
+                e.setCancelled(true);
+                return;
+            }
             if (arena.isPlayerInArena(p) && (arena.status() == GameStatus.playing)) {
-                if (e.getBlock().getType().name().toLowerCase().contains("bed")) {
+                if (TeamColor.kindOf(e.getBlock().getType()) == TeamColor.Kind.BED) {
                     Team team = arena.getTeamByBed(e.getBlock().getLocation());
                     if (team != null) {
                         Team playerTeam = arena.getTeam(p);
@@ -104,7 +117,7 @@ public class BlockListener implements Listener {
                                 for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST,
                                         BlockFace.SOUTH, BlockFace.WEST}) {
                                     Block relative = block.getRelative(face);
-                                    if (relative.getType().name().toLowerCase().contains("bed")) {
+                                    if (TeamColor.kindOf(relative.getType()) == TeamColor.Kind.BED) {
                                         relative.setType(Material.AIR, false);
                                         break;
                                     }
@@ -115,7 +128,7 @@ public class BlockListener implements Listener {
                                     breakerGp.addBedBroken();
                                 }
                                 arena.broadcast("BedDestroyed", Map.of(
-                                        "/team/", team.colored(team.getName()),
+                                        "/team/", team.colored(team.getDisplayName()),
                                         "/destroyer/", arena.coloredName(p)));
                                 for (Player member : team.getPlayers()) {
                                     String titleMsg = ChatColor.translateAlternateColorCodes('&',

@@ -42,6 +42,10 @@ public class BossBarManager {
         for (String key : Objects.requireNonNull(bossBarsConf.getConfigurationSection("BossBars")).getKeys(false)) {
             boolean enabled = bossBarsConf.getBoolean("BossBars." + key + ".Enabled");
             String[] texts = bossBarsConf.getStringList("BossBars." + key + ".Texts").toArray(new String[0]);
+            if (texts.length == 0) {
+                NewBedwars.plugin.getLogger().warning("bossBars.yml: " + key + " has no Texts; it is shown empty");
+                texts = new String[]{""};
+            }
             BarColor[] colors = new BarColor[texts.length];
             BarStyle[] styles = new BarStyle[texts.length];
             TextEffect[] effects = new TextEffect[texts.length];

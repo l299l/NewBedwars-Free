@@ -113,7 +113,7 @@ The panel runs inside your Paper server. You don't need a separate website, data
 
 ## Requirements
 
-- **NewBedwars 2.7-beta or newer**, the same version as this jar
+- **NewBedwars 2.8-beta or newer**, the same version as this jar
 - **Server:** Paper 1.17 – 26.x
 - **Java:** a standard JDK/JRE (e.g. Eclipse Temurin), which includes the built-in web server
 - One free TCP port (8150 by default)

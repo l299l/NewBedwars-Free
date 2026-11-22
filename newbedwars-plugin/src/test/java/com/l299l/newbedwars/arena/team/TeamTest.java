@@ -26,7 +26,9 @@ class TeamTest {
     }
 
     private Player mockPlayer() {
-        return mock(Player.class);
+        Player player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(java.util.UUID.randomUUID());
+        return player;
     }
 
     @Test
@@ -187,5 +189,54 @@ class TeamTest {
     @Test
     void teamWithoutBedIsNotBedDestroyed() {
         assertFalse(team.isBedDestroyed());
+    }
+
+    @Test
+    void aRejoiningPlayerIsCountedOnce() {
+        Team team = this.team;
+        java.util.UUID id = java.util.UUID.randomUUID();
+        Player before = mock(Player.class);
+        Player after = mock(Player.class);
+        when(before.getUniqueId()).thenReturn(id);
+        when(after.getUniqueId()).thenReturn(id);
+        team.addPlayer(before);
+        team.addPlayer(after);
+        assertEquals(1, team.getPlayers().size());
+        team.removePlayer(before);
+        assertFalse(team.isAlive());
+    }
+
+    @Test
+    void displayNameFallsBackToTheName() {
+        assertEquals("Red", team.getDisplayName());
+        team.setDisplayName("  Lime ");
+        assertEquals("Lime", team.getDisplayName());
+        assertEquals("Red", team.getName());
+        team.setDisplayName("");
+        assertEquals("Red", team.getDisplayName());
+        assertNull(team.getStoredDisplayName());
+    }
+
+    @Test
+    void invalidDisplayNamesAreRefused() {
+        assertThrows(IllegalArgumentException.class, () -> team.setDisplayName("\u00a7aLime"));
+        assertThrows(IllegalArgumentException.class, () -> team.setDisplayName("Li\nme"));
+        assertThrows(IllegalArgumentException.class, () -> team.setDisplayName("x".repeat(33)));
+        assertEquals("Red", team.getDisplayName());
+    }
+
+    @Test
+    void displayNameCanNotChangeDuringAGame() {
+        when(arena.status()).thenReturn(com.l299l.newbedwars.arena.GameStatus.playing);
+        assertThrows(IllegalStateException.class, () -> team.setDisplayName("Lime"));
+    }
+
+    @Test
+    void displayNameIsSavedOnlyWhenSet() {
+        assertFalse(team.toJson().contains("displayName"));
+        team.setDisplayName("Lime \"A\"");
+        com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(team.toJson()).getAsJsonObject();
+        assertEquals("Lime \"A\"", json.get("displayName").getAsString());
+        assertEquals("Red", json.get("name").getAsString());
     }
 }

@@ -177,4 +177,100 @@ class PanelServerTest {
         assertFalse(PanelServer.csrfMatches("abc", null));
         assertFalse(PanelServer.csrfMatches(null, "abc"));
     }
+
+    private void startGuarded(long readMillis, long idleMillis, int threads) throws Exception {
+        Router router = new Router();
+        router.open("GET", "/api/ping", r -> Response.ok());
+        router.open("POST", "/api/login", r -> Response.bytes("text/plain", String.valueOf(r.json().size()).getBytes()));
+        router.open("POST", "/api/import", r -> {
+            byte[] all = r.body().readAllBytes();
+            return Response.bytes("text/plain", String.valueOf(all.length).getBytes());
+        });
+        server = new PanelServer(router, sessions, accounts, new SessionCookie(false, false), false, Logger.getAnonymousLogger());
+        server.limits(readMillis, idleMillis);
+        server.start(new InetSocketAddress("127.0.0.1", 0), null, threads);
+        base = "http://127.0.0.1:" + server.port();
+    }
+
+    private java.net.Socket raw(String text) throws Exception {
+        java.net.Socket socket = new java.net.Socket("127.0.0.1", server.port());
+        socket.setSoTimeout(5000);
+        socket.getOutputStream().write(text.getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+        socket.getOutputStream().flush();
+        return socket;
+    }
+
+    private static boolean closedWithoutAnswer(java.net.Socket socket) throws Exception {
+        try (socket) {
+            return socket.getInputStream().read() == -1;
+        } catch (java.net.SocketException e) {
+            return true;
+        }
+    }
+
+    @Test
+    void slowHeadersAreDropped() throws Exception {
+        startGuarded(300, 1000, 2);
+        long start = System.currentTimeMillis();
+        assertTrue(closedWithoutAnswer(raw("POST /api/login HTTP/1.1\r\nHost: 127.0.0.1\r\n")));
+        assertTrue(System.currentTimeMillis() - start < 4000);
+    }
+
+    @Test
+    void slowLoginBodyIsDroppedAndTheServerStaysUsable() throws Exception {
+        startGuarded(300, 1000, 2);
+        String head = "POST /api/login HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{";
+        java.net.Socket a = raw(head);
+        java.net.Socket b = raw(head);
+        assertTrue(closedWithoutAnswer(a));
+        assertTrue(closedWithoutAnswer(b));
+        assertEquals(200, send(get("/api/ping", null)).statusCode());
+        HttpResponse<String> login = send(HttpRequest.newBuilder(URI.create(base + "/api/login"))
+                .POST(HttpRequest.BodyPublishers.ofString("{\"name\":\"x\"}")));
+        assertEquals("1", login.body());
+    }
+
+    @Test
+    void uploadsMayTakeLongerThanTheReadLimitWhileBytesKeepComing() throws Exception {
+        startGuarded(300, 1000, 2);
+        java.net.Socket socket = raw("POST /api/import HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 6\r\n\r\n");
+        for (int i = 0; i < 6; i++) {
+            Thread.sleep(150);
+            socket.getOutputStream().write('x');
+            socket.getOutputStream().flush();
+        }
+        try (socket) {
+            String answer = new String(socket.getInputStream().readNBytes(12), java.nio.charset.StandardCharsets.US_ASCII);
+            assertTrue(answer.startsWith("HTTP/1.1 200"), answer);
+        } catch (java.net.SocketTimeoutException e) {
+            fail("no answer");
+        }
+    }
+
+    @Test
+    void stalledUploadIsDropped() throws Exception {
+        startGuarded(300, 500, 2);
+        java.net.Socket socket = raw("POST /api/import HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 6\r\n\r\nxx");
+        assertTrue(closedWithoutAnswer(socket));
+        assertEquals(200, send(get("/api/ping", null)).statusCode());
+    }
+
+    @Test
+    void oversizedBodyStillGetsTooLarge() throws Exception {
+        startGuarded(2000, 2000, 2);
+        String big = "{\"a\":\"" + "x".repeat(Request.MAX_JSON_BYTES) + "\"}";
+        HttpResponse<String> r = send(HttpRequest.newBuilder(URI.create(base + "/api/login"))
+                .POST(HttpRequest.BodyPublishers.ofString(big)));
+        assertEquals(413, r.statusCode());
+    }
+
+    @Test
+    void onlyImportPathsAreStreamed() {
+        assertTrue(PanelServer.isUpload("POST", "/api/import"));
+        assertTrue(PanelServer.isUpload("POST", "/api/s/lobby-1/import"));
+        assertFalse(PanelServer.isUpload("GET", "/api/import"));
+        assertFalse(PanelServer.isUpload("POST", "/api/s//import"));
+        assertFalse(PanelServer.isUpload("POST", "/api/s/a/b/import"));
+        assertFalse(PanelServer.isUpload("POST", "/api/login"));
+    }
 }

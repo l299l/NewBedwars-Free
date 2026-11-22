@@ -38,6 +38,7 @@ public class ItemsDataManager {
     private final int keep;
     private final Map<String, Object> broken = new LinkedHashMap<>();
     private final List<String> order = new ArrayList<>();
+    private boolean readOnly;
 
     public ItemsDataManager() {
         this(NewBedwars.plugin.getDataFolder().toPath(), NewBedwars.plugin.getCustomItemManager(), IOExecutor::submit,
@@ -57,6 +58,7 @@ public class ItemsDataManager {
         customItemManager.clear();
         broken.clear();
         order.clear();
+        readOnly = false;
         if (!Files.isRegularFile(file)) {
             customItemManager.createDefaults();
             save();
@@ -66,11 +68,13 @@ public class ItemsDataManager {
         try {
             root = SafeYaml.create().load(Files.readString(file, StandardCharsets.UTF_8));
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Could not read " + file + "; no shop items are loaded and the file is not changed", e);
+            log.log(Level.SEVERE, "Could not read " + file + "; no shop items are loaded and the file is not changed until it is fixed", e);
+            readOnly = true;
             return;
         }
         if (!(root instanceof Map<?, ?> items)) {
-            log.severe(file + " is not a YAML map; no shop items are loaded");
+            log.severe(file + " is not a YAML map; no shop items are loaded and the file is not changed until it is fixed");
+            readOnly = true;
             return;
         }
         for (Map.Entry<?, ?> e : items.entrySet()) {
@@ -96,7 +100,7 @@ public class ItemsDataManager {
                 NamespacedKey key = NamespacedKey.fromString(String.valueOf(en.getKey()).toLowerCase());
                 Enchantment enchantment = key == null ? null : Enchantment.getByKey(key);
                 if (enchantment == null) throw new IllegalArgumentException("unknown enchantment " + en.getKey());
-                enchantments.put(enchantment, number(en.getValue(), 1));
+                enchantments.put(enchantment, strictNumber(ench, en.getKey(), 1));
             }
         }
         List<ItemFlag> flags = new ArrayList<>();
@@ -111,10 +115,37 @@ public class ItemsDataManager {
         }
         PriceType priceType = PriceType.valueOf(text(item, "priceType", "NONE").toUpperCase());
         OnBuyEvent onBuy = OnBuyEvent.valueOf(text(item, "onBuyEvent", "GIVE_ITEM").toUpperCase());
+        Material priceMaterial = null;
+        if (priceType == PriceType.OTHER) {
+            priceMaterial = Material.matchMaterial(text(item, "priceMaterial", ""));
+            if (priceMaterial == null || !priceMaterial.isItem() || priceMaterial.isAir()) {
+                throw new IllegalArgumentException("priceType OTHER needs a priceMaterial item, got " + item.get("priceMaterial"));
+            }
+        }
+        List<String> commands = new ArrayList<>();
+        if (item.get("commands") instanceof List<?> list) {
+            for (Object c : list) if (c != null && !String.valueOf(c).isBlank()) commands.add(String.valueOf(c));
+        }
+        String gui = text(item, "gui", "").trim();
+        String givePermission = text(item, "givePermission", "").trim();
+        if (onBuy == OnBuyEvent.COMMANDS && commands.isEmpty()) {
+            throw new IllegalArgumentException("onBuyEvent COMMANDS needs a commands list");
+        }
+        if (onBuy == OnBuyEvent.OPEN_GUI && gui.isEmpty()) {
+            throw new IllegalArgumentException("onBuyEvent OPEN_GUI needs a gui");
+        }
+        if (onBuy == OnBuyEvent.GIVE_PERM && (givePermission.isEmpty() || givePermission.contains(" "))) {
+            throw new IllegalArgumentException("onBuyEvent GIVE_PERM needs a givePermission without spaces");
+        }
         customItemManager.createCustomItem(name, text(item, "description", "default"), material,
-                number(item.get("price"), 0), priceType, number(item.get("amount"), 1),
+                strictNumber(item, "price", 0), priceType, strictNumber(item, "amount", 1),
                 text(item, "iconDesc", "default"), text(item, "permission", ""), text(item, "itemLogic", "NONE"),
                 onBuy, Boolean.parseBoolean(String.valueOf(item.get("isPermanent"))), enchantments, flags, true);
+        CustomItem created = customItemManager.getCustomItem(name);
+        created.setCommands(commands);
+        created.setOpenGui(gui);
+        created.setGivePermission(givePermission);
+        created.setOtherPriceMaterial(priceMaterial);
         NewBedwars.plugin.getLangMessages().addCustomItemProperty(name, "-name");
     }
 
@@ -150,7 +181,15 @@ public class ItemsDataManager {
         return new Yaml(options).dump(out);
     }
 
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
     public void save() {
+        if (readOnly) {
+            log.warning(file + " was not saved because it could not be read; fix it and use /bw reload");
+            return;
+        }
         String yaml = toYaml();
         io.accept(() -> {
             try {
@@ -166,13 +205,14 @@ public class ItemsDataManager {
         return o == null ? fallback : o.toString();
     }
 
-    private static int number(Object o, int fallback) {
-        if (o instanceof Number n) return n.intValue();
+    private static int strictNumber(Map<?, ?> item, Object key, int fallback) {
+        Object o = item.get(key);
         if (o == null) return fallback;
+        if (o instanceof Number n) return n.intValue();
         try {
             return Integer.parseInt(o.toString().trim());
         } catch (NumberFormatException e) {
-            return fallback;
+            throw new IllegalArgumentException(key + " is not a whole number: " + o);
         }
     }
 }

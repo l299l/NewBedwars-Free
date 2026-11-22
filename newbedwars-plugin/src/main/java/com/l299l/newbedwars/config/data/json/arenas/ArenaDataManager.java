@@ -23,7 +23,7 @@ public class ArenaDataManager {
             if (arenas != null) {
                 for (File arena: arenas) {
                     if (!arena.getName().endsWith(".json")) continue;
-                    new ArenaDataJson(PluginFiles.readFileContent(arena));
+                    new ArenaDataJson(PluginFiles.readFileContent(arena), "data/arenas/" + arena.getName());
                 }
             }
         }
@@ -39,11 +39,13 @@ public class ArenaDataManager {
         if (old == null) return null;
         World world = old.getArenaWorld();
         String worldName = world.getName();
-        for (org.bukkit.entity.Player p : new java.util.ArrayList<>(world.getPlayers())) {
-            LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ARENA_UNLOADED);
+        if (Bukkit.getWorld(world.getUID()) != null) {
+            for (org.bukkit.entity.Player p : new java.util.ArrayList<>(world.getPlayers())) {
+                LobbyService.sendToLobby(p, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ARENA_UNLOADED);
+            }
+            world.setAutoSave(false);
+            if (!Bukkit.unloadWorld(world, false)) return null;
         }
-        world.setAutoSave(false);
-        if (!Bukkit.unloadWorld(world, false)) return null;
         ArenaRegistry.unregister(name, world);
         return worldName;
     }
@@ -51,7 +53,7 @@ public class ArenaDataManager {
     public IArena loadArena(String name) {
         File file = new File(NewBedwars.plugin.getDataFolder(), "data/arenas/" + name + ".json");
         if (!file.isFile()) return null;
-        new ArenaDataJson(PluginFiles.readFileContent(file));
+        new ArenaDataJson(PluginFiles.readFileContent(file), "data/arenas/" + file.getName());
         return ArenaRegistry.byName(name);
     }
 

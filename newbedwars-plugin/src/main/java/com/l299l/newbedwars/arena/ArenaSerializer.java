@@ -25,8 +25,8 @@ final class ArenaSerializer {
         sb.append("\"maxInTeam\": ").append(arena.getMaxInTeam()).append(",");
         sb.append("\"waitingTime\": ").append(arena.getWaitingTime()).append(",");
         sb.append("\"respawnTime\": ").append(arena.getRespawnTime()).append(",");
-        sb.append("\"setup\": \"").append(arena.getSetupMode()).append("\",");
-        sb.append("\"enabled\": ").append(arena.isEnabled()).append(",");
+        sb.append("\"setup\": \"").append(arena.setupToSave()).append("\",");
+        sb.append("\"enabled\": ").append(arena.enabledToSave()).append(",");
         sb.append("\"quickVoidY\": ").append(arena.getQuickVoidY() == null ? "null" : arena.getQuickVoidY()).append(",");
         sb.append("\"waitingPos1\": ").append(location(arena.getWaitingPos1())).append(",");
         sb.append("\"waitingPos2\": ").append(location(arena.getWaitingPos2())).append(",");

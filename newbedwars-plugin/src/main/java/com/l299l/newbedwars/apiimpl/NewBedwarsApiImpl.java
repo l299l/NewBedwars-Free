@@ -58,6 +58,7 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     private final ApiStats stats = ApiStats.create();
     private final ApiGameControl gameControl = new ApiGameControl();
     private final ApiShopEditor shopEditor = new ApiShopEditor();
+    private final ApiMessages messages = new ApiMessages();
 
     @Override
     public String getVersion() {
@@ -285,6 +286,122 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
             }
         }
         return true;
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.view.PlayerStatsView getStats(java.util.UUID player) {
+        com.l299l.newbedwars.player.PlayerStats s = player == null || NewBedwars.plugin.getPlayerManager() == null
+                ? null : NewBedwars.plugin.getPlayerManager().getStats(player);
+        return new com.l299l.newbedwars.apiimpl.view.ApiPlayerStats(s == null ? com.l299l.newbedwars.player.PlayerStats.empty() : s);
+    }
+
+    @Override
+    public CompletableFuture<Optional<com.l299l.newbedwars.api.view.PlayerStatsView>> loadStats(java.util.UUID player) {
+        return stats.load(player);
+    }
+
+    @Override
+    public void addStat(java.util.UUID player, String name, StatType stat, int amount) {
+        if (player == null) throw new IllegalArgumentException("player is null");
+        com.l299l.newbedwars.player.PlayerStats delta = ApiStats.delta(stat, amount);
+        if (!Bukkit.isPrimaryThread()) throw new IllegalStateException("addStat must be called on the server thread");
+        com.l299l.newbedwars.player.PlayerManager pm = NewBedwars.plugin.getPlayerManager();
+        com.l299l.newbedwars.config.data.DataManager data = NewBedwars.plugin.getDataManager();
+        boolean sql = data != null && data.getPlayerDataSql() != null;
+        String known = name == null || name.isBlank() ? pm.nameOf(player) : name;
+        if (!sql || Bukkit.getPlayer(player) != null || pm.getAllStats().containsKey(player)) {
+            pm.mergeStats(player, known, delta);
+        }
+        if (data != null) {
+            data.recordGameResult(player, known, delta);
+            data.savePlayerStats();
+        }
+    }
+
+    private static IArena arenaOf(Player player) {
+        for (IArena arena : ArenaRegistry.all()) {
+            if (arena.isPlayerInArena(player) || arena.getSpectators().contains(player)) return arena;
+        }
+        return null;
+    }
+
+    private static IArena local(ArenaView view) {
+        IArena arena = view == null ? null : ArenaRegistry.byName(view.getName());
+        if (arena == null) throw new IllegalArgumentException("the arena does not exist on this server");
+        return arena;
+    }
+
+    private static void requireMainThread(String method) {
+        if (!Bukkit.isPrimaryThread()) throw new IllegalStateException(method + " must be called on the server thread");
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.game.JoinResult join(Player player, ArenaView arena) {
+        if (player == null) throw new IllegalArgumentException("player is null");
+        requireMainThread("join");
+        return com.l299l.newbedwars.arena.join.ArenaJoinService.joinAsAddon(player, local(arena));
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.game.JoinResult spectate(Player player, ArenaView arena) {
+        if (player == null) throw new IllegalArgumentException("player is null");
+        requireMainThread("spectate");
+        return com.l299l.newbedwars.arena.join.ArenaJoinService.spectate(player, local(arena));
+    }
+
+    @Override
+    public boolean leave(Player player) {
+        if (player == null) return false;
+        requireMainThread("leave");
+        IArena arena = arenaOf(player);
+        if (arena == null) return false;
+        arena.leave(player, com.l299l.newbedwars.api.events.LeaveReason.COMMAND);
+        return true;
+    }
+
+    @Override
+    public boolean sendToLobby(Player player) {
+        if (player == null) return false;
+        requireMainThread("sendToLobby");
+        if (leave(player)) return true;
+        return com.l299l.newbedwars.player.LobbyService.sendToLobby(player,
+                com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.ADDON);
+    }
+
+    @Override
+    public Optional<com.l299l.newbedwars.api.view.PartyView> getParty(Player player) {
+        com.l299l.newbedwars.parties.PartyManager pm = NewBedwars.plugin.getPartyManager();
+        if (player == null || pm == null) return Optional.empty();
+        com.l299l.newbedwars.parties.Party party = pm.getParty(player);
+        return party == null ? Optional.empty() : Optional.of(new com.l299l.newbedwars.apiimpl.view.ApiParty(pm, party));
+    }
+
+    private static com.l299l.newbedwars.config.Language languageOf(Player player) {
+        com.l299l.newbedwars.player.PlayerManager pm = NewBedwars.plugin.getPlayerManager();
+        com.l299l.newbedwars.player.PlayerProfile profile = player == null || pm == null ? null : pm.getPlayer(player.getUniqueId());
+        return profile == null || profile.language() == null ? com.l299l.newbedwars.config.Language.English : profile.language();
+    }
+
+    @Override
+    public String getLanguage(Player player) {
+        return languageOf(player).getCode();
+    }
+
+    @Override
+    public String getMessage(Player player, String key) {
+        if (key == null) return "";
+        com.l299l.newbedwars.config.Language language = languageOf(player);
+        String addon = messages.find(language, key);
+        if (addon != null) return addon;
+        return NewBedwars.plugin.getMessages().getMsg(language, key);
+    }
+
+    @Override
+    public void registerMessages(Plugin owner, String language, Map<String, String> texts) {
+        com.l299l.newbedwars.config.Language lang = language == null ? null : com.l299l.newbedwars.config.Language.fromCode(language.trim());
+        if (lang == null) throw new IllegalArgumentException("unknown language " + language + " (use en, pl, de, es, fr or ru)");
+        messages.register(owner, lang, texts);
+        registrations.add(owner, () -> messages.release(owner));
     }
 
     @Override

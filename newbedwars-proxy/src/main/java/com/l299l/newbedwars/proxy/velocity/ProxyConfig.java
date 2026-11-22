@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 final class ProxyConfig {
     List<String> gameServers = new ArrayList<>();
@@ -35,37 +36,53 @@ final class ProxyConfig {
     String updatesChannel = "BETA";
 
     static ProxyConfig load(Path dataDir) throws IOException {
+        org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ProxyConfig.class);
+        return load(dataDir, message -> logger.warn(message));
+    }
+
+    static ProxyConfig load(Path dataDir, Consumer<String> warn) throws IOException {
         Path file = dataDir.resolve("config.yml");
         copyDefault(file, "config.yml");
         for (String lang : List.of("en", "pl")) copyDefault(dataDir.resolve("lang").resolve(lang + ".yml"), "lang/" + lang + ".yml");
         Map<String, Object> m;
         try (Reader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             Object loaded = yaml().load(r);
-            m = loaded instanceof Map<?, ?> map ? cast(map) : Map.of();
+            if (loaded instanceof Map<?, ?> map) {
+                m = cast(map);
+            } else {
+                warn.accept("config.yml is empty or not a YAML map; the default settings are used");
+                m = Map.of();
+            }
         }
         ProxyConfig c = new ProxyConfig();
-        c.gameServers = strings(m.get("game-servers"));
-        c.lobbyServers = strings(m.get("lobby-servers"));
-        c.ticketTimeoutSeconds = integer(m.get("ticket-timeout-seconds"), 10);
-        c.stateStaleSeconds = integer(m.get("state-stale-seconds"), 15);
-        c.partyInviteSeconds = integer(m.get("party-invite-seconds"), 60);
-        if (m.get("mysql") instanceof Map<?, ?> raw) {
+        c.gameServers = strings(m.get("game-servers"), "game-servers", warn);
+        c.lobbyServers = strings(m.get("lobby-servers"), "lobby-servers", warn);
+        c.ticketTimeoutSeconds = integer(m.get("ticket-timeout-seconds"), 10, "ticket-timeout-seconds", warn);
+        c.stateStaleSeconds = integer(m.get("state-stale-seconds"), 15, "state-stale-seconds", warn);
+        c.partyInviteSeconds = integer(m.get("party-invite-seconds"), 60, "party-invite-seconds", warn);
+        Object mysql = m.get("mysql");
+        if (mysql instanceof Map<?, ?> raw) {
             Map<String, Object> db = cast(raw);
-            c.mysqlEnabled = Boolean.TRUE.equals(db.get("enabled"));
-            c.mysqlHost = String.valueOf(db.getOrDefault("host", "localhost"));
-            c.mysqlPort = integer(db.get("port"), 3306);
-            c.mysqlDatabase = String.valueOf(db.getOrDefault("database", "newbedwars"));
-            c.mysqlUser = String.valueOf(db.getOrDefault("user", "root"));
+            c.mysqlEnabled = bool(db.get("enabled"), false, "mysql.enabled", warn);
+            c.mysqlHost = text(db.get("host"), "localhost");
+            c.mysqlPort = integer(db.get("port"), 3306, "mysql.port", warn);
+            c.mysqlDatabase = text(db.get("database"), "newbedwars");
+            c.mysqlUser = text(db.get("user"), "root");
             c.mysqlPassword = db.get("password") == null ? "" : String.valueOf(db.get("password"));
             c.mysqlSslMode = JdbcConnector.normalizeSslMode(db.get("ssl-mode") == null ? null : String.valueOf(db.get("ssl-mode")));
-            c.mysqlAllowPublicKeyRetrieval = Boolean.TRUE.equals(db.get("allow-public-key-retrieval"));
-            c.mysqlPollSeconds = integer(db.get("poll-seconds"), 5);
+            c.mysqlAllowPublicKeyRetrieval = bool(db.get("allow-public-key-retrieval"), false, "mysql.allow-public-key-retrieval", warn);
+            c.mysqlPollSeconds = integer(db.get("poll-seconds"), 5, "mysql.poll-seconds", warn);
+        } else if (mysql != null) {
+            warn.accept("config.yml: 'mysql' must be a section; MySQL stays disabled");
         }
-        if (m.get("updates") instanceof Map<?, ?> raw) {
+        Object updatesSection = m.get("updates");
+        if (updatesSection instanceof Map<?, ?> raw) {
             Map<String, Object> updates = cast(raw);
-            c.updatesCheck = !Boolean.FALSE.equals(updates.get("check"));
-            c.updatesNotify = !Boolean.FALSE.equals(updates.get("notify"));
+            c.updatesCheck = bool(updates.get("check"), true, "updates.check", warn);
+            c.updatesNotify = bool(updates.get("notify"), true, "updates.notify", warn);
             if (updates.get("channel") != null) c.updatesChannel = String.valueOf(updates.get("channel"));
+        } else if (updatesSection != null) {
+            warn.accept("config.yml: 'updates' must be a section; the default update settings are used");
         }
         return c;
     }
@@ -108,13 +125,47 @@ final class ProxyConfig {
         return (Map<String, Object>) m;
     }
 
-    private static List<String> strings(Object o) {
+    private static List<String> strings(Object o, String key, Consumer<String> warn) {
         List<String> out = new ArrayList<>();
-        if (o instanceof List<?> list) for (Object x : list) if (x != null) out.add(String.valueOf(x));
+        if (o instanceof List<?> list) {
+            for (Object x : list) if (x != null) out.add(String.valueOf(x));
+        } else if (o != null) {
+            warn.accept("config.yml: '" + key + "' must be a list; it is ignored");
+        }
         return out;
     }
 
-    private static int integer(Object o, int def) {
-        return o instanceof Number n && n.intValue() > 0 ? n.intValue() : def;
+    private static String text(Object o, String def) {
+        return o == null ? def : String.valueOf(o);
+    }
+
+    static boolean bool(Object o, boolean def, String key, Consumer<String> warn) {
+        if (o == null) return def;
+        if (o instanceof Boolean b) return b;
+        if (o instanceof String s) {
+            String t = s.trim();
+            if (t.equalsIgnoreCase("true")) return true;
+            if (t.equalsIgnoreCase("false")) return false;
+        }
+        warn.accept("config.yml: '" + key + "' must be true or false (found '" + o + "'); " + def + " is used");
+        return def;
+    }
+
+    static int integer(Object o, int def, String key, Consumer<String> warn) {
+        if (o == null) return def;
+        Integer value = null;
+        if (o instanceof Number n) {
+            value = n.intValue();
+        } else if (o instanceof String s) {
+            try {
+                value = Integer.parseInt(s.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (value == null || value <= 0) {
+            warn.accept("config.yml: '" + key + "' must be a positive whole number (found '" + o + "'); " + def + " is used");
+            return def;
+        }
+        return value;
     }
 }

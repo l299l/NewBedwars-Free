@@ -16,10 +16,10 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
+import com.l299l.newbedwars.version.VersionCompat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public final class AutoSetupApplier {
 
@@ -106,11 +106,8 @@ public final class AutoSetupApplier {
 
     private static EntityType entity(String name, String team, List<ScanResult.Warning> warnings) {
         if (name == null) return EntityType.VILLAGER;
-        try {
-            EntityType type = EntityType.valueOf(name.toUpperCase(Locale.ROOT));
-            if (!TabArgsUtils.wrongEntities().contains(type)) return type;
-        } catch (IllegalArgumentException ignored) {
-        }
+        EntityType type = VersionCompat.entityType(name);
+        if (type != null && !TabArgsUtils.wrongEntities().contains(type)) return type;
         warnings.add(new ScanResult.Warning("AutoSetup-WarnBadEntity", name + " (" + team + ")"));
         return EntityType.VILLAGER;
     }

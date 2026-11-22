@@ -44,7 +44,9 @@ public class UpgradePricing {
     private final int keep;
     private PriceType defaultCurrency = PriceType.DIAMOND;
     private final Map<String, List<UpgradeTier>> tiers = new LinkedHashMap<>();
+    private boolean readOnly;
     private final Map<String, Object> broken = new LinkedHashMap<>();
+    private final java.util.Set<String> warnedOverrides = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public UpgradePricing() {
         this(NewBedwars.plugin.getDataFolder().toPath(), IOExecutor::submit, NewBedwars.plugin.getLogger(),
@@ -62,6 +64,8 @@ public class UpgradePricing {
     public void load(Map<String, Object> legacyConfig) {
         tiers.clear();
         broken.clear();
+        warnedOverrides.clear();
+        readOnly = false;
         defaultCurrency = PriceType.DIAMOND;
         if (!Files.isRegularFile(file)) {
             if (legacyConfig != null && !legacyConfig.isEmpty()) {
@@ -77,11 +81,13 @@ public class UpgradePricing {
         try {
             root = SafeYaml.create().load(Files.readString(file, StandardCharsets.UTF_8));
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Could not read " + file + "; no upgrade can be bought until it is fixed", e);
+            log.log(Level.SEVERE, "Could not read " + file + "; the default upgrade prices are used and the file is not changed until it is fixed", e);
+            readOnly = true;
             return;
         }
         if (!(root instanceof Map<?, ?> map)) {
-            log.severe(file + " is not a YAML map; no upgrade can be bought until it is fixed");
+            log.severe(file + " is not a YAML map; the default upgrade prices are used and the file is not changed until it is fixed");
+            readOnly = true;
             return;
         }
         read(map);
@@ -172,7 +178,11 @@ public class UpgradePricing {
         for (Map.Entry<?, ?> e : map.entrySet()) {
             try {
                 out.put(key(String.valueOf(e.getKey())), parseTiers(e.getValue(), defaultCurrency));
-            } catch (IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException ex) {
+                if (warnedOverrides.add(gui.id() + "/" + e.getKey())) {
+                    log.warning("UpgradePrices entry " + e.getKey() + " in GUI " + gui.id() + " is invalid: " + ex.getMessage()
+                            + " (the prices from upgrades.yml are used for it)");
+                }
             }
         }
         return out;
@@ -228,7 +238,15 @@ public class UpgradePricing {
         return sb.toString();
     }
 
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
     public void save() {
+        if (readOnly) {
+            log.warning(file + " was not saved because it could not be read; fix it and use /bw reload");
+            return;
+        }
         String yaml = toYaml();
         io.accept(() -> {
             try {

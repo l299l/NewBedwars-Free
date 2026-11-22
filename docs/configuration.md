@@ -22,7 +22,6 @@ Used for **new** arenas. Every arena can change them in setup mode.
 | Setting | Default | Meaning |
 |---|---|---|
 | `DefaultMinPlayers` | `4` | Players needed to start the countdown |
-| `DefaultMaxTeams` | `4` | **Known issue:** has no effect in 2.7-beta (an arena has as many teams as you create in setup). Removed in 2.8-beta |
 | `DefaultMaxInTeam` | `4` | Players per team |
 | `DefaultWaitingTime` | `20` | Seconds of countdown in the waiting lobby |
 | `DefaultRespawnTime` | `5` | Seconds a dead player waits before respawning |
@@ -42,7 +41,7 @@ Used for **new** arenas. Every arena can change them in setup mode.
 | `AllowSpectators` | `true` | Players can spectate running games |
 | `AllowTeamChat` | `true` | Team chat (messages starting with `!`) |
 | `AllowGlobalChat` | `true` | Chat with everyone in the arena |
-| `AllowPrivateChat` | `true` | Private messages (`/msg`, `/tell`, `/w`, `/r`, ...) from and to players in a running game. **Known issue:** has no effect in 2.7-beta; fixed in 2.8-beta |
+| `AllowPrivateChat` | `true` | `false` blocks private messages (`/msg`, `/tell`, `/w`, `/r` and the EssentialsX variants) from and to players and spectators of a running game. Admins with `newbedwars.bw.admin` can still send them |
 | `AllowTeamDamage` | `false` | Team members can hurt each other |
 | `MakeSwordsPermanent` | `false` | Bought swords are kept after death |
 | `MakeToolsPermanent` | `true` | Pickaxe, axe and shears are kept after death; `false` = lost on respawn |
@@ -160,6 +159,8 @@ The map of every arena is kept as a clean template in `data/maps/<arena>/templat
 | `Rollback.TemplateExcludes` | `session.lock`, `uid.dat`, `playerdata`, `stats`, `advancements` | Files and folders not copied into the template |
 | `Backups.Keep` | `5` | How many automatic backups of the arena file and map are kept per arena |
 
+Before a version update rewrites `config.yml`, a copy of the old one is kept once per version in `data/backups/config/<version>/config.yml`. These copies contain the MySQL password and the network secret as they were. If you change either of them (for example after a leak), delete the old folders in `data/backups/config/` too.
+
 ## Automatic arena setup
 
 Settings for `/bw startAutomaticSetup` ([Arena setup](arena-setup.md#automatic-setup)).
@@ -196,6 +197,12 @@ Where player data (language, quick buy) and stats are kept. Details and when to 
 | `MySQL.Host` / `Port` / `Database` / `User` / `Password` | `localhost` / `3306` / `newbedwars` / `root` / empty | Connection, also used by `Network.MySQL`. Uses the database driver that ships with the server |
 | `MySQL.SslMode` | `PREFERRED` | `DISABLED`, `PREFERRED` (encrypt when the server supports it), `REQUIRED`, `VERIFY_CA` or `VERIFY_IDENTITY` |
 | `MySQL.AllowPublicKeyRetrieval` | `false` | Only for MySQL 8 accounts with `caching_sha2_password` on a connection without SSL. Less secure |
+
+## Leaderboards
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `Leaderboards.RefreshSeconds` | `60` | How often the [leaderboard placeholders](placeholders.md#leaderboards) are refreshed, in seconds (at least 5) |
 
 ## Updates
 

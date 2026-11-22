@@ -30,7 +30,7 @@ public class SetGeneratorCommand extends BwCommand {
 
     @Override
     public String getSyntax() {
-        return "/bw setGenerator <generatorType> (<generatorTeamName>) (<x> <y> <z>)";
+        return "/bw setGenerator <generatorType> (<generatorTeamName>|<customId>) (<x> <y> <z>)";
     }
 
     @Override
@@ -64,7 +64,7 @@ public class SetGeneratorCommand extends BwCommand {
                     arena.addGenerator(createGenerator(type, new Location(player.getWorld(), x, y, z)));
                     player.sendMessage(msg.getMsg(player, "setGeneratorSuccess") + type.name() + " " + x + " " + y + " " + z);
                     DecoUtils.summonSetupArmorStand(new Location(player.getWorld(), x, y, z), (type == GeneratorType.EMERALD ? ChatColor.GREEN : ChatColor.BLUE)+ "Generator");
-                } catch (Exception e) {
+                } catch (NumberFormatException e) {
                     usage(player);
                 }
             } else if (type == GeneratorType.BASIC) {
@@ -98,19 +98,18 @@ public class SetGeneratorCommand extends BwCommand {
                         team.setGenerator(createGenerator(type, new Location(player.getWorld(), x, y, z)));
                         player.sendMessage(msg.getMsg(player, "setGeneratorSuccess") + type.name() + " " + x + " " + y + " " + z);
                         DecoUtils.summonSetupArmorStand(team.getGenerator().getLocation(), team.getColor() + "Generator");
-                    } catch (Exception e) {
+                    } catch (NumberFormatException e) {
                         usage(player);
                     }
                 }else {
                     usage(player);
                 }
-            }else {
-                if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {
-                }else {
-                    usage(player);
-                }
+            } else if (type == GeneratorType.OTHER && arena.getSetupMode() == Setup.ADVANCED_SETUP) {
+                setCustomGenerator(player, args, arena);
+            } else {
+                usage(player);
             }
-        } catch(Exception e){
+        } catch (IllegalArgumentException e) {
             usage(player);
         }
     }
@@ -131,11 +130,46 @@ public class SetGeneratorCommand extends BwCommand {
                 return TabArgsUtils.getTabCords(player, args, 3);
             } else if (args[1].equalsIgnoreCase("BASIC")) {
                 return TabArgsUtils.getTabCordsWithTeam(player, args, 3);
-            }else if (arena.getSetupMode() == Setup.ADVANCED_SETUP) {
-                return null;
+            } else if (args[1].equalsIgnoreCase("OTHER") && arena.getSetupMode() == Setup.ADVANCED_SETUP) {
+                if (args.length == 3) {
+                    return arena.getGeneratorsLeveling() == null ? new ArrayList<>() : customIds(arena.getGeneratorsLeveling());
+                }
+                return TabArgsUtils.getTabCords(player, args, 4);
             }
         }
         return null;
+    }
+
+    private void setCustomGenerator(Player player, String[] args, IArena arena) {
+        if (args.length != 3 && args.length != 6) {
+            usage(player);
+            return;
+        }
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling leveling = arena.getGeneratorsLeveling();
+        if (leveling == null || leveling.getCustomGenerator(args[2]) == null) {
+            msg.send(player, "setGeneratorUnknownCustom", java.util.Map.of("/id/", args[2], "/list/",
+                    leveling == null || leveling.getCustomGenerators().isEmpty() ? "-" : String.join(", ", customIds(leveling))));
+            return;
+        }
+        String id = leveling.getCustomGenerator(args[2]).id();
+        Location location = player.getLocation();
+        if (args.length == 6) {
+            try {
+                location = new Location(player.getWorld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+            } catch (NumberFormatException e) {
+                usage(player);
+                return;
+            }
+        }
+        arena.addGenerator(new com.l299l.newbedwars.arena.generators.CustomGenerator(location, id));
+        player.sendMessage(msg.getMsg(player, "setGeneratorSuccess") + id + " " + location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ());
+        DecoUtils.summonSetupArmorStand(location, ChatColor.WHITE + "Generator");
+    }
+
+    private static List<String> customIds(com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling leveling) {
+        List<String> ids = new ArrayList<>();
+        for (com.l299l.newbedwars.arena.generators.leveling.CustomGeneratorSettings c : leveling.getCustomGenerators().values()) ids.add(c.id());
+        return ids;
     }
 
     private Generator createGenerator(GeneratorType type, Location location) {

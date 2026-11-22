@@ -43,6 +43,16 @@ public class ReloadCommand extends BwCommand {
             msg.send(p, "NoPermissions");
             return;
         }
+        String busy = com.l299l.newbedwars.world.template.ArenaResetPipeline.copyingArena();
+        if (busy == null) busy = com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService.anyInFlight();
+        for (IArena arena : ArenaRegistry.all()) {
+            if (busy != null) break;
+            if (arena.isEnabled() && arena.status() == com.l299l.newbedwars.arena.GameStatus.restarting) busy = arena.getArenaName();
+        }
+        if (busy != null) {
+            msg.send(p, "ReloadWhileResetting", java.util.Map.of("/arena/", busy));
+            return;
+        }
 
         int active = 0;
         for (IArena arena : ArenaRegistry.all()) {

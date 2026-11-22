@@ -1,6 +1,23 @@
 # NewBedwars Addon API
 
-Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`) is the stable contract for addons. All other packages are internal and can change in any update.
+Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`, `game`, `maintenance`, `shop`) is the stable contract for addons. All other packages are internal and can change in any update.
+
+> [!IMPORTANT]
+> **New in 2.8-beta:**
+>
+> - [API version](#api-version): `NewBedwarsAPI.getApiVersion()`, and the [compatibility rules](#compatibility) for the stable releases.
+> - [Shop items](#shop-items): `ShopItem` has `commands`, `openGui`, `givePermission` and `priceMaterial` for the new `COMMANDS`, `OPEN_GUI` and `GIVE_PERM` actions and `priceType` `OTHER` (the 12-argument constructor still works).
+> - `ShopGui.closeOnTransaction` and `CommandContext.SETUP_BUILDING` are marked for removal in 3.0.0.
+> - [Players](#players-join-spectate-leave): `join`, `spectate`, `leave` and `sendToLobby` with a `JoinResult`.
+> - [Parties](#parties): `getParty(Player)` (`PartyView`) and `PartyChangeEvent`.
+> - [Messages and languages](#messages-and-languages): `getLanguage`, `getMessage` and `registerMessages` for translated addon texts.
+> - [Statistics](#statistics-and-leaderboards): `getStats(UUID)`, `loadStats(UUID)` and `addStat` to count stats for addon game modes.
+> - [Game control](#game-control): `destroyBed`, `eliminateTeam` and `setUpgradeLevel`.
+> - New [events](#events): `ArenaStateChangeEvent` (also the countdown start and cancel), `TeamsAssignedEvent`, `PlayerRespawnArenaEvent`, `PlayerSpectateEvent`, `TrapTriggerEvent`, `PartyChangeEvent`. `ShopPurchaseEvent` has `getTeam()` and `setPrice(int)`; `BedBreakEvent.getBreaker()` is null when the bed was destroyed through `destroyBed`.
+> - Custom generators: `GeneratorKind.CUSTOM`, `GeneratorView.getCustomId()`, `ArenaView.getCustomGeneratorIds()` and `ArenaEditor.addCustomGenerator(id, location)`. Before, custom generators were reported as `BASIC`.
+> - Team display names: `TeamEditor.setDisplayName` / `TeamView.getDisplayName()` change the name players see (e.g. `Lime` for a team `Red` that got a lime color) without renaming the team.
+> - `ShopItemStackEvent`: change or replace the item stack of a shop item per player, both the menu icon and the item the player gets.
+> - `ArenaView.getMaxPlayers()`, `getTeam(Player)` and `isSpectator(Player)`; `ShopLogic.perform(player, arena, itemName)` tells the logic which shop item was used.
 
 > [!IMPORTANT]
 > **New in 2.7-beta:**
@@ -17,6 +34,7 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 >
 > Depend on `v2.7-beta` (or newer) to use them; on older NewBedwars versions these methods do not exist.
 
+- [Compatibility](#compatibility)
 - [Setup](#setup)
 - [Reading data](#reading-data)
 - [Events](#events)
@@ -24,8 +42,46 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 - [Extra data](#extra-data)
 - [Editing arenas](#editing-arenas)
 - [Arena maintenance](#arena-maintenance)
+- [Statistics and leaderboards](#statistics-and-leaderboards)
+- [Game control](#game-control)
+- [Players: join, spectate, leave](#players-join-spectate-leave)
+- [Parties](#parties)
+- [Messages and languages](#messages-and-languages)
+- [Shop editor](#shop-editor)
 - [Rules and good practice](#rules-and-good-practice)
 - [Full example](#full-example)
+
+## Compatibility
+
+From the first stable release (**3.0.0**) NewBedwars uses `MAJOR.MINOR.PATCH` version numbers, and the API follows these rules:
+
+| Release | Example | What can change in the API |
+|---|---|---|
+| Patch | 3.0.0 → 3.0.1 | Nothing. Bug fixes only |
+| Minor | 3.0 → 3.1 | Only additions: new methods, events, enum values, registries, record components (the old record constructor is kept). An addon built for 3.0 keeps working on every 3.x |
+| Major | 3.x → 4.0 | Members that were deprecated may be removed |
+
+- **Deprecation first.** Anything that will be removed is marked `@Deprecated(forRemoval = true)` (your compiler warns about it), its javadoc names the replacement, and it stays for at least one minor release. It is removed only in the next major version.
+- **Interfaces you implement** (`AddonCommand`, `ShopLogic`, `PhaseActionHandler`, `UpgradeDefinition.Effect`) only get new methods with a default implementation. All other interfaces (`ArenaView`, `ShopEditor`, ...) are implemented by NewBedwars and can get new methods in any minor release, so don't implement them yourself.
+- **Enums can get new values** in a minor release (for example a new `CommandContext` or `StatType`). Give every `switch` over an API enum a `default` branch.
+- **Not covered:** everything outside `com.l299l.newbedwars.api`, and behaviour that a bug fix corrects.
+- **Before 3.0.0** (the 2.x-beta versions) the API could still change between releases. Two deprecated members will be removed in 3.0.0: `ShopGui.closeOnTransaction` (always `false`) and `CommandContext.SETUP_BUILDING` (use `SETUP_AUTOMATIC`).
+
+### API version
+
+`api.getApiVersion()` returns a number that goes up by one in every release that adds something to the API. Check it to find out whether a feature exists on the server your addon runs on:
+
+```java
+if (api.getApiVersion() >= 1) {
+    // 2.8-beta or newer: ShopItem.commands(), getApiVersion(), ...
+}
+```
+
+| API version | NewBedwars |
+|---|---|
+| 1 | 2.8-beta |
+
+`getApiVersion()` itself exists from 2.8-beta. To support older versions, catch `NoSuchMethodError` or compare `api.getVersion()`.
 
 ## Setup
 
@@ -43,7 +99,7 @@ Add the dependency from [JitPack](https://jitpack.io/#l299l/NewBedwars-Free) wit
     <dependency>
         <groupId>com.github.l299l.NewBedwars-Free</groupId>
         <artifactId>newbedwars-api</artifactId>
-        <version>v2.7-beta</version>
+        <version>v2.8-beta</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -73,6 +129,7 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | Method | Returns |
 |---|---|
 | `getVersion()` | plugin version |
+| `getApiVersion()` **(2.8-beta)** | the [API version](#api-version), a number |
 | `getArenas()` | all arenas |
 | `getArena(String name)` / `getArena(World)` / `getArena(Player)` | `Optional<ArenaView>` (the player variant also finds spectators) |
 | `getGroups()` / `getGroup(String name)` **(2.6-beta)** | arena groups (maps voted between), `Optional<ArenaGroupView>` |
@@ -81,17 +138,21 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | `getNetworkArenas()` **(2.6-beta)** | on `LOBBY` and `GAME` servers: the arenas of all game servers (`NetworkArenaView`: server, name, group, state, players, `isJoinable()`, `getFreeSlots()`), empty otherwise |
 | `getServerId()` **(2.6-beta)** | this server's name in the proxy, empty when not in network mode |
 | `getNetworkRejoin(Player)` **(2.6-beta)** | on a `LOBBY` server: the network arena the player can still rejoin |
-| `getStats(String name)` **(2.6-beta)** | `PlayerStatsView` (wins, losses, kills, deaths, final kills, beds, games; zeros when unknown). With MySQL storage these are network-wide; only online/loaded players are known |
+| `getStats(String name)` **(2.6-beta)** / `getStats(UUID)` **(2.8-beta)** | `PlayerStatsView` (wins, losses, kills, deaths, final kills, beds, games; zeros when unknown). With MySQL storage these are network-wide; only online/loaded players are known. The UUID variant still finds a player who changed their name |
+| `getParty(Player)` **(2.8-beta)** | `Optional<PartyView>`, see [Parties](#parties) |
+| `getLanguage(Player)` / `getMessage(Player, key)` **(2.8-beta)** | the player's language code and a translated message, see [Messages and languages](#messages-and-languages) |
 
-**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine), **`getQuickVoidY` / `getSetupPlayers` (NEW in 2.7-beta)** (the quick void level, null while not set; online players who are setting the arena up).
+**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine), **`getQuickVoidY` / `getSetupPlayers` (NEW in 2.7-beta)** (the quick void level, null while not set; online players who are setting the arena up), **`getMaxPlayers` / `getTeam(Player)` / `isSpectator(Player)` / `getCustomGeneratorIds` (NEW in 2.8-beta)** (teams times team size; the team of a player, empty before the teams are assigned; whether the player watches, is out or waits for a respawn; the ids from `CustomGenerators` in the arena's generator file).
 
-**`TeamView`**: `getName`, `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), **`getBed` (NEW in 2.7-beta, may be null)**, `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
+**`TeamView`**: `getName` (never changes; identifies the team), **`getDisplayName` (2.8-beta)** (what players see: the display name or `getName`), `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), **`getBed` (NEW in 2.7-beta, may be null)**, `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
 
 **`ArenaGroupView`** **(2.6-beta)**: `getName`, `getArenaNames` (as configured, may include missing arenas), `getArenas` (existing ones), `getDisplayItem`, `getProblems` (missing arenas, different team sizes).
 
 **`GamePlayerView`**: `getPlayer`, `getTeam` (empty while the arena is waiting; teams are assigned at game start), `getKills`, `getFinalKills`, `getDeaths`, `getBedsBroken`.
 
-**`GeneratorView`**: `getKind` (`GeneratorKind`: `BASIC`, `DIAMOND`, `EMERALD`), `getLocation`.
+**`GeneratorView`**: `getKind` (`GeneratorKind`: `BASIC`, `DIAMOND`, `EMERALD`, **`CUSTOM` (2.8-beta)**), `getLocation`, **`getCustomId` (2.8-beta)** (the `CustomGenerators` id of a `CUSTOM` generator, null otherwise).
+
+**`PartyView`** **(2.8-beta)**: `getLeader`, `getMembers` (UUIDs, online or not), `getOnlineMembers`, `contains(UUID)`, `size`.
 
 ## Events
 
@@ -104,9 +165,9 @@ Normal Bukkit events: register a `Listener` as usual. All arena events extend `A
 | `ArenaResetEvent` | no | before (`PRE`) and after (`POST`) a map reset | `getStage()` |
 | `PlayerJoinArenaEvent` | yes | before a player joins or rejoins | `getPlayer()`, `isRejoin()` |
 | `PlayerLeaveArenaEvent` | no | a player or spectator leaves | `getPlayer()`, `getReason()` (`LeaveReason`: `COMMAND`, `DISCONNECT`, `KICKED`, `OTHER`) |
-| `BedBreakEvent` | yes | before an enemy bed breaks | `getTeam()`, `getBreaker()` |
+| `BedBreakEvent` | yes | before an enemy bed breaks, or `GameControl#destroyBed` destroys it | `getTeam()`, `getBreaker()` (null for `destroyBed`) |
 | `PlayerKillEvent` | no | a player dies in a running game | `getVictim()`, `getKiller()` (nullable), `isFinalKill()`, `getCause()` (`VOID` for every void death), `getDragonTeam()` (the team whose dragon killed the victim) |
-| `ShopPurchaseEvent` | yes | before a purchase is charged | `getPlayer()`, `getItemName()`, `getKind()` (`ITEM`, `ARMOR`, `TOOL`, `UPGRADE`), `getPriceType()`, `getPrice()` |
+| `ShopPurchaseEvent` | yes | before a purchase is charged (only when the player can pay the normal price) | `getPlayer()`, `getItemName()`, `getKind()` (`ITEM`, `ARMOR`, `TOOL`, `UPGRADE`), `getPriceType()` (the material for `priceType: OTHER`), `getPrice()`, **`setPrice(int)` (2.8-beta)** (0 = free, never negative), **`getTeam()` (2.8-beta)** |
 | `TeamUpgradeEvent` | yes | before an upgrade or trap is bought | `getTeam()`, `getUpgrade()`, `getNewLevel()`, `getBuyer()` |
 | `ArmorEquipEvent` | no | before armor is applied (respawn, purchase) | `getPlayer()`, `setArmor(ItemStack[])` (boots, leggings, chestplate, helmet) |
 | `MapVoteEvent` **(2.6-beta)** | yes | during the after-game time, a player of the ended arena votes for the next map | `getPlayer()`, `getVotedArena()` (null when the arena is on another game server), `getVotedNetworkArena()` |
@@ -116,7 +177,14 @@ Normal Bukkit events: register a `Listener` as usual. All arena events extend `A
 | `BedsDestroyedEvent` **(2.7-beta)** | no | the bed destruction phase destroyed the remaining beds | `getTeams()` |
 | `TeamEliminatedEvent` **(2.7-beta)** | no | a team is out (no bed, no living players) | `getTeam()` |
 | `GeneratorUpgradeEvent` **(2.7-beta)** | no | a game phase upgraded the diamond or emerald generators | `getKind()`, `getLevel()` |
-| `PlayerSendToLobbyEvent` | yes | whenever a player is sent to the lobby | `getPlayer()`, `getReason()`, `getTarget()`/`setTarget()` |
+| `ArenaStateChangeEvent` **(2.8-beta)** | no | after the arena state changed: `WAITING`→`STARTING` countdown started, `STARTING`→`WAITING` countdown cancelled, →`PLAYING` game started, `PLAYING`→`ENDING`, `ENDING`→`RESTARTING`→`WAITING` map reset; disabling = `RESTARTING`, enabling = `WAITING` | `getPrevious()`, `getNext()` |
+| `TeamsAssignedEvent` **(2.8-beta)** | no | at the game start, after every player got a team and before the teleport to the team spawns and `GameStartEvent` | (read the teams from `getArena()`) |
+| `PlayerRespawnArenaEvent` **(2.8-beta)** | no | a player respawned at their team spawn, with armor, items and upgrades given back | `getPlayer()`, `getTeam()` |
+| `PlayerSpectateEvent` **(2.8-beta)** | yes | before a player who doesn't play starts spectating (`/bw spectate`, the menu, `api.spectate`); not for dead or eliminated players | `getPlayer()` |
+| `TrapTriggerEvent` **(2.8-beta)** | yes | before one trap of a team goes off (one event per trap); cancelled = the trap is kept and does nothing | `getTeam()` (the owner), `getEnemy()`, `getTrap()` (upgrade name) |
+| `ShopItemStackEvent` **(2.8-beta)** | no | NewBedwars built the stack of a shop item for one player: a menu icon (`ICON`, shop, upgrades, quick-buy editor) or the item the player gets (`GIVEN`, also permanent items after a respawn); not an `ArenaEvent` | `getPlayer()`, `getItemName()`, `getUse()`, `getItem()` / `setItem(ItemStack)`, `getArena()`, `getTeam()` (both `Optional`) |
+| `PartyChangeEvent` **(2.8-beta)** | no | after a party on this server changed (not for changes synced from the proxy; not an `ArenaEvent`) | `getParty()`, `getPlayer()` (null for `DISBANDED`), `getChange()` (`CREATED`, `JOINED`, `LEFT`, `KICKED`, `LEADER_CHANGED`, `DISBANDED`) |
+| `PlayerSendToLobbyEvent` | yes | whenever a player is sent to the lobby | `getPlayer()`, `getReason()` (`ADDON` for `api.sendToLobby`, from 2.8-beta), `getTarget()`/`setTarget()` |
 | `NetworkJoinRequestEvent` **(2.6-beta)** | yes | on a `LOBBY` server, before a join or rejoin request goes to the proxy (`/bw join`, NPCs, selector, `/bw rejoin`, API); cancelled = nothing is sent and NewBedwars sends no message | `getPlayer()`, `getKind()` (`ANY`, `GROUP`, `ARENA`, `REJOIN`, `SPECTATE`), `getTarget()` |
 | `NetworkArenasUpdateEvent` **(2.6-beta)** | no | on a `LOBBY` server, when the network arena list changed (not an `ArenaEvent`) | `getArenas()` |
 
@@ -160,6 +228,22 @@ api.registerShopLogic(this, "LIGHTNING", (player, arena) -> {
 });
 ```
 
+**(2.8-beta)** When one logic serves several items, override `perform(player, arena, itemName)` to know which `items.yml` entry was used (the lambda form above only implements the two-argument method):
+
+```java
+api.registerShopLogic(this, "SPELL", new ShopLogic() {
+    @Override
+    public boolean perform(Player player, ArenaView arena) {
+        return false;
+    }
+
+    @Override
+    public boolean perform(Player player, ArenaView arena, String itemName) {
+        return castSpell(player, itemName);
+    }
+});
+```
+
 ### Shop items
 
 `registerShopItem` writes an item into `items.yml` when no item with that name exists yet, so server owners do not have to add it by hand. An existing item is never changed (the owner may have edited it) and stays when your addon is disabled. Register the item logic first, call it on the server thread (e.g. in `onEnable`), and note that the item still has to be put into a shop GUI (the panel or a GUI file) to be sold. It returns `true` when the item was added and throws `IllegalArgumentException` for invalid values (same rules as `ShopEditor#saveItem`). **(2.7-beta)**
@@ -172,7 +256,7 @@ api.registerShopItem(this,
                "pl", new ItemTexts("&fSmaragdowy golem", "", "")));
 ```
 
-`ShopItem.of(name, material, amount, price, priceType, logic)` covers the common case; use the full `ShopItem` constructor for permanent items, enchantments, flags or another `onBuy` action. The texts are optional (without them the item is named after its `name`).
+`ShopItem.of(name, material, amount, price, priceType, logic)` covers the common case; use the full `ShopItem` constructor for permanent items, enchantments, flags or another `onBuy` action. The texts are optional (without them the item is named after its `name`). From 2.8-beta the full constructor also takes `commands`, `openGui`, `givePermission` and `priceMaterial` for the `COMMANDS`, `OPEN_GUI` and `GIVE_PERM` actions and `priceType` `OTHER` (see [Commands, menus and permissions](shop-and-upgrades.md#commands-menus-and-permissions)); the 12-argument constructor is kept and leaves them empty.
 
 ### Armor tiers
 
@@ -243,12 +327,41 @@ red.setShop(shopLoc, EntityType.VILLAGER);
 red.setUpgrades(upgLoc, EntityType.VILLAGER);
 red.setGenerator(genLoc);
 editor.addGenerator(GeneratorKind.DIAMOND, diamondLoc);
+editor.addCustomGenerator("gapple", appleLoc); // an id from ArenaView#getCustomGeneratorIds() (2.8-beta)
 editor.removeGenerator(0);                   // index in ArenaView#getGenerators()
 editor.removeTeam("Blue");
 ```
 
-`ArenaEditor`: `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `createTeam`, `getTeam`, `removeTeam`, `addGenerator` (`DIAMOND`/`EMERALD`), `removeGenerator`, `save`.
-`TeamEditor`: `setColor`, `setSpawn`, `setBed`/`clearBed`, `setShop`/`clearShop`, `setUpgrades`/`clearUpgrades`, `setGenerator`/`clearGenerator`.
+`ArenaEditor`: `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `createTeam`, `getTeam`, `removeTeam`, `addGenerator` (`DIAMOND`/`EMERALD`), `addCustomGenerator(id, location)` **(2.8-beta)** (`IllegalArgumentException` when the arena's generator file has no such id), `removeGenerator`, `save`.
+`TeamEditor`: `setColor`, `setDisplayName` **(2.8-beta)** (1 to 32 characters without colour codes or line breaks, `null` = show the name again; saved with the arena), `setSpawn`, `setBed`/`clearBed`, `setShop`/`clearShop`, `setUpgrades`/`clearUpgrades`, `setGenerator`/`clearGenerator`.
+
+### Team colors and display names **(2.8-beta)**
+
+A team keeps the name it was created with (`getName()`): the arena file, commands and upgrades use it. When your addon gives teams other colors, set a display name too, so players don't see a lime team called "Red". Chat, titles, the scoreboard, NPC names and `%newbedwars_team%` show the display name.
+
+```java
+TeamEditor red = api.edit(arena).getTeam("Red").orElseThrow();
+red.setColor(ChatColor.GREEN);
+red.setDisplayName("Lime");
+```
+
+### Changing shop items per player **(2.8-beta)**
+
+`ShopItemStackEvent` lets you change what a shop item shows and gives, per player. It fires for the menu icon (`Use.ICON`) and for the item the player gets (`Use.GIVEN`), so both match. Keep the item meta when you replace the stack: it holds the name, the description and the key NewBedwars uses to recognise its items.
+
+```java
+@EventHandler
+public void onShopItem(ShopItemStackEvent e) {
+    if (!e.getItemName().equals("Wood")) return;
+    if (e.getTeam().map(t -> t.getColor() == ChatColor.RED).orElse(false)) {
+        ItemStack planks = new ItemStack(Material.MANGROVE_PLANKS, e.getItem().getAmount());
+        planks.setItemMeta(e.getItem().getItemMeta());
+        e.setItem(planks);
+    }
+}
+```
+
+Wool, glass, terracotta and the other team-colored blocks are already in the team color.
 
 ## Arena maintenance
 
@@ -291,13 +404,20 @@ api.getMaintenance().backup("castle").thenAccept(result -> {
 | `getLeaderboard(StatType, limit)` | `CompletableFuture<List<LeaderboardEntry>>` (`getName()`, `getStats()`), best first, ties by name; `limit` 1 to 100 |
 | `loadStats(name)` | `CompletableFuture<Optional<PlayerStatsView>>`, also for offline players; empty when the player never played |
 | `findPlayers(prefix, limit)` | `CompletableFuture<List<String>>` names starting with `prefix` (case-insensitive) |
+| `loadStats(UUID)` **(2.8-beta)** | like `loadStats(name)`, by UUID |
+| `addStat(UUID, name, StatType, amount)` **(2.8-beta)** | adds `amount` (1 or more) to one stat and saves it like the stats of a game: `playerStats.json`, or MySQL (network-wide, in the leaderboards). Stats can't be lowered. Server thread only |
 
 `StatType`: `WINS`, `LOSSES`, `KILLS`, `DEATHS`, `FINAL_KILLS`, `BEDS_BROKEN`, `GAMES_PLAYED` (`stat.of(view)` reads the value). With JSON storage the data comes from memory (the future completes on the server thread); with MySQL storage the database is asked on its own thread, so the results cover the whole network. Call them from any thread and never block the server thread on the future.
 
 ```java
 api.getLeaderboard(StatType.WINS, 10).thenAccept(top ->
         top.forEach(e -> getLogger().info(e.getName() + ": " + e.getStats().getWins())));
+
+// an addon game mode counts its own wins (2.8-beta)
+api.addStat(winner.getUniqueId(), winner.getName(), StatType.WINS, 1);
 ```
+
+`addStat` changes only the stat you pass; a win doesn't add a game played, so add `GAMES_PLAYED` yourself when it should count as a game.
 
 ## Game control
 
@@ -314,8 +434,85 @@ api.getLeaderboard(StatType.WINS, 10).thenAccept(top ->
 | `forceStop(arena, actor)` | stops and resets the arena at once | never |
 | `nextPhase(arena, actor)` | skips to the next game phase | no game runs |
 | `broadcast(arena, actor, message)` | sends `message` (`&` colours, 1 to 256 characters, `INVALID_NAME` otherwise) to all players and spectators of the arena | |
+| `destroyBed(arena, team, actor)` **(2.8-beta)** | destroys the team's bed as if an enemy broke it (`BedBreakEvent` with a null breaker, can be cancelled: `FAILED`); `ALREADY_DONE` when the bed is gone | no game runs |
+| `eliminateTeam(arena, team, actor)` **(2.8-beta)** | destroys the bed, makes the team's players spectators and runs the win check (the game ends when one team is left); `ALREADY_DONE` when the team is out | no game runs |
+| `setUpgradeLevel(arena, team, upgrade, level, actor)` **(2.8-beta)** | sets a team upgrade or the number of a trap for free; raising applies each level like a purchase, only traps can be lowered (`INVALID_NAME` otherwise and for a level above the upgrade's maximum, `NOT_FOUND` for an unknown upgrade). `TeamUpgradeEvent` is not fired | no game runs |
 
-All return `CompletableFuture<MaintenanceResult>` like [arena maintenance](#arena-maintenance) (`NOT_FOUND` for an unknown arena), can be called from any thread and run on the server thread.
+Team names are matched without case; an unknown team is `NOT_FOUND`. All return `CompletableFuture<MaintenanceResult>` like [arena maintenance](#arena-maintenance) (`NOT_FOUND` for an unknown arena), can be called from any thread and run on the server thread.
+
+## Players: join, spectate, leave
+
+> [!IMPORTANT]
+> **New in 2.8-beta.**
+
+The same paths as the commands, so parties, rejoining, events and messages work as usual. Call them on the server thread with an arena of this server (`IllegalArgumentException` otherwise; in network mode use [`requestNetworkJoin`](#network-actions-lobby-servers-26-beta) on a lobby server).
+
+| Method | Does |
+|---|---|
+| `join(player, arena)` | like `/bw join <arena>`: a party leader brings the party, a player who left this arena's running game rejoins. The `newbedwars.bw.join` permission is **not** checked, so your addon decides who may join |
+| `spectate(player, arena)` | like `/bw spectate <arena>`, without the `newbedwars.bw.spectate` permission |
+| `leave(player)` | takes the player out of the arena they play, wait or spectate in and sends them to the lobby (during a game they can rejoin when rejoining is on); `false` when they are in no arena |
+| `sendToLobby(player)` | `leave` for a player in an arena, otherwise a teleport to the lobby through `PlayerSendToLobbyEvent` (reason `ADDON`); `false` when there is no lobby or the teleport was cancelled |
+
+`join` and `spectate` return a `JoinResult`, and the player also gets the usual chat message:
+
+| `JoinResult` | Meaning |
+|---|---|
+| `JOINED`, `REJOINED`, `SPECTATING` | done (`isSuccess()` is `true`) |
+| `NOT_PARTY_LEADER`, `PARTY_TOO_BIG`, `PARTIES_NOT_ALLOWED` | party rules |
+| `ALREADY_IN_ARENA`, `NOT_ENABLED`, `FULL` | the player or the arena |
+| `RUNNING`, `ENDING`, `RESTARTING` | the game state does not allow joining (spectate a `RUNNING` game instead) |
+| `NOT_RUNNING`, `SPECTATORS_DISABLED` | spectating only |
+| `CANCELLED` | an addon cancelled `PlayerJoinArenaEvent` or `PlayerSpectateEvent` |
+| `FAILED` | anything else, e.g. the rejoin place is gone or the player plays in another arena |
+
+```java
+api.getArena("Castle").ifPresent(arena -> {
+    JoinResult result = api.join(player, arena);
+    if (result == JoinResult.RUNNING) api.spectate(player, arena);
+});
+```
+
+## Parties
+
+> [!IMPORTANT]
+> **New in 2.8-beta.**
+
+`api.getParty(player)` returns the player's `PartyView` (`getLeader`, `getMembers`, `getOnlineMembers`, `contains`, `size`). It is a live view: the getters always show the current members. In network mode the proxy keeps the parties and this is the copy it sends to the server.
+
+`PartyChangeEvent` fires after a party on this server changed, with `getChange()`: `CREATED` (`getPlayer()` is the leader), `JOINED`, `LEFT`, `KICKED`, `LEADER_CHANGED` (`getPlayer()` is the new leader) and `DISBANDED` (`getPlayer()` is null, the party is empty). Changes that arrive from the proxy don't fire it.
+
+```java
+@EventHandler
+public void onParty(PartyChangeEvent e) {
+    if (e.getChange() == PartyChangeEvent.Change.JOINED) {
+        e.getParty().getOnlineMembers().forEach(p -> p.sendMessage("A new member joined your party"));
+    }
+}
+```
+
+## Messages and languages
+
+> [!IMPORTANT]
+> **New in 2.8-beta.**
+
+Players choose their language with `/lang`. Addons can use the same language for their own texts:
+
+| Method | Returns |
+|---|---|
+| `getLanguage(player)` | `en`, `pl`, `de`, `es`, `fr` or `ru` |
+| `getMessage(player, key)` | the message in the player's language: one your addon registered, or a NewBedwars message from the language files; missing translations fall back to English, unknown keys give `""`. `&` colours are translated |
+| `getMessage(player, key, replacements)` | the same with placeholders replaced, e.g. `Map.of("/player/", name)` |
+| `registerMessages(owner, language, messages)` | adds your messages for one language (calling it again replaces that language). Register `en` at least. Removed when your plugin is disabled |
+
+```java
+api.registerMessages(this, "en", Map.of("MyAddon-Welcome", "&aWelcome, /player/!"));
+api.registerMessages(this, "pl", Map.of("MyAddon-Welcome", "&aWitaj, /player/!"));
+
+player.sendMessage(api.getMessage(player, "MyAddon-Welcome", Map.of("/player/", player.getName())));
+```
+
+Addon messages win over NewBedwars messages with the same key, so give your keys a prefix.
 
 ## Shop editor
 
@@ -338,7 +535,7 @@ All return `CompletableFuture<MaintenanceResult>` like [arena maintenance](#aren
 Changes return a `ShopResult` (`OK`, `NOT_FOUND`, `INVALID` with the field in `detail`, `IN_USE` with the places in `detail`, `BUSY`, `NAME_TAKEN`, `FAILED`).
 
 > [!WARNING]
-> **`ShopGui.closeOnTransaction` is deprecated.** The `CloseOnTransaction` setting of GUI files never had an effect (shops always stay open after a purchase), so it is removed from GUI files and the web panel in 2.8-beta. The record component stays so existing addons keep compiling, but from 2.8-beta it is always `false` and ignored when saving. Pass `false` and don't rely on it; it may be removed in a future version.
+> **`ShopGui.closeOnTransaction` is deprecated and will be removed in the first stable release (3.0.0).** The `CloseOnTransaction` setting of GUI files never had an effect (shops always stay open after a purchase), so it was removed from GUI files and the web panel in 2.8-beta. The record component is still there so existing addons keep compiling, but it is always `false` and ignored when saving. Pass `false` and don't read it.
 
 ```java
 ShopEditor shop = api.getShop();
@@ -349,7 +546,7 @@ shop.getItem("Wool").thenAccept(item -> item.ifPresent(wool ->
 
 ## Rules and good practice
 
-- Call the API from the main thread (`getMaintenance()` methods may be called from any thread).
+- Call the API from the main thread (`join`, `spectate`, `leave`, `sendToLobby`, `addStat` and `registerShopItem` throw `IllegalStateException` on another thread). Exceptions that may be called from any thread: `getMaintenance()`, `getGameControl()` and `getShop()` (the work runs on the main thread, the futures complete there), and the stats futures `getLeaderboard`, `loadStats` and `findPlayers` (with MySQL they complete on a database thread, so switch to the main thread before using Bukkit).
 - Events fire on the main thread; keep handlers fast.
 - Do not teleport players to the lobby yourself: NewBedwars does it through `PlayerSendToLobbyEvent`, so network setups keep working.
 - Do not hold on to worlds from `ArenaView#getWorld()`; fetch it again after `ArenaResetEvent` stage `POST`.

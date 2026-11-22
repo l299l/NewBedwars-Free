@@ -55,7 +55,7 @@ public class BridgeEggLogic implements CustomLogic {
             for (int dz = -1; dz <= 1; dz++) {
                 Location wLoc = new Location(loc.getWorld(), loc.getBlockX() + dx, baseY, loc.getBlockZ() + dz);
                 if (arenaImpl != null && (arenaImpl.isInTeamBase(wLoc)
-                        || arenaImpl.isNearDiamondOrEmeraldGenerator(wLoc))) {
+                        || arenaImpl.isNearIslandGenerator(wLoc))) {
                     continue;
                 }
                 Block b = wLoc.getBlock();

@@ -23,6 +23,7 @@ public class PlayerManager {
     private final HashMap<UUID, String> names = new HashMap<>();
     private final HashMap<String, UUID> ids = new HashMap<>();
     private Map<String, List<Map.Entry<String, PlayerStats>>> sharedLeaderboards;
+    private boolean dropOfflineGameResults;
 
     public void load() {
 
@@ -116,6 +117,13 @@ public class PlayerManager {
         save();
     }
 
+    public void evict(UUID id) {
+        players.remove(id);
+        playerStats.remove(id);
+        String name = names.remove(id);
+        if (name != null) ids.remove(key(name), id);
+    }
+
     public HashMap<UUID, PlayerProfile> getPlayers() {
         return players;
     }
@@ -140,8 +148,13 @@ public class PlayerManager {
         playerStats.merge(id, stats, PlayerStats::plus);
     }
 
+    public void setDropOfflineGameResults(boolean drop) {
+        this.dropOfflineGameResults = drop;
+    }
+
     public void addGameResult(UUID id, String name, GamePlayer gp, boolean won) {
         if (id == null) return;
+        if (dropOfflineGameResults && Bukkit.getPlayer(id) == null) return;
         identify(id, name);
         PlayerStats current = playerStats.getOrDefault(id, PlayerStats.empty());
         playerStats.put(id, current.addGameResult(

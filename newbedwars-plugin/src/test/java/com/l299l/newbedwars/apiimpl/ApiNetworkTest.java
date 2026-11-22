@@ -63,7 +63,7 @@ class ApiNetworkTest {
         assertEquals(6, s.getBedsBroken());
         assertEquals(7, s.getGamesPlayed());
         assertEquals(0, api.getStats("Nobody").getWins());
-        assertEquals(0, api.getStats(null).getGamesPlayed());
+        assertEquals(0, api.getStats((String) null).getGamesPlayed());
     }
 
     @Test

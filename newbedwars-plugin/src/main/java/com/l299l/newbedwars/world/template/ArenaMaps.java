@@ -74,25 +74,36 @@ public final class ArenaMaps {
         MapTemplateManager.createTemplate(mapsRoot(), arena, world.getWorldFolder().toPath(), Properties.RollbackTemplateExcludes);
     }
 
+    private static final long SAVE_SETTLE_TICKS = 20L;
+
     public static void createTemplateAsync(String arena, World world, Consumer<Exception> done) {
         world.save();
         Path folder = world.getWorldFolder().toPath();
         List<String> excludes = List.copyOf(Properties.RollbackTemplateExcludes);
-        Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin, () -> {
+        Bukkit.getScheduler().runTaskLaterAsynchronously(NewBedwars.plugin, () -> {
             Exception error = null;
+            BackgroundTasks.started();
             try {
                 backupTemplate(arena);
                 MapTemplateManager.createTemplate(mapsRoot(), arena, folder, excludes);
             } catch (Exception e) {
                 error = e;
+            } catch (Throwable t) {
+                error = new IOException(t.toString(), t);
+            } finally {
+                BackgroundTasks.finished();
             }
             Exception result = error;
-            Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> done.accept(result));
-        });
+            com.l299l.newbedwars.utils.MainThread.run(NewBedwars.plugin, () -> done.accept(result));
+        }, SAVE_SETTLE_TICKS);
     }
 
     public static void restoreOffline(String arena, String worldName) throws IOException {
-        MapTemplateManager.restoreTemplate(mapsRoot(), arena, worldFolder(worldName), Properties.RollbackTemplateExcludes);
+        restoreOffline(arena, worldFolder(worldName), List.copyOf(Properties.RollbackTemplateExcludes));
+    }
+
+    public static void restoreOffline(String arena, Path worldFolder, List<String> excludes) throws IOException {
+        MapTemplateManager.restoreTemplate(mapsRoot(), arena, worldFolder, excludes);
         MapTemplateManager.clearDirty(mapsRoot(), arena);
     }
 

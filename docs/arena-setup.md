@@ -107,5 +107,6 @@ An arena can only be enabled when it has:
 ## Backups and moving arenas
 
 - Saving keeps backups of the previous versions (how many: `Backups.Keep` in `config.yml`). `/bw arena backup <name>` makes one now, `/bw arena backups <name>` lists them and `/bw arena restore <name> [backupId]` restores one.
+- Backups made with `/bw arena backup` end in `-manual` and are never deleted automatically (remove old ones by hand from `data/backups/`). `/bw arena restore <name>` without an id restores the newest of them, arena file and map together; with no manual backup it uses the newest automatic arena file and map.
 - `/bw arena resetmap <name>` puts the map back to its saved state.
 - `/bw arena export <name>` packs the arena and its map into a zip in `data/exports`. Copy the zip to another server's `data/exports` and run `/bw arena import <file>` there; the arena is loaded disabled.

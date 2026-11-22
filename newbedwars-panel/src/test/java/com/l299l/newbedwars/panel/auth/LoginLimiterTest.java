@@ -44,4 +44,18 @@ class LoginLimiterTest {
         limiter.cleanup();
         assertTrue(limiter.lockedFor("user:x") > 0);
     }
+
+    @Test
+    void aLockIsNoticedOncePerLockWindow() {
+        assertFalse(limiter.noticeLock("user:leon"));
+        for (int i = 0; i < 5; i++) limiter.failure("user:leon");
+        assertTrue(limiter.noticeLock("user:leon"));
+        assertFalse(limiter.noticeLock("user:leon"));
+        limiter.failure("user:leon");
+        assertFalse(limiter.noticeLock("user:leon"));
+        now.addAndGet(600_000);
+        assertFalse(limiter.noticeLock("user:leon"));
+        for (int i = 0; i < 5; i++) limiter.failure("user:leon");
+        assertTrue(limiter.noticeLock("user:leon"));
+    }
 }

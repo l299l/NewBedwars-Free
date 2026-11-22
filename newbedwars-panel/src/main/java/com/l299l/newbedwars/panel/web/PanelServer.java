@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class PanelServer implements HttpHandler {
-    public static final int THREADS = 4;
+    public static final int THREADS = 8;
     public static final int GATEWAY_THREADS = 16;
     private static final String CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
             + "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
@@ -55,6 +55,9 @@ public final class PanelServer implements HttpHandler {
     private final Set<String> warnedTargets = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private HttpServer server;
     private ExecutorService executor;
+    private long readMillis = RequestGuard.READ_MILLIS;
+    private long idleMillis = RequestGuard.IDLE_MILLIS;
+    private RequestGuard guard;
 
     public PanelServer(Router router, SessionManager sessions, AccountStore accounts, SessionCookie cookies,
                        boolean hsts, Logger logger) {
@@ -91,7 +94,9 @@ public final class PanelServer implements HttpHandler {
             t.setDaemon(true);
             return t;
         });
-        created.setExecutor(executor);
+        guard = new RequestGuard(readMillis, idleMillis);
+        guard.start();
+        created.setExecutor(guard.wrap(executor));
         created.createContext("/", this);
         created.start();
         server = created;
@@ -100,8 +105,15 @@ public final class PanelServer implements HttpHandler {
     public void stop() {
         if (server != null) server.stop(0);
         if (executor != null) executor.shutdownNow();
+        if (guard != null) guard.stop();
         server = null;
         executor = null;
+        guard = null;
+    }
+
+    void limits(long readMillis, long idleMillis) {
+        this.readMillis = readMillis;
+        this.idleMillis = idleMillis;
     }
 
     public int port() {
@@ -110,32 +122,51 @@ public final class PanelServer implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) {
+        RequestGuard.Slot slot = guard == null ? RequestGuard.unguarded() : guard.current();
         try {
             Response response;
             try {
-                response = dispatch(exchange);
+                response = dispatch(exchange, slot);
             } catch (HttpError e) {
                 response = Response.error(e.status, e.code);
-            } catch (Exception e) {
+            } catch (Exception | StackOverflowError e) {
+                if (slot.aborted()) return;
                 logger.log(Level.WARNING, "Panel request " + exchange.getRequestMethod() + " "
                         + exchange.getRequestURI().getRawPath() + " failed", e);
                 response = Response.error(500, "internal");
             }
+            slot.finishing();
+            if (slot.aborted()) return;
             write(exchange, response);
         } catch (IOException ignored) {
+        } catch (Error e) {
+            logger.log(Level.SEVERE, "Panel request " + exchange.getRequestMethod() + " "
+                    + exchange.getRequestURI().getRawPath() + " failed", e);
+            throw e;
         } finally {
             exchange.close();
         }
     }
 
-    private Response dispatch(HttpExchange exchange) throws Exception {
+    private Response dispatch(HttpExchange exchange, RequestGuard.Slot slot) throws Exception {
         String method = exchange.getRequestMethod().toUpperCase(Locale.ROOT);
         String path = exchange.getRequestURI().getRawPath();
+        boolean streaming = isUpload(method, path);
+        byte[] body = null;
+        if (streaming) {
+            slot.streaming();
+        } else {
+            body = exchange.getRequestBody().readNBytes(Request.MAX_JSON_BYTES + 1);
+            if (body.length > Request.MAX_JSON_BYTES) throw new HttpError(413, "too_large");
+            if (!slot.done()) throw new IOException("request read timed out");
+        }
         if (!path.startsWith("/api/")) return staticFile(method, path);
 
         Router.Match match = router.match(method, path);
         if (match == null) return Response.error(404, "not_found");
         Request request = new Request(exchange, match.params(), cookies.clientIp(exchange));
+        if (streaming) request.stream = RequestGuard.track(exchange.getRequestBody(), slot);
+        else request.buffered = body;
         boolean safe = method.equals("GET") || method.equals("HEAD");
         if (!safe && !cookies.sameOrigin(exchange)) throw new HttpError(403, "bad_origin");
 
@@ -202,6 +233,14 @@ public final class PanelServer implements HttpHandler {
         if (!identity.ip().isEmpty()) request.ip = identity.ip();
         request.account = new Account(identity.account(), "", "node", false, 0);
         request.role = role;
+    }
+
+    static boolean isUpload(String method, String path) {
+        if (!method.equals("POST")) return false;
+        if (path.equals("/api/import")) return true;
+        if (!path.startsWith("/api/s/") || !path.endsWith("/import")) return false;
+        String server = path.substring("/api/s/".length(), path.length() - "/import".length());
+        return !server.isEmpty() && server.indexOf('/') < 0;
     }
 
     static boolean csrfMatches(String expected, String given) {

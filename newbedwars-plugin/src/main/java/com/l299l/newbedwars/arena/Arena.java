@@ -39,7 +39,6 @@ import org.bukkit.*;
 import org.bukkit.boss.BossBar;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -78,6 +77,8 @@ public class Arena implements IArena {
     private Gamerules gamerules;
     private boolean enabled = false;
     private Setup setup = Setup.NO_SETUP;
+    private Boolean persistedEnabled;
+    private Setup persistedSetup;
     private GameStatus gameStatus;
     private final String arenaName;
     private final ArrayList<UUID> onSetupList = new ArrayList<>();
@@ -95,6 +96,8 @@ public class Arena implements IArena {
     private final ArrayList<Player> spectatorsList = new ArrayList<>();
     private final HashMap<UUID, GamePlayer> players = new HashMap<>();
     private final HashMap<UUID, GamePlayer> finishedPlayers = new HashMap<>();
+    private final Set<UUID> forfeited = new HashSet<>();
+    private final Set<UUID> leaving = new HashSet<>();
     private final HashMap<UUID, NScoreboard> scoreboards = new HashMap<>();
     private final String worldName;
     private Location waitingPos1;
@@ -153,15 +156,17 @@ public class Arena implements IArena {
             countdownTimer.cancel();
         }
         DecoUtils.removeAllArmorStands(this);
-        gameStatus = GameStatus.playing;
+        setStatus(GameStatus.playing);
         gameStartMillis = System.currentTimeMillis();
         finishedPlayers.clear();
+        forfeited.clear();
         if (ArenaMaps.isEnabled() && ArenaMaps.hasTemplate(arenaName)) {
             ArenaMaps.markDirty(arenaName);
         }
         broadcast("GameStarted");
         clearWaitingArea();
         assignTeams();
+        ApiEvents.teamsAssigned(this);
         for (Team team : teams.values()) {
             team.start();
         }
@@ -219,7 +224,8 @@ public class Arena implements IArena {
     }
 
     private void shutdown(boolean force) {
-        gameStatus = GameStatus.restarting;
+        setStatus(GameStatus.restarting);
+        com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revokeArena(arenaName);
         if (!force) MapVoteManager.resetArena(this);
 
         if (tntParticleTask != null) {
@@ -244,14 +250,15 @@ public class Arena implements IArena {
             GamePlayer gp = players.get(playerId);
             if (gp != null) gp.cancelRespawnTask();
             Player player = Bukkit.getPlayer(playerId);
-            if (player != null && (player.getWorld() == world || spectatorsList.contains(player))) {
+            if (player != null && player.getWorld() == world) {
                 leave(player, reason);
             }
         }
         players.clear();
         finishedPlayers.clear();
+        forfeited.clear();
         for (Player spectator : new ArrayList<>(spectatorsList)) {
-            leave(spectator, reason);
+            if (spectator.getWorld() == world) leave(spectator, reason);
         }
         spectatorsList.clear();
         nextPhaseTime = 0;
@@ -281,7 +288,7 @@ public class Arena implements IArena {
             Bukkit.getServer().getLogger().severe("Could not rollback arena " + arenaName);
         }
         if (!ArenaMaps.isEnabled()) {
-            gameStatus = GameStatus.waiting;
+            setStatus(GameStatus.waiting);
         }
     }
 
@@ -303,13 +310,49 @@ public class Arena implements IArena {
     }
 
     void setStatus(GameStatus status) {
+        GameStatus previous = gameStatus;
         gameStatus = status;
+        if (previous != status) ApiEvents.stateChange(this, previous, status);
     }
 
     void disableBroken(String reason) {
+        rememberPersisted();
         enabled = false;
         setup = Setup.NO_SETUP;
         loadProblems.add(reason);
+    }
+
+    public void autoDisable() {
+        boolean wasEnabled = persistedEnabled != null ? persistedEnabled : enabled;
+        Setup wasSetup = persistedEnabled != null ? persistedSetup : setup;
+        disable();
+        if (!enabled) {
+            persistedEnabled = wasEnabled;
+            persistedSetup = wasSetup;
+        }
+    }
+
+    public boolean isAutoDisabled() {
+        return persistedEnabled != null;
+    }
+
+    public void clearAutoDisabled() {
+        persistedEnabled = null;
+        persistedSetup = null;
+    }
+
+    private void rememberPersisted() {
+        if (persistedEnabled != null) return;
+        persistedEnabled = enabled;
+        persistedSetup = setup;
+    }
+
+    boolean enabledToSave() {
+        return persistedEnabled != null ? persistedEnabled : enabled;
+    }
+
+    Setup setupToSave() {
+        return persistedEnabled != null ? persistedSetup : setup;
     }
 
     public void unbindWorld() {
@@ -372,6 +415,7 @@ public class Arena implements IArena {
     private void applyJoinSetup(Player player) {
         player.teleport(waitingSpawn);
         PlayerStateResetter.reset(player, GameMode.ADVENTURE);
+        PlayerStateResetter.clearEffects(player);
         player.setInvulnerable(true);
         player.getInventory().setItem(8, NewBedwars.plugin.getGuiManager().getLeaveItem(player));
         addToBossBar(player);
@@ -394,12 +438,23 @@ public class Arena implements IArena {
     }
 
     private boolean tryAdmit(Player player) {
+        if (gameStatus != GameStatus.waiting && gameStatus != GameStatus.starting) return false;
         if (players.containsKey(player.getUniqueId())) return false;
         if (playsInOtherArena(player)) return false;
         if (!ApiEvents.playerJoin(this, player, false)) return false;
+        leaveOtherSpectating(player);
         forfeitOtherRejoins(player);
         applyJoinSetup(player);
         return true;
+    }
+
+    private void leaveOtherSpectating(Player player) {
+        for (IArena other : new ArrayList<>(ArenaRegistry.all())) {
+            if (other != this && other.getSpectators().contains(player)
+                    && (!other.isPlayerInArena(player) || player.getWorld() != other.getArenaWorld())) {
+                other.leave(player, com.l299l.newbedwars.api.events.LeaveReason.COMMAND);
+            }
+        }
     }
 
     private boolean playsInOtherArena(Player player) {
@@ -448,7 +503,7 @@ public class Arena implements IArena {
                     "/maxplayers/", Integer.toString(maxSize)));
         }
         checkIfCanStart();
-        return true;
+        return !joined.isEmpty();
     }
 
     @Override
@@ -461,7 +516,7 @@ public class Arena implements IArena {
         if (gameStatus != GameStatus.playing) {
             return false;
         }
-        if (!players.containsKey(player.getUniqueId())) {
+        if (!players.containsKey(player.getUniqueId()) || !rejoin.waiting().contains(player.getUniqueId())) {
             return false;
         }
         GamePlayer gamePlayer = players.get(player.getUniqueId());
@@ -473,7 +528,9 @@ public class Arena implements IArena {
         }
         if (!ApiEvents.playerJoin(this, player, true)) return false;
         rejoin.cancel(player.getUniqueId());
+        forfeited.remove(player.getUniqueId());
         team.addPlayer(player);
+        com.l299l.newbedwars.arena.shops.customitems.GamePermissions.restore(NewBedwars.plugin, player, arenaName);
         addToBossBar(player);
         showScoreboard("InGameScoreboard", player);
         killPlayer(player);
@@ -483,12 +540,26 @@ public class Arena implements IArena {
 
     @Override
     public void leave(Player player, LeaveReason reason) {
+        if (!leaving.add(player.getUniqueId())) return;
+        try {
+            doLeave(player, reason);
+        } finally {
+            leaving.remove(player.getUniqueId());
+        }
+    }
+
+    private void doLeave(Player player, LeaveReason reason) {
         MapVoteManager.playerLeft(this, player);
+        if (gameStatus == GameStatus.playing && players.containsKey(player.getUniqueId())) {
+            com.l299l.newbedwars.arena.shops.customitems.GamePermissions.suspend(player);
+        } else {
+            com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revoke(player);
+        }
         if (players.containsKey(player.getUniqueId()) || spectatorsList.contains(player)) {
             ApiEvents.playerLeave(this, player, reason);
         }
         Location lobby = NewBedwars.plugin.getLobbyLocation();
-        LobbyService.sendToLobby(player, PlayerSendToLobbyEvent.Reason.LEFT_ARENA);
+        if (player.getWorld() == world) LobbyService.sendToLobby(player, PlayerSendToLobbyEvent.Reason.LEFT_ARENA);
         player.setInvulnerable(false);
         PlayerStateResetter.reset(player, GameMode.SURVIVAL);
         PlayerStateResetter.clearEffects(player);
@@ -520,6 +591,7 @@ public class Arena implements IArena {
     }
 
     private void leaveRunningGame(Player player, GamePlayer leavingPlayer, String playerName) {
+        forfeited.add(player.getUniqueId());
         leavingPlayer.getTeam().removePlayer(player);
         if (checkWin()) {
             finishLeave(player, leavingPlayer);
@@ -544,6 +616,7 @@ public class Arena implements IArena {
     }
 
     void retire(UUID playerId) {
+        com.l299l.newbedwars.arena.shops.customitems.GamePermissions.forget(playerId, arenaName);
         GamePlayer gp = players.remove(playerId);
         if (gp != null && gp.getTeam() != null) finishedPlayers.putIfAbsent(playerId, gp);
     }
@@ -553,7 +626,7 @@ public class Arena implements IArena {
                 ? leavingPlayer.getTeam().colored(player.getName()) : player.getName();
         if (leavingPlayer.getTeam() != null) leavingPlayer.getTeam().removePlayer(player);
         players.remove(player.getUniqueId());
-        broadcast("PlayerLeftArena", Map.of(
+        if (gameStatus != GameStatus.restarting) broadcast("PlayerLeftArena", Map.of(
                 "/player/", playerName,
                 "/players/", Integer.toString(players.size()),
                 "/maxplayers/", Integer.toString(getMaxPlayers())));
@@ -572,6 +645,7 @@ public class Arena implements IArena {
             throw new IllegalArgumentException("Player is not in team");
         }
         if (team.isBedDestroyed()) {
+            com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revoke(player);
             addSpectator(player, true);
             team.removePlayer(player);
             retire(player.getUniqueId());
@@ -584,6 +658,7 @@ public class Arena implements IArena {
 
     private void startRespawnCountdown(Player player) {
         GamePlayer gp = players.get(player.getUniqueId());
+        if (gp != null) gp.cancelRespawnTask();
         BukkitTask task = new BukkitRunnable() {
             int time = Math.max(1, respawnTime);
             @Override
@@ -646,7 +721,7 @@ public class Arena implements IArena {
     @Override
     public void cancelStart() {
         if (countdownTimer != null) countdownTimer.cancel();
-        gameStatus = GameStatus.waiting;
+        setStatus(GameStatus.waiting);
         broadcast("StartCanceled");
         broadcast("NotEnoughPlayers", Map.of(
                 "/arenaname/", arenaName,
@@ -725,9 +800,10 @@ public class Arena implements IArena {
 
     public void enable() {
         DecoUtils.removeAllArmorStands(this);
+        clearAutoDisabled();
         enabled = true;
         setup = Setup.READY;
-        gameStatus = GameStatus.waiting;
+        setStatus(GameStatus.waiting);
         discardBossBar();
         arenaBossBar = NewBedwars.plugin.getBossBarManager().createBossBar("WaitingBeforeStart", this);
     }
@@ -744,9 +820,10 @@ public class Arena implements IArena {
             NewBedwars.plugin.getMessages().send(player, "KickedFromArena");
         }
         discardBossBar();
+        clearAutoDisabled();
         enabled = false;
         setup = Setup.NO_SETUP;
-        gameStatus = GameStatus.restarting;
+        setStatus(GameStatus.restarting);
         DecoUtils.summonAllArmorStands(this);
     }
 
@@ -910,7 +987,13 @@ public class Arena implements IArena {
 
     @Override
     public void setGeneratorsLeveling(GeneratorLeveling generatorLeveling) {
+        if (generatorsLeveling == generatorLeveling) return;
         generatorsLeveling = generatorLeveling;
+        if (gameStatus == GameStatus.playing || gameStatus == GameStatus.ending) return;
+        for (Generator generator : generators) generator.stop();
+        for (Team team : teams.values()) {
+            if (team.getGenerator() != null) team.getGenerator().stop();
+        }
     }
 
     @Override
@@ -935,6 +1018,8 @@ public class Arena implements IArena {
         if (spectatorsList.contains(player)) return false;
         if (players.containsKey(player.getUniqueId())) return false;
         if (playsInOtherArena(player)) return false;
+        if (!ApiEvents.spectate(this, player)) return false;
+        leaveOtherSpectating(player);
         forfeitOtherRejoins(player);
         addSpectatorInternal(player, true);
         updateTablist(player);
@@ -976,6 +1061,7 @@ public class Arena implements IArena {
     }
 
     public void changeSetup(Setup setup) {
+        clearAutoDisabled();
         this.setup = setup;
     }
 
@@ -1054,10 +1140,9 @@ public class Arena implements IArena {
         return false;
     }
 
-    public boolean isNearDiamondOrEmeraldGenerator(Location loc) {
+    public boolean isNearIslandGenerator(Location loc) {
         for (Generator generator : generators) {
-            if (generator.getType() != GeneratorType.DIAMOND
-                    && generator.getType() != GeneratorType.EMERALD) continue;
+            if (generator.getType() == GeneratorType.BASIC) continue;
             Location gLoc = generator.getLocation();
             if (gLoc.getWorld() != loc.getWorld()) continue;
             if (Math.abs(gLoc.getBlockX() - loc.getBlockX()) <= 2
@@ -1101,14 +1186,7 @@ public class Arena implements IArena {
             if (team.getTeamBed() != null && team.getTeamBed().isAlive()) {
                 destroyed.add(team);
                 team.getTeamBed().destroy();
-                Location loc = team.getTeamBed().getLocation();
-                loc.getBlock().setType(Material.AIR, false);
-                for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
-                    Block relative = loc.getBlock().getRelative(face);
-                    if (relative.getType().name().contains("BED")) {
-                        relative.setType(Material.AIR, false);
-                    }
-                }
+                clearBedBlocks(team.getTeamBed().getLocation());
             }
         }
         broadcast("BedsDestroyed");
@@ -1116,30 +1194,93 @@ public class Arena implements IArena {
         if (!destroyed.isEmpty()) ApiEvents.bedsDestroyed(this, destroyed);
     }
 
+    private static void clearBedBlocks(Location loc) {
+        if (loc == null || loc.getWorld() == null) return;
+        loc.getBlock().setType(Material.AIR, false);
+        for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            Block relative = loc.getBlock().getRelative(face);
+            if (TeamColor.kindOf(relative.getType()) == TeamColor.Kind.BED) {
+                relative.setType(Material.AIR, false);
+            }
+        }
+    }
+
+    @Override
+    public boolean destroyBed(Team team) {
+        if (gameStatus != GameStatus.playing || team == null || team.getTeamBed() == null || !team.getTeamBed().isAlive()) {
+            return false;
+        }
+        if (!ApiEvents.bedBreak(this, team, null)) return false;
+        if (!team.getTeamBed().isAlive()) return false;
+        team.getTeamBed().destroy();
+        clearBedBlocks(team.getTeamBed().getLocation());
+        broadcast("BedDestroyedNoBreaker", Map.of("/team/", team.colored(team.getDisplayName())));
+        for (Player member : new ArrayList<>(team.getPlayers())) {
+            sendTitle(member, "BedDestroyedTitle", "BedDestroyedSubtitle", Map.of(), 10, 40, 10);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean eliminateTeam(Team team) {
+        if (gameStatus != GameStatus.playing || team == null || !team.isAlive()) return false;
+        if (team.getTeamBed() != null && team.getTeamBed().isAlive()) {
+            team.getTeamBed().destroy();
+            clearBedBlocks(team.getTeamBed().getLocation());
+        }
+        for (Player member : new ArrayList<>(team.getPlayers())) {
+            GamePlayer gp = players.get(member.getUniqueId());
+            if (gp != null) gp.cancelRespawnTask();
+            com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revoke(member);
+            if (member.isOnline()) addSpectator(member, true);
+            team.removePlayer(member);
+            retire(member.getUniqueId());
+        }
+        team.eliminate();
+        broadcast("TeamEliminatedBroadcast", Map.of("/team/", team.colored(team.getDisplayName())));
+        checkWin();
+        return true;
+    }
+
     @Override
     public void endGame(String criteria) {
-        if ("DRAW".equalsIgnoreCase(criteria)) {
+        if (gameStatus != GameStatus.playing) return;
+        Team winner = null;
+        if ("MOST_KILLS".equalsIgnoreCase(criteria)) {
+            winner = mostKillsWinner();
+        } else if (!"DRAW".equalsIgnoreCase(criteria)) {
+            NewBedwars.plugin.getLogger().warning("Arena " + arenaName + ": unknown game end '" + criteria
+                    + "' (use DRAW or MOST_KILLS); the game ends as a draw");
+        }
+        if (winner == null) {
             broadcast("GameDraw");
             broadcastTitleKeys("DrawTitle", "DrawSubtitle", Map.of(), 10, 60, 20);
-            startEnding(null);
-        } else if ("MOST_KILLS".equalsIgnoreCase(criteria)) {
-            Team winner = null;
-            int mostKills = -1;
-            for (Team team : teams.values()) {
-                int teamKills = 0;
-                for (Player player : team.getPlayers()) {
-                    GamePlayer gp = getPlayer(player.getUniqueId());
-                    if (gp != null) teamKills += gp.getKills();
-                }
-                if (teamKills > mostKills) {
-                    mostKills = teamKills;
-                    winner = team;
-                }
-            }
-            startEnding(winner);
-        } else {
-            stop();
         }
+        startEnding(winner);
+    }
+
+    private Team mostKillsWinner() {
+        Map<Team, Integer> kills = new HashMap<>();
+        Map<UUID, GamePlayer> everyone = new LinkedHashMap<>(finishedPlayers);
+        everyone.putAll(players);
+        for (GamePlayer gp : everyone.values()) {
+            if (gp.getTeam() != null) kills.merge(gp.getTeam(), gp.getKills(), Integer::sum);
+        }
+        Team best = null;
+        int most = -1;
+        boolean tie = false;
+        for (Team team : teams.values()) {
+            if (!team.isAlive()) continue;
+            int value = kills.getOrDefault(team, 0);
+            if (value > most) {
+                most = value;
+                best = team;
+                tie = false;
+            } else if (value == most) {
+                tie = true;
+            }
+        }
+        return tie ? null : best;
     }
 
     @Override
@@ -1284,7 +1425,7 @@ public class Arena implements IArena {
     }
 
     private void starting() {
-        gameStatus = GameStatus.starting;
+        setStatus(GameStatus.starting);
         nextPhaseTime = waitingTime;
         if (countdownTimer != null) countdownTimer.cancel();
         countdownTimer = new CountdownTimer(players.keySet(), waitingTime, this);
@@ -1483,6 +1624,10 @@ public class Arena implements IArena {
             }
             pl.showPlayer(NewBedwars.plugin, player);
         }
+        for (Player spectator : spectatorsList) {
+            if (!spectator.equals(player)) player.hidePlayer(NewBedwars.plugin, spectator);
+        }
+        ApiEvents.respawn(this, player, team);
     }
 
     private void dropRejoinOfDeadTeams() {
@@ -1497,7 +1642,10 @@ public class Arena implements IArena {
 
     private void reportEliminations() {
         for (Team team : teams.values()) {
-            if (!team.isAlive() && eliminatedTeams.add(team.getName())) ApiEvents.teamEliminated(this, team);
+            if (!team.isAlive() && eliminatedTeams.add(team.getName())) {
+                if (team.getGenerator() != null) team.getGenerator().stop();
+                ApiEvents.teamEliminated(this, team);
+            }
         }
     }
 
@@ -1532,8 +1680,8 @@ public class Arena implements IArena {
     }
 
     private void sendWinMessage(Team team) {
-        broadcast("GameEnded", Map.of("/team/", team.colored(team.getName())));
-        broadcastTitleKeys("GameEndedTitle", "GameEndedSubtitle", Map.of("/team/", team.colored(team.getName())), 10, 40, 10);
+        broadcast("GameEnded", Map.of("/team/", team.colored(team.getDisplayName())));
+        broadcastTitleKeys("GameEndedTitle", "GameEndedSubtitle", Map.of("/team/", team.colored(team.getDisplayName())), 10, 40, 10);
         FireworkEffect effect = FireworkEffect.builder()
                 .withColor(TeamColor.firework(team.getColor()))
                 .withFade(Color.YELLOW)
@@ -1542,7 +1690,7 @@ public class Arena implements IArena {
                 .flicker(true)
                 .build();
         for (Player player : team.getPlayers()) {
-            Firework fw = (Firework) world.spawnEntity(player.getLocation(), EntityType.FIREWORK);
+            Firework fw = world.spawn(player.getLocation(), Firework.class);
             FireworkMeta meta = fw.getFireworkMeta();
             meta.addEffect(effect);
             meta.setPower(1);
@@ -1555,7 +1703,8 @@ public class Arena implements IArena {
         Map<UUID, GamePlayer> everyone = new LinkedHashMap<>(finishedPlayers);
         everyone.putAll(players);
         for (GamePlayer gp : everyone.values()) {
-            boolean won = winner != null && winner.getPlayers().contains(gp.getPlayer());
+            UUID id = gp.getPlayer().getUniqueId();
+            boolean won = winner != null && gp.getTeam() == winner && !forfeited.contains(id);
             pm.addGameResult(gp.getPlayer().getUniqueId(), gp.getPlayer().getName(), gp, won);
             NewBedwars.plugin.getDataManager().recordGameResult(gp.getPlayer().getUniqueId(), gp.getPlayer().getName(),
                     PlayerSqlRepo.gameDelta(gp.getKills(), gp.getDeaths(),
@@ -1580,8 +1729,10 @@ public class Arena implements IArena {
     }
 
     void startEnding(Team winner) {
+        if (gameStatus != GameStatus.playing) return;
         persistStats(winner);
-        gameStatus = GameStatus.ending;
+        setStatus(GameStatus.ending);
+        com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revokeArena(arenaName);
         ApiEvents.gameEnd(this, winner);
         if (gamePhases != null && gamePhases.getCurrentPhase() != null) {
             gamePhases.getCurrentPhase().cancel();

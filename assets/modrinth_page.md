@@ -30,7 +30,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Parties: `/party`, clickable invites, and the party admin leads everyone into an arena together
 - Configurable game phases: generator upgrades, bed destruction, Ender Dragons, and more
 - Smart Ender Dragons from the Dragon Buff upgrade: they hunt enemy players, dive at them, aim their fireballs and never hurt their own team
-- Resource generators (iron, gold, diamond, emerald) with levels, plus team Forge upgrades
+- Resource generators (iron, gold, diamond, emerald) with levels, plus team Forge upgrades and custom generators that drop any item
 - Arena groups with map voting at the end of a game
 
 **Arena setup**
@@ -43,6 +43,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Team upgrades (Forge, Heal Pool, Dragon Buff, traps and more), each level with its own price and currency (`data/upgrades.yml`), and optional different prices per upgrade GUI (for example cheaper upgrades in solo arenas)
 - Custom items: Bridge Egg, Fireball, custom potions, Iron Golem, Silverfish, Lucky Block, Portable Tower and more
 - Team-colored blocks: wool, terracotta, glass, concrete and more are given in the buyer's team color
+- Shop items that run commands, open other menus or give a permission for the game, and prices in any item (for example nether stars)
 
 **Chat, display and HUD**
 - Arena chat isolation, team chat with `!message`, optional arena-wide chat, tab list isolation
@@ -59,7 +60,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - **Web admin panel:** the optional **NewBedwars Panel** addon adds a browser panel. It shows live arenas, game control, game logs, player stats and a visual shop editor, works across a whole network, and is published as a separate project on Modrinth
 
 **Integrations**
-- PlaceholderAPI: 34 placeholders under `%newbedwars_*%` (optional)
+- PlaceholderAPI: 34 placeholders under `%newbedwars_*%` plus leaderboard placeholders (optional)
 - WorldEdit / FastAsyncWorldEdit: build an arena from a `.schem` file (optional)
 - Citizens: lobby join NPCs with a live hologram (optional; without Citizens, `/bw npc create` spawns a simple NPC)
 - Addon API with events and registration of your own shop items, upgrades, armor, commands and phase actions
@@ -213,7 +214,7 @@ More guides: [storage (JSON and MySQL)](https://l299l.github.io/NewBedwars-Free/
 
 ## PlaceholderAPI
 
-If PlaceholderAPI is installed, NewBedwars registers 34 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. See the [full list](https://l299l.github.io/NewBedwars-Free/placeholders/).
+If PlaceholderAPI is installed, NewBedwars registers 34 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. Leaderboard placeholders (`%newbedwars_top_wins_1_name%`, `%newbedwars_top_kills_1_value%` and so on, places 1 to 10) work for holograms and menus. See the [full list](https://l299l.github.io/NewBedwars-Free/placeholders/).
 
 ## Addon developers
 
@@ -221,12 +222,12 @@ NewBedwars has an API with events, so other plugins can hook into it. You can re
 
 ## Roadmap
 
-**2.7-beta is one of the last betas.** All planned features are done: parties, PlaceholderAPI, schematics, stats, the addon API, Citizens NPCs, map voting, network mode, automatic arena setup, update notifications and the web panel.
+**2.8-beta is the last beta.** All planned features are done: parties, PlaceholderAPI, schematics, stats, the addon API, Citizens NPCs, map voting, network mode, automatic arena setup, update notifications and the web panel.
 
 What comes next:
 
-1. **One or two bug-fix betas** after 2.7-beta, depending on what is reported. They fix problems and don't add big features.
-2. **The first stable release.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
+1. **Bug-fix releases** after 2.8-beta only if serious bugs are reported. They fix problems and don't add big features.
+2. **The first stable release, 3.0.0.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
 
 Found a bug in a beta? Please [report it](https://github.com/l299l/NewBedwars-Free/issues). Every report brings the stable release closer.
 

@@ -14,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import com.l299l.newbedwars.version.VersionCompat;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -180,13 +181,8 @@ public final class JoinNpcManager implements Listener {
         if (entity(npc) != null) return;
         Location loc = npc.location();
         if (loc == null || !loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) return;
-        EntityType type;
-        try {
-            type = EntityType.valueOf(npc.entityType);
-        } catch (IllegalArgumentException e) {
-            return;
-        }
-        if (!isUsableEntityType(type)) return;
+        EntityType type = VersionCompat.entityType(npc.entityType);
+        if (type == null || !isUsableEntityType(type)) return;
         Entity e = loc.getWorld().spawnEntity(loc, type);
         e.setPersistent(false);
         e.setInvulnerable(true);

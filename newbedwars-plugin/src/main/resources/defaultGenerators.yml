@@ -56,3 +56,18 @@ EmeraldGenerator:
     SpawnRate: [100.0]
     MaxAmount: [1]
   SpawnDelay: [56, 40, 28]
+
+# ----- Custom Generators (optional) ---------------
+# Generators that drop any item. Place one in advanced setup with
+#   /bw setGenerator other <id> [x y z]
+# Item: what it drops; Amount: how many per drop (1-64); SpawnDelay: seconds between drops;
+# Display: the block shown above it (default: the item); Name: hologram title (& colours allowed).
+# Custom generators have one level and are not upgraded by game phases.
+#CustomGenerators:
+#  gapple:
+#    Item: GOLDEN_APPLE
+#    Amount: 1
+#    SpawnDelay: 60
+#    Display: GOLD_BLOCK
+#    Name: "&6Golden Apple"
+#    ShowNextSpawnTime: true

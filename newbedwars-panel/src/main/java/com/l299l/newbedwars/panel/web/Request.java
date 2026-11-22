@@ -23,6 +23,7 @@ public final class Request {
     final Map<String, String> params;
     String ip;
     byte[] buffered;
+    InputStream stream;
     SessionManager.Session session;
     Account account;
     Role role;
@@ -106,7 +107,8 @@ public final class Request {
     }
 
     public InputStream body() {
-        return buffered != null ? new java.io.ByteArrayInputStream(buffered) : exchange.getRequestBody();
+        if (buffered != null) return new java.io.ByteArrayInputStream(buffered);
+        return stream != null ? stream : exchange.getRequestBody();
     }
 
     public JsonObject json() throws IOException {
@@ -129,8 +131,9 @@ public final class Request {
             JsonElement parsed = JsonParser.parseString(text);
             if (!parsed.isJsonObject()) throw new HttpError(400, "bad_json");
             json = parsed.getAsJsonObject();
-        } catch (RuntimeException e) {
-            if (e instanceof HttpError h) throw h;
+        } catch (HttpError e) {
+            throw e;
+        } catch (RuntimeException | StackOverflowError e) {
             throw new HttpError(400, "bad_json");
         }
         return json;

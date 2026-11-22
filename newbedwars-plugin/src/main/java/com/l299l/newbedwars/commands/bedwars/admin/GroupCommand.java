@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class GroupCommand extends BwCommand {
     private static final List<String> SUBCOMMANDS = List.of("create", "delete", "add", "remove", "list", "info", "setitem");
@@ -75,6 +76,13 @@ public class GroupCommand extends BwCommand {
     private static boolean hasPermission(Player p, String sub) {
         return p.isOp() || p.hasPermission("newbedwars.bw.admin") || p.hasPermission("newbedwars.bw.group")
                 || p.hasPermission("newbedwars.bw.group." + sub);
+    }
+
+    public static boolean hasAnyPermission(Player p) {
+        for (String sub : SUBCOMMANDS) {
+            if (hasPermission(p, sub)) return true;
+        }
+        return false;
     }
 
     private void create(Player p, String[] args, ArenaGroupManager groups) {
@@ -285,9 +293,10 @@ public class GroupCommand extends BwCommand {
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        if (args.length == 2) return new ArrayList<>(SUBCOMMANDS);
+        if (args.length == 2) return SUBCOMMANDS.stream().filter(name -> hasPermission(player, name)).collect(Collectors.toList());
         ArenaGroupManager groups = ArenaGroupManager.get();
         String sub = args[1].toLowerCase(Locale.ROOT);
+        if (!hasPermission(player, sub)) return null;
         if (args.length == 3 && !sub.equals("create") && !sub.equals("list") && groups != null) {
             return groups.getGroups().stream().map(ArenaGroup::getName).toList();
         }

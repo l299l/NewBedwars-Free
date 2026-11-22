@@ -30,6 +30,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.EntityType;
+import com.l299l.newbedwars.version.VersionCompat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,6 +56,10 @@ public class ArenaDataJson {
             "resourcePackHash", "shopGuiId", "upgradeGuiId", "shopGui", "upgradeGui", "extra");
 
     public ArenaDataJson(String json) {
+        this(json, null);
+    }
+
+    public ArenaDataJson(String json, String sourceFile) {
         Gson gson = new Gson();
         String loadingArena = null;
         World loadingWorld = null;
@@ -83,8 +88,16 @@ public class ArenaDataJson {
             GeneratorLeveling generatorLeveling = gson.fromJson(jsonObject.get("generatorsLeveling"), Object.class) == null ? null : NewBedwars.plugin.getGeneratorLeveling().get(jsonObject.get("generatorsLeveling").getAsString());
             HashMap<String, Boolean> gamerules = gson.fromJson(jsonObject.get("gamerules"), HashMap.class);
 
+            String restoreProblem = null;
+            boolean mapMissing = false;
             if (NewBedwars.plugin.getServer().getWorld(worldName) == null) {
-                restoreIfNeeded(arenaName, worldName);
+                restoreProblem = restoreIfNeeded(arenaName, worldName);
+                if (restoreProblem == null && !MapTemplateManager.isWorldFolder(ArenaMaps.worldFolder(worldName))) {
+                    mapMissing = true;
+                    restoreProblem = ArenaMaps.isEnabled()
+                            ? "the world folder '" + worldName + "' is missing and there is no map template to restore it from"
+                            : "the world folder '" + worldName + "' is missing, so an empty world was created";
+                }
                 WorldCreator wc = new WorldCreator(worldName);
                 wc.generator(new VoidGenerator());
                 NewBedwars.plugin.getServer().createWorld(wc);
@@ -116,6 +129,7 @@ public class ArenaDataJson {
             if (jsonObject.has("quickVoidY") && !jsonObject.get("quickVoidY").isJsonNull()) {
                 arena.setQuickVoidY(jsonObject.get("quickVoidY").getAsInt());
             }
+            arena.setGeneratorsLeveling(generatorLeveling);
             for (LinkedTreeMap team: teams) {
                 JsonObject teamObject = gson.fromJson(gson.toJson(team), JsonObject.class);
                 String teamName = teamObject.get("name").getAsString();
@@ -123,6 +137,12 @@ public class ArenaDataJson {
                 Team arenaTeam = arena.getTeams().get(teamName);
                 if (teamObject.has("extra") && teamObject.get("extra").isJsonObject()) {
                     arenaTeam.setExtra(teamObject.getAsJsonObject("extra"));
+                }
+                if (teamObject.has("displayName") && teamObject.get("displayName").isJsonPrimitive()) {
+                    String displayName = teamObject.get("displayName").getAsString().trim();
+                    if (Team.isValidDisplayName(displayName)) arenaTeam.setDisplayName(displayName);
+                    else NewBedwars.plugin.getLogger().warning("Arena " + arenaName + ": team " + teamName
+                            + " has an invalid display name, so its name is shown");
                 }
                 Location teamSpawn = getLocation(gson.fromJson(teamObject.get("teamSpawn"), Object.class));
                 Location teamBed = getLocation(gson.fromJson(teamObject.get("teamBed"), Object.class));
@@ -151,13 +171,13 @@ public class ArenaDataJson {
                 JsonObject teamShop = gson.fromJson(teamObject.get("teamShop"), JsonObject.class);
                 if (teamShop != null) {
                     arenaTeam.setTeamShop(new TeamShop(getLocation(gson.fromJson(teamShop.get("location"), Object.class)),
-                            gson.fromJson(teamShop.get("entityType"), EntityType.class), arenaTeam, gson.fromJson(
+                            npcType(teamShop, arenaName, teamName), arenaTeam, gson.fromJson(
                             teamShop.get("uuid"), UUID.class)));
                 }
                 JsonObject teamUpgrades = gson.fromJson(teamObject.get("teamUpgrades"), JsonObject.class);
                 if (teamUpgrades != null) {
                     arenaTeam.setTeamUpgrades(new TeamUpgrades(getLocation(gson.fromJson(teamUpgrades.get("location"), Object.class)),
-                            gson.fromJson(teamUpgrades.get("entityType"), EntityType.class), arenaTeam, gson.fromJson(
+                            npcType(teamUpgrades, arenaName, teamName), arenaTeam, gson.fromJson(
                             teamUpgrades.get("uuid"), UUID.class)));
                 }
                 JsonObject teamGenerator = gson.fromJson(teamObject.get("generator"), JsonObject.class);
@@ -182,13 +202,21 @@ public class ArenaDataJson {
                     case EMERALD:
                         arena.addGenerator(new EmeraldGenerator(getLocation(gson.fromJson(generatorObject.get("location"), Object.class))));
                         break;
+                    case OTHER:
+                        if (!generatorObject.has("id") || !generatorObject.get("id").isJsonPrimitive()) {
+                            arena.getLoadProblems().add("a custom generator without an id was skipped");
+                            break;
+                        }
+                        arena.addGenerator(new com.l299l.newbedwars.arena.generators.CustomGenerator(
+                                getLocation(gson.fromJson(generatorObject.get("location"), Object.class)),
+                                generatorObject.get("id").getAsString()));
+                        break;
                 }
             }
             for (String gamerule: gamerules.keySet()) {
                 arena.getGamerules().setGamerule(gamerule, gamerules.get(gamerule));
             }
             arena.setGamePhases(gamePhases);
-            arena.setGeneratorsLeveling(generatorLeveling);
             if (shopGuiId != null) arena.setShopGuiId(shopGuiId);
             if (upgradeGuiId != null) arena.setUpgradeGuiId(upgradeGuiId);
             if (jsonObject.has("resourcePackUrl") && !jsonObject.get("resourcePackUrl").isJsonNull()) {
@@ -214,35 +242,43 @@ public class ArenaDataJson {
             if (generatorLeveling == null && rawGeneratorsId != null) {
                 arena.getLoadProblems().add("unknown generators config id '" + rawGeneratorsId + "'");
             }
-            if (ArenaMaps.isEnabled() && loadingWorld != null && !ArenaMaps.hasTemplate(arenaName)) {
+            if (restoreProblem != null) arena.getLoadProblems().add(restoreProblem);
+            if (ArenaMaps.isEnabled() && loadingWorld != null && !mapMissing && !ArenaMaps.hasTemplate(arenaName)) {
                 createMissingTemplate(arenaName, loadingWorld);
             }
             if (enabled) {
                 arena.getLoadProblems().addAll(ArenaValidator.validate(arena));
                 if (!arena.getLoadProblems().isEmpty()) {
-                    arena.disable();
+                    if (arena instanceof Arena loaded) {
+                        loaded.autoDisable();
+                    } else {
+                        arena.disable();
+                    }
                     NewBedwars.plugin.getLogger().warning("Arena " + arenaName + " was loaded DISABLED because: "
                             + String.join("; ", arena.getLoadProblems()));
                 }
             }
             this.arena = arena;
         } catch (Exception e) {
-            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not load arena " + loadingArena + ": " + e, e);
+            String what = loadingArena != null ? loadingArena : sourceFile != null ? "file " + sourceFile : "(unknown file)";
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not load arena " + what + ": " + e, e);
             if (loadingArena != null) {
                 ArenaRegistry.unregister(loadingArena, loadingWorld);
             }
         }
     }
 
-    private static void restoreIfNeeded(String arenaName, String worldName) {
-        if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) return;
+    private static String restoreIfNeeded(String arenaName, String worldName) {
+        if (!ArenaMaps.isEnabled() || !ArenaMaps.hasTemplate(arenaName)) return null;
         boolean missing = !MapTemplateManager.isWorldFolder(ArenaMaps.worldFolder(worldName));
-        if (!missing && !ArenaMaps.isDirty(arenaName)) return;
+        if (!missing && !ArenaMaps.isDirty(arenaName)) return null;
         try {
             ArenaMaps.restoreOffline(arenaName, worldName);
             NewBedwars.plugin.getLogger().info("Restored map of arena " + arenaName + " from its template.");
+            return null;
         } catch (IOException e) {
             NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not restore map of arena " + arenaName, e);
+            return "the map could not be restored from its template (" + e.getMessage() + ")";
         }
     }
 
@@ -280,6 +316,16 @@ public class ArenaDataJson {
         } else {
             write.run();
         }
+    }
+
+    private static EntityType npcType(JsonObject npc, String arenaName, String teamName) {
+        JsonElement raw = npc.get("entityType");
+        String name = raw == null || raw.isJsonNull() ? null : raw.getAsString();
+        EntityType type = VersionCompat.entityType(name);
+        if (type != null) return type;
+        NewBedwars.plugin.getLogger().warning("Arena " + arenaName + ": unknown NPC entity type '" + name
+                + "' for team " + teamName + ", using VILLAGER instead");
+        return EntityType.VILLAGER;
     }
 
     private static Integer optionalInt(JsonObject json, String key) {

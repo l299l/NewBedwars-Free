@@ -399,6 +399,79 @@ class PanelRoutesTest {
     }
 
     @Test
+    void shopCommandsNeedTheirOwnPermission() throws Exception {
+        Login boss = login("boss", "boss-password");
+        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"shopkeepers\",\"permissions\":[\"shop.edit\"]}").statusCode());
+        accounts.put(new Account("keeper", hasher.hash("keeper-password".toCharArray()), "shopkeepers", false, 0));
+        Login keeper = login("keeper", "keeper-password");
+        var reward = new com.l299l.newbedwars.api.shop.ShopItem("Reward", "NETHER_STAR", 1, 2, "IRON", "COMMANDS", "NONE", false, "",
+                java.util.Map.of(), List.of(), List.of(), List.of("say hi"), "", "", "");
+        when(shop.getItem("Reward")).thenReturn(CompletableFuture.completedFuture(Optional.of(reward)));
+        when(shop.getItem("Fresh")).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+        when(shop.getItemTexts("Reward")).thenReturn(CompletableFuture.completedFuture(Optional.of(java.util.Map.of())));
+        when(shop.saveItem(any())).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.shop.ShopResult(com.l299l.newbedwars.api.shop.ShopResult.Code.OK, null)));
+        String base = "\"material\":\"NETHER_STAR\",\"amount\":1,\"price\":2,\"priceType\":\"IRON\",\"onBuy\":\"COMMANDS\",\"logic\":\"NONE\"";
+
+        HttpResponse<String> refused = send("POST", "/api/shop/items/Reward", keeper, "{" + base + ",\"commands\":[\"op keeper\"]}");
+        assertEquals(403, refused.statusCode());
+        assertTrue(refused.body().contains("commands_forbidden"));
+        assertEquals(403, send("POST", "/api/shop/items/Fresh", keeper, "{" + base + ",\"commands\":[\"op keeper\"]}").statusCode());
+        assertEquals(403, send("POST", "/api/shop/items/Reward", keeper, "{" + base.replace("\"COMMANDS\"", "\"GIVE_PERM\"") + ",\"commands\":[\"say hi\"],\"givePermission\":\"minecraft.command.op\"}").statusCode());
+        assertEquals(200, send("POST", "/api/shop/items/Reward", keeper, "{" + base + ",\"commands\":[\"say hi\"]}").statusCode());
+        verify(shop, times(1)).saveItem(any());
+
+        assertEquals(200, send("POST", "/api/shop/items/Reward", boss, "{" + base + ",\"commands\":[\"say bye\"],\"priceMaterial\":\"\"}").statusCode());
+        var captor = org.mockito.ArgumentCaptor.forClass(com.l299l.newbedwars.api.shop.ShopItem.class);
+        verify(shop, times(2)).saveItem(captor.capture());
+        assertEquals(List.of("say bye"), captor.getValue().commands());
+        JsonObject one = json(send("GET", "/api/shop/items/Reward", boss, null));
+        assertEquals("say hi", one.getAsJsonObject("item").getAsJsonArray("commands").get(0).getAsString());
+    }
+
+    @Test
+    void whitespaceAroundTheActionDoesNotBypassTheCommandsPermission() throws Exception {
+        Login boss = login("boss", "boss-password");
+        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"shopkeepers\",\"permissions\":[\"shop.edit\"]}").statusCode());
+        accounts.put(new Account("keeper", hasher.hash("keeper-password".toCharArray()), "shopkeepers", false, 0));
+        Login keeper = login("keeper", "keeper-password");
+        var plain = new com.l299l.newbedwars.api.shop.ShopItem("Plain", "NETHER_STAR", 1, 2, "IRON", "GIVE_ITEM", "NONE", false, "",
+                java.util.Map.of(), List.of(), List.of(), List.of(), "", "", "");
+        when(shop.getItem("Plain")).thenReturn(CompletableFuture.completedFuture(Optional.of(plain)));
+        when(shop.saveItem(any())).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.shop.ShopResult(com.l299l.newbedwars.api.shop.ShopResult.Code.OK, null)));
+        String base = "\"material\":\"NETHER_STAR\",\"amount\":1,\"price\":2,\"priceType\":\"IRON\",\"logic\":\"NONE\",\"commands\":[\"op keeper\"]";
+
+        assertEquals(403, send("POST", "/api/shop/items/Plain", keeper, "{" + base + ",\"onBuy\":\"COMMANDS \"}").statusCode());
+        assertEquals(403, send("POST", "/api/shop/items/Plain", keeper, "{" + base + ",\"onBuy\":\" commands\"}").statusCode());
+        assertEquals(403, send("POST", "/api/shop/items/Plain", keeper, "{" + base + ",\"onBuy\":\"\\tGIVE_PERM\\n\",\"givePermission\":\"op\"}").statusCode());
+        verify(shop, times(0)).saveItem(any());
+    }
+
+    @Test
+    void switchingAnItemToOrFromCommandsNeedsTheCommandsPermission() throws Exception {
+        Login boss = login("boss", "boss-password");
+        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"shopkeepers\",\"permissions\":[\"shop.edit\"]}").statusCode());
+        accounts.put(new Account("keeper", hasher.hash("keeper-password".toCharArray()), "shopkeepers", false, 0));
+        Login keeper = login("keeper", "keeper-password");
+        var dormant = new com.l299l.newbedwars.api.shop.ShopItem("Dormant", "NETHER_STAR", 1, 2, "IRON", "GIVE_ITEM", "NONE", false, "",
+                java.util.Map.of(), List.of(), List.of(), List.of("say hi"), "", "", "");
+        var active = new com.l299l.newbedwars.api.shop.ShopItem("Active", "NETHER_STAR", 1, 2, "IRON", "COMMANDS", "NONE", false, "",
+                java.util.Map.of(), List.of(), List.of(), List.of("say hi"), "", "", "");
+        when(shop.getItem("Dormant")).thenReturn(CompletableFuture.completedFuture(Optional.of(dormant)));
+        when(shop.getItem("Active")).thenReturn(CompletableFuture.completedFuture(Optional.of(active)));
+        when(shop.saveItem(any())).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.shop.ShopResult(com.l299l.newbedwars.api.shop.ShopResult.Code.OK, null)));
+        String base = "\"material\":\"NETHER_STAR\",\"amount\":1,\"price\":2,\"priceType\":\"IRON\",\"logic\":\"NONE\",\"commands\":[\"say hi\"]";
+
+        assertEquals(403, send("POST", "/api/shop/items/Dormant", keeper, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
+        assertEquals(403, send("POST", "/api/shop/items/Active", keeper, "{" + base + ",\"onBuy\":\"GIVE_ITEM\"}").statusCode());
+        assertEquals(200, send("POST", "/api/shop/items/Dormant", keeper, "{" + base + ",\"onBuy\":\"GIVE_ITEM\"}").statusCode());
+        assertEquals(200, send("POST", "/api/shop/items/Active", keeper, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
+        assertEquals(200, send("POST", "/api/shop/items/Dormant", boss, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
+    }
+
+    @Test
     void shopGuisAreCreatedSavedAndArenasChanged() throws Exception {
         Login boss = login("boss", "boss-password");
         var ok = new com.l299l.newbedwars.api.shop.ShopResult(com.l299l.newbedwars.api.shop.ShopResult.Code.OK, null);
@@ -469,5 +542,21 @@ class PanelRoutesTest {
         assertEquals(java.util.Map.of("HASTE", List.of(new com.l299l.newbedwars.api.shop.UpgradeTier(1, "GOLD"))), gui.upgradePrices());
         assertNull(ShopRoutes.parseGui(com.google.gson.JsonParser.parseString("{\"size\":9}").getAsJsonObject(), "g").upgradePrices());
         assertEquals(1, ShopRoutes.gui(gui).getAsJsonObject("upgradePrices").getAsJsonArray("HASTE").size());
+    }
+
+    @Test
+    void lockedLoginIsAuditedOncePerLock() throws Exception {
+        for (int i = 0; i < 3; i++) assertEquals(401, loginRaw("helper", "nope").statusCode());
+        for (int i = 0; i < 5; i++) assertEquals(429, loginRaw("helper", "helper-password").statusCode());
+        assertEquals(1, audit.recent(100).stream().filter(e -> "locked".equals(e.result())).count());
+        assertEquals(3, audit.recent(100).stream().filter(e -> "failed".equals(e.result())).count());
+    }
+
+    @Test
+    void deeplyNestedJsonIsABadRequest() throws Exception {
+        String body = "{\"name\":" + "[".repeat(30_000) + "]".repeat(30_000) + "}";
+        HttpResponse<String> r = send("POST", "/api/login", null, body);
+        assertEquals(400, r.statusCode());
+        assertEquals("bad_json", json(r).get("error").getAsString());
     }
 }

@@ -177,9 +177,9 @@ class ApiEventsTest {
 
     @Test
     void shopPurchaseCarriesDetailsAndCanBeCancelled() {
-        assertTrue(ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4));
+        assertEquals(4, ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4, null));
         cancelEverything();
-        assertFalse(ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4));
+        assertEquals(-1, ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4, null));
     }
 
     @Test
@@ -248,5 +248,106 @@ class ApiEventsTest {
         assertEquals("B2", e.getChosenArena().getName());
         assertEquals("solo", e.getGroup().getName());
         assertEquals(java.util.List.of("A1", "B2"), e.getGroup().getArenaNames());
+    }
+
+    @Test
+    void stateChangeMapsBothStates() {
+        ApiEvents.stateChange(arena, com.l299l.newbedwars.arena.GameStatus.waiting, com.l299l.newbedwars.arena.GameStatus.starting);
+        com.l299l.newbedwars.api.events.ArenaStateChangeEvent e = captured(com.l299l.newbedwars.api.events.ArenaStateChangeEvent.class);
+        assertEquals(com.l299l.newbedwars.api.view.ArenaState.WAITING, e.getPrevious());
+        assertEquals(com.l299l.newbedwars.api.view.ArenaState.STARTING, e.getNext());
+    }
+
+    @Test
+    void shopPurchaseReturnsThePriceAListenerSet() {
+        doAnswer(inv -> {
+            if (inv.getArgument(0) instanceof ShopPurchaseEvent e) e.setPrice(1);
+            return null;
+        }).when(pm).callEvent(any(Event.class));
+        assertEquals(1, ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4, team));
+    }
+
+    @Test
+    void shopPurchaseCarriesTheTeam() {
+        ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4, team);
+        assertEquals("Red", captured(ShopPurchaseEvent.class).getTeam().orElseThrow().getName());
+    }
+
+    @Test
+    void negativePricesAreRefused() {
+        ShopPurchaseEvent e = new ShopPurchaseEvent(null, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4);
+        assertThrows(IllegalArgumentException.class, () -> e.setPrice(-1));
+        assertTrue(e.getTeam().isEmpty());
+    }
+
+    @Test
+    void trapTriggerAndSpectateCanBeCancelled() {
+        assertTrue(ApiEvents.trapTrigger(arena, team, player, "ALARMTRAP"));
+        assertTrue(ApiEvents.spectate(arena, player));
+        cancelEverything();
+        assertFalse(ApiEvents.trapTrigger(arena, team, player, "ALARMTRAP"));
+        assertFalse(ApiEvents.spectate(arena, player));
+    }
+
+    @Test
+    void trapTriggerCarriesTheTrapAndTeam() {
+        ApiEvents.trapTrigger(arena, team, player, "BLINDTRAP");
+        com.l299l.newbedwars.api.events.TrapTriggerEvent e = captured(com.l299l.newbedwars.api.events.TrapTriggerEvent.class);
+        assertEquals("BLINDTRAP", e.getTrap());
+        assertEquals("Red", e.getTeam().getName());
+        assertSame(player, e.getEnemy());
+    }
+
+    @Test
+    void respawnCarriesPlayerAndTeam() {
+        ApiEvents.respawn(arena, player, team);
+        com.l299l.newbedwars.api.events.PlayerRespawnArenaEvent e = captured(com.l299l.newbedwars.api.events.PlayerRespawnArenaEvent.class);
+        assertSame(player, e.getPlayer());
+        assertEquals("Red", e.getTeam().getName());
+    }
+
+    @Test
+    void partyChangeShowsTheLiveParty() {
+        java.util.UUID leader = java.util.UUID.randomUUID();
+        com.l299l.newbedwars.parties.Party party = new com.l299l.newbedwars.parties.Party(leader);
+        ApiEvents.partyChange(null, party, leader, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.CREATED);
+        com.l299l.newbedwars.api.events.PartyChangeEvent e = captured(com.l299l.newbedwars.api.events.PartyChangeEvent.class);
+        assertEquals(leader, e.getParty().getLeader());
+        assertTrue(e.getParty().contains(leader));
+        assertEquals(1, e.getParty().size());
+        assertEquals(com.l299l.newbedwars.api.events.PartyChangeEvent.Change.CREATED, e.getChange());
+    }
+
+    @Test
+    void eventsAreSkippedWithoutAServer() {
+        bukkit.when(Bukkit::getPluginManager).thenThrow(new NullPointerException());
+        assertEquals(4, ApiEvents.shopPurchase(arena, player, "Wool", ShopPurchaseEvent.Kind.ITEM, "IRON", 4, null));
+    }
+
+    @Test
+    void shopItemStackCanBeReplaced() {
+        org.bukkit.inventory.ItemStack oak = mock(org.bukkit.inventory.ItemStack.class);
+        org.bukkit.inventory.ItemStack mangrove = mock(org.bukkit.inventory.ItemStack.class);
+        when(mangrove.getType()).thenReturn(org.bukkit.Material.STONE);
+        doAnswer(inv -> {
+            if (inv.getArgument(0) instanceof com.l299l.newbedwars.api.events.ShopItemStackEvent e) {
+                assertEquals("Planks", e.getItemName());
+                assertEquals(com.l299l.newbedwars.api.events.ShopItemStackEvent.Use.ICON, e.getUse());
+                assertTrue(e.getArena().isEmpty());
+                e.setItem(mangrove);
+            }
+            return null;
+        }).when(pm).callEvent(any(Event.class));
+        assertSame(mangrove, ApiEvents.shopItemStack(player, "Planks", com.l299l.newbedwars.api.events.ShopItemStackEvent.Use.ICON, oak));
+    }
+
+    @Test
+    void shopItemStackRefusesAir() {
+        com.l299l.newbedwars.api.events.ShopItemStackEvent e = new com.l299l.newbedwars.api.events.ShopItemStackEvent(
+                player, "Planks", com.l299l.newbedwars.api.events.ShopItemStackEvent.Use.GIVEN, mock(org.bukkit.inventory.ItemStack.class), null, null);
+        org.bukkit.inventory.ItemStack air = mock(org.bukkit.inventory.ItemStack.class);
+        when(air.getType()).thenReturn(org.bukkit.Material.AIR);
+        assertThrows(IllegalArgumentException.class, () -> e.setItem(air));
+        assertThrows(IllegalArgumentException.class, () -> e.setItem(null));
     }
 }

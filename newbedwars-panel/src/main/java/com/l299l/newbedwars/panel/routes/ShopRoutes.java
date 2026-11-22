@@ -23,6 +23,7 @@ import com.l299l.newbedwars.panel.web.Router;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -101,8 +102,43 @@ public final class ShopRoutes {
         }
         ShopItem item = new ShopItem(r.param("name"), str(j, "material"), integer(j.get("amount")), integer(j.get("price")),
                 str(j, "priceType"), str(j, "onBuy"), str(j, "logic"), bool(j, "permanent"), str(j, "permission"),
-                enchantments, strings(j.get("flags")), List.of());
+                enchantments, strings(j.get("flags")), List.of(), strings(j.get("commands")), str(j, "openGui"),
+                str(j, "givePermission"), str(j, "priceMaterial"));
+        Optional<ShopItem> old = await(shop.getItem(item.name()));
+        String oldAction = normalizeAction(old.map(ShopItem::onBuy).orElse(""));
+        String newAction = normalizeAction(item.onBuy());
+        List<String> oldCommands = "COMMANDS".equals(oldAction) ? normalizeCommands(old.map(ShopItem::commands).orElse(List.of())) : List.of();
+        String oldGrant = "GIVE_PERM".equals(oldAction) ? trim(old.map(ShopItem::givePermission).orElse("")) : "";
+        List<String> newCommands = "COMMANDS".equals(newAction) ? normalizeCommands(item.commands()) : List.of();
+        String newGrant = "GIVE_PERM".equals(newAction) ? trim(item.givePermission()) : "";
+        boolean actionChanged = !newAction.equals(oldAction)
+                && (isPowerAction(newAction) || isPowerAction(oldAction));
+        boolean powerChanged = actionChanged || !newCommands.equals(oldCommands) || !newGrant.equals(oldGrant);
+        if (powerChanged && (r.role() == null || !r.role().has(Permission.SHOP_COMMANDS))) {
+            throw new HttpError(403, "commands_forbidden");
+        }
         return result(r, "shop.item.save", r.param("name"), await(shop.saveItem(item)));
+    }
+
+    private static List<String> normalizeCommands(List<String> commands) {
+        List<String> out = new ArrayList<>();
+        if (commands == null) return out;
+        for (String c : commands) {
+            if (c != null && !c.isBlank()) out.add(c.trim());
+        }
+        return out;
+    }
+
+    private static String trim(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private static String normalizeAction(String onBuy) {
+        return onBuy == null ? "" : onBuy.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static boolean isPowerAction(String onBuy) {
+        return "COMMANDS".equals(onBuy) || "GIVE_PERM".equals(onBuy);
     }
 
     private Response saveTexts(Request r) throws Exception {
@@ -265,6 +301,10 @@ public final class ShopRoutes {
         o.add("enchantments", ench);
         o.add("flags", array(i.flags()));
         o.add("usedBy", array(i.usedBy()));
+        o.add("commands", array(i.commands()));
+        o.addProperty("openGui", i.openGui());
+        o.addProperty("givePermission", i.givePermission());
+        o.addProperty("priceMaterial", i.priceMaterial());
         return o;
     }
 

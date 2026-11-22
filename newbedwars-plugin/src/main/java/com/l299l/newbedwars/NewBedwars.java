@@ -66,6 +66,7 @@ public final class NewBedwars extends JavaPlugin {
     private final ArenaGroupManager arenaGroupManager;
     private final MapVoteManager mapVoteManager;
     private com.l299l.newbedwars.update.UpdateService updateService;
+    private org.bukkit.scheduler.BukkitTask safetyTask;
 
     public NewBedwars() {
         plugin = this;
@@ -96,6 +97,7 @@ public final class NewBedwars extends JavaPlugin {
         Objects.requireNonNull(getCommand("p")).setTabCompleter(partyCmd);
         if (PluginDetector.isPlaceholderAPIPresent()) {
             new NewBedwarsExpansion(this).register();
+            com.l299l.newbedwars.placeholder.PapiText.enable();
         }
         joinNpcManager.start();
         apiImpl = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
@@ -106,52 +108,81 @@ public final class NewBedwars extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getServer().getServicesManager().unregisterAll(this);
-        if (updateService != null) updateService.stop();
-        if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
-        joinNpcManager.shutdown();
+        shutdownStep("tasks", () -> {
+            cancelSafetyTask();
+            com.l299l.newbedwars.placeholder.LeaderboardPlaceholders.stop();
+            com.l299l.newbedwars.placeholder.PapiText.disable();
+            com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revokeAll();
+            getServer().getServicesManager().unregisterAll(this);
+            if (updateService != null) updateService.stop();
+            if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
+        });
+        shutdownStep("join NPCs", joinNpcManager::shutdown);
         int active = 0;
-        for (IArena arena : ArenaRegistry.all()) {
+        for (IArena arena : new ArrayList<>(ArenaRegistry.all())) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) active++;
             else if (!arena.getPlayersOnSetup().isEmpty()) {
-                for (java.util.UUID p : new ArrayList<>(arena.getPlayersOnSetup())) {
-                    Player pl = Bukkit.getPlayer(p);
-                    if (pl == null) continue;
-                    com.l299l.newbedwars.player.LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SERVER_SHUTDOWN);
-                    pl.kickPlayer(ChatColor.RED + "Server went down!");
-                }
+                shutdownStep("setup players of " + arena.getArenaName(), () -> {
+                    for (java.util.UUID p : new ArrayList<>(arena.getPlayersOnSetup())) {
+                        Player pl = Bukkit.getPlayer(p);
+                        if (pl == null) continue;
+                        com.l299l.newbedwars.player.LobbyService.sendToLobby(pl, com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason.SERVER_SHUTDOWN);
+                        pl.kickPlayer(messages.getMsg(pl, "ShutdownKick"));
+                    }
+                });
             }
         }
         if (active > 0) {
             getServer().getConsoleSender().sendMessage(ChatColor.YELLOW + "[NewBedwars]: " + active + " arena(s) still active — forcing shutdown...");
         }
         for (IArena arena : new ArrayList<>(ArenaRegistry.all())) {
-            arena.forceShutdown();
+            shutdownStep("arena " + arena.getArenaName(), arena::forceShutdown);
         }
-        LobbyData.save(lobbyLocation);
-        if (dataManager != null) dataManager.save();
+        shutdownStep("lobby location", () -> LobbyData.save(lobbyLocation));
+        if (com.l299l.newbedwars.world.template.BackgroundTasks.running() > 0) {
+            getLogger().info("Waiting for arena maintenance (enable, copy, import, restore, delete) to finish...");
+            if (!com.l299l.newbedwars.world.template.BackgroundTasks.await(30_000L)) {
+                getLogger().warning("Arena maintenance did not finish in 30 seconds; check the affected arenas after the restart");
+            }
+        }
+        IOExecutor.flush();
+        shutdownStep("data", () -> {
+            if (dataManager != null) dataManager.save();
+        });
         if (ArenaMaps.isEnabled() && Properties.RollbackRestoreOnShutdown) {
-
+            com.l299l.newbedwars.world.template.ArenaResetPipeline.awaitRunningCopies(30_000L);
             for (IArena arena : ArenaRegistry.all()) {
                 String name = arena.getArenaName();
                 if (!ArenaMaps.hasTemplate(name) || !ArenaMaps.isDirty(name)) continue;
+                if (com.l299l.newbedwars.world.template.ArenaResetPipeline.isCopying(name)) continue;
                 try {
                     ArenaMaps.restoreOffline(name, arena.getArenaWorld().getName());
-                } catch (java.io.IOException e) {
+                } catch (java.io.IOException | RuntimeException e) {
                     getLogger().warning("Could not restore map of arena " + name + " on shutdown: " + e.getMessage());
                 }
             }
         }
-        com.l299l.newbedwars.network.NetworkManager.shutdown();
-        if (dataManager != null) dataManager.stop();
-        com.l299l.newbedwars.config.data.sql.Database.shutdown();
+        shutdownStep("network", com.l299l.newbedwars.network.NetworkManager::shutdown);
+        shutdownStep("data", () -> {
+            if (dataManager != null) dataManager.stop();
+        });
+        shutdownStep("database", com.l299l.newbedwars.config.data.sql.Database::shutdown);
         IOExecutor.flush();
         getServer().getConsoleSender().sendMessage(ChatColor.RED + "[NewBedwars]: NewBedwars v" + getDescription().getVersion() + " is " + ChatColor.DARK_RED + "Disabled");
+    }
+
+    private void shutdownStep(String what, Runnable step) {
+        try {
+            step.run();
+        } catch (RuntimeException | LinkageError e) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Error while stopping (" + what + "); continuing with the shutdown", e);
+        }
     }
 
     public void reloadAll() {
         com.l299l.newbedwars.network.NetworkManager.shutdown();
         HandlerList.unregisterAll(this);
+        cancelSafetyTask();
         for (IArena arena : new ArrayList<>(ArenaRegistry.all())) {
             if (!arena.getPlayers().isEmpty() || !arena.getSpectators().isEmpty()) {
                 arena.stop();
@@ -264,6 +295,13 @@ public final class NewBedwars extends JavaPlugin {
         return new VoidGenerator();
     }
 
+    private void cancelSafetyTask() {
+        if (safetyTask != null) {
+            safetyTask.cancel();
+            safetyTask = null;
+        }
+    }
+
     private void reloadEvents(){
         getServer().getPluginManager().registerEvents(new LanguageEvent(this), this);
         getServer().getPluginManager().registerEvents(new InitializationEvent(this), this);
@@ -274,9 +312,14 @@ public final class NewBedwars extends JavaPlugin {
                 new BlockListener(this), new MovementListener(combat, deaths), new CustomItemListener(this))) {
             getServer().getPluginManager().registerEvents(listener, this);
         }
-        getServer().getScheduler().runTaskTimer(this, new ArenaSafetyTask(deaths),
+        cancelSafetyTask();
+        safetyTask = getServer().getScheduler().runTaskTimer(this, new ArenaSafetyTask(deaths),
                 ArenaSafetyTask.PERIOD_TICKS, ArenaSafetyTask.PERIOD_TICKS);
+        if (PluginDetector.isPlaceholderAPIPresent()) {
+            com.l299l.newbedwars.placeholder.LeaderboardPlaceholders.start(this, playerManager, Properties.LeaderboardRefreshSeconds);
+        }
         getServer().getPluginManager().registerEvents(new ChatEvent(this), this);
+        getServer().getPluginManager().registerEvents(new com.l299l.newbedwars.arena.maintenance.MaintenanceEditGuard(), this);
         if (dataManager != null && dataManager.getPlayerDataSql() != null) {
             getServer().getPluginManager().registerEvents(dataManager.getPlayerDataSql(), this);
         }

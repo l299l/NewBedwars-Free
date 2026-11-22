@@ -16,6 +16,8 @@ public class JsonUtils {
     public static String generatorToJson(Generator generator) {
         String sb = "{" +
                 "\"type\": " + quote(String.valueOf(generator.getType())) + "," +
+                (generator instanceof com.l299l.newbedwars.arena.generators.CustomGenerator custom
+                        ? "\"id\": " + quote(custom.getId()) + "," : "") +
                 "\"location\": " + locationToJson(generator.getLocation()) +
                 "}";
         return sb;

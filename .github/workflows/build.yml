@@ -1,0 +1,60 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "assets/**"
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "assets/**"
+      - "**.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test (JDK 25, all modules)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - run: ./mvnw -B -ntp clean verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NewBedwars-jars
+          path: |
+            newbedwars-plugin/target/NewBedwars-*.jar
+            newbedwars-proxy/target/NewBedwars-Proxy-*.jar
+            newbedwars-panel/target/NewBedwars-Panel-*.jar
+            !**/*-sources.jar
+            !**/original-*.jar
+          if-no-files-found: error
+          retention-days: 14
+
+  jitpack:
+    name: JitPack build (JDK 17, api + common + plugin)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - run: ./mvnw -B -ntp -DskipTests -pl newbedwars-api,newbedwars-common,newbedwars-plugin -am clean install

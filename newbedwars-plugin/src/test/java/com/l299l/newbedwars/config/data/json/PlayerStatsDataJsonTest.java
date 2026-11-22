@@ -5,13 +5,22 @@ import com.l299l.newbedwars.config.Language;
 import com.l299l.newbedwars.player.PlayerManager;
 import com.l299l.newbedwars.player.PlayerProfile;
 import com.l299l.newbedwars.player.PlayerStats;
+import com.l299l.newbedwars.NewBedwars;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.logging.Logger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class PlayerStatsDataJsonTest {
 
@@ -62,5 +71,44 @@ class PlayerStatsDataJsonTest {
         raw.put(id.toString(), m);
         PlayerStatsDataJson.read(raw, reloaded);
         assertEquals(new PlayerStats(1, 2, 3, 4, 5, 6, 7), reloaded.getStats(id));
+    }
+
+    @AfterEach
+    void clearPlugin() {
+        NewBedwars.plugin = null;
+    }
+
+    @Test
+    void loadingTwiceReplacesTheStatsInsteadOfAddingThem(@TempDir Path dir) throws Exception {
+        UUID id = UUID.randomUUID();
+        Files.createDirectories(dir.resolve("data"));
+        Files.writeString(dir.resolve("data/playerStats.json"),
+                "{\"" + id + "\":{\"name\":\"Alex\",\"wins\":3,\"gamesPlayed\":5}}");
+        PlayerManager pm = new PlayerManager();
+        NewBedwars plugin = mock(NewBedwars.class);
+        when(plugin.getDataFolder()).thenReturn(dir.toFile());
+        when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
+        when(plugin.getPlayerManager()).thenReturn(pm);
+        NewBedwars.plugin = plugin;
+        new PlayerStatsDataJson().load();
+        new PlayerStatsDataJson().load();
+        assertEquals(3, pm.getStats(id).wins());
+        assertEquals(5, pm.getStats(id).gamesPlayed());
+    }
+
+    @Test
+    void unreadableFileKeepsTheStatsInMemory(@TempDir Path dir) throws Exception {
+        UUID id = UUID.randomUUID();
+        Files.createDirectories(dir.resolve("data"));
+        Files.writeString(dir.resolve("data/playerStats.json"), "{ not json");
+        PlayerManager pm = new PlayerManager();
+        pm.addStats(id, "Alex", new PlayerStats(9, 0, 0, 0, 0, 0, 9));
+        NewBedwars plugin = mock(NewBedwars.class);
+        when(plugin.getDataFolder()).thenReturn(dir.toFile());
+        when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
+        when(plugin.getPlayerManager()).thenReturn(pm);
+        NewBedwars.plugin = plugin;
+        new PlayerStatsDataJson().load();
+        assertEquals(9, pm.getStats(id).wins());
     }
 }

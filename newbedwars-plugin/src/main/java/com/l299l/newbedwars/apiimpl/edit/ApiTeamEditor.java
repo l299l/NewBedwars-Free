@@ -44,6 +44,13 @@ public final class ApiTeamEditor implements TeamEditor {
     }
 
     @Override
+    public void setDisplayName(String displayName) {
+        editor.requireEditable();
+        team.setDisplayName(displayName);
+        editor.changed();
+    }
+
+    @Override
     public void setSpawn(Location location) {
         prepare(location);
         team.setTeamSpawn(location.clone());

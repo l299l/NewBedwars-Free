@@ -107,8 +107,8 @@ public class IronGolemLogic implements CustomLogic {
         if (seconds > 90) timeColor = ChatColor.GREEN.toString();
         else if (seconds > 30) timeColor = ChatColor.YELLOW.toString();
         else timeColor = ChatColor.RED.toString();
-        return team.getColor() + team.getName() + " Golem "
-                + ChatColor.DARK_GRAY + "[" + timeColor + seconds + "s" + ChatColor.DARK_GRAY + "]";
+        return NewBedwars.plugin.getMessages().getMsgToConsole("GolemName").replace("/team/", team.getColor() + team.getDisplayName())
+                + " " + ChatColor.DARK_GRAY + "[" + timeColor + seconds + "s" + ChatColor.DARK_GRAY + "]";
     }
 
     private static boolean hasActiveGolem(String teamKey) {

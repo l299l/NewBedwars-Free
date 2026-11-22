@@ -20,7 +20,6 @@ public class DiamondGenerator implements Generator {
 
     private final Location location;
     private final GeneratorType type = GeneratorType.DIAMOND;
-    private final int maxLevel;
     private int level;
     private double diamondSpawnRate;
     private int diamondSpawnAmount;
@@ -36,22 +35,35 @@ public class DiamondGenerator implements Generator {
         if (arena == null) {
             throw new RuntimeException("Arena not found");
         }
-        GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        maxLevel = generatorLeveling.getDiamondGeneratorSettings() == null ? 0 : generatorLeveling.getDiamondGeneratorSettings().getMaxLevel();
         upgrade();
+    }
+
+    private com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings settings() {
+        IArena arena = ArenaRegistry.byWorld(location.getWorld());
+        GeneratorLeveling leveling = arena == null ? null : arena.getGeneratorsLeveling();
+        return leveling == null ? null : leveling.getDiamondGeneratorSettings();
+    }
+
+    public int getMaxLevel() {
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings settings = settings();
+        return settings == null ? 0 : settings.getMaxLevel();
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     @Override
     public void start() {
-        if (maxLevel == 0 || level == 0) {
+        if (level == 0) upgrade();
+        if (getMaxLevel() == 0 || level == 0) {
             return;
         }
         if (task != null) { task.cancel(); task = null; }
         if (rotatingTask != null) { rotatingTask.cancel(); rotatingTask = null; }
         if (hologram != null) { hologram.remove(); hologram = null; }
-        IArena owner = ArenaRegistry.byWorld(location.getWorld());
-        boolean showTime = owner == null || owner.getGeneratorsLeveling().getDiamondGeneratorSettings() == null
-                || owner.getGeneratorsLeveling().getDiamondGeneratorSettings().isShowNextSpawnTime();
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings current = settings();
+        boolean showTime = current == null || current.isShowNextSpawnTime();
         hologram = new Hologram(GeneratorHologramText.of(
                 NewBedwars.plugin.getMessages().getMsgToConsole("DiamondGenerator"), showTime), location.clone(),
                 new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(delayInSeconds()))));
@@ -84,24 +96,20 @@ public class DiamondGenerator implements Generator {
 
     @Override
     public boolean upgrade() {
-        if (level >= maxLevel) {
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings settings = settings();
+        if (settings == null || level >= settings.getMaxLevel()) {
             return false;
         }
         level++;
-        IArena arena = ArenaRegistry.byWorld(location.getWorld());
-        if (arena == null) {
-            throw new RuntimeException("Arena not found");
-        }
-        GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        diamondSpawnRate = generatorLeveling.getDiamondGeneratorSettings().getDiamondSpawnRate().get(level - 1);
-        diamondSpawnAmount = generatorLeveling.getDiamondGeneratorSettings().getDiamondSpawnAmount().get(level - 1);
-        spawnDelay = generatorLeveling.getDiamondGeneratorSettings().getSpawnDelay().get(level - 1);
+        diamondSpawnRate = GeneratorLists.doubleAt(settings.getDiamondSpawnRate(), level - 1, 0);
+        diamondSpawnAmount = GeneratorLists.intAt(settings.getDiamondSpawnAmount(), level - 1, 1);
+        spawnDelay = GeneratorLists.doubleAt(settings.getSpawnDelay(), level - 1, 30);
         return true;
     }
 
     @Override
     public boolean upgrade(Integer level) {
-        if (level > maxLevel || this.level >= level) {
+        if (level > getMaxLevel() || this.level >= level) {
             return false;
         }
         for (int i = this.level; i < level; i++) {

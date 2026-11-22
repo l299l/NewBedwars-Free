@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.api.view;
 
+import com.l299l.newbedwars.api.edit.TeamEditor;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -9,7 +10,18 @@ import java.util.List;
 
 /** A team of an arena. */
 public interface TeamView {
+    /** The name the team was created with. It identifies the team (arena file, commands, upgrades) and never changes. */
     String getName();
+
+    /**
+     * The name players see in chat, titles, the scoreboard, NPC names and the {@code %newbedwars_team%}
+     * placeholder: the {@link TeamEditor#setDisplayName display name}, or {@link #getName()} when none is set.
+     *
+     * @since 2.8-beta
+     */
+    default String getDisplayName() {
+        return getName();
+    }
 
     ChatColor getColor();
 

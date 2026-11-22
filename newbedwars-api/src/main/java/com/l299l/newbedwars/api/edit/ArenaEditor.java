@@ -69,6 +69,16 @@ public interface ArenaEditor {
      */
     void setUpgradeGui(String guiId);
 
+    /**
+     * Adds a {@link com.l299l.newbedwars.api.view.GeneratorKind#CUSTOM} generator, like
+     * {@code /bw setGenerator OTHER <id>}.
+     *
+     * @param id an id from {@link ArenaView#getCustomGeneratorIds()} (case does not matter)
+     * @throws IllegalArgumentException when the arena's generator file has no custom generator with that id
+     * @since 2.8-beta
+     */
+    void addCustomGenerator(String id, Location location);
+
     /** Writes the arena file now. */
     void save();
 }

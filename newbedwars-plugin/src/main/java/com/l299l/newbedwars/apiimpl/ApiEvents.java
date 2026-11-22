@@ -39,8 +39,61 @@ public final class ApiEvents {
     }
 
     private static <E extends Event> E call(E event) {
-        Bukkit.getPluginManager().callEvent(event);
+        org.bukkit.plugin.PluginManager manager;
+        try {
+            manager = Bukkit.getPluginManager();
+        } catch (NullPointerException e) {
+            return event;
+        }
+        if (manager != null) manager.callEvent(event);
         return event;
+    }
+
+    static com.l299l.newbedwars.api.view.ArenaState state(com.l299l.newbedwars.arena.GameStatus status) {
+        if (status == null) return null;
+        return switch (status) {
+            case waiting -> com.l299l.newbedwars.api.view.ArenaState.WAITING;
+            case starting -> com.l299l.newbedwars.api.view.ArenaState.STARTING;
+            case playing -> com.l299l.newbedwars.api.view.ArenaState.PLAYING;
+            case ending -> com.l299l.newbedwars.api.view.ArenaState.ENDING;
+            case restarting -> com.l299l.newbedwars.api.view.ArenaState.RESTARTING;
+        };
+    }
+
+    public static ItemStack shopItemStack(Player player, String itemName, com.l299l.newbedwars.api.events.ShopItemStackEvent.Use use,
+                                          ItemStack item) {
+        if (player == null || item == null) return item;
+        IArena arena = com.l299l.newbedwars.arena.ArenaRegistry.byWorld(player.getWorld());
+        Team team = arena == null ? null : arena.getTeam(player);
+        return call(new com.l299l.newbedwars.api.events.ShopItemStackEvent(player, itemName, use, item,
+                arena == null ? null : view(arena), view(team))).getItem();
+    }
+
+    public static void stateChange(IArena arena, com.l299l.newbedwars.arena.GameStatus previous,
+                                   com.l299l.newbedwars.arena.GameStatus next) {
+        call(new com.l299l.newbedwars.api.events.ArenaStateChangeEvent(view(arena), state(previous), state(next)));
+    }
+
+    public static void teamsAssigned(IArena arena) {
+        call(new com.l299l.newbedwars.api.events.TeamsAssignedEvent(view(arena)));
+    }
+
+    public static void respawn(IArena arena, Player player, Team team) {
+        call(new com.l299l.newbedwars.api.events.PlayerRespawnArenaEvent(view(arena), player, view(team)));
+    }
+
+    public static boolean spectate(IArena arena, Player player) {
+        return !call(new com.l299l.newbedwars.api.events.PlayerSpectateEvent(view(arena), player)).isCancelled();
+    }
+
+    public static boolean trapTrigger(IArena arena, Team team, Player enemy, String trap) {
+        return !call(new com.l299l.newbedwars.api.events.TrapTriggerEvent(view(arena), view(team), enemy, trap)).isCancelled();
+    }
+
+    public static void partyChange(com.l299l.newbedwars.parties.PartyManager manager, com.l299l.newbedwars.parties.Party party,
+                                   java.util.UUID player, com.l299l.newbedwars.api.events.PartyChangeEvent.Change change) {
+        call(new com.l299l.newbedwars.api.events.PartyChangeEvent(
+                new com.l299l.newbedwars.apiimpl.view.ApiParty(manager, party), player, change));
     }
 
     public static void networkArenasUpdate(java.util.Collection<com.l299l.newbedwars.api.view.NetworkArenaView> arenas) {
@@ -107,8 +160,10 @@ public final class ApiEvents {
         call(new PlayerKillEvent(view(arena), victim, killer, finalKill, cause, view(dragonTeam)));
     }
 
-    public static boolean shopPurchase(IArena arena, Player player, String item, ShopPurchaseEvent.Kind kind, String priceType, int price) {
-        return !call(new ShopPurchaseEvent(view(arena), player, item, kind, priceType, price)).isCancelled();
+    public static int shopPurchase(IArena arena, Player player, String item, ShopPurchaseEvent.Kind kind, String priceType,
+                                   int price, Team team) {
+        ShopPurchaseEvent event = call(new ShopPurchaseEvent(view(arena), player, item, kind, priceType, price, view(team)));
+        return event.isCancelled() ? -1 : event.getPrice();
     }
 
     public static boolean teamUpgrade(IArena arena, Team team, String upgrade, int newLevel, Player buyer) {
@@ -137,6 +192,7 @@ public final class ApiEvents {
         com.l299l.newbedwars.api.view.GeneratorKind kind = switch (type) {
             case DIAMOND -> com.l299l.newbedwars.api.view.GeneratorKind.DIAMOND;
             case EMERALD -> com.l299l.newbedwars.api.view.GeneratorKind.EMERALD;
+            case OTHER -> com.l299l.newbedwars.api.view.GeneratorKind.CUSTOM;
             default -> com.l299l.newbedwars.api.view.GeneratorKind.BASIC;
         };
         call(new com.l299l.newbedwars.api.events.GeneratorUpgradeEvent(view(arena), kind, level));

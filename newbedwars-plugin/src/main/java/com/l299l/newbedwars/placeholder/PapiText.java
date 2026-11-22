@@ -1,0 +1,36 @@
+package com.l299l.newbedwars.placeholder;
+
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+
+import java.util.function.BiFunction;
+
+public final class PapiText {
+    private static volatile BiFunction<Player, String, String> resolver;
+
+    private PapiText() {
+    }
+
+    public static void enable() {
+        resolver = PapiBridge::apply;
+    }
+
+    public static void disable() {
+        resolver = null;
+    }
+
+    static void use(BiFunction<Player, String, String> custom) {
+        resolver = custom;
+    }
+
+    public static String apply(Player player, String text) {
+        BiFunction<Player, String, String> current = resolver;
+        if (current == null || player == null || text == null || text.indexOf('%') < 0) return text;
+        try {
+            String out = current.apply(player, text);
+            return out == null ? text : ChatColor.translateAlternateColorCodes('&', out);
+        } catch (RuntimeException | LinkageError e) {
+            return text;
+        }
+    }
+}

@@ -25,9 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 public class ChatEvent implements Listener {
@@ -44,24 +41,30 @@ public class ChatEvent implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent event) {
+        if (event.isCancelled()) return;
         if (Bukkit.isPrimaryThread()) {
             handleChat(event);
             return;
         }
+        Player sender = event.getPlayer();
+        if (!ArenaRegistry.isArenaWorld(sender.getWorld())) {
+            event.getRecipients().removeIf(p -> ArenaRegistry.isArenaWorld(p.getWorld()));
+            return;
+        }
+        event.setCancelled(true);
+        String message = event.getMessage();
         try {
-            Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                handleChat(event);
-                return null;
-            }).get(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException | TimeoutException e) {
-            plugin.getLogger().log(Level.WARNING, "Arena chat handling failed", e);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!sender.isOnline()) return;
+                IArena arena = ArenaRegistry.byWorld(sender.getWorld());
+                if (arena != null) arenaChat(sender, arena, message);
+            });
+        } catch (RuntimeException e) {
+            plugin.getLogger().log(Level.FINE, "Arena chat dropped while the plugin is disabled", e);
         }
     }
 
     private void handleChat(AsyncPlayerChatEvent event) {
-        if (event.isCancelled()) return;
         Player sender = event.getPlayer();
         IArena arena = ArenaRegistry.byWorld(sender.getWorld());
 
@@ -71,13 +74,15 @@ public class ChatEvent implements Listener {
         }
 
         event.setCancelled(true);
+        arenaChat(sender, arena, event.getMessage());
+    }
 
+    void arenaChat(Player sender, IArena arena, String message) {
         if (!Properties.ArenaChatEnabled) {
             plugin.getMessages().send(sender, "ArenaChatDisabled");
             return;
         }
 
-        String message = event.getMessage();
         boolean teamPrefix = message.startsWith("!");
 
         if (teamPrefix && Boolean.TRUE.equals(arena.getGamerules().AllowTeamChat)) {
@@ -88,7 +93,7 @@ public class ChatEvent implements Listener {
             String formatted = format(
                     plugin.getMessages().getMsg(sender, "TeamChatFormat")
                             .replace("/player/", team.colored(sender.getName()))
-                            .replace("/team/", team.colored(team.getName())),
+                            .replace("/team/", team.colored(team.getDisplayName())),
                     stripped, sender.hasPermission(COLOR_PERMISSION));
             for (Player member : team.getPlayers()) {
                 member.sendMessage(formatted);

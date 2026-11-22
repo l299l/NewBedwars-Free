@@ -79,10 +79,26 @@ class GameControlServiceTest {
     }
 
     @Test
-    void forceStopWorksInEveryState() {
-        assertTrue(run(GameStatus.ending, Action.FORCE_STOP).success());
-        verify(arena).broadcast(eq("AdminStoppedGame"), any());
-        verify(arena).stop();
+    void forceStopWorksWhileTheArenaIsInUse() {
+        when(arena.isEnabled()).thenReturn(true);
+        for (GameStatus s : List.of(GameStatus.waiting, GameStatus.starting, GameStatus.playing, GameStatus.ending)) {
+            assertTrue(run(s, Action.FORCE_STOP).success());
+        }
+        verify(arena, times(4)).broadcast(eq("AdminStoppedGame"), any());
+        verify(arena, times(4)).stop();
+    }
+
+    @Test
+    void forceStopIsRefusedForAResettingOrDisabledArena() {
+        when(arena.isEnabled()).thenReturn(true);
+        Outcome resetting = run(GameStatus.restarting, Action.FORCE_STOP);
+        assertEquals(Code.BUSY, resetting.code());
+        assertEquals("ArenaBusy", resetting.key());
+        assertEquals("Castle", resetting.replacements().get("/arenaname/"));
+        when(arena.isEnabled()).thenReturn(false);
+        assertEquals(Code.BUSY, run(GameStatus.waiting, Action.FORCE_STOP).code());
+        verify(arena, never()).stop();
+        verify(arena, never()).broadcast(eq("AdminStoppedGame"), any());
     }
 
     @Test
@@ -110,5 +126,84 @@ class GameControlServiceTest {
         assertEquals(Code.INVALID_NAME, GameControlService.broadcast("Castle", "Alex", "   ").code());
         assertEquals(Code.INVALID_NAME, GameControlService.broadcast("Castle", "Alex", "x".repeat(257)).code());
         verify(arena, times(1)).broadcast(eq("AdminBroadcast"), any());
+    }
+
+    private com.l299l.newbedwars.arena.team.Team team(String name) {
+        com.l299l.newbedwars.arena.team.Team team = mock(com.l299l.newbedwars.arena.team.Team.class);
+        when(team.getName()).thenReturn(name);
+        when(team.getDisplayName()).thenReturn(name);
+        when(team.colored(anyString())).thenAnswer(inv -> inv.getArgument(0));
+        when(arena.getTeam(name)).thenReturn(team);
+        when(arena.getTeams()).thenReturn(Map.of(name, team));
+        return team;
+    }
+
+    @Test
+    void teamActionsNeedARunningGameAndAKnownTeam() {
+        team("Red");
+        when(arena.status()).thenReturn(GameStatus.waiting);
+        assertEquals("GameNotInProgress", GameControlService.destroyBed("Castle", "Red", "x").key());
+        when(arena.status()).thenReturn(GameStatus.playing);
+        assertEquals(Code.NOT_FOUND, GameControlService.eliminateTeam("Castle", "Green", "x").code());
+        assertEquals("TeamNotFound", GameControlService.setUpgradeLevel("Castle", "Green", "SHARPNESS", 1, "x").key());
+        assertEquals(Code.NOT_FOUND, GameControlService.destroyBed("Nope", "Red", "x").code());
+    }
+
+    @Test
+    void destroyBedOnlyOnce() {
+        com.l299l.newbedwars.arena.team.Team red = team("Red");
+        when(arena.status()).thenReturn(GameStatus.playing);
+        when(red.getTeamBed()).thenReturn(mock(com.l299l.newbedwars.arena.team.TeamBed.class));
+        when(arena.destroyBed(red)).thenReturn(true);
+
+        Outcome ok = GameControlService.destroyBed("castle", "red", "Panel: Alex");
+        assertTrue(ok.success());
+        assertEquals("AdminDestroyedBed", ok.key());
+        assertEquals("Red", ok.replacements().get("/team/"));
+
+        when(red.isBedDestroyed()).thenReturn(true);
+        assertEquals(Code.ALREADY_DONE, GameControlService.destroyBed("Castle", "Red", "x").code());
+        verify(arena, times(1)).destroyBed(red);
+    }
+
+    @Test
+    void cancelledBedBreakFails() {
+        com.l299l.newbedwars.arena.team.Team red = team("Red");
+        when(arena.status()).thenReturn(GameStatus.playing);
+        when(red.getTeamBed()).thenReturn(mock(com.l299l.newbedwars.arena.team.TeamBed.class));
+        when(arena.destroyBed(red)).thenReturn(false);
+        assertEquals(Code.FAILED, GameControlService.destroyBed("Castle", "Red", "x").code());
+    }
+
+    @Test
+    void eliminateOnlyLivingTeams() {
+        com.l299l.newbedwars.arena.team.Team red = team("Red");
+        when(arena.status()).thenReturn(GameStatus.playing);
+        when(red.isAlive()).thenReturn(true);
+        when(arena.eliminateTeam(red)).thenReturn(true);
+        assertEquals("AdminEliminatedTeam", GameControlService.eliminateTeam("Castle", "Red", "x").key());
+        when(red.isAlive()).thenReturn(false);
+        assertEquals(Code.ALREADY_DONE, GameControlService.eliminateTeam("Castle", "Red", "x").code());
+    }
+
+    @Test
+    void upgradeLevelsAreCheckedAndApplied() {
+        com.l299l.newbedwars.arena.team.Team red = team("Red");
+        when(arena.status()).thenReturn(GameStatus.playing);
+        com.l299l.newbedwars.arena.shops.TeamUpgrades upgrades = mock(com.l299l.newbedwars.arena.shops.TeamUpgrades.class);
+        when(red.getTeamUpgrades()).thenReturn(upgrades);
+        com.l299l.newbedwars.arena.shops.Upgrade sharpness = com.l299l.newbedwars.arena.shops.Upgrade.SHARPNESS;
+        when(upgrades.setLevel(sharpness, 2)).thenReturn(true);
+
+        Outcome ok = GameControlService.setUpgradeLevel("Castle", "Red", "sharpness", 2, "x");
+        assertTrue(ok.success());
+        assertEquals("SHARPNESS", ok.replacements().get("/upgrade/"));
+        verify(upgrades).setLevel(sharpness, 2);
+
+        assertEquals("AdminUpgradeNotFound", GameControlService.setUpgradeLevel("Castle", "Red", "NOPE", 1, "x").key());
+        assertEquals("AdminUpgradeLevelInvalid",
+                GameControlService.setUpgradeLevel("Castle", "Red", "SHARPNESS", sharpness.maxLevel + 1, "x").key());
+        assertEquals(Code.INVALID_NAME, GameControlService.setUpgradeLevel("Castle", "Red", "SHARPNESS", -1, "x").code());
+        assertEquals("AdminUpgradeCannotLower", GameControlService.setUpgradeLevel("Castle", "Red", "SHARPNESS", 1, "x").key());
     }
 }

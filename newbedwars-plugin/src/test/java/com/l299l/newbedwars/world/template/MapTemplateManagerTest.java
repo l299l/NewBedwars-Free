@@ -107,6 +107,17 @@ class MapTemplateManagerTest {
     }
 
     @Test
+    void rotateNeverDeletesManualBackups() throws IOException {
+        Path dir = Files.createDirectories(tmp.resolve("manual"));
+        Files.writeString(dir.resolve("20260101" + MapTemplateManager.MANUAL_SUFFIX + ".json"), "m");
+        for (String n : List.of("20260102", "20260103", "20260104")) Files.writeString(dir.resolve(n + ".json"), n);
+        MapTemplateManager.rotate(dir, ".json", 1);
+        assertTrue(Files.exists(dir.resolve("20260101" + MapTemplateManager.MANUAL_SUFFIX + ".json")));
+        assertTrue(Files.exists(dir.resolve("20260104.json")));
+        assertFalse(Files.exists(dir.resolve("20260103.json")));
+    }
+
+    @Test
     void unzipRejectsEntriesLargerThanTheLimit() throws IOException {
         Path zip = tmp.resolve("big.zip");
         try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip))) {
@@ -146,5 +157,38 @@ class MapTemplateManagerTest {
         }
         assertThrows(IOException.class, () -> MapTemplateManager.unzip(zip, tmp.resolve("out")));
         assertFalse(Files.exists(tmp.resolve("escape.txt")));
+    }
+
+    @Test
+    void replacingATemplateKeepsTheOldOneUntilTheNewOneIsIn() throws IOException {
+        MapTemplateManager.createTemplate(maps, "castle", world, List.of());
+        Files.writeString(world.resolve("region").resolve("r.0.0.mca"), "changed");
+        MapTemplateManager.createTemplate(maps, "castle", world, List.of());
+        Path t = MapTemplateManager.templateDir(maps, "castle");
+        assertEquals("changed", Files.readString(t.resolve("region").resolve("r.0.0.mca")));
+        assertFalse(Files.exists(t.resolveSibling("template.old")));
+    }
+
+    @Test
+    void anInterruptedReplaceIsUndone() throws IOException {
+        MapTemplateManager.createTemplate(maps, "castle", world, List.of());
+        Path t = MapTemplateManager.templateDir(maps, "castle");
+        Files.move(t, t.resolveSibling("template.old"));
+        assertTrue(MapTemplateManager.hasTemplate(maps, "castle"));
+        assertEquals("blocks", Files.readString(t.resolve("region").resolve("r.0.0.mca")));
+    }
+
+    @Test
+    void zipsAreWrittenUnderTheirNameOnlyWhenComplete() throws IOException {
+        MapTemplateManager.createTemplate(maps, "castle", world, List.of());
+        Path zip = tmp.resolve("backups").resolve("a.zip");
+        assertThrows(IOException.class, () -> MapTemplateManager.writeZip(zip, out -> {
+            out.putNextEntry(new java.util.zip.ZipEntry("x"));
+            throw new IOException("disk full");
+        }));
+        assertFalse(Files.exists(zip));
+        assertFalse(Files.exists(zip.resolveSibling("a.zip.tmp")));
+        assertTrue(MapTemplateManager.zipTemplate(maps, "castle", zip));
+        assertTrue(Files.size(zip) > 0);
     }
 }

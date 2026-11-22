@@ -17,6 +17,7 @@ import java.util.UUID;
 public class Team {
     private HashMap<UUID, ArmorContents> armorContents;
     private ChatColor color;
+    private String displayName;
     private final String name;
     private final IArena arena;
     private final ArrayList<Player> players;
@@ -83,12 +84,13 @@ public class Team {
     }
 
     public void addPlayer(Player player) {
+        players.removeIf(p -> p.getUniqueId().equals(player.getUniqueId()));
         players.add(player);
         isAlive = true;
     }
 
     public void removePlayer(Player player) {
-        players.remove(player);
+        players.removeIf(p -> p.getUniqueId().equals(player.getUniqueId()));
         if (players.isEmpty()) {
             isAlive = false;
         }
@@ -96,6 +98,10 @@ public class Team {
 
     public boolean isAlive() {
         return isAlive;
+    }
+
+    public void eliminate() {
+        isAlive = false;
     }
 
     public ArrayList<Player> getPlayers() {
@@ -251,6 +257,36 @@ public class Team {
         return name;
     }
 
+    public String getDisplayName() {
+        return displayName == null ? name : displayName;
+    }
+
+    public String getStoredDisplayName() {
+        return displayName;
+    }
+
+    public static boolean isValidDisplayName(String value) {
+        if (value == null || value.isBlank() || value.length() > 32) return false;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (Character.isISOControl(c) || c == '\u00a7') return false;
+        }
+        return true;
+    }
+
+    public void setDisplayName(String value) {
+        String trimmed = value == null ? null : value.trim();
+        if (trimmed != null && trimmed.isEmpty()) trimmed = null;
+        if (trimmed != null && !isValidDisplayName(trimmed)) {
+            throw new IllegalArgumentException("a team display name needs 1 to 32 characters without colour codes or line breaks");
+        }
+        GameStatus status = arena == null ? null : arena.status();
+        if (status == GameStatus.playing || status == GameStatus.ending) {
+            throw new IllegalStateException("the team display name can not be changed during a game");
+        }
+        this.displayName = trimmed;
+    }
+
     public Boolean isBedSet() {
         return teamBed != null;
     }
@@ -295,6 +331,7 @@ public class Team {
         String sb = "{" +
                 "\"color\": " + JsonUtils.quote(color.name()) + "," +
                 "\"name\": " + JsonUtils.quote(name) + "," +
+                (displayName == null ? "" : "\"displayName\": " + JsonUtils.quote(displayName) + ",") +
                 "\"extra\": " + extra + "," +
                 "\"teamBed\": " + (teamBed == null ? "null" : JsonUtils.locationToJson(teamBed.getLocation())) + "," +
                 "\"teamSpawn\": " + (teamSpawn == null ? "null" : JsonUtils.locationToJson(teamSpawn)) + "," +

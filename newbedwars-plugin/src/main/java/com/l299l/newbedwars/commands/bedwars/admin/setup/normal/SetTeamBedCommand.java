@@ -4,6 +4,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
 import com.l299l.newbedwars.arena.setup.DecoUtils;
+import com.l299l.newbedwars.utils.TeamColor;
 import com.l299l.newbedwars.commands.bedwars.admin.setup.TabArgsUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -69,8 +70,9 @@ public class SetTeamBedCommand extends BwCommand {
     }
 
     private boolean isBedPlaced(Location location) {
-        if(location.getBlock().getType().name().contains("BED")) {
+        if (TeamColor.kindOf(location.getBlock().getType()) == TeamColor.Kind.BED) {
             return true;
-        }else return location.getBlock().getRelative(0, 1, 0).getType().name().contains("BED");
+        }
+        return TeamColor.kindOf(location.getBlock().getRelative(0, 1, 0).getType()) == TeamColor.Kind.BED;
     }
 }

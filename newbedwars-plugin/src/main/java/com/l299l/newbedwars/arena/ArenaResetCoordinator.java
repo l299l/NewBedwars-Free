@@ -90,7 +90,7 @@ class ArenaResetCoordinator {
             world.setKeepSpawnInMemory(false);
             world.setAutoSave(false);
             for (Chunk chunk : world.getLoadedChunks()) {
-                chunk.unload(true);
+                chunk.unload(false);
             }
         } catch (Exception e) {
             NewBedwars.plugin.getLogger().warning("Failed to unload chunks for arena " + arena.getArenaName() + ": " + e.getMessage());

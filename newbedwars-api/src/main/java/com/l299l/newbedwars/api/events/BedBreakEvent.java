@@ -21,6 +21,7 @@ public class BedBreakEvent extends CancellableArenaEvent {
         return team;
     }
 
+    /** The player who broke the bed; null when it was destroyed through {@code GameControl#destroyBed} (from 2.8-beta). */
     public Player getBreaker() {
         return breaker;
     }

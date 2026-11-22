@@ -11,6 +11,18 @@ public interface TeamEditor {
     /** @param color a color, not a format code like {@code BOLD} */
     void setColor(ChatColor color);
 
+    /**
+     * Sets the name players see for this team, e.g. {@code "Lime"} after {@link #setColor} gave the team
+     * {@code Red} a lime color. {@link #getName()} stays the same, so the team keeps its setup, upgrades and
+     * commands. The display name is saved with the arena like the color; {@code null} or an empty text shows
+     * {@link #getName()} again. Colour codes are not allowed: the team color is used.
+     *
+     * @param displayName 1 to 32 characters without {@code §} colour codes or line breaks, or null
+     * @throws IllegalArgumentException for an invalid display name
+     * @since 2.8-beta
+     */
+    void setDisplayName(String displayName);
+
     void setSpawn(Location location);
 
     /** @param location either half of a bed that is already placed there */

@@ -97,7 +97,6 @@ public final class Router {
             }
             case SEND_TO_LOBBY -> onSendToLobby(server, msg.payload(SendToLobby.class));
             default -> {
-                // NETWORK_STATE, JOIN_TICKET and PARTY_SYNC only go from the proxy to backends.
             }
         }
     }
@@ -266,7 +265,6 @@ public final class Router {
     void onReject(String server, JoinReject r, long now) {
         if (r == null) return;
         Pending p = byRequest.get(r.requestId);
-        // Only the first reject of the current try counts (a party sends one per member).
         if (p == null || p.current == null || !server.equals(p.current.serverId)) return;
         log.accept("Join " + p.id + " rejected by " + server + ": " + r.reason);
         retryOrFail(p, now);

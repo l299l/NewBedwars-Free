@@ -35,6 +35,8 @@ MySQL is still worth it on a single server when:
 
 The plugin uses the MySQL driver that ships with the server, so nothing else needs to be installed.
 
+For a database on another machine, set `MySQL.SslMode: REQUIRED` (or `VERIFY_CA` / `VERIFY_IDENTITY` with a trusted certificate). The default `PREFERRED` encrypts only when the database offers it and does not check the certificate.
+
 ## Tables
 
 | Table | Columns |

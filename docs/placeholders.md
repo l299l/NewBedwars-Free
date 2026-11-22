@@ -9,7 +9,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_arena%` | Arena name the player is in, or `""` |
 | `%newbedwars_group%` | Group of the arena the player is in, or `""` |
 | `%newbedwars_status%` | Game status: `waiting` / `starting` / `playing` / `ending` / `restarting`, or `lobby` |
-| `%newbedwars_team%` | Team name, or `""` |
+| `%newbedwars_team%` | Team name (the display name when an addon set one), or `""` |
 | `%newbedwars_team_color%` | Team ChatColor code, or `""` |
 | `%newbedwars_kills%` | Kills in the current game |
 | `%newbedwars_deaths%` | Deaths in the current game |
@@ -34,6 +34,19 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_stat_games%` | Total games played |
 | `%newbedwars_stat_kd%` | Kill/death ratio (1 decimal, e.g. `2.3`) |
 | `%newbedwars_stat_wl%` | Win/loss ratio (1 decimal) |
+
+## Leaderboards
+
+The best players of all time, for leaderboard holograms, signs or menus (DecentHolograms, FancyHolograms, ...). They work without a player.
+
+| Placeholder | Description |
+|---|---|
+| `%newbedwars_top_<stat>_<position>_name%` | Name of the player at that place |
+| `%newbedwars_top_<stat>_<position>_value%` | Their value |
+
+`<stat>` is `wins`, `kills`, `final_kills` or `beds`, and `<position>` is `1` to `10`. Example: `%newbedwars_top_wins_1_name%` - `%newbedwars_top_wins_1_value%` wins.
+
+An empty place shows `-` as the name (`LeaderboardPlaceholderEmpty` in the language files) and `0` as the value. The lists are refreshed every `Leaderboards.RefreshSeconds` seconds (60 by default, in `config.yml`). With `Storage.Type: MYSQL` they show the whole network.
 
 ## Per arena
 
@@ -60,3 +73,6 @@ Arena groups from `/bw group`. Group names may contain `_`.
 
 An unknown group returns `""`.
 
+## In shop items
+
+**(2.8-beta)** Placeholders also work the other way round: the shop names and descriptions of shop items, upgrades and traps, and the names and descriptions of menu categories can use any PlaceholderAPI placeholder, and the player who opens the menu sees their own values. The item a player receives when buying keeps its normal text on purpose, so bought blocks still stack. See [Shop items](shop-and-upgrades.md#shop-items-itemsyml).

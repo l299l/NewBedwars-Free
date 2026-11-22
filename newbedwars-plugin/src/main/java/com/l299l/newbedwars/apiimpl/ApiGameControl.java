@@ -52,4 +52,19 @@ public final class ApiGameControl implements GameControl {
     public CompletableFuture<MaintenanceResult> broadcast(String arena, String actor, String message) {
         return run(() -> GameControlService.broadcast(arena, actor, message));
     }
+
+    @Override
+    public CompletableFuture<MaintenanceResult> destroyBed(String arena, String team, String actor) {
+        return run(() -> GameControlService.destroyBed(arena, team, actor));
+    }
+
+    @Override
+    public CompletableFuture<MaintenanceResult> eliminateTeam(String arena, String team, String actor) {
+        return run(() -> GameControlService.eliminateTeam(arena, team, actor));
+    }
+
+    @Override
+    public CompletableFuture<MaintenanceResult> setUpgradeLevel(String arena, String team, String upgrade, int level, String actor) {
+        return run(() -> GameControlService.setUpgradeLevel(arena, team, upgrade, level, actor));
+    }
 }

@@ -44,7 +44,50 @@ public final class MapTemplateManager {
     }
 
     public static boolean hasTemplate(Path mapsRoot, String arena) {
+        recoverInterruptedSwap(templateDir(mapsRoot, arena));
         return isWorldFolder(templateDir(mapsRoot, arena));
+    }
+
+    static void recoverInterruptedSwap(Path current) {
+        Path old = current.resolveSibling(current.getFileName() + ".old");
+        if (Files.exists(current) || !Files.isDirectory(old)) return;
+        try {
+            Files.move(old, current);
+            LOG.warning("Put back the previous map template " + current + " after an interrupted update");
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Could not put back " + old, e);
+        }
+    }
+
+    static void swapIn(Path fresh, Path current) throws IOException {
+        Path old = current.resolveSibling(current.getFileName() + ".old");
+        deleteTree(old);
+        boolean hadCurrent = Files.exists(current);
+        if (hadCurrent) Files.move(current, old);
+        try {
+            Files.move(fresh, current);
+        } catch (IOException e) {
+            if (hadCurrent && !Files.exists(current)) Files.move(old, current);
+            throw e;
+        }
+        deleteTree(old);
+    }
+
+    public static void writeZip(Path target, ZipWriter writer) throws IOException {
+        Files.createDirectories(target.getParent());
+        Path tmp = target.resolveSibling(target.getFileName() + ".tmp");
+        try {
+            try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(tmp))) {
+                writer.write(zip);
+            }
+            Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
+    }
+
+    public interface ZipWriter {
+        void write(ZipOutputStream zip) throws IOException;
     }
 
     public static boolean isWorldFolder(Path dir) {
@@ -82,8 +125,7 @@ public final class MapTemplateManager {
             deleteTree(fresh);
             throw e;
         }
-        deleteTree(current);
-        Files.move(fresh, current);
+        swapIn(fresh, current);
         long files = countFiles(current);
         Files.writeString(root.resolve(META_FILE),
                 "{\n  \"created\": " + System.currentTimeMillis()
@@ -159,10 +201,7 @@ public final class MapTemplateManager {
 
     public static boolean zipTemplate(Path mapsRoot, String arena, Path target) throws IOException {
         if (!hasTemplate(mapsRoot, arena)) return false;
-        Files.createDirectories(target.getParent());
-        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(target))) {
-            addTree(zip, templateDir(mapsRoot, arena), "");
-        }
+        writeZip(target, zip -> addTree(zip, templateDir(mapsRoot, arena), ""));
         return true;
     }
 
@@ -176,17 +215,19 @@ public final class MapTemplateManager {
             deleteTree(fresh);
             throw new IOException("Backup " + zip.getFileName() + " does not contain a world");
         }
-        deleteTree(templateDir(mapsRoot, arena));
-        Files.move(fresh, templateDir(mapsRoot, arena));
+        swapIn(fresh, templateDir(mapsRoot, arena));
     }
 
     public static String timestamp() {
         return new SimpleDateFormat("yyyyMMdd-HHmmss-SSS").format(new Date());
     }
 
+    public static final String MANUAL_SUFFIX = "-manual";
+
     public static void rotate(Path dir, String extension, int keep) throws IOException {
         if (!Files.isDirectory(dir)) return;
-        List<Path> files = listBackups(dir, extension);
+        List<Path> files = new ArrayList<>(listBackups(dir, extension));
+        files.removeIf(p -> p.getFileName().toString().endsWith(MANUAL_SUFFIX + extension));
         for (int i = keep; i < files.size(); i++) {
             Files.deleteIfExists(files.get(i));
         }

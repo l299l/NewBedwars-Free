@@ -80,7 +80,7 @@ public class TeamUpgrades {
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
         com.l299l.newbedwars.arena.setup.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
-        npc.setCustomName(team.getColor() + team.getName() + " Upgrades");
+        npc.setCustomName(NewBedwars.plugin.getMessages().getMsgToConsole("UpgradesNpcName").replace("/team/", team.getColor() + team.getDisplayName()));
         npc.setCustomNameVisible(true);
         npc.setSilent(true);
         npc.setGravity(false);
@@ -123,9 +123,23 @@ public class TeamUpgrades {
     public void triggerTraps(Player enemy, IArena arena) {
         for (Upgrade upgrade : Upgrade.values()) {
             if (!upgrade.handler().isTrap() || getUpgradeLevel(upgrade) <= 0) continue;
+            if (!com.l299l.newbedwars.apiimpl.ApiEvents.trapTrigger(arena, team, enemy, upgrade.name())) continue;
+            if (getUpgradeLevel(upgrade) <= 0) continue;
             upgrades.put(upgrade, getUpgradeLevel(upgrade) - 1);
             upgrade.handler().trigger(enemy, team, arena);
         }
+    }
+
+    public boolean setLevel(Upgrade upgrade, int level) {
+        int current = getUpgradeLevel(upgrade);
+        if (level == current) return true;
+        if (upgrade.handler().isTrap()) {
+            upgrades.put(upgrade, Math.max(0, level));
+            return true;
+        }
+        if (level < current) return false;
+        for (int i = current; i < level; i++) upgrade(upgrade);
+        return true;
     }
 
     void startHealPool() {

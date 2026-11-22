@@ -9,7 +9,7 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 final class PinningTrust extends X509ExtendedTrustManager {
@@ -20,9 +20,9 @@ final class PinningTrust extends X509ExtendedTrustManager {
     }
 
     private final Supplier<String> pinned;
-    private final Consumer<String> firstUse;
+    private final Predicate<String> firstUse;
 
-    PinningTrust(Supplier<String> pinned, Consumer<String> firstUse) {
+    PinningTrust(Supplier<String> pinned, Predicate<String> firstUse) {
         this.pinned = pinned;
         this.firstUse = firstUse;
     }
@@ -41,7 +41,7 @@ final class PinningTrust extends X509ExtendedTrustManager {
         }
         String expected = pinned.get();
         if (expected == null || expected.isEmpty()) {
-            firstUse.accept(actual);
+            if (!firstUse.test(actual)) throw new PinMismatch("pin file was damaged, certificate not trusted");
             return;
         }
         if (!MessageDigest.isEqual(expected.getBytes(), actual.getBytes())) {

@@ -63,6 +63,7 @@ public class Properties{
     public static Integer AutoSetupBasePadding = 8;
     public static Integer AutoSetupBaseBelow = 5;
     public static Integer AutoSetupBaseAbove = 15;
+    public static Integer LeaderboardRefreshSeconds = 60;
     public static Integer MapVoteItemSlot = 2;
     public static String MapVoteItemMaterial = "PAPER";
     public static Integer JoinNpcUpdateSeconds = 2;
@@ -82,7 +83,7 @@ public class Properties{
 
     public Properties() {
         NewBedwars.plugin.reloadConfig();
-        ServerName = (String) get("ServerName");
+        ServerName = text("ServerName");
         StorageType = com.l299l.newbedwars.config.StorageType.JSON;
         if (get("Storage.Type") instanceof String st && st.trim().equalsIgnoreCase("MYSQL")) {
             StorageType = com.l299l.newbedwars.config.StorageType.MYSQL;
@@ -99,35 +100,35 @@ public class Properties{
         Object tie = get("TablistIsolationEnabled");
         TablistIsolationEnabled = tie instanceof Boolean b ? b : true;
 
-        DefaultMinPlayers = (Integer) get("DefaultMinPlayers");
-        DefaultMaxInTeam = (Integer) get("DefaultMaxInTeam");
-        DefaultWaitingTime = (Integer) get("DefaultWaitingTime");
-        DefaultTeamShopGui = (String) get("DefaultTeamShopGui");
-        DefaultUpgradeShopGui = (String) get("DefaultTeamUpgradeGui");
-        DefaultGeneratorConfig = (String) get("DefaultGeneratorConfig");
-        DefaultGamePhase = (String) get("DefaultGamePhase");
-        DefaultRespawnTime = (Integer) get("DefaultRespawnTime");
+        DefaultMinPlayers = typed("DefaultMinPlayers", Integer.class);
+        DefaultMaxInTeam = typed("DefaultMaxInTeam", Integer.class);
+        DefaultWaitingTime = typed("DefaultWaitingTime", Integer.class);
+        DefaultTeamShopGui = text("DefaultTeamShopGui");
+        DefaultUpgradeShopGui = text("DefaultTeamUpgradeGui");
+        DefaultGeneratorConfig = text("DefaultGeneratorConfig");
+        DefaultGamePhase = text("DefaultGamePhase");
+        DefaultRespawnTime = typed("DefaultRespawnTime", Integer.class);
 
-        DefaultGamerules.put("RandomTeams", (Boolean) get("DefaultGamerules.RandomTeams"));
-        DefaultGamerules.put("AllowParties", (Boolean) get("DefaultGamerules.AllowParties"));
-        DefaultGamerules.put("AllowSpectators", (Boolean) get("DefaultGamerules.AllowSpectators"));
-        DefaultGamerules.put("AllowTeamChat", (Boolean) get("DefaultGamerules.AllowTeamChat"));
-        DefaultGamerules.put("AllowGlobalChat", (Boolean) get("DefaultGamerules.AllowGlobalChat"));
-        DefaultGamerules.put("AllowPrivateChat", (Boolean) get("DefaultGamerules.AllowPrivateChat"));
-        DefaultGamerules.put("AllowTeamDamage", (Boolean) get("DefaultGamerules.AllowTeamDamage"));
-        DefaultGamerules.put("MakeSwordsPermanent", (Boolean) get("DefaultGamerules.MakeSwordsPermanent"));
+        DefaultGamerules.put("RandomTeams", typed("DefaultGamerules.RandomTeams", Boolean.class));
+        DefaultGamerules.put("AllowParties", typed("DefaultGamerules.AllowParties", Boolean.class));
+        DefaultGamerules.put("AllowSpectators", typed("DefaultGamerules.AllowSpectators", Boolean.class));
+        DefaultGamerules.put("AllowTeamChat", typed("DefaultGamerules.AllowTeamChat", Boolean.class));
+        DefaultGamerules.put("AllowGlobalChat", typed("DefaultGamerules.AllowGlobalChat", Boolean.class));
+        DefaultGamerules.put("AllowPrivateChat", typed("DefaultGamerules.AllowPrivateChat", Boolean.class));
+        DefaultGamerules.put("AllowTeamDamage", typed("DefaultGamerules.AllowTeamDamage", Boolean.class));
+        DefaultGamerules.put("MakeSwordsPermanent", typed("DefaultGamerules.MakeSwordsPermanent", Boolean.class));
         Object dmt = get("DefaultGamerules.MakeToolsPermanent");
         DefaultGamerules.put("MakeToolsPermanent", dmt instanceof Boolean b ? b : true);
-        DefaultGamerules.put("AllowMultipleGolems", (Boolean) get("DefaultGamerules.AllowMultipleGolems"));
-        DefaultGamerules.put("SplitPartiesToStart", (Boolean) get("DefaultGamerules.SplitPartiesToStart"));
+        DefaultGamerules.put("AllowMultipleGolems", typed("DefaultGamerules.AllowMultipleGolems", Boolean.class));
+        DefaultGamerules.put("SplitPartiesToStart", typed("DefaultGamerules.SplitPartiesToStart", Boolean.class));
         Object dmv = get("DefaultGamerules.MapVote");
         DefaultGamerules.put("MapVote", dmv instanceof Boolean b ? b : true);
-        DefaultLanguage = (String) get("DefaultLanguage");
+        DefaultLanguage = text("DefaultLanguage");
 
-        RejoinTimeEnabled = (Boolean) get("RejoinTimeLimitEnabled");
-        RejoinTime = (Integer) get("RejoinTime");
-        BasicSword = (String) get("BasicSword");
-        FullArmor = (Boolean) get("FullArmor");
+        RejoinTimeEnabled = typed("RejoinTimeLimitEnabled", Boolean.class);
+        RejoinTime = typed("RejoinTime", Integer.class);
+        BasicSword = text("BasicSword");
+        FullArmor = typed("FullArmor", Boolean.class);
         Object blce = get("BedLeaveConfirmEnabled");
         BedLeaveConfirmEnabled = blce instanceof Boolean b ? b : true;
         Object blcd = get("BedLeaveConfirmDelay");
@@ -168,6 +169,7 @@ public class Properties{
         AutoSetupBasePadding = positive(get("AutomaticSetup.BasePadding"), 8);
         AutoSetupBaseBelow = positive(get("AutomaticSetup.BaseBelow"), 5);
         AutoSetupBaseAbove = positive(get("AutomaticSetup.BaseAbove"), 15);
+        LeaderboardRefreshSeconds = positive(get("Leaderboards.RefreshSeconds"), 60);
 
         Object mvs = get("MapVote.Item.Slot");
         MapVoteItemSlot = mvs instanceof Integer i && i >= 0 && i <= 8 ? i : 2;
@@ -199,13 +201,23 @@ public class Properties{
             }
         }
 
-        List<Map<String, Object>> allGamePhases = (List<Map<String, Object>>) get("GamePhases");
-        for (Map<String, Object> gamePhase : allGamePhases) {
-            String ID = (String) gamePhase.get("ID");
-            List<Map<String, Object>> phases = (List<Map<String, Object>>) gamePhase.get("Phases");
+        Object allGamePhases = get("GamePhases");
+        if (!(allGamePhases instanceof List<?> phaseLists)) {
+            NewBedwars.plugin.getLogger().warning("config.yml: GamePhases is not a list; no game phases are loaded");
+            return;
+        }
+        for (Object entry : phaseLists) {
+            if (!(entry instanceof Map<?, ?> gamePhase) || !(gamePhase.get("ID") instanceof String ID)
+                    || !(gamePhase.get("Phases") instanceof List<?> phases)) {
+                NewBedwars.plugin.getLogger().warning("config.yml: a GamePhases entry without ID or Phases list was skipped");
+                continue;
+            }
             List<Phase> phaseList = new ArrayList<>();
             for (int i = 0; i < phases.size(); i++) {
-                Map<String, Object> phase = phases.get(i);
+                if (!(phases.get(i) instanceof Map<?, ?> phase)) {
+                    NewBedwars.plugin.getLogger().warning("Game phases '" + ID + "': phase " + (i + 1) + " is not a section and was skipped");
+                    continue;
+                }
                 String name = String.valueOf(phase.get("Name"));
                 int duration = phase.get("Duration") instanceof Number n ? n.intValue() : 0;
                 if (duration <= 0 && i < phases.size() - 1) {
@@ -213,10 +225,10 @@ public class Properties{
                             + "' has no valid Duration, using 1 second so the game can continue");
                     duration = 1;
                 }
-                List<String> actions = phase.get("Actions") instanceof List<?> l ? (List<String>) l : List.of();
+                List<?> actions = phase.get("Actions") instanceof List<?> l ? l : List.of();
                 List<PhaseAction> phaseActions = new ArrayList<>();
-                for (String action : actions) {
-                    phaseActions.add(new PhaseAction(action));
+                for (Object action : actions) {
+                    phaseActions.add(new PhaseAction(String.valueOf(action)));
                 }
                 phaseList.add(new Phase(name, duration, phaseActions));
             }
@@ -251,5 +263,22 @@ public class Properties{
 
     private Object get(String text) {
         return NewBedwars.plugin.getConfig().get(text);
+    }
+
+    private <T> T typed(String key, Class<T> type) {
+        Object value = get(key);
+        if (type.isInstance(value)) return type.cast(value);
+        org.bukkit.configuration.Configuration defaults = NewBedwars.plugin.getConfig().getDefaults();
+        Object fallback = defaults == null ? null : defaults.get(key);
+        if (value != null) {
+            NewBedwars.plugin.getLogger().warning("config.yml: " + key + " should be " + (type == Boolean.class ? "true or false" : "a whole number")
+                    + ", not '" + value + "'; using " + fallback);
+        }
+        return type.isInstance(fallback) ? type.cast(fallback) : null;
+    }
+
+    private String text(String key) {
+        Object value = get(key);
+        return value == null ? null : String.valueOf(value);
     }
 }

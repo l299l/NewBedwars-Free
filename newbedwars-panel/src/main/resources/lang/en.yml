@@ -2,6 +2,7 @@
 Prefix: "&8[&bNBW Panel&8] &7"
 NoPermission: "&cYou do not have permission to manage the panel."
 NotRunning: "&cThe panel is not running. Check the console for the reason."
+UserNeedsOp: "&cCreating, resetting and deleting panel accounts and forgetting network certificates is only possible from the console or as an operator."
 Usage: "&7Commands: &f/nbwpanel status&7, &f/nbwpanel user create <name> <role>&7, &f/nbwpanel user reset <name>&7, &f/nbwpanel user delete <name>&7, &f/nbwpanel user list"
 UsageCreate: "&7Usage: &f/nbwpanel user create <name> <role> &7(roles: {0})"
 UsageReset: "&7Usage: &f/nbwpanel user reset <name>"

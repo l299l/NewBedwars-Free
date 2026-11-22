@@ -49,6 +49,7 @@ class ArenaMaintenanceCommandTest {
         DataManager dataManager = mock(DataManager.class);
         arenaData = mock(ArenaDataManager.class);
         when(plugin.getDataFolder()).thenReturn(tempDir.toFile());
+        when(plugin.isEnabled()).thenReturn(true);
         when(plugin.getMessages()).thenReturn(messages);
         when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
         when(plugin.getDataManager()).thenReturn(dataManager);

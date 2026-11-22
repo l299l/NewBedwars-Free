@@ -37,8 +37,10 @@ TNT:
 |---|---|
 | `material` | Bukkit material name of the item |
 | `amount` | How many the player gets |
-| `price` / `priceType` | Cost and currency: `IRON`, `GOLD`, `DIAMOND`, `EMERALD`, or `NONE` (free) |
-| `onBuyEvent` | What buying does: `GIVE_ITEM` (into the inventory), `GIVE_ARMOR` (upgrade the armor tier), `GIVE_TOOL` (sword or tool that follows the tool rules), `UPGRADE` (a team upgrade icon) |
+| `price` / `priceType` | Cost and currency: `IRON`, `GOLD`, `DIAMOND`, `EMERALD`, `NONE` (free), or `OTHER` (paid with the item in `priceMaterial`) |
+| `priceMaterial` | Only for `priceType: OTHER`: the item players pay with, for example `NETHER_STAR` |
+| `onBuyEvent` | What buying does: `GIVE_ITEM` (into the inventory), `GIVE_ARMOR` (upgrade the armor tier), `GIVE_TOOL` (sword or tool that follows the tool rules), `UPGRADE` (a team upgrade icon), `COMMANDS`, `OPEN_GUI` and `GIVE_PERM` (see [Commands, menus and permissions](#commands-menus-and-permissions)), `CANCEL` (nothing, for decoration) |
+| `commands` / `gui` / `givePermission` | Only for `COMMANDS`, `OPEN_GUI` and `GIVE_PERM`, see below |
 | `itemLogic` | Special behaviour when the item is used: `NONE`, `TNT`, `FIREBALL`, `BRIDGE_EGG`, `LUCKY_BLOCK`, `POTION`, `BLAST_PROTECTION`, `IRON_GOLEM`, `SILVERFISH`, `PORTABLE_TOWER`. Addons can add their own |
 | `isPermanent` | The item is unbreakable. A `GIVE_ITEM` item is also given back on every respawn once bought. See [Permanent items](#permanent-items) |
 | `permission` | Only players with this permission can buy it (empty = everyone) |
@@ -46,7 +48,50 @@ TNT:
 | `enchantments` | Enchantments and levels, for example `{SHARPNESS: 1}` |
 | `itemFlags` | Item flags, for example `[HIDE_ENCHANTS]` |
 
-An item with an unknown material, enchantment or flag (for example from a newer Minecraft version) is skipped with a console warning and kept in the file unchanged.
+**PlaceholderAPI (2.8-beta):** when PlaceholderAPI is installed, placeholders are filled in for the player who opens the menu, for example `&7You have won %newbedwars_stat_wins% games`. This works in:
+
+- the shop name and shop description of shop items (`<ID>-name` and `<ID>-icon-description`),
+- the same texts of team upgrades and traps in the upgrade menu,
+- the `Name` and `Description` of categories in menu files.
+
+Any PlaceholderAPI placeholder works, also those of other plugins. The menu shows the values from the moment it was opened.
+
+> [!NOTE]
+> Placeholders are only filled in on the icons in the menus. The item a player receives when buying keeps its normal name and description, on purpose: with player-specific texts, bought blocks such as wool would no longer stack with each other. Put placeholders in `<ID>-icon-description`, not in the item's own description.
+
+An item with an unknown material, enchantment or flag (for example from a newer Minecraft version) is skipped with a console warning and kept in the file unchanged. The same happens to an item with `priceType: OTHER` and no valid `priceMaterial`, and to a `COMMANDS`, `OPEN_GUI` or `GIVE_PERM` item without its `commands`, `gui` or `givePermission`.
+
+### Commands, menus and permissions
+
+Three `onBuyEvent` values do something other than give an item. The price is taken first, as for every item.
+
+```yaml
+VipKit:
+  material: NETHER_STAR
+  price: 1
+  priceType: OTHER
+  priceMaterial: DIAMOND_BLOCK
+  onBuyEvent: COMMANDS
+  commands:
+  - give {player} golden_apple 2
+  - 'player: kit vip'
+Specials:
+  material: CHEST
+  price: 0
+  priceType: NONE
+  onBuyEvent: OPEN_GUI
+  gui: specialShop
+DoubleJump:
+  material: FEATHER
+  price: 8
+  priceType: EMERALD
+  onBuyEvent: GIVE_PERM
+  givePermission: doublejump.use
+```
+
+- **`COMMANDS`** runs every line of `commands` (without the `/`). Lines run as the console, so they can do anything the console can; a line that starts with `player:` runs as the buyer instead. `{player}`, `{team}` and `{arena}` are replaced with the buyer's name, team and arena.
+- **`OPEN_GUI`** opens the shop menu whose `GuiId` is in `gui`. With price `0` it works as a link to another menu, and no "bought" message is shown.
+- **`GIVE_PERM`** gives the buyer the permission in `givePermission` until they leave the game, are eliminated or the game ends. It can't be bought twice in one game. Use it for perks of other plugins that check a permission.
 
 ### Permanent items
 
@@ -104,6 +149,8 @@ Categories:
 
 Upgrades: `protection`, `sharpness`, `haste`, `forge`, `healpool`, `dragonbuff`, and the traps `alarmtrap`, `blindtrap`, `miningfatiguetrap`. Addons can add more.
 
+Traps don't queue: when an enemy enters a base, every trap the team has bought fires at once and each loses one charge.
+
 **Which menu an arena uses:** new arenas get `DefaultTeamShopGui` and `DefaultTeamUpgradeGui` from [`config.yml`](configuration.md#arena-defaults). In advanced setup mode, `/bw setGui shop <guiId>` and `/bw setGui upgrade <guiId>` choose another menu for one arena.
 
 ## Upgrade prices (`upgrades.yml`)
@@ -126,10 +173,40 @@ Upgrades:
 
 - `currency` is `IRON`, `GOLD`, `DIAMOND` or `EMERALD`; when it is left out, `DefaultCurrency` is used.
 - A shorter list means fewer levels (up to what the upgrade supports). An empty list means the upgrade can't be bought.
-- **Different prices for some arenas:** an upgrade menu file can have its own `UpgradePrices:` section in the same format. Arenas that use that menu get those prices, for example cheaper upgrades in solo arenas.
+- **Different prices for some arenas:** an upgrade menu file can have its own `UpgradePrices:` section in the same format. Arenas that use that menu get those prices, for example cheaper upgrades in solo arenas. An entry that can not be read is logged once as a warning (naming the menu and the upgrade) and the prices from `upgrades.yml` are used for it.
 
 ## Generators (`generators/*.yml`)
+
+Generators have no limit on how many items lie on the ground; items that nobody picks up stay until the game ends.
 
 `generators/defaultGenerators.yml` sets how fast team, diamond and emerald generators drop resources at each level. Make another file with a different `ConfigurationId` for a faster or slower preset, and choose it with `DefaultGeneratorConfig` in `config.yml` or, per arena, `/bw setGeneratorLeveling <configId>` in advanced setup. The comments at the top of the file explain every value.
 
 Diamond and emerald generators are upgraded by the [game phases](configuration.md#game-phases); team generators by the Forge upgrade.
+
+`ShowNextSpawnTime` in each generator section turns the "next spawn in" countdown in the hologram above the generator on or off. By default it is on for diamond and emerald generators and off for team generators.
+
+### Custom generators
+
+A generator file can also define generators that drop any item, in a `CustomGenerators` section (there is a commented example at the end of `defaultGenerators.yml`):
+
+```yaml
+CustomGenerators:
+  gapple:
+    Item: GOLDEN_APPLE
+    Amount: 1
+    SpawnDelay: 60
+    Display: GOLD_BLOCK
+    Name: "&6Golden Apple"
+    ShowNextSpawnTime: true
+```
+
+| Key | Meaning |
+|---|---|
+| `Item` | What it drops |
+| `Amount` | How many per drop (1 to 64, default 1) |
+| `SpawnDelay` | Seconds between drops (default 30) |
+| `Display` | The block that spins above it (default: the item) |
+| `Name` | Title of its hologram, `&` colours allowed (default: the item name) |
+| `ShowNextSpawnTime` | Show the countdown in the hologram (default `true`) |
+
+Place one in advanced setup mode with `/bw setGenerator OTHER <id> [x y z]`, using the generator file of the arena (`/bw setGeneratorLeveling`). Custom generators have one level and are not upgraded by game phases. Like diamond and emerald generators, bridge eggs and portable towers don't build next to them.

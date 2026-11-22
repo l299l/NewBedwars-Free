@@ -1,12 +1,13 @@
 package com.l299l.newbedwars.api.events;
 
 import com.l299l.newbedwars.api.view.ArenaView;
+import com.l299l.newbedwars.api.view.TeamView;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 /**
  * Fired before a shop item, armor, tool or team upgrade is paid for. Cancelling it stops the purchase and
- * nothing is charged.
+ * nothing is charged. {@link #setPrice(int)} changes what the player pays (from 2.8-beta).
  */
 public class ShopPurchaseEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();
@@ -14,14 +15,44 @@ public class ShopPurchaseEvent extends CancellableArenaEvent {
     private final String itemName;
     private final Kind kind;
     private final String priceType;
-    private final int price;
+    private final TeamView team;
+    private int price;
 
     public ShopPurchaseEvent(ArenaView arena, Player player, String itemName, Kind kind, String priceType, int price) {
+        this(arena, player, itemName, kind, priceType, price, null);
+    }
+
+    /** @since 2.8-beta */
+    public ShopPurchaseEvent(ArenaView arena, Player player, String itemName, Kind kind, String priceType, int price,
+                             TeamView team) {
         super(arena);
         this.player = player;
         this.itemName = itemName;
         this.kind = kind;
         this.priceType = priceType;
+        this.price = price;
+        this.team = team;
+    }
+
+    /**
+     * The buyer's team; empty when the player has no team.
+     *
+     * @since 2.8-beta
+     */
+    public java.util.Optional<TeamView> getTeam() {
+        return java.util.Optional.ofNullable(team);
+    }
+
+    /**
+     * Changes the price the player pays, in the same currency ({@link #getPriceType()}); 0 makes it free.
+     * The event is only fired when the player can pay the normal price, so a discount can't make an item
+     * affordable; a higher price the player can't pay fails like any purchase without enough resources.
+     *
+     * @throws IllegalArgumentException for a negative price
+     * @since 2.8-beta
+     */
+    public void setPrice(int price) {
+        if (price < 0) throw new IllegalArgumentException("price must not be negative");
         this.price = price;
     }
 
@@ -38,12 +69,15 @@ public class ShopPurchaseEvent extends CancellableArenaEvent {
         return kind;
     }
 
-    /** {@code IRON}, {@code GOLD}, {@code DIAMOND} or {@code EMERALD}. Free items use {@code NONE}. */
+    /**
+     * {@code IRON}, {@code GOLD}, {@code DIAMOND} or {@code EMERALD}. Free items use {@code NONE}; items with
+     * {@code priceType: OTHER} give the material they cost, e.g. {@code NETHER_STAR}.
+     */
     public String getPriceType() {
         return priceType;
     }
 
-    /** How many of the currency the purchase costs. */
+    /** How many of the currency the purchase costs (after {@link #setPrice(int)}). */
     public int getPrice() {
         return price;
     }

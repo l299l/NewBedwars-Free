@@ -163,6 +163,8 @@ class UpgradePricingTest {
         assertEquals(1, p.maxLevel(Upgrade.FORGE, gui));
         assertEquals(p.tiers(Upgrade.HASTE), p.tiers(Upgrade.HASTE, gui));
         assertEquals(p.tiers(Upgrade.FORGE), p.tiers(Upgrade.FORGE, null));
+        p.tiers(Upgrade.HASTE, gui);
+        assertEquals(1, warnings.stream().filter(w -> w.contains("HASTE") && w.contains("solo")).count());
     }
 
     @Test
@@ -187,5 +189,15 @@ class UpgradePricingTest {
         assertEquals(PriceType.IRON, UpgradeTier.parseCurrency(null, PriceType.IRON));
         assertThrows(IllegalArgumentException.class, () -> UpgradePricing.parseTiers(List.of(-3), PriceType.IRON));
         assertThrows(IllegalArgumentException.class, () -> UpgradePricing.parseTiers("x", PriceType.IRON));
+    }
+
+    @Test
+    void anUnreadableFileIsNeverSavedOver() throws IOException {
+        write("Upgrades: [broken");
+        UpgradePricing p = pricing();
+        p.load(null);
+        assertTrue(p.isReadOnly());
+        p.save();
+        assertEquals("Upgrades: [broken", Files.readString(file(), StandardCharsets.UTF_8));
     }
 }

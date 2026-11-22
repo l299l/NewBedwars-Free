@@ -50,29 +50,29 @@ public final class PlayerDataSql implements Listener {
         try {
             db.runNow(c -> {
                 PlayerSqlRepo.createTables(c);
+                java.util.List<String> indexProblems = PlayerSqlRepo.ensureLeaderboardIndexes(c);
+                if (!indexProblems.isEmpty()) {
+                    plugin.getLogger().warning("[MySQL] Could not add the leaderboard indexes (leaderboards still work, only slower): "
+                            + String.join("; ", indexProblems));
+                }
                 if (!PlayerSqlRepo.isEmpty(c)) return;
-                PlayerSqlRepo.LegacyRows legacy = PlayerSqlRepo.readLegacy(c);
-                if (!legacy.players().isEmpty() || !legacy.stats().isEmpty()) {
-                    int moved = PlayerSqlRepo.migrateLegacy(c, legacy);
-                    plugin.getLogger().info("[MySQL] Moved " + legacy.players().size() + " players and the stats of " + moved
-                            + " players to the UUID tables " + PlayerSqlRepo.PLAYERS + " and " + PlayerSqlRepo.STATS
-                            + " (the old tables " + PlayerSqlRepo.LEGACY_PLAYERS + " and " + PlayerSqlRepo.LEGACY_STATS + " are kept)");
-                } else if (!pm().getAllStats().isEmpty() || !pm().getPlayers().isEmpty()) {
-                    long now = System.currentTimeMillis();
-                    for (PlayerProfile p : pm().getPlayers().values()) PlayerSqlRepo.savePlayer(c, row(p), now);
-                    for (Map.Entry<UUID, PlayerStats> e : pm().getAllStats().entrySet()) {
-                        String name = pm().nameOf(e.getKey());
-                        PlayerSqlRepo.addStats(c, e.getKey(), name != null ? name : e.getKey().toString(), e.getValue());
-                    }
-                    plugin.getLogger().info("[MySQL] Imported " + pm().getPlayers().size() + " players and "
-                            + pm().getAllStats().size() + " stats from the JSON files");
+                c.setAutoCommit(false);
+                try {
+                    fillEmptyTables(c);
+                    c.commit();
+                } catch (SQLException | RuntimeException e) {
+                    c.rollback();
+                    throw e;
+                } finally {
+                    c.setAutoCommit(true);
                 }
             });
             plugin.getLogger().info("[MySQL] Player data and stats are stored in MySQL");
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "[MySQL] Could not connect; player data and stats will not be saved: " + e.getMessage());
+        } catch (SQLException | RuntimeException e) {
+            plugin.getLogger().log(Level.SEVERE, "[MySQL] Could not prepare the database (nothing was moved or imported; it is tried again on the next start); player data and stats may not be saved", e);
         }
         pm().getAllStats().clear();
+        pm().setDropOfflineGameResults(true);
         for (Player p : Bukkit.getOnlinePlayers()) loadPlayer(p);
         refreshLeaderboards();
         leaderboardTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -82,14 +82,44 @@ public final class PlayerDataSql implements Listener {
         }, 20L * 60, 20L * 60);
     }
 
+    private void fillEmptyTables(java.sql.Connection c) throws SQLException {
+        PlayerSqlRepo.LegacyRows legacy = PlayerSqlRepo.readLegacy(c);
+        if (!legacy.players().isEmpty() || !legacy.stats().isEmpty()) {
+            int moved = PlayerSqlRepo.migrateLegacy(c, legacy);
+            plugin.getLogger().info("[MySQL] Moved " + legacy.players().size() + " players and the stats of " + moved
+                    + " players to the UUID tables " + PlayerSqlRepo.PLAYERS + " and " + PlayerSqlRepo.STATS
+                    + " (the old tables " + PlayerSqlRepo.LEGACY_PLAYERS + " and " + PlayerSqlRepo.LEGACY_STATS + " are kept)");
+        } else if (!pm().getAllStats().isEmpty() || !pm().getPlayers().isEmpty()) {
+            long now = System.currentTimeMillis();
+            for (PlayerProfile p : pm().getPlayers().values()) PlayerSqlRepo.savePlayer(c, row(p), now);
+            for (Map.Entry<UUID, PlayerStats> e : pm().getAllStats().entrySet()) {
+                String name = pm().nameOf(e.getKey());
+                PlayerSqlRepo.addStats(c, e.getKey(), name != null ? name : e.getKey().toString(), e.getValue());
+            }
+            plugin.getLogger().info("[MySQL] Imported " + pm().getPlayers().size() + " players and "
+                    + pm().getAllStats().size() + " stats from the JSON files");
+        }
+    }
+
     public void stop() {
         if (leaderboardTask != null) leaderboardTask.cancel();
         leaderboardTask = null;
+        pm().setDropOfflineGameResults(false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         loadPlayer(e.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(org.bukkit.event.player.PlayerQuitEvent e) {
+        UUID id = e.getPlayer().getUniqueId();
+        com.l299l.newbedwars.utils.MainThread.run(plugin, () -> {
+            if (Bukkit.getPlayer(id) != null) return;
+            loaded.remove(id);
+            pm().evict(id);
+        });
     }
 
     void loadPlayer(Player player) {
@@ -100,10 +130,10 @@ public final class PlayerDataSql implements Listener {
             try {
                 PlayerSqlRepo.PlayerRow row = PlayerSqlRepo.loadPlayer(c, id);
                 PlayerStats stats = PlayerSqlRepo.loadStats(c, id);
-                Bukkit.getScheduler().runTask(plugin, () -> apply(name, id, row, stats));
+                com.l299l.newbedwars.utils.MainThread.run(plugin, () -> apply(name, id, row, stats));
             } catch (SQLException | RuntimeException e) {
                 plugin.getLogger().log(Level.SEVERE, "[MySQL] Could not load the data of " + name + "; it will not be saved until it loads (retrying in 30s)", e);
-                Bukkit.getScheduler().runTask(plugin, () -> scheduleRetry(id));
+                com.l299l.newbedwars.utils.MainThread.run(plugin, () -> scheduleRetry(id));
             }
         });
     }
@@ -122,11 +152,17 @@ public final class PlayerDataSql implements Listener {
     private void refreshStats(UUID id, String name) {
         db.submit("Reading the stats of " + name, c -> {
             PlayerStats stats = PlayerSqlRepo.loadStats(c, id);
-            if (stats != null) Bukkit.getScheduler().runTask(plugin, () -> pm().addStats(id, name, stats));
+            if (stats != null) com.l299l.newbedwars.utils.MainThread.run(plugin, () -> applyStats(id, name, stats));
         });
     }
 
+    void applyStats(UUID id, String name, PlayerStats stats) {
+        if (Bukkit.getPlayer(id) == null) return;
+        pm().addStats(id, name, stats);
+    }
+
     void apply(String name, UUID id, PlayerSqlRepo.PlayerRow row, PlayerStats stats) {
+        if (Bukkit.getPlayer(id) == null) return;
         loaded.add(id);
         pm().identify(id, name);
         pm().addStats(id, name, stats != null ? stats : PlayerStats.empty());
@@ -157,16 +193,16 @@ public final class PlayerDataSql implements Listener {
     }
 
     public void recordGame(UUID id, String name, PlayerStats delta) {
-        db.submit("Saving the stats of " + name, c -> PlayerSqlRepo.addStats(c, id, name, delta));
+        db.submitRetrying("Saving the stats of " + name, c -> PlayerSqlRepo.addStats(c, id, name, delta));
     }
 
     public void refreshLeaderboards() {
-        db.submit("Reading leaderboards", c -> {
+        db.submitLatest("leaderboards", "Reading leaderboards", c -> {
             Map<String, List<Map.Entry<String, PlayerStats>>> boards = new HashMap<>();
             for (Map.Entry<String, String> b : BOARDS.entrySet()) {
                 boards.put(b.getKey(), new ArrayList<>(PlayerSqlRepo.top(c, b.getValue(), 10)));
             }
-            Bukkit.getScheduler().runTask(plugin, () -> pm().setSharedLeaderboards(boards));
+            com.l299l.newbedwars.utils.MainThread.run(plugin, () -> pm().setSharedLeaderboards(boards));
         });
     }
 

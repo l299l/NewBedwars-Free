@@ -17,4 +17,15 @@ public interface ShopLogic {
      * @return {@code true} to use up one item, {@code false} to keep it
      */
     boolean perform(Player player, ArenaView arena);
+
+    /**
+     * Like {@link #perform(Player, ArenaView)}, with the {@code name} of the shop item in items.yml that was
+     * used. Override this one instead when one logic serves several items; the default calls
+     * {@link #perform(Player, ArenaView)}.
+     *
+     * @since 2.8-beta
+     */
+    default boolean perform(Player player, ArenaView arena, String itemName) {
+        return perform(player, arena);
+    }
 }

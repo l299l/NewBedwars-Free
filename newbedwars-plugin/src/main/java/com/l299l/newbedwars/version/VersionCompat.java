@@ -9,6 +9,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -17,6 +18,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
+import java.util.Map;
 
 public final class VersionCompat {
 
@@ -78,6 +81,29 @@ public final class VersionCompat {
             return pat >= patch;
         } catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    private static final Map<String, String> ENTITY_ALIASES = Map.of(
+            "MUSHROOM_COW", "MOOSHROOM",
+            "MOOSHROOM", "MUSHROOM_COW",
+            "SNOWMAN", "SNOW_GOLEM",
+            "SNOW_GOLEM", "SNOWMAN");
+
+    public static EntityType entityType(String name) {
+        if (name == null) return null;
+        String key = name.trim().toUpperCase(Locale.ROOT);
+        EntityType type = entityTypeByName(key);
+        if (type != null) return type;
+        String alias = ENTITY_ALIASES.get(key);
+        return alias == null ? null : entityTypeByName(alias);
+    }
+
+    private static EntityType entityTypeByName(String name) {
+        try {
+            return EntityType.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 

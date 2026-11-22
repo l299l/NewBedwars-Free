@@ -30,6 +30,8 @@ import java.util.function.Consumer;
 public final class JoinTicketHandler implements Listener {
     static final String BYPASS_PERMISSION = "newbedwars.network.bypass";
     static final long PARTY_GRACE_MILLIS = 3000L;
+    static final long LOBBY_RETRY_MILLIS = 5000L;
+    static final int LOBBY_RETRIES = 3;
 
     private final Plugin plugin;
     private final Messenger messenger;
@@ -41,6 +43,7 @@ public final class JoinTicketHandler implements Listener {
     private final Map<UUID, Long> awaiting = new HashMap<>();
     private final Map<String, Group> groups = new HashMap<>();
     private final Map<String, Long> handled = new HashMap<>();
+    private final Map<UUID, LobbyRetry> lobbyRetries = new HashMap<>();
     private BukkitTask task;
 
     public JoinTicketHandler(Plugin plugin, Messenger messenger, String serverId, int timeoutSeconds, BooleanSupplier restarting) {
@@ -60,7 +63,7 @@ public final class JoinTicketHandler implements Listener {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
+        task = Bukkit.getScheduler().runTaskTimer(plugin, () -> tick(), 10L, 10L);
     }
 
     public void stop() {
@@ -68,6 +71,7 @@ public final class JoinTicketHandler implements Listener {
         task = null;
         awaiting.clear();
         groups.clear();
+        lobbyRetries.clear();
     }
 
     public void hold(Player p) {
@@ -94,6 +98,7 @@ public final class JoinTicketHandler implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         awaiting.remove(e.getPlayer().getUniqueId());
+        lobbyRetries.remove(e.getPlayer().getUniqueId());
     }
 
     public void onTicket(Player via, JoinTicket t) {
@@ -103,7 +108,7 @@ public final class JoinTicketHandler implements Listener {
         if (handled.containsKey(handledKey)) return;
         handled.put(handledKey, System.currentTimeMillis());
         plugin.getLogger().info("[Network] Join ticket for " + p.getName() + ": " + (t.arena != null ? "arena " + t.arena
-                : t.kind + (t.target != null ? " " + t.target : "")) + (t.party.size() > 1 ? ", party of " + t.party.size() : ""));
+                : t.kind + (t.target != null ? " " + t.target : "")) + (t.party != null && t.party.size() > 1 ? ", party of " + t.party.size() : ""));
         long deadline = deadlineOf(t, System.currentTimeMillis());
         if (deadline < System.currentTimeMillis()) {
             reject(List.of(p), t, null, JoinReject.Reason.EXPIRED);
@@ -125,7 +130,10 @@ public final class JoinTicketHandler implements Listener {
     }
 
     private void tick() {
-        long now = System.currentTimeMillis();
+        tick(System.currentTimeMillis());
+    }
+
+    void tick(long now) {
         for (Iterator<Map.Entry<String, Group>> it = groups.entrySet().iterator(); it.hasNext(); ) {
             Group g = it.next().getValue();
             if (now - g.firstAt >= PARTY_GRACE_MILLIS) {
@@ -133,6 +141,7 @@ public final class JoinTicketHandler implements Listener {
                 execute(g);
             }
         }
+        retryLobby(now);
         for (Iterator<Map.Entry<UUID, Long>> it = awaiting.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<UUID, Long> e = it.next();
             if (e.getValue() > now) continue;
@@ -142,10 +151,30 @@ public final class JoinTicketHandler implements Listener {
                 plugin.getLogger().info("[Network] " + p.getName() + " got no join ticket in time, sending them to the lobby");
                 NewBedwars.plugin.getMessages().send(p, "NetworkNoTicket");
                 sendToLobby.accept(p);
+                if (!localLobby) lobbyRetries.put(p.getUniqueId(), new LobbyRetry(now + LOBBY_RETRY_MILLIS, LOBBY_RETRIES));
             }
         }
         handled.values().removeIf(time -> now - time > 60_000L);
     }
+
+    private void retryLobby(long now) {
+        for (Iterator<Map.Entry<UUID, LobbyRetry>> it = lobbyRetries.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<UUID, LobbyRetry> e = it.next();
+            LobbyRetry retry = e.getValue();
+            if (retry.at() > now) continue;
+            Player p = Bukkit.getPlayer(e.getKey());
+            if (p == null || !p.isOnline() || awaiting.containsKey(e.getKey()) || NetworkLobbyHandler.inAnyArena(p)
+                    || p.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
+                it.remove();
+                continue;
+            }
+            sendToLobby.accept(p);
+            if (retry.left() <= 1) it.remove();
+            else e.setValue(new LobbyRetry(now + LOBBY_RETRY_MILLIS, retry.left() - 1));
+        }
+    }
+
+    private record LobbyRetry(long at, int left) {}
 
     private void execute(Group g) {
         List<Player> players = new ArrayList<>();

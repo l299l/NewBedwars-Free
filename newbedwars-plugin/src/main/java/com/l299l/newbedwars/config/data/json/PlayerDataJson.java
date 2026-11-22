@@ -38,19 +38,7 @@ public class PlayerDataJson {
             }
         } catch (IOException | RuntimeException e) {
             NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not read " + playerFile.getPath() + "; player data will not be saved over it", e);
-            saveBlocked = !moveAside(playerFile);
-        }
-    }
-
-    private boolean moveAside(File file) {
-        File target = new File(file.getParentFile(), file.getName() + ".corrupt-" + System.currentTimeMillis());
-        try {
-            Files.move(file.toPath(), target.toPath());
-            NewBedwars.plugin.getLogger().severe("Moved the unreadable file to " + target.getPath());
-            return true;
-        } catch (IOException e) {
-            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not move " + file.getPath() + " aside; saving player data is disabled", e);
-            return false;
+            saveBlocked = !com.l299l.newbedwars.config.data.CorruptFiles.moveAside(playerFile, NewBedwars.plugin.getLogger(), "saving player data is disabled");
         }
     }
 

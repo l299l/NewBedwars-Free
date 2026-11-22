@@ -105,4 +105,41 @@ class PeerPinningTest {
         assertEquals("system", system.pinSource());
         assertThrows(PeerException.class, () -> call(system));
     }
+
+    @Test
+    void aDamagedPinFileRefusesFirstUseUntilForgotten() throws Exception {
+        Node node = startNode("node");
+        java.nio.file.Files.writeString(dir.resolve("peers.json"), "{not json");
+        PeerPins pins = new PeerPins(dir.resolve("peers.json"), logger);
+        PeerClient client = new PeerClient(new NetworkConfig.Peer("game1", "https://127.0.0.1:" + node.port(), ""), SECRET, pins, logger);
+        assertEquals(PeerException.Kind.UNTRUSTED, assertThrows(PeerException.class, () -> call(client)).kind());
+        assertNull(pins.get("game1"));
+        assertTrue(pins.remove("game1"));
+        assertEquals(200, call(client).status());
+        assertEquals(node.fingerprint(), pins.get("game1"));
+    }
+
+    @Test
+    void aDamagedPinFileStillRefusesFirstUseAfterARestart() throws Exception {
+        Node node = startNode("node");
+        Node other = startNode("other");
+        java.nio.file.Files.writeString(dir.resolve("peers.json"), "{not json");
+        new PeerPins(dir.resolve("peers.json"), logger);
+
+        PeerPins restarted = new PeerPins(dir.resolve("peers.json"), logger);
+        PeerClient client = new PeerClient(new NetworkConfig.Peer("game1", "https://127.0.0.1:" + node.port(), ""), SECRET, restarted, logger);
+        assertEquals(PeerException.Kind.UNTRUSTED, assertThrows(PeerException.class, () -> call(client)).kind());
+        assertNull(restarted.get("game1"));
+
+        assertTrue(restarted.remove("game1"));
+        PeerPins afterRelease = new PeerPins(dir.resolve("peers.json"), logger);
+        PeerClient released = new PeerClient(new NetworkConfig.Peer("game1", "https://127.0.0.1:" + node.port(), ""), SECRET, afterRelease, logger);
+        assertEquals(200, call(released).status());
+        assertEquals(node.fingerprint(), afterRelease.get("game1"));
+
+        PeerPins last = new PeerPins(dir.resolve("peers.json"), logger);
+        assertEquals(node.fingerprint(), last.get("game1"));
+        PeerClient stillLocked = new PeerClient(new NetworkConfig.Peer("game2", "https://127.0.0.1:" + other.port(), ""), SECRET, last, logger);
+        assertEquals(PeerException.Kind.UNTRUSTED, assertThrows(PeerException.class, () -> call(stillLocked)).kind());
+    }
 }

@@ -110,6 +110,34 @@ public final class ApiStats {
         });
     }
 
+    public CompletableFuture<Optional<PlayerStatsView>> load(java.util.UUID id) {
+        if (id == null) return CompletableFuture.completedFuture(Optional.empty());
+        if (useSql.get()) {
+            return onSql(c -> {
+                PlayerStats s = PlayerSqlRepo.loadStats(c, id);
+                return Optional.<PlayerStatsView>ofNullable(s == null ? null : new ApiPlayerStats(s));
+            });
+        }
+        return onMain(() -> {
+            PlayerStats s = players.get().getAllStats().get(id);
+            return Optional.<PlayerStatsView>ofNullable(s == null ? null : new ApiPlayerStats(s));
+        });
+    }
+
+    static PlayerStats delta(StatType stat, int amount) {
+        if (stat == null) throw new IllegalArgumentException("stat is null");
+        if (amount < 1) throw new IllegalArgumentException("amount must be 1 or more");
+        return switch (stat) {
+            case WINS -> new PlayerStats(amount, 0, 0, 0, 0, 0, 0);
+            case LOSSES -> new PlayerStats(0, amount, 0, 0, 0, 0, 0);
+            case KILLS -> new PlayerStats(0, 0, amount, 0, 0, 0, 0);
+            case DEATHS -> new PlayerStats(0, 0, 0, amount, 0, 0, 0);
+            case FINAL_KILLS -> new PlayerStats(0, 0, 0, 0, amount, 0, 0);
+            case BEDS_BROKEN -> new PlayerStats(0, 0, 0, 0, 0, amount, 0);
+            case GAMES_PLAYED -> new PlayerStats(0, 0, 0, 0, 0, 0, amount);
+        };
+    }
+
     public CompletableFuture<List<String>> find(String prefix, int limit) {
         String p = prefix == null ? "" : prefix.trim();
         int n = clamp(limit);

@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.arena.shops.upgrades;
 
 import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.shops.Upgrade;
@@ -21,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -69,6 +71,31 @@ class UpgradePurchaseTest {
 
     private UpgradePurchase.Result buy() {
         return UpgradePurchase.buy(player, arena, team, Upgrade.HASTE, "Haste", pricing, null);
+    }
+
+    @Test
+    void onlyAPlayingParticipantCanBuy() {
+        assertFalse(UpgradePurchase.canBuy(null, player));
+        when(arena.status()).thenReturn(GameStatus.waiting);
+        when(arena.isPlayerInArena(player)).thenReturn(true);
+        when(arena.getSpectators()).thenReturn(new ArrayList<>());
+        assertFalse(UpgradePurchase.canBuy(arena, player));
+        when(arena.status()).thenReturn(GameStatus.playing);
+        assertTrue(UpgradePurchase.canBuy(arena, player));
+        when(arena.isPlayerInArena(player)).thenReturn(false);
+        assertFalse(UpgradePurchase.canBuy(arena, player));
+        when(arena.isPlayerInArena(player)).thenReturn(true);
+        when(arena.getSpectators()).thenReturn(new ArrayList<>(List.of(player)));
+        assertFalse(UpgradePurchase.canBuy(arena, player));
+    }
+
+    @Test
+    void unavailableBuyChangesNothing() {
+        when(arena.status()).thenReturn(GameStatus.ending);
+        UpgradePurchase.Result result = UpgradePurchase.buy(player, arena, team, Upgrade.HASTE, "Haste");
+        assertEquals(UpgradePurchase.Outcome.UNAVAILABLE, result.outcome());
+        verify(upgrades, never()).upgrade(any());
+        verify(inventory, never()).removeItem(any(ItemStack[].class));
     }
 
     @Test

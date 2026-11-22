@@ -214,4 +214,53 @@ class JoinTicketHandlerTest {
         handler.hold(a);
         assertTrue(handler.isAwaiting(a));
     }
+
+    @Test
+    void withoutLocalLobbyTheLobbySendIsRetriedThenGivenUp() {
+        List<Player> sent = new java.util.ArrayList<>();
+        handler.setLocalLobby(false);
+        handler.setSendToLobby(sent::add);
+        when(a.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        handler.hold(a);
+        long now = System.currentTimeMillis() + 20_000;
+        handler.tick(now);
+        assertEquals(1, sent.size());
+        handler.tick(now + JoinTicketHandler.LOBBY_RETRY_MILLIS - 1);
+        assertEquals(1, sent.size());
+        for (int i = 1; i <= JoinTicketHandler.LOBBY_RETRIES + 2; i++) handler.tick(now + i * JoinTicketHandler.LOBBY_RETRY_MILLIS);
+        assertEquals(1 + JoinTicketHandler.LOBBY_RETRIES, sent.size());
+        verify(messages, times(1)).send(a, "NetworkNoTicket");
+    }
+
+    @Test
+    void lobbyRetryStopsWhenThePlayerIsNoLongerHiddenOrOffline() {
+        List<Player> sent = new java.util.ArrayList<>();
+        handler.setLocalLobby(false);
+        handler.setSendToLobby(sent::add);
+        when(a.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        when(b.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        handler.hold(a);
+        handler.hold(b);
+        long now = System.currentTimeMillis() + 20_000;
+        handler.tick(now);
+        assertEquals(2, sent.size());
+        when(a.getGameMode()).thenReturn(org.bukkit.GameMode.SURVIVAL);
+        when(b.isOnline()).thenReturn(false);
+        handler.tick(now + JoinTicketHandler.LOBBY_RETRY_MILLIS);
+        when(a.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        when(b.isOnline()).thenReturn(true);
+        handler.tick(now + 2 * JoinTicketHandler.LOBBY_RETRY_MILLIS);
+        assertEquals(2, sent.size());
+    }
+
+    @Test
+    void withLocalLobbyTheLobbySendIsNotRetried() {
+        List<Player> sent = new java.util.ArrayList<>();
+        handler.setSendToLobby(sent::add);
+        when(a.getGameMode()).thenReturn(org.bukkit.GameMode.SPECTATOR);
+        handler.hold(a);
+        long now = System.currentTimeMillis() + 20_000;
+        for (int i = 0; i <= JoinTicketHandler.LOBBY_RETRIES; i++) handler.tick(now + i * JoinTicketHandler.LOBBY_RETRY_MILLIS);
+        assertEquals(1, sent.size());
+    }
 }

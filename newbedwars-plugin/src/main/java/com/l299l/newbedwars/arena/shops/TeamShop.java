@@ -72,7 +72,7 @@ public class TeamShop {
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
         com.l299l.newbedwars.arena.setup.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
-        npc.setCustomName(team.getColor() + team.getName() + " Shop");
+        npc.setCustomName(NewBedwars.plugin.getMessages().getMsgToConsole("ShopNpcName").replace("/team/", team.getColor() + team.getDisplayName()));
         npc.setCustomNameVisible(true);
         npc.setSilent(true);
         npc.setGravity(false);

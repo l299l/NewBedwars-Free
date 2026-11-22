@@ -46,7 +46,7 @@ public final class JdbcConnector implements AutoCloseable {
         return DEFAULT_SSL_MODE;
     }
 
-    public Connection get() throws SQLException {
+    public synchronized Connection get() throws SQLException {
         if (connection != null) {
             try {
                 if (!connection.isClosed() && connection.isValid(2)) return connection;
@@ -85,7 +85,7 @@ public final class JdbcConnector implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         closeQuietly();
     }
 }

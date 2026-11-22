@@ -32,6 +32,9 @@ import org.bukkit.plugin.Plugin;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import com.l299l.newbedwars.api.game.JoinResult;
+import com.l299l.newbedwars.api.view.PartyView;
 
 /**
  * Entry point for addons. Get it with {@link #get()} (or from Bukkit's {@code ServicesManager}) after
@@ -57,6 +60,22 @@ public interface NewBedwarsAPI {
 
     /** For example {@code 2.7-beta}. */
     String getVersion();
+
+    /**
+     * The version of this addon API: a number that goes up by one in every NewBedwars release that adds
+     * something to the API ({@code 1} = 2.8-beta). Check it to find out whether a method, event or field
+     * exists on the running server, instead of parsing {@link #getVersion()}. It is read from the running
+     * plugin, not copied into your addon when it is compiled.
+     * <p>
+     * NewBedwars older than 2.8-beta does not have this method; calling it there throws
+     * {@link NoSuchMethodError}.
+     *
+     * @return {@code 1} or higher
+     * @since 2.8-beta
+     */
+    default int getApiVersion() {
+        return 1;
+    }
 
     Collection<ArenaView> getArenas();
 
@@ -135,6 +154,124 @@ public interface NewBedwarsAPI {
      * @since 2.7-beta
      */
     CompletableFuture<List<String>> findPlayers(String prefix, int limit);
+
+    /**
+     * {@link #getStats(String)} by UUID, which still works after a player changed their name.
+     *
+     * @since 2.8-beta
+     */
+    PlayerStatsView getStats(UUID player);
+
+    /**
+     * {@link #loadStats(String)} by UUID. Threading as in {@link #getLeaderboard(StatType, int)}.
+     *
+     * @since 2.8-beta
+     */
+    CompletableFuture<Optional<PlayerStatsView>> loadStats(UUID player);
+
+    /**
+     * Adds to a statistic of a player, e.g. a win for an addon game mode. It is saved like the stats of a game:
+     * to {@code playerStats.json}, or to MySQL (then it is network-wide and shows up in the leaderboards).
+     * {@link StatType#GAMES_PLAYED} can be raised too; it is not changed by the other types.
+     * Call it on the server thread.
+     *
+     * @param name   the player's current name, kept for leaderboards and name lookups
+     * @param amount 1 or more; stats can't be lowered
+     * @throws IllegalArgumentException for a null player or stat, or an amount below 1
+     * @throws IllegalStateException    when not called on the server thread
+     * @since 2.8-beta
+     */
+    void addStat(UUID player, String name, StatType stat, int amount);
+
+    /**
+     * Joins the waiting lobby of an arena like {@code /bw join <arena>}: a party leader brings their party,
+     * a player who left a running game of this arena rejoins it. The {@code newbedwars.bw.join} permission is
+     * not checked, so addons can decide who may join. The player gets the usual chat messages.
+     * Call it on the server thread.
+     *
+     * @since 2.8-beta
+     */
+    JoinResult join(Player player, ArenaView arena);
+
+    /**
+     * Spectates a running game like {@code /bw spectate <arena>}, without checking the
+     * {@code newbedwars.bw.spectate} permission. A player who plays in another arena can't spectate
+     * ({@link JoinResult#FAILED}). Call it on the server thread.
+     *
+     * @since 2.8-beta
+     */
+    JoinResult spectate(Player player, ArenaView arena);
+
+    /**
+     * Takes a player out of the arena they play, wait or spectate in, like {@code /bw lobby} in a game, and sends
+     * them to the lobby. During a running game the player can rejoin if rejoining is allowed.
+     * Call it on the server thread.
+     *
+     * @return {@code false} when the player is not in an arena
+     * @since 2.8-beta
+     */
+    boolean leave(Player player);
+
+    /**
+     * Sends a player to the lobby. A player in an arena leaves it first ({@link #leave(Player)}); otherwise
+     * {@link com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent} is fired with
+     * {@link com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent.Reason#ADDON}. Call it on the server thread.
+     *
+     * @return {@code false} when there is no lobby or the teleport was cancelled
+     * @since 2.8-beta
+     */
+    boolean sendToLobby(Player player);
+
+    /**
+     * The party of a player on this server. In network mode this is the copy the proxy sends.
+     *
+     * @since 2.8-beta
+     */
+    Optional<PartyView> getParty(Player player);
+
+    /**
+     * The code of the language a player chose with {@code /lang}: {@code en}, {@code pl}, {@code de},
+     * {@code es}, {@code fr} or {@code ru}.
+     *
+     * @since 2.8-beta
+     */
+    String getLanguage(Player player);
+
+    /**
+     * A message in the player's language: a message an addon registered with {@link #registerMessages}, or
+     * one of NewBedwars' language files. A missing translation falls back to English; an unknown key gives
+     * an empty string. {@code &} color codes are already translated.
+     *
+     * @since 2.8-beta
+     */
+    String getMessage(Player player, String key);
+
+    /**
+     * {@link #getMessage(Player, String)} with placeholders replaced, e.g. {@code Map.of("/player/", name)}.
+     *
+     * @since 2.8-beta
+     */
+    default String getMessage(Player player, String key, Map<String, String> replacements) {
+        String message = getMessage(player, key);
+        if (replacements != null) {
+            for (Map.Entry<String, String> e : replacements.entrySet()) {
+                message = message.replace(e.getKey(), e.getValue());
+            }
+        }
+        return message;
+    }
+
+    /**
+     * Adds messages for {@link #getMessage(Player, String)} in one language. Register English ({@code en})
+     * at least, since the other languages fall back to it. Calling it again for the same language replaces that
+     * language's messages. Addon messages win over NewBedwars messages with the same key, so prefix your keys
+     * (e.g. {@code MyAddon-Welcome}). They are removed when {@code owner} is disabled.
+     *
+     * @param language {@code en}, {@code pl}, {@code de}, {@code es}, {@code fr} or {@code ru}
+     * @throws IllegalArgumentException for an unknown language
+     * @since 2.8-beta
+     */
+    void registerMessages(Plugin owner, String language, Map<String, String> messages);
 
     /**
      * Changes the setup of an arena.

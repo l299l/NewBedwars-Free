@@ -40,7 +40,7 @@ public class SaveSettingsCommand extends BwCommand {
             player.sendMessage(msg.getMsg(player, "saveSuccess"));
             if (ArenaMaps.isEnabled()) {
 
-                ArenaMaps.createTemplateAsync(arena.getArenaName(), arena.getArenaWorld(), error -> {
+                boolean started = com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService.saveTemplate(arena, error -> {
                     if (error == null) {
                         msg.send(player, "MapTemplateSaved");
                     } else {
@@ -48,6 +48,7 @@ public class SaveSettingsCommand extends BwCommand {
                         msg.send(player, "MapTemplateFailed");
                     }
                 });
+                if (!started) msg.send(player, "ArenaBusy", java.util.Map.of("/arenaname/", arena.getArenaName()));
             }
         } catch (Exception e) {
             NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not save arena " + arena.getArenaName(), e);

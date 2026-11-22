@@ -4,6 +4,8 @@ import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.Arena;
 import com.l299l.newbedwars.arena.IArena;
+import com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService;
+import com.l299l.newbedwars.world.template.ArenaMaps;
 import com.l299l.newbedwars.extensions.PluginDetector;
 import com.l299l.newbedwars.world.MainWorldCreator;
 import com.l299l.newbedwars.world.ArenaWorldCreator;
@@ -66,7 +68,13 @@ public class CreateCommand extends BwCommand {
             return;
         }
 
-        if (Bukkit.getWorld(arenaName) != null || new java.io.File(Bukkit.getWorldContainer(), arenaName).exists()) {
+        if (ArenaMaintenanceService.inFlight(arenaName)) {
+            msg.send(player, "ArenaBusy", java.util.Map.of("/arenaname/", arenaName));
+            return;
+        }
+
+        if (Bukkit.getWorld(arenaName) != null || new java.io.File(Bukkit.getWorldContainer(), arenaName).exists()
+                || java.nio.file.Files.exists(ArenaMaps.worldFolder(arenaName))) {
             msg.send(player, "ArenaWorldExists");
             return;
         }

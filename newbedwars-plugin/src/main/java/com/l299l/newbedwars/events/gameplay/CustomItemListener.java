@@ -92,7 +92,7 @@ public class CustomItemListener implements Listener {
 
                 if (customItem.getEvent() instanceof RegisteredLogic) {
                     e.setCancelled(true);
-                    if (customItem.getEvent().perform(p, arena)) consumeOneItem(p);
+                    if (customItem.getEvent().perform(p, arena, customItem.getName())) consumeOneItem(p);
                 }
             }
         }

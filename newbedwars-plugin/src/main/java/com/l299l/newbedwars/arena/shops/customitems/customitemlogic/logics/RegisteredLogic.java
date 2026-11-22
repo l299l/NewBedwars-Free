@@ -20,6 +20,12 @@ public class RegisteredLogic implements CustomLogic {
     }
 
     @Override
+    public boolean perform(Player player, IArena arena, String itemName) {
+        CustomLogic logic = CustomLogicRegistry.create(key);
+        return logic != null && logic.perform(player, arena, itemName);
+    }
+
+    @Override
     public LogicType getType() {
         return LogicType.NONE;
     }

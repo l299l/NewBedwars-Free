@@ -43,6 +43,7 @@ public class PartyManager {
     public Party createParty(Player creator) {
         Party party = new Party(creator.getUniqueId());
         playerToParty.put(creator.getUniqueId(), party);
+        changed(party, creator.getUniqueId(), com.l299l.newbedwars.api.events.PartyChangeEvent.Change.CREATED);
         return party;
     }
 
@@ -85,6 +86,7 @@ public class PartyManager {
         if (playerToParty.containsKey(player.getUniqueId())) return false;
         party.addMember(player.getUniqueId());
         playerToParty.put(player.getUniqueId(), party);
+        changed(party, player.getUniqueId(), com.l299l.newbedwars.api.events.PartyChangeEvent.Change.JOINED);
         return true;
     }
 
@@ -96,7 +98,11 @@ public class PartyManager {
         Party party = playerToParty.remove(player.getUniqueId());
         if (party == null) return;
         party.removeMember(player.getUniqueId());
-        if (party.size() == 0) return;
+        changed(party, player.getUniqueId(), com.l299l.newbedwars.api.events.PartyChangeEvent.Change.LEFT);
+        if (party.size() == 0) {
+            changed(party, null, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.DISBANDED);
+            return;
+        }
         if (party.isAdmin(player.getUniqueId())) {
             UUID newAdmin = party.getMembers().get(0);
             party.setAdmin(newAdmin);
@@ -104,26 +110,35 @@ public class PartyManager {
             if (newAdminPlayer != null) {
                 messages.send(newAdminPlayer, "PartyYouAreAdmin");
             }
+            changed(party, newAdmin, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.LEADER_CHANGED);
         }
+    }
+
+    private void changed(Party party, UUID player, com.l299l.newbedwars.api.events.PartyChangeEvent.Change change) {
+        com.l299l.newbedwars.apiimpl.ApiEvents.partyChange(this, party, player, change);
     }
 
     public void disbandParty(Party party) {
         pendingInvites.values().removeIf(invited -> invited == party);
+        boolean hadMembers = !party.getMembers().isEmpty();
         for (UUID member : new ArrayList<>(party.getMembers())) {
             playerToParty.remove(member);
         }
         party.getMembers().clear();
+        if (hadMembers) changed(party, null, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.DISBANDED);
     }
 
     public void kickFromParty(Party party, UUID target) {
         if (!party.getMembers().contains(target)) return;
         party.removeMember(target);
         playerToParty.remove(target);
+        changed(party, target, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.KICKED);
     }
 
     public void transferAdmin(Party party, UUID newAdmin) {
-        if (!party.getMembers().contains(newAdmin)) return;
+        if (!party.getMembers().contains(newAdmin) || party.isAdmin(newAdmin)) return;
         party.setAdmin(newAdmin);
+        changed(party, newAdmin, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.LEADER_CHANGED);
     }
 
     public List<Player> getOnlineMembers(Party party) {
@@ -163,6 +178,7 @@ public class PartyManager {
             if (newAdmin != null) {
                 messages.send(newAdmin, "PartyYouAreAdmin");
             }
+            changed(party, nextOnline, com.l299l.newbedwars.api.events.PartyChangeEvent.Change.LEADER_CHANGED);
         }
     }
 

@@ -9,10 +9,14 @@ import com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService.Backup;
 import com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService.Outcome;
 import com.l299l.newbedwars.config.properties.Properties;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
@@ -200,6 +204,51 @@ class ArenaMaintenanceServiceTest {
             assertOutcome(Code.BUSY, "ArenaCannotBeDeleted", now(ArenaMaintenanceService.delete("castle")));
             verify(arena, never()).getArenaWorld();
         }
+    }
+
+    @Test
+    void disabledArenaCanBeDeletedButAnEnabledRestartingOneCannot() {
+        IArena resetting = arena("resetting", GameStatus.restarting, true);
+        assertOutcome(Code.BUSY, "ArenaCannotBeDeleted", now(ArenaMaintenanceService.delete("resetting")));
+        verify(resetting, never()).getArenaWorld();
+
+        IArena off = arena("off", GameStatus.restarting, false);
+        World world = mock(World.class);
+        when(off.getArenaWorld()).thenReturn(world);
+        bukkit.when(Bukkit::getWorlds).thenReturn(List.of(world));
+        assertOutcome(Code.FAILED, "ArenaDeleteFailed", now(ArenaMaintenanceService.delete("off")));
+        verify(off).getArenaWorld();
+    }
+
+    @Test
+    void backupReleasesTheArenaWhenDone() {
+        arena("castle", GameStatus.restarting, false);
+        assertOutcome(Code.OK, "BackupCreated", now(ArenaMaintenanceService.backup("castle")));
+        assertFalse(ArenaMaintenanceService.inFlight("castle"));
+    }
+
+    @Test
+    void exportHoldsTheArenaUntilTheZipIsWritten() {
+        arena("castle", GameStatus.restarting, false);
+        BukkitScheduler scheduler = mock(BukkitScheduler.class);
+        bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+        when(NewBedwars.plugin.isEnabled()).thenReturn(true);
+        doAnswer(inv -> {
+            ((Runnable) inv.getArgument(1)).run();
+            return null;
+        }).when(scheduler).runTask(any(Plugin.class), any(Runnable.class));
+        ArgumentCaptor<Runnable> async = ArgumentCaptor.forClass(Runnable.class);
+
+        CompletableFuture<Outcome> export = ArenaMaintenanceService.export("castle");
+        verify(scheduler).runTaskAsynchronously(eq(NewBedwars.plugin), async.capture());
+        assertFalse(export.isDone());
+        assertTrue(ArenaMaintenanceService.inFlight("castle"));
+        assertOutcome(Code.BUSY, "ArenaBusy", now(ArenaMaintenanceService.backup("castle")));
+        assertOutcome(Code.BUSY, "ArenaBusy", now(ArenaMaintenanceService.export("castle")));
+
+        async.getValue().run();
+        assertOutcome(Code.OK, "ExportDone", now(export));
+        assertFalse(ArenaMaintenanceService.inFlight("castle"));
     }
 
     @Test

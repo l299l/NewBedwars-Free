@@ -6,6 +6,8 @@ let local = null;
 let network = null;
 let rev = null;
 let timer = null;
+let inflight = false;
+let again = false;
 let failed = false;
 
 function selected() {
@@ -23,8 +25,10 @@ function notify(listener) {
 
 async function tick() {
   timer = null;
-  if (listeners.size === 0) return;
+  if (inflight || listeners.size === 0) return;
   if (!document.hidden) {
+    inflight = true;
+    again = false;
     try {
       if (isGateway()) {
         network = await api('GET', '/api/network', undefined, { server: null });
@@ -39,16 +43,19 @@ async function tick() {
       failed = false;
     } catch (e) {
       failed = true;
+    } finally {
+      inflight = false;
     }
     for (const listener of listeners) notify(listener);
   }
-  if (listeners.size > 0) timer = setTimeout(tick, INTERVAL);
+  if (listeners.size > 0 && !timer) timer = setTimeout(tick, again ? 0 : INTERVAL);
+  again = false;
 }
 
 export function watch(listener) {
   listeners.add(listener);
   notify(listener);
-  if (!timer) timer = setTimeout(tick, 0);
+  if (!timer && !inflight) timer = setTimeout(tick, 0);
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0 && timer) { clearTimeout(timer); timer = null; }
@@ -56,6 +63,7 @@ export function watch(listener) {
 }
 
 export function refresh() {
+  if (inflight) { again = true; return; }
   if (timer) clearTimeout(timer);
   timer = setTimeout(tick, 0);
 }

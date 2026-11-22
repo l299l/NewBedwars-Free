@@ -212,7 +212,8 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onBed(BedBreakEvent e) {
         if (CANCEL_TEST && e.getTeam().getName().equalsIgnoreCase("Red")) e.setCancelled(true);
-        log("BedBreak team=" + e.getTeam().getName() + " by " + e.getBreaker().getName() + " cancelled=" + e.isCancelled());
+        String breaker = e.getBreaker() == null ? "the server" : e.getBreaker().getName();
+        log("BedBreak team=" + e.getTeam().getName() + " by " + breaker + " cancelled=" + e.isCancelled());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -244,6 +245,43 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLobby(PlayerSendToLobbyEvent e) {
         log("SendToLobby " + e.getPlayer().getName() + " reason=" + e.getReason() + " cancelled=" + e.isCancelled());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onState(ArenaStateChangeEvent e) {
+        log("State " + a(e) + " " + e.getPrevious() + " -> " + e.getNext());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onTeamsAssigned(TeamsAssignedEvent e) {
+        log("TeamsAssigned " + a(e));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onRespawn(PlayerRespawnArenaEvent e) {
+        log("Respawn " + e.getPlayer().getName() + " team=" + e.getTeam().getName());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSpectate(PlayerSpectateEvent e) {
+        log("Spectate " + e.getPlayer().getName() + " -> " + a(e) + " cancelled=" + e.isCancelled());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onTrap(TrapTriggerEvent e) {
+        log("Trap " + e.getTrap() + " of " + e.getTeam().getName() + " by " + e.getEnemy().getName() + " cancelled=" + e.isCancelled());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onShopItem(ShopItemStackEvent e) {
+        if (e.getUse() == ShopItemStackEvent.Use.GIVEN) {
+            log("ShopItem " + e.getItemName() + " -> " + e.getPlayer().getName() + " " + e.getItem().getType());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onParty(PartyChangeEvent e) {
+        log("Party " + e.getChange() + " player=" + e.getPlayer() + " size=" + e.getParty().size());
     }
 
     @Override

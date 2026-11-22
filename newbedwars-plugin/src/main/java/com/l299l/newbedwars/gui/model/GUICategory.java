@@ -2,6 +2,7 @@ package com.l299l.newbedwars.gui.model;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
+import com.l299l.newbedwars.placeholder.PapiText;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -17,9 +18,9 @@ public record GUICategory(String id, String name, CustomItem icon, List<GUIEntry
         ItemStack item = icon.getIcon(player);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+            meta.setDisplayName(PapiText.apply(player, ChatColor.translateAlternateColorCodes('&', name)));
             if (description != null && !description.isEmpty()) {
-                meta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', description).split(";|\n")));
+                meta.setLore(Arrays.asList(PapiText.apply(player, ChatColor.translateAlternateColorCodes('&', description)).split(";|\n")));
             } else {
                 meta.setLore(Collections.emptyList());
             }

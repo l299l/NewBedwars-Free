@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
@@ -76,6 +78,10 @@ public final class PanelCommand implements TabExecutor {
                 send(sender, "NetworkSecretNote");
             }
             case "forget" -> {
+                if (!mayChange(sender)) {
+                    send(sender, "UserNeedsOp");
+                    return;
+                }
                 if (args.length != 3) {
                     send(sender, "NetworkUsageForget");
                     return;
@@ -105,7 +111,12 @@ public final class PanelCommand implements TabExecutor {
             return;
         }
         String actor = sender instanceof Player ? sender.getName() : "console";
-        switch (args[1].toLowerCase(Locale.ROOT)) {
+        String action = args[1].toLowerCase(Locale.ROOT);
+        if (!action.equals("list") && !mayChange(sender)) {
+            send(sender, "UserNeedsOp");
+            return;
+        }
+        switch (action) {
             case "create" -> {
                 if (args.length != 4) {
                     send(sender, "UsageCreate", String.join(", ", users.roleNames()));
@@ -130,6 +141,11 @@ public final class PanelCommand implements TabExecutor {
             case "list" -> list(sender, users);
             default -> send(sender, "Usage");
         }
+    }
+
+    private static boolean mayChange(CommandSender sender) {
+        if (sender instanceof Player) return sender.isOp();
+        return sender instanceof ConsoleCommandSender || sender instanceof RemoteConsoleCommandSender;
     }
 
     private void list(CommandSender sender, UserCommands users) {

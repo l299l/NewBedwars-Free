@@ -83,7 +83,7 @@ public class ScoreboardManager {
                         Team t = arena.getTeam(team);
                         String yourTeam = "";
                         if (arena.getTeam(player) != null) {
-                            yourTeam = arena.getTeam(player).equals(t) ? ChatColor.GRAY + "YOU" : "";
+                            yourTeam = arena.getTeam(player).equals(t) ? ChatColor.GRAY + text(player, "ScoreboardYou") : "";
                         }
                         lines.add(setInfo(line.replace("/teams/", getTeamID(t))
                                         .replace("/bed/",  getTeamBedInfo(t))
@@ -102,8 +102,9 @@ public class ScoreboardManager {
             }
         }
         if (old != null) {
+            java.util.Set<String> keep = new java.util.HashSet<>(lines);
             for (String line : old) {
-                scoreboard.resetScores(line);
+                if (!keep.contains(line)) scoreboard.resetScores(line);
             }
         }
         for (int i = 0; i < lines.size(); i++) {
@@ -125,7 +126,7 @@ public class ScoreboardManager {
             line = line.replace("/players/", String.valueOf(arena.getActivePlayerCount()));
             line = line.replace("/maxplayers/", String.valueOf(arena.getMaxPlayers()));
             line = line.replace("/minplayers/", String.valueOf(arena.getMinPlayers()));
-            line = line.replace("/status/", getInteractiveStatus(arena.status(), arena));
+            line = line.replace("/status/", getInteractiveStatus(arena.status(), arena, player));
             line = line.replace("/gameTime/", TimeUtils.formatTime(arena.getGameTime()));
             line = line.replace("/phase/", arena.getNextGamePhase());
             line = line.replace("/phaseTime/", TimeUtils.formatTime(arena.getPhaseTime()));
@@ -147,18 +148,22 @@ public class ScoreboardManager {
         return ChatColor.translateAlternateColorCodes('&', line);
     }
 
-    private String getInteractiveStatus(GameStatus status, IArena arena) {
+    private String getInteractiveStatus(GameStatus status, IArena arena, Player player) {
         return switch (status) {
-            case waiting -> "Waiting...";
-            case starting -> "Starting in " + TimeUtils.formatTime(arena.getPhaseTime());
-            case playing -> "Playing";
-            case ending -> "Viewing the battlefield";
-            case restarting -> "Restarting";
+            case waiting -> text(player, "ScoreboardStatusWaiting");
+            case starting -> text(player, "ScoreboardStatusStarting").replace("/time/", TimeUtils.formatTime(arena.getPhaseTime()));
+            case playing -> text(player, "ScoreboardStatusPlaying");
+            case ending -> text(player, "ScoreboardStatusEnding");
+            case restarting -> text(player, "ScoreboardStatusRestarting");
         };
     }
 
+    private static String text(Player player, String key) {
+        return NewBedwars.plugin.getMessages().getMsg(player, key);
+    }
+
     private String getTeamID(Team team) {
-        String name = team.getName();
+        String name = team.getDisplayName();
         String initial = name.isEmpty() ? "" : name.substring(0, 1).toUpperCase();
         return team.getColor().toString() + initial + " " + ChatColor.WHITE + name;
     }

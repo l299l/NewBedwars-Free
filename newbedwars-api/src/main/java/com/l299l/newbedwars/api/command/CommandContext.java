@@ -31,8 +31,8 @@ public enum CommandContext {
     /**
      * Same as {@link #SETUP_AUTOMATIC}.
      *
-     * @deprecated renamed, use {@link #SETUP_AUTOMATIC}
+     * @deprecated renamed, use {@link #SETUP_AUTOMATIC}. Will be removed in the first stable release (3.0.0)
      */
-    @Deprecated
+    @Deprecated(since = "2.7-beta", forRemoval = true)
     SETUP_BUILDING
 }

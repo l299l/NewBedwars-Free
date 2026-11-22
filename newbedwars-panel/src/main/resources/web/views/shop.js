@@ -1,4 +1,4 @@
-import { api, busy, confirmDialog, errorText, go, h, t } from '../app.js';
+import { api, busy, can, confirmDialog, errorText, go, h, t } from '../app.js';
 import { datalist, materialColor, mcText, select, shopOptions, shopTabs, showResult, swatch, syncButton, tierEditor, usageText } from './shopcommon.js';
 
 export function render(root, params) {
@@ -42,7 +42,7 @@ function itemsPage(root) {
       h('tbody', {}, shown.map(i => h('tr', {},
         h('td', {}, h('a', { href: '#/shop/item/' + encodeURIComponent(i.name) }, i.name)),
         h('td', { class: 'mono' }, swatch(i.material), i.material),
-        h('td', { class: 'num nowrap' }, i.onBuy === 'UPGRADE' ? h('a', { href: '#/shop/upgrades' }, t('shop.item.upgradePrice')) : i.price + ' ' + i.priceType),
+        h('td', { class: 'num nowrap' }, i.onBuy === 'UPGRADE' ? h('a', { href: '#/shop/upgrades' }, t('shop.item.upgradePrice')) : i.price + ' ' + priceLabel(i.priceType, i.priceMaterial)),
         h('td', { class: 'num' }, String(i.amount)),
         h('td', { class: 'hide-narrow mono' }, i.logic),
         h('td', { class: 'hide-narrow' }, i.usedBy.length ? String(i.usedBy.length) : h('span', { class: 'muted' }, '-')))))));
@@ -51,6 +51,10 @@ function itemsPage(root) {
   filter.addEventListener('input', draw);
   api('GET', '/api/shop/items').then(data => { items = data.items; draw(); })
     .catch(err => list.replaceChildren(h('p', { class: 'form-error' }, errorText(err))));
+}
+
+function priceLabel(type, material) {
+  return type === 'OTHER' && material ? material : type;
 }
 
 function field(id, label, input, hint) {
@@ -63,10 +67,11 @@ async function itemPage(root, name) {
     h('h1', {}, creating ? t('shop.item.newTitle') : name));
   const body = h('div', {}, h('p', { class: 'muted' }, t('common.working')));
   root.append(body);
-  let options, data;
+  let options, data, guiIds;
   try {
     options = await shopOptions();
     data = creating ? null : await api('GET', '/api/shop/items/' + encodeURIComponent(name));
+    guiIds = (await api('GET', '/api/shop/guis')).guis.map(g => g.id);
   } catch (err) {
     body.replaceChildren(h('p', { class: 'form-error' }, err.status === 404 ? t('shop.item.notFound') : errorText(err)));
     return;
@@ -74,6 +79,7 @@ async function itemPage(root, name) {
   const item = data ? data.item : {
     name: '', material: 'STONE', amount: 1, price: 1, priceType: 'IRON', onBuy: 'GIVE_ITEM', logic: 'NONE',
     permanent: false, permission: '', enchantments: {}, flags: [], usedBy: [],
+    commands: [], openGui: '', givePermission: '', priceMaterial: '',
   };
   const texts = data ? data.texts : {};
 
@@ -88,6 +94,23 @@ async function itemPage(root, name) {
   const logic = select('item-logic', options.logicKeys, item.logic);
   const permanent = h('input', { id: 'item-permanent', type: 'checkbox', checked: item.permanent });
   const permission = h('input', { id: 'item-permission', maxlength: '128', autocomplete: 'off', spellcheck: 'false', value: item.permission });
+  const priceMaterial = h('input', { id: 'item-price-material', list: 'materials', autocomplete: 'off', spellcheck: 'false', value: item.priceMaterial || '' });
+  const mayEditCommands = can('shop.commands');
+  if (!mayEditCommands) {
+    const powerActions = ['COMMANDS', 'GIVE_PERM'];
+    if (powerActions.includes(item.onBuy)) onBuy.disabled = true;
+    else [...onBuy.options].forEach(o => { if (powerActions.includes(o.value)) o.remove(); });
+  }
+  const commands = h('textarea', { id: 'item-commands', rows: '4', maxlength: '5200', spellcheck: 'false', readonly: !mayEditCommands });
+  commands.value = (item.commands || []).join('\n');
+  const openGui = select('item-open-gui', guiIds, item.openGui || guiIds[0] || '');
+  const givePermission = h('input', { id: 'item-give-permission', maxlength: '128', autocomplete: 'off', spellcheck: 'false', value: item.givePermission || '', readonly: !mayEditCommands });
+  const priceMaterialBox = h('div', { class: 'stack' }, ...field('item-price-material', t('shop.item.priceMaterial'), priceMaterial, t('shop.item.priceMaterialHint')));
+  const commandsBox = h('div', { class: 'stack' }, ...field('item-commands', t('shop.item.commands'), commands,
+    mayEditCommands ? t('shop.item.commandsHint') : t('shop.item.commandsLocked')));
+  const openGuiBox = h('div', { class: 'stack' }, ...field('item-open-gui', t('shop.item.openGui'), openGui));
+  const givePermissionBox = h('div', { class: 'stack' }, ...field('item-give-permission', t('shop.item.givePermission'), givePermission,
+    mayEditCommands ? t('shop.item.givePermissionHint') : t('shop.item.commandsLocked')));
 
   const enchRows = h('div', { class: 'ench-rows' });
   function enchRow(key, level) {
@@ -117,12 +140,12 @@ async function itemPage(root, name) {
     const drawPreview = () => {
       const label = n.value || (lang === 'en' ? nameInput.value : (texts.en && texts.en.name) || nameInput.value);
       const desc = (icon.value || t('shop.texts.defaultIcon'))
-        .split('/price/').join(price.value + ' ' + priceType.value)
+        .split('/price/').join(price.value + ' ' + priceLabel(priceType.value, priceMaterial.value.trim().toUpperCase()))
         .split('/amount/').join(amount.value)
         .split('/name/').join(label);
       preview.replaceChildren(h('div', { class: 'mc-name' }, mcText(label)), h('div', { class: 'mc-lore' }, mcText(desc, /;|\n/)));
     };
-    for (const el of [n, icon, nameInput, price, amount, priceType]) el.addEventListener('input', drawPreview);
+    for (const el of [n, icon, nameInput, price, amount, priceType, priceMaterial]) el.addEventListener('input', drawPreview);
     drawPreview();
     const block = h('details', { class: 'disclosure texts', open: lang === 'en' },
       h('summary', {}, t('shop.texts.lang', { lang: lang.toUpperCase() })),
@@ -137,7 +160,8 @@ async function itemPage(root, name) {
 
   const priceBox = h('div', { class: 'stack' },
     ...field('item-price', t('shop.item.price'), price),
-    ...field('item-price-type', t('shop.item.priceType'), priceType));
+    ...field('item-price-type', t('shop.item.priceType'), priceType),
+    priceMaterialBox);
   const upgradeNote = h('p', { class: 'hint' }, t('shop.item.upgradePriceHint'), ' ',
     h('a', { href: '#/shop/upgrades' }, t('shop.item.upgradePriceLink')), '.');
   const toggleUpgrade = () => {
@@ -145,8 +169,15 @@ async function itemPage(root, name) {
     priceBox.hidden = isUpgrade;
     upgradeNote.hidden = !isUpgrade;
     price.required = !isUpgrade;
+    priceMaterialBox.hidden = priceType.value !== 'OTHER';
+    priceMaterial.required = !isUpgrade && priceType.value === 'OTHER';
+    commandsBox.hidden = onBuy.value !== 'COMMANDS';
+    openGuiBox.hidden = onBuy.value !== 'OPEN_GUI';
+    givePermissionBox.hidden = onBuy.value !== 'GIVE_PERM';
+    givePermission.required = onBuy.value === 'GIVE_PERM';
   };
   onBuy.addEventListener('change', toggleUpgrade);
+  priceType.addEventListener('change', toggleUpgrade);
   toggleUpgrade();
 
   const error = h('p', { class: 'form-error', role: 'alert' });
@@ -167,6 +198,7 @@ async function itemPage(root, name) {
         upgradeNote),
       h('div', { class: 'stack' },
         ...field('item-onbuy', t('shop.item.onBuy'), onBuy),
+        commandsBox, openGuiBox, givePermissionBox,
         ...field('item-logic', t('shop.item.logic'), logic),
         ...field('item-permission', t('shop.item.permission'), permission, t('shop.item.permissionHint')),
         h('label', { class: 'check' }, permanent, ' ', t('shop.item.permanent')))),
@@ -200,10 +232,15 @@ async function itemPage(root, name) {
       enchantments[k.value] = Number(lvl.value);
     }
     const payload = {
-      material: material.value.trim().toUpperCase(), amount: Number(amount.value), price: onBuy.value === 'UPGRADE' ? item.price : Number(price.value),
+      material: material.value.trim().toUpperCase(), amount: Number(amount.value), price: onBuy.value === 'UPGRADE' ? Math.max(0, item.price) : Number(price.value),
       priceType: priceType.value, onBuy: onBuy.value, logic: logic.value, permanent: permanent.checked,
       permission: permission.value.trim(), enchantments,
       flags: [...flags.querySelectorAll('input:checked')].map(c => c.value),
+      commands: onBuy.value === 'COMMANDS' || !mayEditCommands
+        ? commands.value.split('\n').map(c => c.trim()).filter(Boolean) : [],
+      openGui: onBuy.value === 'OPEN_GUI' ? openGui.value : '',
+      givePermission: onBuy.value === 'GIVE_PERM' || !mayEditCommands ? givePermission.value.trim() : '',
+      priceMaterial: priceType.value === 'OTHER' ? priceMaterial.value.trim().toUpperCase() : '',
     };
     busy(save, async () => {
       try {

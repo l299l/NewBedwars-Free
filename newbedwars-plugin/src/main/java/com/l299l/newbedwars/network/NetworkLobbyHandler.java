@@ -19,6 +19,8 @@ public final class NetworkLobbyHandler implements Listener {
     static final long DELAY_TICKS = 20L;
 
     static final long SHORT_DELAY_TICKS = 2L;
+    static final long RETRY_TICKS = 100L;
+    static final int RETRIES = 3;
 
     private final Plugin plugin;
     private final Messenger messenger;
@@ -64,9 +66,25 @@ public final class NetworkLobbyHandler implements Listener {
         }
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!shouldLeave(p)) return;
-            if (!localLobby) hide(p);
-            sendNow(p);
+            if (localLobby) {
+                sendNow(p);
+                return;
+            }
+            hide(p);
+            sendHidden(p, RETRIES);
         }, localLobby ? DELAY_TICKS : SHORT_DELAY_TICKS);
+    }
+
+    private void sendHidden(Player p, int retriesLeft) {
+        sendNow(p);
+        if (retriesLeft <= 0) return;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (awaitingLobby(p)) sendHidden(p, retriesLeft - 1);
+        }, RETRY_TICKS);
+    }
+
+    boolean awaitingLobby(Player p) {
+        return shouldLeave(p) && p.getGameMode() == org.bukkit.GameMode.SPECTATOR;
     }
 
     boolean shouldLeave(Player p) {

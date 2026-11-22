@@ -67,6 +67,20 @@ public final class PlayerSqlRepo {
         }
     }
 
+    static final java.util.List<String> RANKED_COLUMNS = java.util.List.of("wins", "kills", "final_kills", "beds_broken");
+
+    public static java.util.List<String> ensureLeaderboardIndexes(Connection c) {
+        java.util.List<String> problems = new java.util.ArrayList<>();
+        for (String column : RANKED_COLUMNS) {
+            try (Statement st = c.createStatement()) {
+                st.executeUpdate("CREATE INDEX idx_" + column + " ON " + STATS + " (" + column + ")");
+            } catch (SQLException e) {
+                if (e.getErrorCode() != 1061) problems.add(column + ": " + e.getMessage());
+            }
+        }
+        return problems;
+    }
+
     public static boolean isEmpty(Connection c) throws SQLException {
         return count(c, COUNT_STATS) == 0 && count(c, COUNT_PLAYERS) == 0;
     }

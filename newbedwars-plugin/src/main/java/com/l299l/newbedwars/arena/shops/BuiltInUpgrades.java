@@ -5,7 +5,6 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.version.VersionCompat;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -105,14 +104,14 @@ final class BuiltInUpgrades {
                 String enemyName = enemy.getName();
                 for (Player ally : team.getPlayers()) {
                     ally.sendTitle(
-                            ChatColor.RED + "" + ChatColor.BOLD + "⚠ ALARM ⚠",
-                            ChatColor.YELLOW + enemyName + " is in your base!",
+                            NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapTitle"),
+                            NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapSubtitle").replace("/player/", enemyName),
                             10, 60, 20
                     );
                 }
                 for (Player ally : team.getPlayers()) {
                     String alarmMsg = NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapTriggered");
-                    if (alarmMsg != null) ally.sendMessage(alarmMsg.replace("/team/", team.getName()));
+                    if (alarmMsg != null) ally.sendMessage(alarmMsg.replace("/team/", team.getDisplayName()));
                 }
             }
         };

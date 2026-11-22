@@ -49,7 +49,8 @@ import java.util.regex.Pattern;
 public final class ShopEditService {
     static final Pattern ITEM_NAME = Pattern.compile("[A-Za-z0-9_]{1,32}");
     static final Pattern GUI_ID = Pattern.compile("[A-Za-z0-9_-]{1,32}");
-    static final List<String> OFFERED_ON_BUY = List.of("GIVE_ITEM", "GIVE_ARMOR", "GIVE_TOOL", "UPGRADE", "CANCEL");
+    static final List<String> OFFERED_ON_BUY = List.of("GIVE_ITEM", "GIVE_ARMOR", "GIVE_TOOL", "UPGRADE", "COMMANDS", "OPEN_GUI", "GIVE_PERM", "CANCEL");
+    static final int MAX_COMMANDS = 20;
     private static final String TEXTS = "CustomItemsNames.";
     private static final int MAX_UPGRADE_PRICE = 2304;
     private static final String DEFAULT_LORE_KEY = "shop-item-description";
@@ -89,7 +90,8 @@ public final class ShopEditService {
         return new ShopItem(item.getName(), item.getMaterial().name(), item.getAmount(), item.getPrice(),
                 item.getPriceType().name(), item.getOnBuyEvent().name(), item.getEvent().getKey(), item.isPermanent(),
                 item.getPermission() == null || item.getPermission().equalsIgnoreCase("default") ? "" : item.getPermission(),
-                enchantments, flags, itemUsages(item.getName()));
+                enchantments, flags, itemUsages(item.getName()), item.getCommands(), item.getOpenGui(),
+                item.getGivePermission(), item.getOtherPriceMaterial() == null ? "" : item.getOtherPriceMaterial().name());
     }
 
     static String enchantmentKey(Enchantment e) {
@@ -125,6 +127,7 @@ public final class ShopEditService {
     }
 
     public static ShopResult saveItem(ShopItem spec) {
+        if (itemsData().isReadOnly()) return unreadable("items.yml");
         if (spec == null || spec.name() == null || !ITEM_NAME.matcher(spec.name()).matches()) {
             return invalid("name: use 1 to 32 letters, digits or _");
         }
@@ -135,11 +138,31 @@ public final class ShopEditService {
         Material material = Material.matchMaterial(spec.material() == null ? "" : spec.material());
         if (material == null || !material.isItem() || material.isAir()) return invalid("material: unknown item " + spec.material());
         if (spec.amount() < 1 || spec.amount() > 64) return invalid("amount: 1 to 64");
-        if (spec.price() < -1 || spec.price() > 100000) return invalid("price: 0 to 100000");
+        if (spec.price() < 0 || spec.price() > 100000) return invalid("price: 0 to 100000");
         PriceType priceType = parseEnum(PriceType.class, spec.priceType());
         if (priceType == null) return invalid("priceType: unknown " + spec.priceType());
+        Material priceMaterial = null;
+        if (priceType == PriceType.OTHER) {
+            priceMaterial = Material.matchMaterial(spec.priceMaterial());
+            if (priceMaterial == null || !priceMaterial.isItem() || priceMaterial.isAir()) {
+                return invalid("priceMaterial: unknown item " + spec.priceMaterial());
+            }
+        }
         OnBuyEvent onBuy = parseEnum(OnBuyEvent.class, spec.onBuy());
         if (onBuy == null) return invalid("onBuy: unknown " + spec.onBuy());
+        List<String> commands = new ArrayList<>();
+        for (String c : spec.commands()) {
+            if (c == null || c.isBlank()) continue;
+            if (c.length() > 256 || c.contains("\n") || c.contains("\r")) return invalid("commands: one line each, up to 256 characters");
+            commands.add(c.trim());
+        }
+        if (commands.size() > MAX_COMMANDS) return invalid("commands: up to " + MAX_COMMANDS);
+        if (onBuy == OnBuyEvent.COMMANDS && commands.isEmpty()) return invalid("commands: add at least one command");
+        String openGui = spec.openGui().trim();
+        if (onBuy == OnBuyEvent.OPEN_GUI && guiData().get(openGui) == null) return invalid("openGui: unknown GUI " + openGui);
+        String givePermission = spec.givePermission().trim();
+        if (givePermission.length() > 128 || givePermission.contains(" ")) return invalid("givePermission: up to 128 characters, no spaces");
+        if (onBuy == OnBuyEvent.GIVE_PERM && givePermission.isEmpty()) return invalid("givePermission: enter the permission to give");
         String logic = spec.logic() == null || spec.logic().isBlank() ? "NONE" : CustomLogicRegistry.normalize(spec.logic());
         boolean logicKnown = CustomLogicRegistry.isBuiltIn(logic) || CustomLogicRegistry.keys().contains(logic)
                 || (existing != null && existing.getEvent().getKey().equalsIgnoreCase(logic));
@@ -166,6 +189,7 @@ public final class ShopEditService {
             items().createCustomItem(spec.name(), "default", material, spec.price(), priceType, spec.amount(), "default",
                     permission, logic, onBuy, spec.permanent(), enchantments, flags, true);
             item = items().getCustomItem(spec.name());
+            applyActions(item, onBuy, commands, openGui, givePermission, priceMaterial);
             NewBedwars.plugin.getLangMessages().addCustomItemProperty(spec.name(), "-name");
             if (readText(Language.English, spec.name() + "-name").isEmpty()) {
                 writeTexts(Map.of(Language.English, Map.of(TEXTS + spec.name() + "-name", spec.name())));
@@ -181,13 +205,22 @@ public final class ShopEditService {
             item.setPermission(permission);
             item.setEnchantments(enchantments);
             item.setItemFlags(flags);
+            applyActions(item, onBuy, commands, openGui, givePermission, priceMaterial);
         }
         itemsData().save();
         refreshGuis();
         return ok();
     }
 
+    private static void applyActions(CustomItem item, OnBuyEvent onBuy, List<String> commands, String openGui, String givePermission, Material priceMaterial) {
+        item.setCommands(onBuy == OnBuyEvent.COMMANDS ? commands : new ArrayList<>());
+        item.setOpenGui(openGui);
+        item.setGivePermission(onBuy == OnBuyEvent.GIVE_PERM ? givePermission : "");
+        item.setOtherPriceMaterial(priceMaterial);
+    }
+
     public static ShopResult deleteItem(String name) {
+        if (itemsData().isReadOnly()) return unreadable("items.yml");
         if (name == null) return new ShopResult(Code.NOT_FOUND, null);
         boolean broken = itemsData().isBroken(name);
         if (items().getCustomItem(name) == null && !broken) return new ShopResult(Code.NOT_FOUND, null);
@@ -497,8 +530,13 @@ public final class ShopEditService {
             return invalid(e.getMessage());
         }
         if (parsed.size() > upgrade.maxLevel) return invalid("at most " + upgrade.maxLevel + " levels");
+        if (pricing().isReadOnly()) return unreadable("upgrades.yml");
         pricing().set(upgrade.name(), parsed);
         return ok();
+    }
+
+    private static ShopResult unreadable(String file) {
+        return new ShopResult(Code.FAILED, file + " could not be read when it was loaded; fix the file and use /bw reload first");
     }
 
     private static UpgradePricing pricing() {

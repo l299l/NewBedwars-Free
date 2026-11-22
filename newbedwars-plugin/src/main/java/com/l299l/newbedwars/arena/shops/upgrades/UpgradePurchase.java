@@ -3,6 +3,7 @@ package com.l299l.newbedwars.arena.shops.upgrades;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.shops.TeamUpgrades;
 import com.l299l.newbedwars.arena.shops.Upgrade;
@@ -14,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 public final class UpgradePurchase {
 
-    public enum Outcome { BOUGHT, MAXED, NOT_ENOUGH, CANCELLED }
+    public enum Outcome { BOUGHT, MAXED, NOT_ENOUGH, CANCELLED, UNAVAILABLE }
 
     public record Result(Outcome outcome, UpgradeTier tier) {
         public boolean bought() {
@@ -42,7 +43,15 @@ public final class UpgradePurchase {
         return pricing().maxLevel(upgrade, gui(arena));
     }
 
+    public static boolean canBuy(IArena arena, Player player) {
+        return arena != null
+                && arena.status() == GameStatus.playing
+                && arena.isPlayerInArena(player)
+                && !arena.getSpectators().contains(player);
+    }
+
     public static Result buy(Player player, IArena arena, Team team, Upgrade upgrade, String itemName) {
+        if (!canBuy(arena, player)) return new Result(Outcome.UNAVAILABLE, null);
         return buy(player, arena, team, upgrade, itemName, pricing(), gui(arena));
     }
 
@@ -53,14 +62,18 @@ public final class UpgradePurchase {
         UpgradeTier tier = pricing.next(upgrade, currentLevel, gui);
         if (tier == null) return new Result(Outcome.MAXED, null);
         if (!player.getInventory().contains(tier.material(), tier.price())) return new Result(Outcome.NOT_ENOUGH, tier);
-        if (!ApiEvents.shopPurchase(arena, player, itemName, ShopPurchaseEvent.Kind.UPGRADE, tier.currency().name(), tier.price())
-                || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) {
+        int price = ApiEvents.shopPurchase(arena, player, itemName, ShopPurchaseEvent.Kind.UPGRADE, tier.currency().name(),
+                tier.price(), team);
+        if (price < 0 || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) {
             return new Result(Outcome.CANCELLED, tier);
         }
-        if (tu.getUpgradeLevel(upgrade) != currentLevel || !player.getInventory().contains(tier.material(), tier.price())) {
+        if (tu.getUpgradeLevel(upgrade) != currentLevel) {
             return new Result(Outcome.CANCELLED, tier);
         }
-        if (tier.price() > 0) player.getInventory().removeItem(new ItemStack(tier.material(), tier.price()));
+        if (price > 0 && !player.getInventory().contains(tier.material(), price)) {
+            return new Result(Outcome.NOT_ENOUGH, tier);
+        }
+        if (price > 0) player.getInventory().removeItem(new ItemStack(tier.material(), price));
         tu.upgrade(upgrade);
         return new Result(Outcome.BOUGHT, tier);
     }

@@ -32,6 +32,7 @@ public final class PeerClient {
     private final PeerPins pins;
     private final Logger logger;
     private final HttpClient client;
+    private volatile boolean refusalLogged;
 
     public PeerClient(NetworkConfig.Peer peer, String secret, PeerPins pins, Logger logger) {
         this.peer = peer;
@@ -67,11 +68,19 @@ public final class PeerClient {
         return pins.get(peer.id()) == null ? "none" : "first-use";
     }
 
-    private void firstUse(String fingerprint) {
-        if (!peer.fingerprint().isEmpty()) return;
+    private boolean firstUse(String fingerprint) {
+        if (!peer.fingerprint().isEmpty()) return true;
+        if (!pins.firstUseAllowed(peer.id())) {
+            if (!refusalLogged) logger.severe("Panel peer " + peer.id() + ": refusing to trust its certificate (SHA-256 " + fingerprint
+                    + ") because the pin file was damaged. Verify the certificate, then run /nbwpanel network forget "
+                    + peer.id() + " to trust it again.");
+            refusalLogged = true;
+            return false;
+        }
         pins.put(peer.id(), fingerprint);
         logger.info("Panel peer " + peer.id() + ": trusting its certificate on first use (SHA-256 " + fingerprint
                 + "). Run /nbwpanel network forget " + peer.id() + " if it changes on purpose.");
+        return true;
     }
 
     public Reply send(String method, String rawPath, String rawQuery, NodeAuth.Identity identity, String bodyHash,

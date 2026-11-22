@@ -145,7 +145,7 @@ public class MainCommand implements TabExecutor {
                     subCmd(route.publicCmds(), args, p, false, route.adminNeedsArena());
                 }
             } else {
-                if (!isAdmin(p) && !p.hasPermission("newbedwars.bw.arena")) {
+                if (!canSetup(p)) {
                     msg.send(p, "NoPermissions");
                     return true;
                 }
@@ -202,6 +202,10 @@ public class MainCommand implements TabExecutor {
         return p.hasPermission("newbedwars.bw.admin") || p.isOp();
     }
 
+    private boolean canSetup(Player p) {
+        return isAdmin(p) || ArenaCommand.canUse(p, "setup");
+    }
+
     private boolean isSpectatorInArena(Player p) {
         IArena arena = ArenaRegistry.byWorld(p.getWorld());
         return arena != null && arena.getSpectators().contains(p);
@@ -209,10 +213,10 @@ public class MainCommand implements TabExecutor {
 
     private boolean hasAnyLobbyAdminPermission(Player p) {
         return isAdmin(p)
-                || p.hasPermission("newbedwars.bw.arena")
+                || ArenaCommand.hasAnyPermission(p)
                 || p.hasPermission("newbedwars.bw.setlobby")
                 || p.hasPermission("newbedwars.bw.npc")
-                || p.hasPermission("newbedwars.bw.group")
+                || GroupCommand.hasAnyPermission(p)
                 || p.hasPermission("newbedwars.bw.update");
     }
 
@@ -224,8 +228,8 @@ public class MainCommand implements TabExecutor {
 
         if (args.length == 1) {
             if (setupMode == null || setupMode == Setup.NO_SETUP || setupMode == Setup.READY) {
-                return filterAndSort(subArgs(routeFor(p).all()), typed);
-            } else if (isAdmin(p) || p.hasPermission("newbedwars.bw.arena")) {
+                return filterAndSort(subArgs(visibleCommands(p, routeFor(p))), typed);
+            } else if (canSetup(p)) {
                 return filterAndSort(subArgs(setupCommandsFor(setupMode)), typed);
             }
         } else if (args.length >= 2) {
@@ -235,7 +239,7 @@ public class MainCommand implements TabExecutor {
                 raw = subSubArgs(lobbyRoute(p).all(), args, p);
             } else if (setupMode == Setup.READY) {
                 raw = subSubArgs(routeFor(p).all(), args, p);
-            } else if (isAdmin(p) || p.hasPermission("newbedwars.bw.arena")) {
+            } else if (canSetup(p)) {
                 raw = joinedSubSubArgs(args, p);
             }
             if (raw != null) return filterAndSort(raw, sub);
@@ -327,9 +331,32 @@ public class MainCommand implements TabExecutor {
         Map<SubCommand, Boolean> result = new LinkedHashMap<>();
         for (SubCommand cmd : route.publicCmds()) result.put(cmd, false);
         if (route.adminCmds() != null) {
-            for (SubCommand cmd : route.adminCmds()) result.put(cmd, true);
+            for (SubCommand cmd : route.adminCmds()) {
+                if (canSee(p, cmd)) result.put(cmd, true);
+            }
         }
         return result;
+    }
+
+    private List<SubCommand> visibleCommands(Player p, Route route) {
+        List<SubCommand> result = new ArrayList<>(route.publicCmds());
+        if (route.adminCmds() != null) {
+            for (SubCommand cmd : route.adminCmds()) {
+                if (canSee(p, cmd)) result.add(cmd);
+            }
+        }
+        return result;
+    }
+
+    private boolean canSee(Player p, SubCommand cmd) {
+        if (isAdmin(p)) return true;
+        if (cmd instanceof ArenaCommand) return ArenaCommand.hasAnyPermission(p);
+        if (cmd instanceof GroupCommand) return GroupCommand.hasAnyPermission(p);
+        if (cmd instanceof SetLobbyCommand) return p.hasPermission("newbedwars.bw.setlobby");
+        if (cmd instanceof NpcCommand) return p.hasPermission("newbedwars.bw.npc");
+        if (cmd instanceof UpdateCommand) return p.hasPermission(UpdateCommand.PERMISSION);
+        if (cmd instanceof ReloadCommand) return false;
+        return true;
     }
 
     private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set) {

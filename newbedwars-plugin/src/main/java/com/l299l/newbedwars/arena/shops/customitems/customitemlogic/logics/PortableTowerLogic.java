@@ -42,7 +42,7 @@ public class PortableTowerLogic implements CustomLogic {
                 for (int dz = -2; dz <= 2; dz++) {
                     for (int dy = 0; dy <= 6; dy++) {
                         Location check = new Location(world, cx + dx, floorY + dy, cz + dz);
-                        if (arenaImpl.isInTeamBase(check) || arenaImpl.isNearDiamondOrEmeraldGenerator(check)) {
+                        if (arenaImpl.isInTeamBase(check) || arenaImpl.isNearIslandGenerator(check)) {
                             NewBedwars.plugin.getMessages().send(player, "PortableTowerProtectedArea");
                             return false;
                         }

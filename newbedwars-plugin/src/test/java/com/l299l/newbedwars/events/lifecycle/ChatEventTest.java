@@ -13,6 +13,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import com.l299l.newbedwars.api.events.ArenaChatEvent;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -80,6 +81,78 @@ class ChatEventTest {
 
         verifyNoInteractions(messages, arena);
         assertTrue(event.isCancelled());
+    }
+
+    @Test
+    void asyncArenaChatIsCancelledAtOnceAndHandledLaterOnTheMainThread() {
+        arenaSetup();
+        Player lobbyPlayer = mock(Player.class);
+        AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(true, sender, "hi", new HashSet<>(Set.of(lobbyPlayer)));
+        BukkitScheduler scheduler = mock(BukkitScheduler.class);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(false);
+            bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+            new ChatEvent(plugin).onChat(event);
+        }
+
+        assertTrue(event.isCancelled());
+        verify(scheduler).runTask(eq(plugin), any(Runnable.class));
+        verify(scheduler, never()).callSyncMethod(any(), any());
+        verifyNoInteractions(arena, lobbyPlayer);
+    }
+
+    @Test
+    void asyncLobbyChatHidesArenaPlayersWithoutTheMainThread() {
+        arenaSetup();
+        Player lobbySender = mock(Player.class);
+        World lobby = mock(World.class);
+        when(lobbySender.getWorld()).thenReturn(lobby);
+        Player lobbyPlayer = mock(Player.class);
+        when(lobbyPlayer.getWorld()).thenReturn(lobby);
+        Player inArena = mock(Player.class);
+        when(inArena.getWorld()).thenReturn(world);
+        AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(true, lobbySender, "hi",
+                new HashSet<>(Set.of(lobbyPlayer, inArena)));
+        BukkitScheduler scheduler = mock(BukkitScheduler.class);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(false);
+            bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+            new ChatEvent(plugin).onChat(event);
+        }
+
+        assertFalse(event.isCancelled());
+        assertEquals(Set.of(lobbyPlayer), event.getRecipients());
+        verifyNoInteractions(scheduler);
+    }
+
+    @Test
+    void asyncChatDuringShutdownIsDroppedQuietly() {
+        arenaSetup();
+        when(plugin.getLogger()).thenReturn(java.util.logging.Logger.getAnonymousLogger());
+        AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(true, sender, "hi", new HashSet<>());
+        BukkitScheduler scheduler = mock(BukkitScheduler.class);
+        when(scheduler.runTask(eq(plugin), any(Runnable.class)))
+                .thenThrow(new org.bukkit.plugin.IllegalPluginAccessException("disabled"));
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(false);
+            bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+            assertDoesNotThrow(() -> new ChatEvent(plugin).onChat(event));
+        }
+        assertTrue(event.isCancelled());
+    }
+
+    @Test
+    void arenaWorldSnapshotFollowsTheRegistry() {
+        World w = mock(World.class);
+        assertFalse(ArenaRegistry.isArenaWorld(w));
+        ArenaRegistry.bindWorld(w, mock(IArena.class));
+        assertTrue(ArenaRegistry.isArenaWorld(w));
+        ArenaRegistry.unbindWorld(w);
+        assertFalse(ArenaRegistry.isArenaWorld(w));
+        ArenaRegistry.bindWorld(w, mock(IArena.class));
+        ArenaRegistry.unregister("x", w);
+        assertFalse(ArenaRegistry.isArenaWorld(w));
+        assertFalse(ArenaRegistry.isArenaWorld(null));
     }
 
     @Test

@@ -96,6 +96,46 @@ public interface ArenaView {
         return List.of();
     }
 
+    /**
+     * The most players the arena takes: teams times {@link #getMaxInTeam()}.
+     *
+     * @since 2.8-beta
+     */
+    default int getMaxPlayers() {
+        return getTeams().size() * getMaxInTeam();
+    }
+
+    /**
+     * The team of a player of this arena; empty for spectators who don't play, for players not in this arena and
+     * before the teams are assigned at the game start.
+     *
+     * @since 2.8-beta
+     */
+    default Optional<TeamView> getTeam(Player player) {
+        if (player == null) return Optional.empty();
+        return getGamePlayer(player.getUniqueId()).flatMap(GamePlayerView::getTeam);
+    }
+
+    /**
+     * Whether the player is a spectator of this arena: someone who joined to watch, a player who is out of the
+     * game, or a player waiting for their respawn.
+     *
+     * @since 2.8-beta
+     */
+    default boolean isSpectator(Player player) {
+        return player != null && getSpectators().contains(player);
+    }
+
+    /**
+     * The ids of the custom generators the arena's generator file defines ({@code CustomGenerators}), for
+     * {@link ArenaEditor#addCustomGenerator}.
+     *
+     * @since 2.8-beta
+     */
+    default List<String> getCustomGeneratorIds() {
+        return List.of();
+    }
+
     /** Data {@code owner} keeps on this arena, saved with the arena file. */
     ExtraData getExtra(Plugin owner);
 }

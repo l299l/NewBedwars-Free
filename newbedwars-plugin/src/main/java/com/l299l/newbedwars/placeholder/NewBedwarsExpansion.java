@@ -11,41 +11,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Placeholders (prefix: %newbedwars_<param>%):
- *
- * In-game per-player:
- *   arena            — arena name the player is in, or ""
- *   status           — game status (waiting/starting/playing/ending/restarting), or "lobby"
- *   team             — team name, or ""
- *   team_color       — team ChatColor code, or ""
- *   kills            — kills in current game
- *   deaths           — deaths in current game
- *   final_kills      — final kills in current game
- *   beds_broken      — beds broken in current game
- *   players          — current player count in the arena
- *   max_players      — max players in the arena
- *   is_spectator     — true / false
- *   phase            — current phase name, or ""
- *   game_time        — seconds elapsed since game start, or 0
- *
- * Lifetime stats per-player:
- *   stat_wins        — total wins
- *   stat_losses      — total losses
- *   stat_kills       — total kills
- *   stat_deaths      — total deaths
- *   stat_final_kills — total final kills
- *   stat_beds        — total beds broken
- *   stat_games       — total games played
- *   stat_kd          — kill/death ratio (1 decimal, e.g. "2.3")
- *   stat_wl          — win/loss ratio (1 decimal)
- *
- * Per-arena (not player-specific):
- *   arena_<name>_status      — game status of the named arena
- *   arena_<name>_players     — player count
- *   arena_<name>_max_players — max players
- *   arena_<name>_phase       — current phase name
- */
 public class NewBedwarsExpansion extends PlaceholderExpansion {
 
     private final NewBedwars plugin;
@@ -68,11 +33,24 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
 
     @Override
     public @Nullable String onPlaceholderRequest(Player player, @NotNull String params) {
+        try {
+            return resolve(player, params);
+        } catch (RuntimeException e) {
+            if (org.bukkit.Bukkit.isPrimaryThread()) throw e;
+            return "";
+        }
+    }
+
+    private @Nullable String resolve(Player player, @NotNull String params) {
         if (params.startsWith("arena_")) {
             return resolveArenaParam(params.substring("arena_".length()));
         }
         if (params.startsWith("group_")) {
             return GroupPlaceholders.resolve(params.substring("group_".length()));
+        }
+        if (params.startsWith("top_")) {
+            return LeaderboardPlaceholders.resolve(params.substring("top_".length()),
+                    plugin.getMessages().getMsgToConsole("LeaderboardPlaceholderEmpty"));
         }
 
         if (player == null) return "";
@@ -93,7 +71,7 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
             case "team": {
                 if (arena == null) return "";
                 Team team = arena.getTeam(player);
-                return team != null ? team.getName() : "";
+                return team != null ? team.getDisplayName() : "";
             }
             case "team_color": {
                 if (arena == null) return "";

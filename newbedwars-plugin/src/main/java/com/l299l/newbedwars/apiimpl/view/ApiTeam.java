@@ -25,6 +25,11 @@ public final class ApiTeam implements TeamView {
     }
 
     @Override
+    public String getDisplayName() {
+        return team.getDisplayName();
+    }
+
+    @Override
     public ChatColor getColor() {
         return team.getColor();
     }

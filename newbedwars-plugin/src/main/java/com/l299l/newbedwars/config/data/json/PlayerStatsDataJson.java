@@ -2,7 +2,6 @@ package com.l299l.newbedwars.config.data.json;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.JsonParseException;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.data.IOExecutor;
 import com.l299l.newbedwars.config.data.json.arenas.AtomicFileWriter;
@@ -22,6 +21,8 @@ import java.util.logging.Level;
 
 public class PlayerStatsDataJson {
 
+    private boolean saveBlocked;
+
     public void load() {
         File statsFile = new File(NewBedwars.plugin.getDataFolder(), "data/playerStats.json");
         if (!statsFile.exists()) {
@@ -29,12 +30,19 @@ public class PlayerStatsDataJson {
             return;
         }
         int legacy;
+        PlayerManager pm = NewBedwars.plugin.getPlayerManager();
+        Map<UUID, PlayerStats> before = new HashMap<>(pm.getAllStats());
         try (FileReader reader = new FileReader(statsFile)) {
             Object obj = new Gson().fromJson(reader, HashMap.class);
             if (obj == null) return;
-            legacy = read((Map<String, LinkedTreeMap<String, Object>>) obj, NewBedwars.plugin.getPlayerManager());
-        } catch (IOException | JsonParseException e) {
-            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not read playerStats.json; starting without saved stats", e);
+            pm.getAllStats().clear();
+            legacy = read((Map<String, LinkedTreeMap<String, Object>>) obj, pm);
+        } catch (IOException | RuntimeException e) {
+            pm.getAllStats().clear();
+            pm.getAllStats().putAll(before);
+            NewBedwars.plugin.getLogger().log(Level.SEVERE, "Could not read playerStats.json; stats are not saved over it", e);
+            saveBlocked = !com.l299l.newbedwars.config.data.CorruptFiles.moveAside(statsFile, NewBedwars.plugin.getLogger(),
+                    "saving stats is disabled");
             return;
         }
         if (legacy > 0) {
@@ -105,6 +113,7 @@ public class PlayerStatsDataJson {
     }
 
     public void save() {
+        if (saveBlocked) return;
         String json = new Gson().toJson(toFile(NewBedwars.plugin.getPlayerManager()));
         Path target = new File(NewBedwars.plugin.getDataFolder(), "data/playerStats.json").toPath();
         Runnable write = () -> {

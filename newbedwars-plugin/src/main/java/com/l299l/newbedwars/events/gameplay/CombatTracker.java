@@ -59,6 +59,13 @@ public class CombatTracker {
         return lastGround.remove(id);
     }
 
+    public void clearAttacker(UUID id) {
+        lastAttacker.remove(id);
+        lastHitByMob.remove(id);
+        BukkitTask clearTask = clearTasks.remove(id);
+        if (clearTask != null) clearTask.cancel();
+    }
+
     public void forget(UUID id) {
         lastAttacker.remove(id);
         lastHitByMob.remove(id);

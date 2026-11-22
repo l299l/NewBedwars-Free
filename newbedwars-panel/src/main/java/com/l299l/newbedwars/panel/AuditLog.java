@@ -37,13 +37,29 @@ public final class AuditLog {
         this.logger = logger;
         this.clock = clock;
         try {
-            if (Files.isRegularFile(file) && Files.size(file) > ROTATE_BYTES) {
-                Files.move(file, file.resolveSibling(file.getFileName() + ".1"), StandardCopyOption.REPLACE_EXISTING);
-            }
+            rotateIfLarge();
             if (Files.isRegularFile(file)) load();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Could not read " + file, e);
         }
+    }
+
+    private void rotateIfLarge() throws IOException {
+        if (Files.isRegularFile(file) && Files.size(file) > ROTATE_BYTES) {
+            Files.move(file, file.resolveSibling(file.getFileName() + ".1"), StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    static String clean(String value) {
+        if (value == null) return null;
+        StringBuilder out = null;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            boolean control = Character.isISOControl(c) || c == '\u2028' || c == '\u2029';
+            if (control && out == null) out = new StringBuilder(value.length()).append(value, 0, i);
+            if (out != null && !control) out.append(c);
+        }
+        return out == null ? value : out.toString();
     }
 
     private void load() throws IOException {
@@ -84,10 +100,11 @@ public final class AuditLog {
     public synchronized void record(String user, String ip, String action, String target, String result) {
         Entry entry = new Entry(clock.getAsLong(), user, ip, action, target, result);
         remember(entry);
-        logger.info("[Audit] " + (user == null ? "-" : user) + " (" + ip + ") " + action
-                + (target == null ? "" : " " + target) + " -> " + result);
+        logger.info("[Audit] " + (user == null ? "-" : clean(user)) + " (" + clean(ip) + ") " + clean(action)
+                + (target == null ? "" : " " + clean(target)) + " -> " + clean(result));
         try {
             Files.createDirectories(file.toAbsolutePath().getParent());
+            rotateIfLarge();
             try (BufferedWriter out = Files.newBufferedWriter(file, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                 out.write(toJson(entry));

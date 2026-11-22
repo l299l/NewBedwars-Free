@@ -5,6 +5,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
+import com.l299l.newbedwars.commands.bedwars.admin.ArenaCommand;
 import com.l299l.newbedwars.gui.configuration.setup.guis.BasicConfigurationGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -83,6 +84,10 @@ public class SetupArenaCommand extends BwCommand {
         }
         if (p.hasPermission("newbedwars.bw.bypass")) {
             player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", p.getName()));
+            return;
+        }
+        if (!(p.hasPermission("newbedwars.bw.admin") || p.isOp() || ArenaCommand.canUse(p, "setup"))) {
+            player.sendMessage(msg.getMsg(player, "SetupPlayerNotAllowed").replace("/player/", p.getName()));
             return;
         }
         p.teleport(loc);

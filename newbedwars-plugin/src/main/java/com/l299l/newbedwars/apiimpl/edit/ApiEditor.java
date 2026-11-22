@@ -108,6 +108,18 @@ public final class ApiEditor implements ArenaEditor {
     }
 
     @Override
+    public void addCustomGenerator(String id, Location location) {
+        requireEditable();
+        requireInArenaWorld(location);
+        if (id == null || arena.getGeneratorsLeveling() == null || arena.getGeneratorsLeveling().getCustomGenerator(id) == null) {
+            throw new IllegalArgumentException("the generator file of the arena has no custom generator '" + id + "'");
+        }
+        String stored = arena.getGeneratorsLeveling().getCustomGenerator(id).id();
+        arena.addGenerator(new com.l299l.newbedwars.arena.generators.CustomGenerator(location.clone(), stored));
+        changed();
+    }
+
+    @Override
     public boolean removeGenerator(int index) {
         requireEditable();
         boolean removed = arena.removeGenerator(index) != null;

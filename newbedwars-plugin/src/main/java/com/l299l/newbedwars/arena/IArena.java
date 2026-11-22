@@ -115,6 +115,8 @@ public interface IArena {
     void setQuickVoidY(int y);
     Integer getQuickVoidY();
     void bedDestruction();
+    boolean destroyBed(com.l299l.newbedwars.arena.team.Team team);
+    boolean eliminateTeam(com.l299l.newbedwars.arena.team.Team team);
     void endGame(String criteria);
     void enderDragonEnd();
     void enderDragonStart();

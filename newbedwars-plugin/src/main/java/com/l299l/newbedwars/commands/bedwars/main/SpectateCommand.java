@@ -41,19 +41,7 @@ public class SpectateCommand extends BwCommand {
             msg.send(player, "ArenaNotExists");
             return;
         }
-        if (!target.isEnabled()) {
-            msg.send(player, "ArenaNotEnabled", Map.of("/arenaname/", target.getArenaName()));
-            return;
-        }
-        if (!target.joinAsSpectator(player)) {
-            if (target.status() != GameStatus.playing && target.status() != GameStatus.ending) {
-                msg.send(player, "ArenaNotRunningForSpectate");
-            } else if (target.getGamerules() == null || !target.getGamerules().AllowSpectators) {
-                msg.send(player, "SpectatingDisabled");
-            } else {
-                msg.send(player, "SpectateFailed");
-            }
-        }
+        com.l299l.newbedwars.arena.join.ArenaJoinService.spectate(player, target);
     }
 
     @Override

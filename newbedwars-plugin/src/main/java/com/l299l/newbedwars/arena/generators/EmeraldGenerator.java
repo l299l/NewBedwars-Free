@@ -20,7 +20,6 @@ public class EmeraldGenerator implements Generator {
 
     private final Location location;
     private final GeneratorType type = GeneratorType.EMERALD;
-    private final int maxLevel;
     private int level;
     private double emeraldSpawnRate;
     private int emeraldSpawnAmount;
@@ -36,22 +35,35 @@ public class EmeraldGenerator implements Generator {
         if (arena == null) {
             throw new RuntimeException("Arena not found");
         }
-        GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        maxLevel = generatorLeveling.getEmeraldGeneratorSettings() == null ? 0 : generatorLeveling.getEmeraldGeneratorSettings().getMaxLevel();
         upgrade();
+    }
+
+    private com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings settings() {
+        IArena arena = ArenaRegistry.byWorld(location.getWorld());
+        GeneratorLeveling leveling = arena == null ? null : arena.getGeneratorsLeveling();
+        return leveling == null ? null : leveling.getEmeraldGeneratorSettings();
+    }
+
+    public int getMaxLevel() {
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings settings = settings();
+        return settings == null ? 0 : settings.getMaxLevel();
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     @Override
     public void start() {
-        if (maxLevel == 0 || level == 0) {
+        if (level == 0) upgrade();
+        if (getMaxLevel() == 0 || level == 0) {
             return;
         }
         if (task != null) { task.cancel(); task = null; }
         if (rotatingTask != null) { rotatingTask.cancel(); rotatingTask = null; }
         if (hologram != null) { hologram.remove(); hologram = null; }
-        IArena owner = ArenaRegistry.byWorld(location.getWorld());
-        boolean showTime = owner == null || owner.getGeneratorsLeveling().getEmeraldGeneratorSettings() == null
-                || owner.getGeneratorsLeveling().getEmeraldGeneratorSettings().isShowNextSpawnTime();
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings current = settings();
+        boolean showTime = current == null || current.isShowNextSpawnTime();
         hologram = new Hologram(GeneratorHologramText.of(
                 NewBedwars.plugin.getMessages().getMsgToConsole("EmeraldGenerator"), showTime), location.clone(),
                 new HashMap<>(Map.of("/tier/", String.valueOf(level), "/delay/", String.valueOf(delayInSeconds()))));
@@ -84,24 +96,20 @@ public class EmeraldGenerator implements Generator {
 
     @Override
     public boolean upgrade() {
-        if (level >= maxLevel) {
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorSettings settings = settings();
+        if (settings == null || level >= settings.getMaxLevel()) {
             return false;
         }
         level++;
-        IArena arena = ArenaRegistry.byWorld(location.getWorld());
-        if (arena == null) {
-            throw new RuntimeException("Arena not found");
-        }
-        GeneratorLeveling generatorLeveling = arena.getGeneratorsLeveling();
-        emeraldSpawnRate = generatorLeveling.getEmeraldGeneratorSettings().getEmeraldSpawnRate().get(level - 1);
-        emeraldSpawnAmount = generatorLeveling.getEmeraldGeneratorSettings().getEmeraldSpawnAmount().get(level - 1);
-        spawnDelay = generatorLeveling.getEmeraldGeneratorSettings().getSpawnDelay().get(level - 1);
+        emeraldSpawnRate = GeneratorLists.doubleAt(settings.getEmeraldSpawnRate(), level - 1, 0);
+        emeraldSpawnAmount = GeneratorLists.intAt(settings.getEmeraldSpawnAmount(), level - 1, 1);
+        spawnDelay = GeneratorLists.doubleAt(settings.getSpawnDelay(), level - 1, 30);
         return true;
     }
 
     @Override
     public boolean upgrade(Integer level) {
-        if (level > maxLevel || this.level >= level) {
+        if (level > getMaxLevel() || this.level >= level) {
             return false;
         }
         for (int i = this.level; i < level; i++) {

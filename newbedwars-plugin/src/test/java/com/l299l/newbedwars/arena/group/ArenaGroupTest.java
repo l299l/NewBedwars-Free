@@ -122,6 +122,30 @@ class ArenaGroupTest {
     }
 
     @Test
+    void removeArenaDropsItFromItsGroup() {
+        ArenaGroup g = new ArenaGroup("solo", null);
+        g.add("castle");
+        g.add("ruins");
+        assertTrue(g.remove("CASTLE"));
+        assertFalse(g.contains("castle"));
+        assertTrue(g.contains("ruins"));
+    }
+
+    @Test
+    void networkManagedGroupsKeepDeletedArenas() {
+        ArenaGroupManager m = new ArenaGroupManager();
+        try {
+            ArenaGroup g = new ArenaGroup("solo", null);
+            g.add("castle");
+            m.useNetwork(List.of(g));
+            assertFalse(m.removeArena("castle"));
+            assertTrue(g.contains("castle"));
+        } finally {
+            new ArenaGroupManager();
+        }
+    }
+
+    @Test
     void networkManagedGroupsAreNotEdited() {
         ArenaGroupManager m = new ArenaGroupManager();
         try {

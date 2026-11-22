@@ -26,6 +26,7 @@ Arena files are saved atomically with rotating backups, every game starts from a
 ## Features
 
 - Several arenas at once, each in its own world, with configurable teams, generators, upgrades, traps and custom shop items (golems, silverfish, bridge eggs and more)
+- Shop items that run commands, open other menus or give a permission for the game, prices in any item, and custom generators that drop any item
 - Rejoin after a disconnect, spectator mode with a player compass, quick void, build protection zones
 - Arena groups with map voting at the end of a game, and `/bw arena copy` to run one map in several games
 - Parties (`/party`) with clickable invites
@@ -42,7 +43,7 @@ Optional integrations:
 
 | Plugin | Used for |
 |---|---|
-| PlaceholderAPI | 34 `%newbedwars_*%` placeholders for players, stats, arenas and groups |
+| PlaceholderAPI | 34 `%newbedwars_*%` placeholders for players, stats, arenas and groups, plus leaderboard placeholders (top 1 to 10 by wins, kills, final kills or beds) |
 | WorldEdit / FastAsyncWorldEdit | Creating an arena from a `.schem` file |
 | Citizens | Lobby join NPCs with a live hologram (without it, `/bw npc create` spawns a simple NPC) |
 
@@ -130,7 +131,7 @@ Addons can read arenas, teams and players, listen to events, edit arenas that ar
     <dependency>
         <groupId>com.github.l299l.NewBedwars-Free</groupId>
         <artifactId>newbedwars-api</artifactId>
-        <version>v2.7-beta</version> <!-- a release tag -->
+        <version>v2.8-beta</version> <!-- a release tag -->
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -320,12 +321,12 @@ The modules are `newbedwars-api`, `newbedwars-common`, `newbedwars-plugin` (Pape
 
 ## Roadmap
 
-**2.7-beta is one of the last betas.** All planned features are done: parties, PlaceholderAPI, schematics, stats, the addon API, Citizens NPCs, map voting, network mode, automatic arena setup, update notifications and the web panel.
+**2.8-beta is the last beta.** All planned features are done: parties, PlaceholderAPI, schematics, stats, the addon API, Citizens NPCs, map voting, network mode, automatic arena setup, update notifications and the web panel.
 
 What comes next:
 
-1. **One or two bug-fix betas** after 2.7-beta, depending on what is reported. They fix problems and don't add big features.
-2. **The first stable release.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
+1. **Bug-fix releases** after 2.8-beta only if serious bugs are reported. They fix problems and don't add big features.
+2. **The first stable release, 3.0.0.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
 
 Found a bug in a beta? Please [report it](https://github.com/l299l/NewBedwars-Free/issues). Every report brings the stable release closer.
 

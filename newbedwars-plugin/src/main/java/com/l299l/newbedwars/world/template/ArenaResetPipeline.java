@@ -12,9 +12,13 @@ import org.bukkit.entity.Player;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public final class ArenaResetPipeline {
     private static final int MAX_UNLOAD_ATTEMPTS = 50;
+    private static final ConcurrentHashMap<String, CountDownLatch> COPYING = new ConcurrentHashMap<>();
 
     private ArenaResetPipeline() {}
 
@@ -64,12 +68,18 @@ public final class ArenaResetPipeline {
         String name = arena.getArenaName();
         Path mapsRoot = ArenaMaps.mapsRoot();
         List<String> excludes = List.copyOf(Properties.RollbackTemplateExcludes);
+        CountDownLatch done = new CountDownLatch(1);
         Runnable copy = () -> {
             Exception error = null;
             try {
                 MapTemplateManager.restoreTemplate(mapsRoot, name, folder, excludes);
             } catch (Exception e) {
                 error = e;
+            } catch (Throwable t) {
+                error = new java.io.IOException(t.toString(), t);
+            } finally {
+                COPYING.remove(name, done);
+                done.countDown();
             }
             Exception result = error;
             if (Properties.RollbackAsyncCopy) {
@@ -79,10 +89,13 @@ public final class ArenaResetPipeline {
             }
         };
         if (Properties.RollbackAsyncCopy) {
+            COPYING.put(name, done);
             try {
                 Bukkit.getScheduler().runTaskAsynchronously(NewBedwars.plugin, copy);
             } catch (IllegalStateException | org.bukkit.plugin.IllegalPluginAccessException e) {
-
+                COPYING.remove(name, done);
+                NewBedwars.plugin.getLogger().warning("Map reset of arena " + name
+                        + " could not start because the plugin is stopping; the map is restored on shutdown or the next start");
             }
         } else {
             copy.run();
@@ -107,11 +120,39 @@ public final class ArenaResetPipeline {
         arena.finishReset(fresh);
     }
 
+    public static void awaitRunningCopies(long timeoutMillis) {
+        long deadline = System.currentTimeMillis() + timeoutMillis;
+        for (java.util.Map.Entry<String, CountDownLatch> e : COPYING.entrySet()) {
+            long left = deadline - System.currentTimeMillis();
+            try {
+                if (left <= 0 || !e.getValue().await(left, TimeUnit.MILLISECONDS)) {
+                    NewBedwars.plugin.getLogger().warning("Map reset of arena " + e.getKey() + " is still running at shutdown");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+    }
+
+    public static boolean anyCopying() {
+        return !COPYING.isEmpty();
+    }
+
+    public static String copyingArena() {
+        return COPYING.keySet().stream().findFirst().orElse(null);
+    }
+
+    public static boolean isCopying(String arena) {
+        return COPYING.containsKey(arena);
+    }
+
     private static void schedule(Arena arena, Runnable task, long delayTicks) {
         try {
             Bukkit.getScheduler().runTaskLater(NewBedwars.plugin, task, delayTicks);
         } catch (IllegalStateException | org.bukkit.plugin.IllegalPluginAccessException e) {
-
+            NewBedwars.plugin.getLogger().warning("Map reset of arena " + arena.getArenaName()
+                    + " stopped because the plugin is stopping; the map is restored on shutdown or the next start");
         }
     }
 }

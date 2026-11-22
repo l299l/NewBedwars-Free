@@ -93,6 +93,7 @@ class ArenaTest {
         when(plugin.getDataManager()).thenReturn(dataManager);
         when(plugin.getGuiManager()).thenReturn(guiManager);
         when(plugin.getMessages()).thenReturn(messages);
+        when(plugin.getLogger()).thenReturn(java.util.logging.Logger.getAnonymousLogger());
         NewBedwars.plugin = plugin;
 
         scheduler = mock(BukkitScheduler.class);
@@ -101,6 +102,7 @@ class ArenaTest {
         bukkit.when(Bukkit::getServer).thenReturn(mock(org.bukkit.Server.class));
         apiEvents = mockStatic(ApiEvents.class);
         apiEvents.when(() -> ApiEvents.playerJoin(any(), any(), anyBoolean())).thenReturn(true);
+        apiEvents.when(() -> ApiEvents.spectate(any(), any())).thenReturn(true);
         voteManager = mockStatic(MapVoteManager.class);
         lobby = mockStatic(LobbyService.class);
         resetter = mockStatic(PlayerStateResetter.class);
@@ -160,6 +162,7 @@ class ArenaTest {
     private Team team(String name, boolean alive, Player... members) {
         Team team = mock(Team.class);
         when(team.getName()).thenReturn(name);
+        when(team.getDisplayName()).thenReturn(name);
         when(team.isAlive()).thenReturn(alive);
         when(team.getPlayers()).thenReturn(new ArrayList<>(List.of(members)));
         when(team.colored(anyString())).thenAnswer(inv -> inv.getArgument(0));
@@ -189,6 +192,126 @@ class ArenaTest {
         verify(playerManager).addGameResult(any(), eq("Bob"), eq(bobGp), eq(false));
         verify(dataManager, times(2)).recordGameResult(any(), anyString(), any());
         verify(dataManager).savePlayerStats();
+    }
+
+    @Test
+    void finalKilledMembersOfTheWinningTeamAlsoWin() throws Exception {
+        Player alice = player("Alice", world);
+        Player bob = player("Bob", world);
+        Team winner = team("Red", true, alice);
+        GamePlayer aliceGp = join(alice, winner);
+        GamePlayer bobGp = join(bob, winner);
+
+        arena.retire(bob.getUniqueId());
+        arena.persistStats(winner);
+
+        verify(playerManager).addGameResult(any(), eq("Alice"), eq(aliceGp), eq(true));
+        verify(playerManager).addGameResult(any(), eq("Bob"), eq(bobGp), eq(true));
+    }
+
+    @Test
+    void membersOfTheWinningTeamWhoQuitGetALoss() throws Exception {
+        arena.setStatus(GameStatus.playing);
+        Player alice = player("Alice", world);
+        Player bob = player("Bob", world);
+        Team red = team("Red", true, alice);
+        Team blue = team("Blue", true);
+        map("teams").put("Red", red);
+        map("teams").put("Blue", blue);
+        GamePlayer aliceGp = join(alice, red);
+        GamePlayer bobGp = join(bob, red);
+
+        arena.leave(bob, LeaveReason.DISCONNECT);
+        arena.persistStats(red);
+
+        verify(playerManager).addGameResult(any(), eq("Alice"), eq(aliceGp), eq(true));
+        verify(playerManager).addGameResult(any(), eq("Bob"), eq(bobGp), eq(false));
+    }
+
+    @Test
+    void leavingAfterTheWorldWasLeftDoesNotTeleportToTheLobby() throws Exception {
+        arena.setStatus(GameStatus.waiting);
+        Player alice = player("Alice", mock(World.class));
+        join(alice, null);
+
+        arena.leave(alice, LeaveReason.OTHER);
+
+        assertFalse(arena.isPlayerInArena(alice));
+        lobby.verify(() -> LobbyService.sendToLobby(any(), any()), never());
+    }
+
+    @Test
+    void leavingFromInsideTheArenaStillGoesToTheLobbyOnce() throws Exception {
+        arena.setStatus(GameStatus.waiting);
+        Player alice = player("Alice", world);
+        join(alice, null);
+        lobby.when(() -> LobbyService.sendToLobby(any(), any())).thenAnswer(inv -> {
+            arena.leave(alice, LeaveReason.OTHER);
+            return true;
+        });
+
+        arena.leave(alice, LeaveReason.COMMAND);
+
+        lobby.verify(() -> LobbyService.sendToLobby(any(), any()), times(1));
+        apiEvents.verify(() -> ApiEvents.playerLeave(any(), eq(alice), any()), times(1));
+    }
+
+    @Test
+    void joinPartyFailsWhenNobodyWasAdmitted() {
+        arena.setStatus(GameStatus.waiting);
+        Player alice = player("Alice", world);
+        doReturn(8).when(arena).getMaxPlayers();
+        apiEvents.when(() -> ApiEvents.playerJoin(any(), any(), anyBoolean())).thenReturn(false);
+
+        assertFalse(arena.joinParty(List.of(alice)));
+        assertFalse(arena.isPlayerInArena(alice));
+    }
+
+    @Test
+    void endGameIsIgnoredWhenTheGameIsNotRunning() {
+        arena.setStatus(GameStatus.ending);
+
+        arena.endGame("DRAW");
+
+        verify(arena, never()).startEnding(any());
+        verify(dataManager, never()).savePlayerStats();
+    }
+
+    @Test
+    void endingAnAlreadyEndedGameDoesNotCountStatsTwice() {
+        arena.setStatus(GameStatus.ending);
+
+        arena.startEnding(null);
+
+        verify(dataManager, never()).savePlayerStats();
+        verify(playerManager, never()).addGameResult(any(), anyString(), any(), anyBoolean());
+    }
+
+    @Test
+    void playersCannotJoinARunningGame() {
+        arena.setStatus(GameStatus.playing);
+        doReturn(8).when(arena).getMaxPlayers();
+        Player alice = player("Alice", world);
+
+        assertFalse(arena.join(alice));
+        assertFalse(arena.joinParty(List.of(alice)));
+        assertFalse(arena.isPlayerInArena(alice));
+    }
+
+    @Test
+    void startingARespawnCountdownCancelsThePreviousOne() throws Exception {
+        arena.setStatus(GameStatus.playing);
+        Player alice = player("Alice", world);
+        Team red = team("Red", true, alice);
+        map("teams").put("Red", red);
+        GamePlayer gp = join(alice, red);
+        arena.getSpectators().add(alice);
+
+        assertTrue(arena.ensureRespawning(alice));
+
+        org.mockito.InOrder order = inOrder(gp);
+        order.verify(gp).cancelRespawnTask();
+        order.verify(gp).setRespawnTask(any());
     }
 
     @Test
@@ -289,6 +412,7 @@ class ArenaTest {
 
     @Test
     void drawEndsWithoutAWinner() {
+        arena.setStatus(GameStatus.playing);
         doNothing().when(arena).startEnding(any());
 
         arena.endGame("draw");
@@ -298,6 +422,7 @@ class ArenaTest {
 
     @Test
     void mostKillsPicksTheTeamWithTheMostKills() throws Exception {
+        arena.setStatus(GameStatus.playing);
         doNothing().when(arena).startEnding(any());
         Player a = player("A", world);
         Player b = player("B", world);
@@ -319,13 +444,32 @@ class ArenaTest {
     }
 
     @Test
-    void unknownCriteriaJustStopsTheArena() {
-        doNothing().when(arena).stop();
+    void unknownCriteriaEndsAsADraw() {
+        arena.setStatus(GameStatus.playing);
+        doNothing().when(arena).startEnding(any());
 
         arena.endGame("whatever");
 
-        verify(arena).stop();
-        verify(arena, never()).startEnding(any());
+        verify(arena).startEnding(null);
+        verify(arena, never()).stop();
+    }
+
+    @Test
+    void mostKillsTieIsADraw() throws Exception {
+        arena.setStatus(GameStatus.playing);
+        doNothing().when(arena).startEnding(any());
+        Player a = player("A", world);
+        Player b = player("B", world);
+        Team red = team("Red", true, a);
+        Team blue = team("Blue", true, b);
+        map("teams").put("Red", red);
+        map("teams").put("Blue", blue);
+        when(join(a, red).getKills()).thenReturn(2);
+        when(join(b, blue).getKills()).thenReturn(2);
+
+        arena.endGame("MOST_KILLS");
+
+        verify(arena).startEnding(null);
     }
 
     @Test
@@ -420,5 +564,128 @@ class ArenaTest {
         arena.advancePhase();
         arena.nextPhase();
         apiEvents.verify(() -> ApiEvents.phaseChange(any(), any(), any(), anyBoolean()), times(2));
+    }
+
+    @Test
+    void shutdownOnlyLeavesSpectatorsStillInTheArenaWorld() throws Exception {
+        doNothing().when(arena).leave(any(), any());
+        World lobbyWorld = mock(World.class);
+        Player watching = player("Watching", world);
+        Player moved = player("Moved", lobbyWorld);
+        Player movedPlayer = player("MovedPlayer", lobbyWorld);
+        join(movedPlayer, null);
+        bukkit.when(() -> Bukkit.getPlayer(movedPlayer.getUniqueId())).thenReturn(movedPlayer);
+        arena.getSpectators().add(watching);
+        arena.getSpectators().add(moved);
+        arena.getSpectators().add(movedPlayer);
+
+        arena.forceShutdown();
+
+        verify(arena).leave(watching, LeaveReason.KICKED);
+        verify(arena, never()).leave(eq(moved), any());
+        verify(arena, never()).leave(eq(movedPlayer), any());
+        assertTrue(arena.getSpectators().isEmpty());
+    }
+
+    @Test
+    void joiningRemovesAStaleSpectatorEntryOfAnEndedArena() {
+        arena.setStatus(GameStatus.playing);
+        arena.getGamerules().AllowSpectators = true;
+        Player viewer = player("Viewer", world);
+        when(viewer.getInventory()).thenReturn(mock(PlayerInventory.class));
+        IArena other = mock(IArena.class);
+        when(other.getSpectators()).thenReturn(new ArrayList<>(List.of(viewer)));
+        when(other.isPlayerInArena(viewer)).thenReturn(true);
+        when(other.getArenaWorld()).thenReturn(mock(World.class));
+        ArenaRegistry.register("Other", other);
+
+        assertTrue(arena.joinAsSpectator(viewer));
+
+        verify(other).leave(viewer, LeaveReason.COMMAND);
+    }
+
+    @Test
+    void respawningHidesCurrentSpectatorsFromThePlayer() throws Exception {
+        arena.setStatus(GameStatus.playing);
+        Player alice = player("Alice", world);
+        Player watcher = player("Watcher", world);
+        Team red = team("Red", true, alice);
+        doReturn(red).when(arena).getTeam(alice);
+        join(alice, red);
+        arena.getSpectators().add(alice);
+        arena.getSpectators().add(watcher);
+
+        java.lang.reflect.Method respawn = Arena.class.getDeclaredMethod("respawnPlayer", Player.class);
+        respawn.setAccessible(true);
+        respawn.invoke(arena, alice);
+
+        assertFalse(arena.getSpectators().contains(alice));
+        verify(alice).hidePlayer(plugin, watcher);
+        verify(alice, never()).hidePlayer(plugin, alice);
+    }
+
+    @Test
+    void changingTheGeneratorConfigResetsIdleGenerators() {
+        com.l299l.newbedwars.arena.generators.Generator generator = mock(com.l299l.newbedwars.arena.generators.Generator.class);
+        arena.addGenerator(generator);
+
+        arena.setGeneratorsLeveling(mock(com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling.class));
+
+        verify(generator).stop();
+    }
+
+    @Test
+    void changingTheGeneratorConfigDuringAGameKeepsTheRunningGenerators() {
+        com.l299l.newbedwars.arena.generators.Generator generator = mock(com.l299l.newbedwars.arena.generators.Generator.class);
+        arena.addGenerator(generator);
+        arena.setStatus(GameStatus.playing);
+
+        arena.setGeneratorsLeveling(mock(com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling.class));
+
+        verify(generator, never()).stop();
+    }
+
+    @Test
+    void statusChangesFireOneStateChangeEvent() {
+        arena.setStatus(GameStatus.waiting);
+        arena.setStatus(GameStatus.waiting);
+        arena.setStatus(GameStatus.starting);
+
+        apiEvents.verify(() -> ApiEvents.stateChange(any(), eq(GameStatus.waiting), eq(GameStatus.starting)));
+        apiEvents.verify(() -> ApiEvents.stateChange(any(), eq(GameStatus.waiting), eq(GameStatus.waiting)), never());
+    }
+
+    @Test
+    void eliminatingATeamTakesItsPlayersOutAndRunsTheWinCheck() throws Exception {
+        arena.setStatus(GameStatus.playing);
+        doNothing().when(arena).startEnding(any());
+        Player alice = player("Alice", world);
+        when(alice.isOnline()).thenReturn(false);
+        Team red = team("Red", true, alice);
+        Team blue = team("Blue", true);
+        map("teams").put("Red", red);
+        map("teams").put("Blue", blue);
+        join(alice, red);
+        doAnswer(inv -> {
+            when(red.isAlive()).thenReturn(false);
+            return null;
+        }).when(red).eliminate();
+
+        assertTrue(arena.eliminateTeam(red));
+
+        verify(red).removePlayer(alice);
+        verify(red).eliminate();
+        verify(arena).startEnding(blue);
+        assertFalse(arena.eliminateTeam(red));
+    }
+
+    @Test
+    void teamsCanOnlyBeEliminatedInARunningGame() {
+        Team red = team("Red", true);
+        arena.setStatus(GameStatus.waiting);
+
+        assertFalse(arena.eliminateTeam(red));
+        assertFalse(arena.destroyBed(red));
+        verify(red, never()).eliminate();
     }
 }

@@ -42,8 +42,12 @@ public class Updater extends PluginFiles {
     }
 
     public void updateConf() {
-        NewBedwars.plugin.saveDefaultConfig();
         File configFile = new File(NewBedwars.plugin.getDataFolder(), "config.yml");
+        if (!usable(configFile)) {
+            NewBedwars.plugin.reloadConfig();
+            return;
+        }
+        NewBedwars.plugin.saveDefaultConfig();
         org.bukkit.configuration.ConfigurationSection legacy = YamlConfiguration.loadConfiguration(configFile)
                 .getConfigurationSection("UpgradePrices");
         if (legacy != null) legacyUpgradePrices = legacy.getValues(false);
@@ -58,6 +62,7 @@ public class Updater extends PluginFiles {
     public void reloadLanguages() {
         for (Language lang : Language.values()) {
             File file = langFiles.get(lang);
+            if (!usable(file)) continue;
             String resource = lang.getCode() + ".yml";
             FileConfiguration conf = loadOrDefault(file, resource);
             if (conf != null) langConfs.put(lang, conf);
@@ -79,9 +84,15 @@ public class Updater extends PluginFiles {
     }
 
     public void reloadGeneratorsConfigurations() {
+        if (!usable(generatorsFile)) {
+            reloadGenerators();
+            return;
+        }
         reloadGenerators();
         save(defaultGeneratorsConf, generatorsFile);
-        update("defaultGenerators.yml", generatorsFile, Collections.emptyList());
+        List<String> keep = defaultGeneratorsConf != null && defaultGeneratorsConf.contains("CustomGenerators")
+                ? Collections.singletonList("CustomGenerators") : Collections.emptyList();
+        update("defaultGenerators.yml", generatorsFile, keep);
         reloadGenerators();
     }
 
@@ -112,12 +123,33 @@ public class Updater extends PluginFiles {
     }
 
     private FileConfiguration refresh(String resource, File file, FileConfiguration current) {
+        if (!usable(file)) return current;
         FileConfiguration conf = loadOrDefault(file, resource);
         if (conf == null) conf = current;
         save(conf, file);
         update(resource, file, Collections.emptyList());
         FileConfiguration updated = loadOrDefault(file, resource);
         return updated != null ? updated : conf;
+    }
+
+    private boolean usable(File file) {
+        boolean valid = YamlGuard.ensureValid(file, NewBedwars.plugin.getLogger());
+        if (valid) backupOnce(file);
+        return valid || !file.exists();
+    }
+
+    private void backupOnce(File file) {
+        if (file == null || !file.isFile()) return;
+        java.nio.file.Path folder = NewBedwars.plugin.getDataFolder().toPath();
+        java.nio.file.Path target = folder.resolve("data").resolve("backups").resolve("config")
+                .resolve(NewBedwars.plugin.getDescription().getVersion()).resolve(folder.relativize(file.toPath()).toString());
+        if (java.nio.file.Files.exists(target)) return;
+        try {
+            java.nio.file.Files.createDirectories(target.getParent());
+            java.nio.file.Files.copy(file.toPath(), target);
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not back up " + file.getPath() + " before updating it", e);
+        }
     }
 
     private FileConfiguration loadOrDefault(File file, String resource) {

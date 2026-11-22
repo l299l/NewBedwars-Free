@@ -57,7 +57,13 @@ public class PlayerSendToLobbyEvent extends Event implements Cancellable {
         /** The server is stopping. */
         SERVER_SHUTDOWN,
         /** {@code /bw reload} sent players in setup mode out. */
-        RELOAD
+        RELOAD,
+        /**
+         * An addon called {@link com.l299l.newbedwars.api.NewBedwarsAPI#sendToLobby}.
+         *
+         * @since 2.8-beta
+         */
+        ADDON
     }
 
     private boolean cancelled;

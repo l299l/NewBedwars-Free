@@ -14,6 +14,9 @@
 
 For network mode you also need Velocity 4.x on Java 25 and the same NewBedwars version on every server. See [Network mode](network.md).
 
+!!! warning "Use a server (or a network backend) only for BedWars"
+    Joining an arena clears the player's inventory, armor, XP, health and potion effects, and leaving puts them in survival mode. Nothing is saved or given back. Don't run NewBedwars on a server where players also keep survival or creative items, or put BedWars on its own server behind a proxy.
+
 ## First start
 
 1. Download `NewBedwars-<version>.jar` from [Modrinth](https://modrinth.com/plugin/new-bedwars/versions) and put it in `plugins/`.
@@ -38,6 +41,17 @@ Everything lives in `plugins/NewBedwars/`:
 | `data/arenas/<name>.json` | Arena settings (written by the setup commands, with automatic backups) |
 | `data/maps/<arena>/template/` | Clean copy of every arena map, used to reset it after a game |
 | Player data | JSON files in `data/` by default, or MySQL ([Storage](storage.md)) |
+
+### Boss bars
+
+`bossBars.yml` has one boss bar per situation. Each one cycles through its `Texts`, `Colors`, `Styles` and `Effects` every `Time` seconds and can be turned off with `Enabled: false`.
+
+| Boss bar | Shown to | Default |
+|---|---|---|
+| `WaitingBeforeStart` | Players in the waiting lobby of an arena | On |
+| `GameInProgress` | Players and spectators of a running game | On |
+| `GameEnding` | Everyone in the arena when the game ends | On |
+| `MainLobby` | Players in the server lobby (not in an arena). `/players/` and `/max_players/` count all enabled arenas | **Off** (`Enabled: false`) |
 
 `/bw reload` reloads the configuration, messages, scoreboards, boss bars, generators, shop, GUIs and arenas without a server restart.
 

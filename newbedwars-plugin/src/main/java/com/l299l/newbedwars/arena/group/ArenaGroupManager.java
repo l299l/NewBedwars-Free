@@ -21,6 +21,7 @@ public final class ArenaGroupManager {
     private static ArenaGroupManager instance;
     private final Map<String, ArenaGroup> groups = new LinkedHashMap<>();
     private long revision;
+    private boolean saveBlocked;
     private boolean networkManaged;
     private Runnable changeListener;
 
@@ -40,25 +41,34 @@ public final class ArenaGroupManager {
         groups.clear();
         revision = 0;
         networkManaged = false;
+        saveBlocked = false;
         try {
             ArenaGroupStore.Loaded loaded = ArenaGroupStore.read(file());
             for (ArenaGroup g : loaded.groups()) groups.put(key(g.getName()), g);
             revision = loaded.revision();
         } catch (IOException | RuntimeException e) {
-            NewBedwars.plugin.getLogger().warning("Could not read data/groups.json: " + e.getMessage());
+            NewBedwars.plugin.getLogger().severe("Could not read data/groups.json: " + e.getMessage());
+            java.io.File file = file().toFile();
+            if (file.exists()) {
+                saveBlocked = !com.l299l.newbedwars.config.data.CorruptFiles.moveAside(file, NewBedwars.plugin.getLogger(),
+                        "saving groups is disabled");
+            }
         }
     }
 
     public void save() {
         if (networkManaged) return;
-        List<ArenaGroup> snapshot = new ArrayList<>(groups.values());
-        long rev = revision;
+        if (saveBlocked) {
+            NewBedwars.plugin.getLogger().warning("data/groups.json could not be read and was not moved aside; group changes are not saved");
+            return;
+        }
+        String json = ArenaGroupStore.toJson(new ArrayList<>(groups.values()), revision);
         Path file = file();
         Path backups = NewBedwars.plugin.getDataFolder().toPath().resolve("data").resolve("backups").resolve("groups");
         int keep = Properties.BackupsKeep;
         IOExecutor.submit(() -> {
             try {
-                ArenaGroupStore.save(file, snapshot, rev, backups, keep);
+                com.l299l.newbedwars.config.data.json.arenas.AtomicFileWriter.write(file, json, backups, keep);
             } catch (IOException e) {
                 NewBedwars.plugin.getLogger().warning("Could not save data/groups.json: " + e.getMessage());
             }
@@ -107,6 +117,16 @@ public final class ArenaGroupManager {
         if (groups.remove(key(name)) == null) return false;
         edited();
         return true;
+    }
+
+    public boolean removeArena(String arenaName) {
+        if (networkManaged) return false;
+        boolean removed = false;
+        for (ArenaGroup g : groups.values()) {
+            if (g.remove(arenaName)) removed = true;
+        }
+        if (removed) edited();
+        return removed;
     }
 
     public void changed() {

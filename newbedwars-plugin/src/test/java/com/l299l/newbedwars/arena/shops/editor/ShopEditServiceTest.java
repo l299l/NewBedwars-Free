@@ -11,6 +11,7 @@ import com.l299l.newbedwars.api.shop.UpgradeTier;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.shops.Upgrade;
 import com.l299l.newbedwars.arena.shops.upgrades.UpgradePricing;
+import com.l299l.newbedwars.arena.shops.customitems.CustomItem;
 import com.l299l.newbedwars.arena.shops.customitems.CustomItemManager;
 import com.l299l.newbedwars.arena.shops.customitems.PriceType;
 import com.l299l.newbedwars.arena.shops.customitems.customitemlogic.OnBuyEvent;
@@ -199,6 +200,58 @@ class ShopEditServiceTest {
         assertEquals(Code.INVALID, ShopEditService.saveItem(new ShopItem("A", "STONE", 1, 1, "IRON", "GIVE_ITEM", "NONE", false, "a b", Map.of(), List.of(), List.of())).code());
         assertEquals(Code.INVALID, ShopEditService.saveItem(new ShopItem("A", "STONE", 1, 1, "IRON", "GIVE_ITEM", "NONE", false, "", Map.of(), List.of("NOPE"), List.of())).code());
         assertNull(items.getCustomItem("A"));
+    }
+
+    private static ShopItem action(String onBuy, String priceType, List<String> commands, String gui, String perm, String priceMaterial) {
+        return new ShopItem("Act", "STONE", 1, 2, priceType, onBuy, "NONE", false, "", Map.of(), List.of(), List.of(),
+                commands, gui, perm, priceMaterial);
+    }
+
+    @Test
+    void refusesIncompleteBuyActions() {
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("COMMANDS", "IRON", List.of(), "", "", "")).code());
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("COMMANDS", "IRON", List.of("say a\nop x"), "", "", "")).code());
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("OPEN_GUI", "IRON", List.of(), "nope", "", "")).code());
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("GIVE_PERM", "IRON", List.of(), "", "", "")).code());
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("GIVE_PERM", "IRON", List.of(), "", "a b", "")).code());
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("GIVE_ITEM", "OTHER", List.of(), "", "", "")).code());
+        assertEquals(Code.INVALID, ShopEditService.saveItem(action("GIVE_ITEM", "OTHER", List.of(), "", "", "NOT_A_THING")).code());
+        assertNull(items.getCustomItem("Act"));
+    }
+
+    @Test
+    void savesBuyActionsAndOtherPrice() {
+        assertEquals(Code.OK, ShopEditService.saveItem(action("COMMANDS", "OTHER", List.of("say {player}", " "), "", "", "nether_star")).code());
+        CustomItem saved = items.getCustomItem("Act");
+        assertEquals(List.of("say {player}"), saved.getCommands());
+        assertEquals(Material.NETHER_STAR, saved.getOtherPriceMaterial());
+        assertEquals("NETHER_STAR", saved.priceLabel());
+        ShopItem api = ShopEditService.item("Act").orElseThrow();
+        assertEquals(List.of("say {player}"), api.commands());
+        assertEquals("NETHER_STAR", api.priceMaterial());
+
+        assertEquals(Code.OK, ShopEditService.saveItem(action("OPEN_GUI", "IRON", List.of(), "shop", "", "")).code());
+        assertEquals("shop", items.getCustomItem("Act").getOpenGui());
+        assertNull(items.getCustomItem("Act").getOtherPriceMaterial());
+        assertEquals(Code.OK, ShopEditService.saveItem(action("GIVE_PERM", "IRON", List.of(), "", "fly.use", "")).code());
+        assertEquals("fly.use", items.getCustomItem("Act").getGivePermission());
+        assertTrue(ShopEditService.OFFERED_ON_BUY.containsAll(List.of("COMMANDS", "OPEN_GUI", "GIVE_PERM")));
+    }
+
+    @Test
+    void switchingTheActionDropsTheDormantPowerData() {
+        assertEquals(Code.OK, ShopEditService.saveItem(action("COMMANDS", "IRON", List.of("say hi"), "", "fly.use", "")).code());
+        CustomItem saved = items.getCustomItem("Act");
+        assertEquals(List.of("say hi"), saved.getCommands());
+        assertEquals("", saved.getGivePermission());
+
+        assertEquals(Code.OK, ShopEditService.saveItem(action("GIVE_PERM", "IRON", List.of("say hi"), "", "fly.use", "")).code());
+        assertEquals(List.of(), saved.getCommands());
+        assertEquals("fly.use", saved.getGivePermission());
+
+        assertEquals(Code.OK, ShopEditService.saveItem(action("GIVE_ITEM", "IRON", List.of("say hi"), "", "fly.use", "")).code());
+        assertEquals(List.of(), saved.getCommands());
+        assertEquals("", saved.getGivePermission());
     }
 
     @Test

@@ -20,6 +20,11 @@ public final class ApiShopLogic implements CustomLogic {
     }
 
     @Override
+    public boolean perform(Player player, IArena arena, String itemName) {
+        return logic.perform(player, new ApiArena(arena), itemName);
+    }
+
+    @Override
     public LogicType getType() {
         return LogicType.NONE;
     }

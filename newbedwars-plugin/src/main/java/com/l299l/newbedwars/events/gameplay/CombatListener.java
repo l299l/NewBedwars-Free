@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -46,7 +47,11 @@ public class CombatListener implements Listener {
         if (!isVoid && (e.getFinalDamage() < p.getHealth() || holdsTotem(p))) return;
         e.setCancelled(true);
         if (isVoid) combat.markVoidDeath(p.getUniqueId());
-        Player direct = e instanceof EntityDamageByEntityEvent byEntity ? playerDamager(byEntity.getDamager()) : null;
+        Player direct = null;
+        if (e instanceof EntityDamageByEntityEvent byEntity) {
+            direct = playerDamager(byEntity.getDamager());
+            recordCredit(arena, p, byEntity);
+        }
         handleDeath(p, arena, e, direct);
     }
 
@@ -107,6 +112,7 @@ public class CombatListener implements Listener {
         Team dragonTeam = dragonTeam(arena, lastDamage);
         Player killer = null;
         if (!mobKill && dragonTeam == null) killer = directKiller != null ? directKiller : p.getKiller();
+        if (killer == p || (killer != null && p.getUniqueId() != null && p.getUniqueId().equals(killer.getUniqueId()))) killer = null;
         if (killer == null && dragonTeam == null) {
             UUID attackerId = combat.lastAttacker(p.getUniqueId());
             if (attackerId != null) killer = Bukkit.getPlayer(attackerId);
@@ -121,6 +127,7 @@ public class CombatListener implements Listener {
             }
         }
         Location lastGround = combat.takeGround(p.getUniqueId());
+        combat.clearAttacker(p.getUniqueId());
         if (killer != null && arena.isPlayerInArena(killer)) {
             GamePlayer killerGp = arena.getPlayer(killer.getUniqueId());
             if (killerGp != null) {
@@ -140,7 +147,7 @@ public class CombatListener implements Listener {
             } else {
                 final Player finalKiller = killer;
                 for (ItemStack stack : resources) {
-                    finalKiller.getInventory().addItem(stack);
+                    com.l299l.newbedwars.arena.player.inventory.ArmorContents.giveOrDrop(finalKiller, stack);
                 }
             }
         }
@@ -168,7 +175,7 @@ public class CombatListener implements Listener {
         } else if (dragonTeam != null) {
             arena.broadcast("PlayerDeathByDragon", Map.of(
                     "/player/", victimName,
-                    "/team/", dragonTeam.getColor() + dragonTeam.getName()));
+                    "/team/", dragonTeam.getColor() + dragonTeam.getDisplayName()));
         } else {
             String causeKey = "DeathCause-" + cause.name();
             arena.broadcastEach("PlayerDeath", viewer -> Map.of(
@@ -202,36 +209,74 @@ public class CombatListener implements Listener {
             return;
         }
         if (!arena.isPlayerInArena(victim)) return;
-        if (arena.getGamerules() != null && arena.getGamerules().AllowTeamDamage) return;
-        Player attacker = playerDamager(e.getDamager());
-        boolean byMob = false;
-        if (attacker == null) {
-            String ownerUuid = null;
-            if (e.getDamager() instanceof org.bukkit.entity.IronGolem ig
-                    && IronGolemLogic.getGolemKey(ig) != null) {
-                ownerUuid = ig.getPersistentDataContainer().get(
-                        IronGolemLogic.GOLEM_OWNER_KEY, PersistentDataType.STRING);
-            } else if (e.getDamager() instanceof org.bukkit.entity.Silverfish sf
-                    && SilverfishLogic.activeSilverfish.contains(sf.getUniqueId())) {
-                ownerUuid = SilverfishLogic.getSfOwner(sf);
-            }
-            byMob = true;
-            if (ownerUuid != null) {
-                try { attacker = Bukkit.getPlayer(java.util.UUID.fromString(ownerUuid)); }
-                catch (IllegalArgumentException ignored) {}
-            }
-        }
+        if (e.getDamager() instanceof org.bukkit.entity.TNTPrimed) return;
+        Attack attack = attackOf(e.getDamager());
+        Player attacker = attack.attacker();
         if (attacker != null && arena.getSpectators().contains(attacker)) {
             e.setCancelled(true);
             return;
         }
         if (attacker == null || !arena.isPlayerInArena(attacker)) return;
-        Team victimTeam = arena.getTeam(victim);
-        Team attackerTeam = arena.getTeam(attacker);
-        if (victimTeam != null && victimTeam.equals(attackerTeam)) {
-            e.setCancelled(true);
-            return;
+        boolean explosive = e.getDamager() instanceof Projectile && e.getDamager() instanceof Explosive;
+        if (explosive && attacker.equals(victim)) return;
+        if (!isEnemy(arena, victim, attacker)) {
+            if (arena.getGamerules() == null || !arena.getGamerules().AllowTeamDamage) {
+                if (explosive) e.setDamage(0);
+                else e.setCancelled(true);
+            }
         }
-        combat.record(victim.getUniqueId(), attacker.getUniqueId(), byMob);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onProjectileHitSpectator(ProjectileHitEvent e) {
+        if (!(e.getHitEntity() instanceof Player hit)) return;
+        IArena arena = ArenaRegistry.byWorld(hit.getWorld());
+        if (arena != null && arena.getSpectators().contains(hit)) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDamageCredit(EntityDamageByEntityEvent e) {
+        if (!(e.getEntity() instanceof Player victim)) return;
+        IArena arena = ArenaRegistry.byWorld(victim.getWorld());
+        if (arena == null || arena.status() != GameStatus.playing) return;
+        if (arena.getSpectators().contains(victim) || !arena.isPlayerInArena(victim)) return;
+        recordCredit(arena, victim, e);
+    }
+
+    private void recordCredit(IArena arena, Player victim, EntityDamageByEntityEvent e) {
+        Attack attack = attackOf(e.getDamager());
+        Player attacker = attack.attacker();
+        if (attacker == null || attacker.equals(victim) || !isEnemy(arena, victim, attacker)) return;
+        combat.record(victim.getUniqueId(), attacker.getUniqueId(), attack.byMob());
+    }
+
+    private record Attack(Player attacker, boolean byMob) {}
+
+    private static Attack attackOf(Entity damager) {
+        if (damager instanceof org.bukkit.entity.TNTPrimed tnt) {
+            return new Attack(tnt.getSource() instanceof Player owner ? owner : null, false);
+        }
+        Player attacker = playerDamager(damager);
+        if (attacker != null) return new Attack(attacker, false);
+        String ownerUuid = null;
+        if (damager instanceof org.bukkit.entity.IronGolem ig && IronGolemLogic.getGolemKey(ig) != null) {
+            ownerUuid = ig.getPersistentDataContainer().get(IronGolemLogic.GOLEM_OWNER_KEY, PersistentDataType.STRING);
+        } else if (damager instanceof org.bukkit.entity.Silverfish sf
+                && SilverfishLogic.activeSilverfish.contains(sf.getUniqueId())) {
+            ownerUuid = SilverfishLogic.getSfOwner(sf);
+        }
+        if (ownerUuid != null) {
+            try {
+                return new Attack(Bukkit.getPlayer(UUID.fromString(ownerUuid)), true);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        return new Attack(null, true);
+    }
+
+    private static boolean isEnemy(IArena arena, Player victim, Player attacker) {
+        if (!arena.isPlayerInArena(attacker) || arena.getSpectators().contains(attacker)) return false;
+        Team victimTeam = arena.getTeam(victim);
+        return victimTeam == null || !victimTeam.equals(arena.getTeam(attacker));
     }
 }
