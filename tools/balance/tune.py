@@ -15,7 +15,7 @@ from sim import MODES, TARGETS, layout_for, run, score
 
 HERE = Path(__file__).resolve().parent
 PRESETS = HERE / "presets"
-BASE_GENERATORS = yaml.safe_load((RESOURCES / "defaultGenerators.yml").read_text(encoding="utf-8"))
+BASE_GENERATORS = yaml.safe_load((RESOURCES / "generators" / "defaultGenerators.yml").read_text(encoding="utf-8"))
 BASE_UPGRADES = yaml.safe_load((HERE / "base" / "upgrades.yml").read_text(encoding="utf-8"))["Upgrades"]
 BASE_ITEMS = load_prices().items
 

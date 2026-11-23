@@ -43,7 +43,7 @@ public class EnableArenaCommand extends BwCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 3) {
-            return ArenaRegistry.names().stream().toList();
+            return ArenaRegistry.all().stream().filter(a -> !a.isEnabled() && a.canBeEnabled()).map(IArena::getArenaName).toList();
         }
         return null;
     }

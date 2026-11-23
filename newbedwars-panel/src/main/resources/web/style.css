@@ -228,12 +228,32 @@ label { font-weight: 550; font-size: .9375rem; }
 .players { list-style: none; padding: 0; margin: 0; columns: 14rem; }
 .players li { padding: .15rem 0; break-inside: avoid; }
 
-.roles { list-style: none; padding: 0; margin: 1rem 0; }
-.role { padding: 1rem 0; border-bottom: 1px solid var(--line); }
-.role-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.roles { list-style: none; padding: 0; margin: 1rem 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); gap: .75rem; }
+.role { padding: .9rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.role-head { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; }
+.role-name { font-size: 1.05rem; }
 .role-buttons { margin-left: auto; display: flex; gap: .35rem; }
-.perm-list { display: flex; flex-wrap: wrap; gap: .25rem .5rem; list-style: none; padding: 0; margin: .5rem 0 0; color: var(--muted); font-size: .875rem; }
-.perm-list li:not(:last-child)::after { content: ","; }
+.role-all { margin: .6rem 0 0; }
+.role-perms { display: grid; grid-template-columns: max-content 1fr; gap: .4rem .75rem; margin: .75rem 0 0; font-size: .875rem; }
+.role-perms dt { color: var(--muted); font-weight: 600; padding-top: .15rem; }
+.role-perms dd { margin: 0; }
+.perm-chips { display: flex; flex-wrap: wrap; gap: .3rem; list-style: none; padding: 0; margin: 0; }
+.perm-chip { padding: .1rem .5rem; border-radius: .75rem; border: 1px solid var(--line); background: var(--bg); }
+.perm-chip-sensitive { border-color: var(--warn); color: var(--warn); }
+.perm-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-top: .75rem; }
+.perm-groups { columns: 3 18rem; column-gap: .75rem; }
+.perm-group { display: block; width: 100%; break-inside: avoid; border: 1px solid var(--line); border-radius: var(--radius); padding: 0; margin: 0 0 .75rem; background: var(--surface); min-width: 0; }
+.perm-group-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; padding: .55rem .8rem; border-bottom: 1px solid var(--line); float: left; box-sizing: border-box; }
+.perm-group-toggle { display: flex; align-items: center; gap: .4rem; font-weight: 400; cursor: pointer; }
+.perm-count { font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.perm-options { clear: both; display: flex; flex-direction: column; padding: .35rem .3rem; }
+.perm-option { display: flex; align-items: flex-start; gap: .55rem; padding: .4rem .5rem; border-radius: var(--radius); font-weight: 400; cursor: pointer; }
+.perm-option:hover { background: var(--bg); }
+.perm-option input { margin-top: .2rem; flex: none; }
+.perm-locked { cursor: not-allowed; opacity: .65; }
+.perm-text { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.perm-key { font-size: .75rem; overflow-wrap: anywhere; }
+.perm-flag { display: inline-block; margin-left: .4rem; padding: 0 .4rem; border: 1px solid var(--warn); border-radius: 999px; color: var(--warn); font-size: .6875rem; font-weight: 600; vertical-align: .1em; }
 .checks { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem 1rem 1rem; margin-top: .75rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .4rem 1rem; }
 .checks legend { font-weight: 600; padding: 0 .25rem; }
 .check { font-weight: 400; display: flex; align-items: baseline; gap: .35rem; flex-wrap: wrap; }

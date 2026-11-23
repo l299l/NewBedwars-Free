@@ -66,6 +66,10 @@ public final class TeamSelectorManager implements Listener {
         return !Boolean.FALSE.equals(arena.getGamerules().TeamSelectionBalanced);
     }
 
+    public boolean canPickNow(Player p, IArena arena) {
+        return enabled(arena) && allowed(p) && arena.isPlayerInArena(p) && waiting(arena);
+    }
+
     private boolean usable(Player p, IArena arena) {
         Messages msg = NewBedwars.plugin.getMessages();
         if (!enabled(arena)) {

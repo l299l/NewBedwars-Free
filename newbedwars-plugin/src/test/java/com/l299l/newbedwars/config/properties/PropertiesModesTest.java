@@ -32,7 +32,7 @@ class PropertiesModesTest {
     private static final File BUNDLED_MODES = new File("src/main/resources/modes.yml");
     private static final Set<String> BUILT_INS = Set.of("Solo", "Doubles", "Squads", "Rush", "Duels");
 
-    private Map<String, GameMode> saved;
+    private PropertiesSnapshot saved;
     private Logger logger;
     private YamlConfiguration config;
     private Map<String, Object> own = new HashMap<>();
@@ -40,7 +40,7 @@ class PropertiesModesTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        saved = Properties.Modes;
+        saved = PropertiesSnapshot.take();
         logger = mock(Logger.class);
         NewBedwars plugin = mock(NewBedwars.class);
         when(plugin.getLogger()).thenReturn(logger);
@@ -54,7 +54,7 @@ class PropertiesModesTest {
 
     @AfterEach
     void tearDown() {
-        Properties.Modes = saved;
+        saved.restore();
         NewBedwars.plugin = null;
         ModesFile.use(null, null);
     }

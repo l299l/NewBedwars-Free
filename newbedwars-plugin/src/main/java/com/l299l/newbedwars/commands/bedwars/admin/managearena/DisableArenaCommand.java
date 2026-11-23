@@ -1,5 +1,7 @@
 package com.l299l.newbedwars.commands.bedwars.admin.managearena;
 
+import com.l299l.newbedwars.arena.Arena;
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.maintenance.ArenaMaintenanceService;
@@ -43,7 +45,7 @@ public class DisableArenaCommand extends BwCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if (args.length == 3) {
-            return ArenaRegistry.names().stream().toList();
+            return ArenaRegistry.all().stream().filter(a -> a.isEnabled() ? a.status() == GameStatus.waiting : a instanceof Arena loaded && loaded.isAutoDisabled()).map(IArena::getArenaName).toList();
         }
         return null;
     }

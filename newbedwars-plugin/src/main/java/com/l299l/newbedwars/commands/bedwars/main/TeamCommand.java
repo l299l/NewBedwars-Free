@@ -49,11 +49,17 @@ public class TeamCommand extends BwCommand {
     }
 
     @Override
+    public boolean isAvailable(Player player) {
+        TeamSelectorManager manager = TeamSelectorManager.get();
+        return manager != null && manager.canPickNow(player, ArenaRegistry.byWorld(player.getWorld()));
+    }
+
+    @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        if (args.length != 2) return null;
+        if (args.length != 2 || !isAvailable(player)) return null;
         List<String> names = new ArrayList<>();
         IArena arena = ArenaRegistry.byWorld(player.getWorld());
-        if (arena != null) names.addAll(arena.getTeams().keySet());
+        names.addAll(arena.getTeams().keySet());
         names.add("random");
         return names;
     }

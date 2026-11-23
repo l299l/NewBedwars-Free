@@ -40,7 +40,7 @@ class GeneratorSettingsTest {
     }
 
     private static GeneratorSettings shipped(String section) {
-        YamlConfiguration conf = YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/defaultGenerators.yml"));
+        YamlConfiguration conf = YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/generators/defaultGenerators.yml"));
         return new GeneratorSettings(conf.getConfigurationSection(section));
     }
 

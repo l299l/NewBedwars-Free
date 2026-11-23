@@ -178,7 +178,7 @@ public class GUIDataManager {
     }
 
     private void copyExample(String name) throws IOException {
-        try (InputStream in = GUIDataManager.class.getClassLoader().getResourceAsStream(name)) {
+        try (InputStream in = GUIDataManager.class.getClassLoader().getResourceAsStream("guis/" + name)) {
             if (in == null) throw new IOException(name + " is missing in the plugin jar");
             Files.copy(in, guiDir.resolve(name), StandardCopyOption.REPLACE_EXISTING);
         }

@@ -50,6 +50,7 @@ class BundledResourcesTest {
         assertNotNull(files);
         Set<String> names = new java.util.TreeSet<>();
         for (String f : files) names.add(f.replace(".yml", ""));
+        names.remove("defaultGenerators");
         assertEquals(new java.util.TreeSet<>(MODES), names);
     }
 
@@ -111,6 +112,8 @@ class BundledResourcesTest {
         assertNotNull(files);
         Set<String> names = new java.util.TreeSet<>();
         for (String f : files) names.add(f.replace(".yml", ""));
+        names.remove("exampleShop");
+        names.remove("exampleUpgrade");
         Set<String> expected = new java.util.TreeSet<>();
         for (String m : MODES) expected.add("upgrade" + m);
         assertEquals(expected, names);

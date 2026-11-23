@@ -343,10 +343,13 @@ public class MainCommand implements TabExecutor {
     }
 
     private List<SubCommand> visibleCommands(Player p, Route route) {
-        List<SubCommand> result = new ArrayList<>(route.publicCmds());
+        List<SubCommand> result = new ArrayList<>();
+        for (SubCommand cmd : route.publicCmds()) {
+            if (cmd.isAvailable(p)) result.add(cmd);
+        }
         if (route.adminCmds() != null) {
             for (SubCommand cmd : route.adminCmds()) {
-                if (canSee(p, cmd)) result.add(cmd);
+                if (canSee(p, cmd) && cmd.isAvailable(p)) result.add(cmd);
             }
         }
         return result;

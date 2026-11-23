@@ -11,7 +11,7 @@ BASELINE_PHASES = {"rush": "Rush"}
 def load_mode(mode, preset=None):
     path = PRESETS / f"{preset or mode}.yml"
     if preset == "baseline" or not path.exists():
-        gens = load_generators(RESOURCES / "defaultGenerators.yml")
+        gens = load_generators(RESOURCES / "generators" / "defaultGenerators.yml")
         phases = load_phases(BASELINE_PHASES.get(mode, "Default"))
         base = load_upgrades(Path(__file__).resolve().parents[1] / "base" / "upgrades.yml")
         return gens, phases, load_prices(upgrade_overrides=None, base_upgrades=base), "baseline"

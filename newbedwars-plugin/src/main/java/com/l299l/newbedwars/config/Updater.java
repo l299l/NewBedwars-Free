@@ -100,7 +100,7 @@ public class Updater extends PluginFiles {
         save(defaultGeneratorsConf, generatorsFile);
         List<String> keep = defaultGeneratorsConf != null && defaultGeneratorsConf.contains("CustomGenerators")
                 ? Collections.singletonList("CustomGenerators") : Collections.emptyList();
-        update("defaultGenerators.yml", generatorsFile, keep);
+        update("generators/defaultGenerators.yml", generatorsFile, keep);
         reloadGenerators();
     }
 
@@ -202,7 +202,7 @@ public class Updater extends PluginFiles {
                 }
             }
         } else {
-            generatorsConf = loadOrDefault(null, "defaultGenerators.yml");
+            generatorsConf = loadOrDefault(null, "generators/defaultGenerators.yml");
         }
         defaultGeneratorsConf = generatorsConf;
         if (generatorsConf != null) generatorsConfigurations.add(generatorsConf);

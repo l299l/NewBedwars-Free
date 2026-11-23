@@ -60,7 +60,7 @@ def generator_yaml(title, about, gens):
 
 
 def gui_yaml(title, about, upgrades):
-    base = (RESOURCES / "exampleUpgrade.yml").read_text(encoding="utf-8")
+    base = (RESOURCES / "guis" / "exampleUpgrade.yml").read_text(encoding="utf-8")
     body = base[base.index("GuiId:"):]
     body = body.replace("GuiId: exampleUpgrade", f"GuiId: upgrade{title}", 1)
     body = body.replace('GuiName: "Example Upgrade"', f'GuiName: "Upgrades"', 1)

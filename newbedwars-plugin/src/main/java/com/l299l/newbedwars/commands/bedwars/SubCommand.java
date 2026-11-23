@@ -19,6 +19,10 @@ public abstract class SubCommand {
 
     public abstract List<String> getSubcommandArguments(Player player, String[] args);
 
+    public boolean isAvailable(Player player) {
+        return true;
+    }
+
     public void performConsole(CommandSender sender, String[] args) {
     }
 

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class GuiCodecTest {
 
     private static String resource(String name) throws IOException {
-        try (InputStream in = GuiCodecTest.class.getClassLoader().getResourceAsStream(name)) {
+        try (InputStream in = GuiCodecTest.class.getClassLoader().getResourceAsStream("guis/" + name)) {
             assertNotNull(in, name);
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }

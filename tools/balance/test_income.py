@@ -13,7 +13,7 @@ from bwsim.game import _phase_schedule
 
 class IncomeTest(unittest.TestCase):
     def test_monte_carlo_matches_analytic(self):
-        gens = load_generators(RESOURCES / "defaultGenerators.yml")
+        gens = load_generators(RESOURCES / "generators" / "defaultGenerators.yml")
         rng = np.random.default_rng(7)
         for level in (1, 4, 9):
             gen = TeamGenerator(gens.team, rng)
