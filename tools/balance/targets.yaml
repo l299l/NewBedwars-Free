@@ -1,0 +1,86 @@
+# Design targets for tools/balance/sim.py, in seconds from game start: [low, high] band for the
+# median time a milestone is reached. These are our own design goals, not measured data.
+#
+# Reference points from public genre guides (2019-2020 forum guides, single source, partly outdated):
+#   - island diamond tiers about 30 / 24 / 12 s, emerald tiers mode dependent (about 65 / 50 / 35 s in solo)
+#   - 4 diamond islands per map, 2-4 emerald generators in the middle
+#   - team upgrades in 3s/4s cost about twice the solo/doubles price
+#     (protection 2/4/8/16 vs 5/10/20/30, forge 2/4/6/8 vs 4/8/12/16, sharpness 4 vs 8)
+#   - generator tiers spread over about the first 24 minutes, bed destruction near minute 30
+#   https://hypixel.net/threads/guide-tool-an-updated-guide-on-bedwars.3617022/
+#   https://hypixel.net/threads/speed-of-upgrade-tiering-of-emeralds-and-diamonds.3128677/
+#   https://hypixel.net/threads/bedwars-guide-to-everything-in-game-solo-or-doubles.1328717/
+# No public data was found for rush or 1v1 modes or for "time to X" statistics.
+#
+# Milestone names (see bwsim/agents.py):
+#   stone_sword   every player has a stone sword
+#   iron_armor    every player has iron armor
+#   forge_1       first forge upgrade
+#   sharpness     sharpness bought
+#   protection_1  protection I bought
+#   emerald_forge the team generator drops emeralds
+#   diamond_armor every player has diamond armor
+#   protection_max last protection level bought
+# Extra checks:
+#   iron_per_player_min  iron per player per minute at the base generator, forge 0
+#   banked_at_beds       max diamonds the team still holds when beds break (unspent = too rich)
+
+solo:
+  stone_sword: [20, 60]
+  iron_armor: [150, 300]
+  forge_1: [120, 300]
+  sharpness: [240, 480]
+  protection_1: [300, 600]
+  emerald_forge: [600, 1100]
+  diamond_armor: [600, 1100]
+  protection_max: [1300, 2400]
+  iron_per_player_min: [40, 80]
+  banked_at_beds: [0, 20]
+
+doubles:
+  stone_sword: [20, 70]
+  iron_armor: [180, 330]
+  forge_1: [120, 300]
+  sharpness: [240, 480]
+  protection_1: [300, 600]
+  emerald_forge: [600, 1100]
+  diamond_armor: [700, 1200]
+  protection_max: [1300, 2400]
+  iron_per_player_min: [30, 60]
+  banked_at_beds: [0, 20]
+
+squads:
+  stone_sword: [30, 90]
+  iron_armor: [240, 420]
+  forge_1: [90, 270]
+  sharpness: [240, 480]
+  protection_1: [300, 600]
+  emerald_forge: [600, 1100]
+  diamond_armor: [800, 1400]
+  protection_max: [1300, 2400]
+  iron_per_player_min: [20, 45]
+  banked_at_beds: [0, 25]
+
+rush:
+  stone_sword: [10, 40]
+  iron_armor: [60, 150]
+  forge_1: [30, 120]
+  sharpness: [90, 240]
+  protection_1: [120, 300]
+  emerald_forge: [240, 480]
+  diamond_armor: [300, 600]
+  protection_max: [600, 900]
+  iron_per_player_min: [60, 150]
+  banked_at_beds: [0, 30]
+
+duels:
+  stone_sword: [15, 50]
+  iron_armor: [120, 240]
+  forge_1: [120, 270]
+  sharpness: [180, 360]
+  protection_1: [200, 400]
+  emerald_forge: [330, 540]
+  diamond_armor: [360, 600]
+  protection_max: [560, 900]
+  iron_per_player_min: [40, 80]
+  banked_at_beds: [0, 15]

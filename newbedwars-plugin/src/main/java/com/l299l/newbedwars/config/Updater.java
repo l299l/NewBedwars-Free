@@ -45,12 +45,20 @@ public class Updater extends PluginFiles {
         File configFile = new File(NewBedwars.plugin.getDataFolder(), "config.yml");
         if (!usable(configFile)) {
             NewBedwars.plugin.reloadConfig();
+            loadModes(null, null);
             return;
         }
         NewBedwars.plugin.saveDefaultConfig();
         org.bukkit.configuration.ConfigurationSection legacy = YamlConfiguration.loadConfiguration(configFile)
                 .getConfigurationSection("UpgradePrices");
         if (legacy != null) legacyUpgradePrices = legacy.getValues(false);
+        Map<String, Object> raw = null;
+        try {
+            raw = ModesFile.parse(java.nio.file.Files.readString(configFile.toPath(), java.nio.charset.StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not read config.yml", e);
+        }
+        loadModes(raw == null ? null : raw.get(ModesFile.PHASES), raw == null ? null : raw.get(ModesFile.MODES));
         try {
             ConfigUpdater.update(NewBedwars.plugin, "config.yml", configFile, Collections.emptyList());
         } catch (IOException e) {
@@ -184,6 +192,7 @@ public class Updater extends PluginFiles {
         if (!generatorsFolder.exists()) {
             generatorsFolder.mkdirs();
         }
+        copyBuiltInModes();
         FileConfiguration generatorsConf = null;
         if (generatorsFile.exists()) {
             generatorsConf = YamlConfiguration.loadConfiguration(generatorsFile);
@@ -197,6 +206,30 @@ public class Updater extends PluginFiles {
         }
         defaultGeneratorsConf = generatorsConf;
         if (generatorsConf != null) generatorsConfigurations.add(generatorsConf);
+    }
+
+    private void loadModes(Object legacyPhases, Object legacyModes) {
+        File modesFile = new File(NewBedwars.plugin.getDataFolder(), ModesFile.FILE);
+        usable(modesFile);
+        String bundled = "";
+        try (java.io.InputStream in = NewBedwars.plugin.getResource(ModesFile.FILE)) {
+            if (in != null) bundled = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not read the bundled " + ModesFile.FILE, e);
+        }
+        new ModesFile(NewBedwars.plugin.getDataFolder().toPath(), bundled, NewBedwars.plugin.getLogger())
+                .load(legacyPhases, legacyModes);
+    }
+
+    private void copyBuiltInModes() {
+        for (String mode : BuiltInModes.NAMES) {
+            if (new File(generatorsFolder, mode + ".yml").exists()) continue;
+            try {
+                NewBedwars.plugin.saveResource(BuiltInModes.generatorResource(mode), false);
+            } catch (IllegalArgumentException e) {
+                NewBedwars.plugin.getLogger().warning("Built-in generator preset " + mode + ".yml is missing from the plugin jar");
+            }
+        }
     }
 
     protected final ClassLoader getMessagesClassLoader() {

@@ -66,6 +66,9 @@ public final class ArenaInfo {
         map.put("AllowMultipleGolems", g.AllowMultipleGolems);
         map.put("SplitPartiesToStart", g.SplitPartiesToStart);
         map.put("MapVote", g.MapVote);
+        map.put("TeamSelection", g.TeamSelection);
+        map.put("TeamSelectionBalanced", g.TeamSelectionBalanced);
+        map.put("TeamSelectionPartyLeader", g.TeamSelectionPartyLeader);
         return map;
     }
 

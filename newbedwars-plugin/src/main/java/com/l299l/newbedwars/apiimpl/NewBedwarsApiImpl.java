@@ -58,6 +58,7 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     private final ApiStats stats = ApiStats.create();
     private final ApiGameControl gameControl = new ApiGameControl();
     private final ApiShopEditor shopEditor = new ApiShopEditor();
+    private final ApiModeService modeService = new ApiModeService();
     private final ApiMessages messages = new ApiMessages();
 
     @Override
@@ -151,6 +152,11 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     @Override
     public com.l299l.newbedwars.api.shop.ShopEditor getShop() {
         return shopEditor;
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.mode.ModeService getModes() {
+        return modeService;
     }
 
     @Override

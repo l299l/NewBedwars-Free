@@ -58,6 +58,14 @@ public interface IArena {
     void enable();
     void disable();
     void setGamePhases(GamePhases gamePhases);
+
+    default String getGamePhasesId() {
+        return null;
+    }
+
+    default String getGeneratorsLevelingId() {
+        return getGeneratorsLeveling() != null ? getGeneratorsLeveling().getId() : null;
+    }
     String getNextGamePhase();
     String getCurrentGamePhase();
     void nextPhase();
@@ -69,6 +77,12 @@ public interface IArena {
     GameStatus status();
     int getMinPlayers();
     Gamerules getGamerules();
+
+    com.l299l.newbedwars.arena.team.TeamPicks getTeamPicks();
+
+    java.util.List<org.bukkit.entity.Player> pickGroup(org.bukkit.entity.Player picker);
+
+    void onTeamPicksChanged();
     GeneratorLeveling getGeneratorsLeveling();
     void setGeneratorsLeveling(GeneratorLeveling generatorLeveling);
     void setGamerules(Gamerules gamerules);

@@ -173,15 +173,24 @@ Upgrades:
 
 - `currency` is `IRON`, `GOLD`, `DIAMOND` or `EMERALD`; when it is left out, `DefaultCurrency` is used.
 - A shorter list means fewer levels (up to what the upgrade supports). An empty list means the upgrade can't be bought.
-- **Different prices for some arenas:** an upgrade menu file can have its own `UpgradePrices:` section in the same format. Arenas that use that menu get those prices, for example cheaper upgrades in solo arenas. An entry that can not be read is logged once as a warning (naming the menu and the upgrade) and the prices from `upgrades.yml` are used for it.
+- **Different prices for some arenas:** an upgrade menu file can have its own `UpgradePrices:` section in the same format. Arenas that use that menu get those prices, for example cheaper upgrades in solo arenas. An entry that can not be read is logged once as a warning (naming the menu and the upgrade) and the prices from `upgrades.yml` are used for it. The built-in [game modes](game-modes.md) each come with such a menu (`upgradeSolo`, `upgradeDoubles`, `upgradeSquads`, `upgradeRush`, `upgradeDuels`).
+- **Different item prices for some arenas:** a shop menu file can have an `ItemPrices:` section:
+
+  ```yaml
+  ItemPrices:
+    IronSword: {price: 6, currency: GOLD}
+    Wool: {price: 4, currency: IRON, amount: 32}
+  ```
+
+  The keys are shop item ids from `data/items.yml` (not case-sensitive). `price` is required (0 to 100000), `currency` is optional (`IRON`, `GOLD`, `DIAMOND` or `EMERALD`; left out = the item's own), `amount` is optional (1 to 64; left out = the item's own). The prices apply to the menu in that file and, as a fallback, to any menu opened inside an arena whose shop menu has them. They change the `/price/` and `/amount/` text of the icon, the price that is charged and the amount that is given. An entry that can not be read is logged once and the item's own price is used. The web panel's shop menu editor can edit them.
 
 ## Generators (`generators/*.yml`)
 
 Generators have no limit on how many items lie on the ground; items that nobody picks up stay until the game ends.
 
-`generators/defaultGenerators.yml` sets how fast team, diamond and emerald generators drop resources at each level. Make another file with a different `ConfigurationId` for a faster or slower preset, and choose it with `DefaultGeneratorConfig` in `config.yml` or, per arena, `/bw setGeneratorLeveling <configId>` in advanced setup. The comments at the top of the file explain every value.
+The built-in [game modes](game-modes.md) each have a preset: `generators/Solo.yml`, `Doubles.yml`, `Squads.yml`, `Rush.yml` and `Duels.yml` (copied when missing). `generators/defaultGenerators.yml` is the old preset (deprecated, kept). A file sets how fast team, diamond and emerald generators drop resources at each level. Make another file with a different `ConfigurationId` for a faster or slower preset, and choose it with `DefaultGeneratorConfig` in `config.yml` (or `Generators` in a mode in [`modes.yml`](game-modes.md)) or, per arena, `/bw setGeneratorLeveling <configId>` in advanced setup. The comments at the top of the file explain every value.
 
-Diamond and emerald generators are upgraded by the [game phases](configuration.md#game-phases); team generators by the Forge upgrade.
+Diamond and emerald generators are upgraded by the [game phases](game-modes.md#game-phases); team generators by the Forge upgrade.
 
 `ShowNextSpawnTime` in each generator section turns the "next spawn in" countdown in the hologram above the generator on or off. By default it is on for diamond and emerald generators and off for team generators.
 

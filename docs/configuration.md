@@ -4,7 +4,7 @@ All main settings are in `plugins/NewBedwars/config.yml`. Every setting also has
 
 When you update NewBedwars, new settings are added to your `config.yml` with their default values; your own values are kept.
 
-Other files are explained elsewhere: shop items, menus, upgrade prices and generators in [Shop and upgrades](shop-and-upgrades.md), storage in [Storage](storage.md), network mode in [Network mode](network.md).
+Other files are explained elsewhere: game modes and phases (`modes.yml`) in [Game modes and phases](game-modes.md), shop items, menus, upgrade prices and generators in [Shop and upgrades](shop-and-upgrades.md), storage in [Storage](storage.md), network mode in [Network mode](network.md).
 
 ## General
 
@@ -27,8 +27,10 @@ Used for **new** arenas. Every arena can change them in setup mode.
 | `DefaultRespawnTime` | `5` | Seconds a dead player waits before respawning |
 | `DefaultTeamShopGui` | `exampleShop` | Shop menu (`GuiId` of a file in `data/guis/`) |
 | `DefaultTeamUpgradeGui` | `exampleUpgrade` | Upgrade menu |
-| `DefaultGeneratorConfig` | `DefaultGenerators` | Generator preset (`ConfigurationId` of a file in `generators/`) |
-| `DefaultGamePhase` | `Default` | ID of a phase list from [`GamePhases`](#game-phases) |
+| `DefaultGeneratorConfig` | `Squads` | Generator preset (`ConfigurationId` of a file in `generators/`), see [game modes](game-modes.md) |
+| `DefaultGamePhase` | `Squads` | ID of a phase list from `GamePhases` in `modes.yml`, see [game phases](game-modes.md#game-phases) |
+
+New installs default to Squads. Existing servers keep their own values (`DefaultGenerators` and `Default` were the defaults before 2.8-beta and are deprecated, but still work), and arenas keep the generator preset and phase list saved in them.
 
 ## Default gamerules
 
@@ -48,6 +50,9 @@ Used for **new** arenas. Every arena can change them in setup mode.
 | `AllowMultipleGolems` | `false` | A team can have more than one iron golem at a time |
 | `SplitPartiesToStart` | `true` | When all players would end up in one team (one big party), split the party so the game can start; `false` keeps waiting for more players |
 | `MapVote` | `true` | In a grouped arena, players vote for the next map at the end of the game ([Map voting](#map-voting)) |
+| `TeamSelection` | `false` | Players in the waiting lobby get an item and `/bw team` to pick their team; players who don't pick are placed automatically at the start ([Team selector](#team-selector)) |
+| `TeamSelectionBalanced` | `true` | A team can only be picked while it is one of the least picked teams (keeps teams even); `false` = any team with a free slot |
+| `TeamSelectionPartyLeader` | `true` | With `AllowParties`: only the party leader picks and the whole party joins that team; `false` = every member picks on their own |
 
 ## Gameplay
 
@@ -72,6 +77,17 @@ Used for **new** arenas. Every arena can change them in setup mode.
 
 Players with `newbedwars.chat.color` can use `&` colour codes in arena and team chat.
 
+## Scoreboards and boss bars
+
+`bossBars.yml` has one boss bar per situation. Each one cycles through its `Texts`, `Colors`, `Styles` and `Effects` every `Time` seconds and can be turned off with `Enabled: false`.
+
+| Boss bar | Shown to | Default |
+|---|---|---|
+| `WaitingBeforeStart` | Players in the waiting lobby of an arena | On |
+| `GameInProgress` | Players and spectators of a running game | On |
+| `GameEnding` | Everyone in the arena when the game ends | On |
+| `MainLobby` | Players in the server lobby (not in an arena). `/players/` and `/max_players/` count all enabled arenas | **Off** (`Enabled: false`) |
+
 ## Permissions
 
 There are no permission settings in `config.yml`. Every player permission (join, lobby, rejoin, spectate, language, help, stats, profile, leaderboard, party) defaults to `true`, so without a permissions plugin everyone can use these commands. To take one away from some players or groups, deny it with a permissions plugin (LuckPerms or similar). Ops always bypass these checks.
@@ -80,62 +96,9 @@ There are no permission settings in `config.yml`. Every player permission (join,
 
 All permissions: [Commands and permissions](commands.md#permissions).
 
-## Game phases
+## Game modes and phases
 
-A phase list (`GamePhases`) is what happens during a game. Each phase runs for `Duration` seconds and then executes its `Actions`. Arenas use the list named in `DefaultGamePhase`. Two lists come with the plugin: `Default` (about 35 minutes) and the shorter `Rush`.
-
-```yaml
-GamePhases:
-  - ID: Default
-    Phases:
-      - Name: "Starting phase"
-        Duration: 300
-        Actions: []
-      - Name: "Diamonds II"
-        Duration: 300
-        Actions:
-          - "DIAMOND_GENERATOR:2"
-      - Name: "Bed destruction"
-        Duration: 300
-        Actions:
-          - "BED_DESTRUCTION"
-          - "DISABLE_REGENERATION"
-      - Name: "Game end"
-        Duration: 0
-        Actions:
-          - "GAME_END:DRAW"
-```
-
-| Action | Effect |
-|---|---|
-| `DIAMOND_GENERATOR:<level>` | Upgrade all diamond generators |
-| `EMERALD_GENERATOR:<level>` | Upgrade all emerald generators |
-| `BED_DESTRUCTION` | Destroy all remaining beds |
-| `DISABLE_REGENERATION` | Turn off natural health regeneration |
-| `ENDER_DRAGON_START` | Spawn Ender Dragons (one per team with the Dragon Buff upgrade) |
-| `ENDER_DRAGON_END` | Remove the Ender Dragons |
-| `GAME_END:DRAW` | End the game as a draw |
-| `GAME_END:MOST_KILLS` | End the game; the team with the most kills wins |
-
-Addons can add their own actions. Admins can skip to the next phase with `/bw game nextPhase`.
-
-## Ender Dragons
-
-Spawned by `ENDER_DRAGON_START` for every team with the Dragon Buff upgrade. Dragons patrol over the middle of the map, hunt enemy players (first those near a bed), dive at them and shoot fireballs. They never hurt their own team and disappear when their team is out.
-
-| Setting | Default | Meaning |
-|---|---|---|
-| `DragonSpawnHeight` | `10` | Blocks above the team spawn where dragons appear |
-| `DragonIndestructibleBlocks` | `OBSIDIAN`, `BEDROCK`, `BARRIER`, `END_PORTAL_FRAME`, `IRON_BARS` | Blocks dragons can't destroy (Bukkit material names). Beds are never destroyed. The map is restored after the game anyway |
-| `Dragon.Speed` | `0.6` | Flight speed in blocks per tick |
-| `Dragon.TurnRate` | `6.0` | How fast a dragon turns, in degrees per tick |
-| `Dragon.PatrolHeight` | `15` | Patrol height above the highest team spawn, bed or generator |
-| `Dragon.PatrolRadius` | `0` | Radius of the patrol circle around the map centre (`0` = automatic) |
-| `Dragon.Margin` | `10` | How far outside the bases and generators a dragon may fly |
-| `Dragon.TargetRange` | `128` | Maximum distance at which a dragon picks a target |
-| `Dragon.AttackRange` | `20` | Horizontal distance at which a dragon starts a dive |
-| `Dragon.FireballIntervalSeconds` | `[20, 10]` | Seconds between fireballs for Dragon Buff level 1, 2, ... |
-| `Dragon.FireballSpeed` | `1.0` | Starting speed of the fireballs in blocks per tick |
+Game modes (Solo, Doubles, Squads, Rush, Duels and your own) and the game phases live in their own file, `modes.yml`, and are described in [Game modes and phases](game-modes.md). Only `DefaultGeneratorConfig` and `DefaultGamePhase` (see [Arena defaults](#arena-defaults)) and the Ender Dragon settings stay in `config.yml`; the dragons are explained on the [same page](game-modes.md#ender-dragons).
 
 ## Map voting
 
@@ -145,6 +108,25 @@ Arenas can be put into groups (`/bw group`). When a game in a grouped arena ends
 |---|---|---|
 | `MapVote.Item.Slot` | `1` | Hotbar slot of the vote item. Slots 0, 4 and 8 hold spectator items, so they fall back to 2 |
 | `MapVote.Item.Material` | `PAPER` | Material of the vote item |
+
+## Team selector
+
+With the gamerule `TeamSelection` (off by default) players in the waiting lobby get a team selector item (slot 0 by default, see the settings below) and can use `/bw team`. The menu shows one wool per team with the players who picked it, the players out of the maximum and the status; a "Random team" item clears the pick. After picking, the item turns into the wool of the team. Players who don't pick are placed automatically at the start of the game, as before (`RandomTeams`, parties).
+
+Turn it on in advanced setup with `/bw gamerule TeamSelection true`. Two more gamerules fine-tune it:
+
+| Gamerule | Default | Meaning |
+|---|---|---|
+| `TeamSelection` | `false` | Players pick their team in the waiting lobby |
+| `TeamSelectionBalanced` | `true` | A team can only be picked while it is one of the least picked teams, so the teams stay even; `false` = any team with a free slot |
+| `TeamSelectionPartyLeader` | `true` | Needs `AllowParties`. Only the party leader picks and the whole party (members in the arena) goes to that team; `false` = every member picks on their own and picked members are split from their party |
+
+If the picks would leave fewer than two teams with players (for example everyone picked the same team with `TeamSelectionBalanced` off), the game keeps waiting, or the countdown is cancelled, until someone switches. Players without the permission `newbedwars.teamselect` get no selector and are always placed automatically.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `TeamSelector.Item.Slot` | `0` | Hotbar slot of the selector item (0-7; slot 8 is the leave item) |
+| `TeamSelector.Item.Material` | `WHITE_WOOL` | Material of the selector item. After picking, it turns into the wool of the picked team |
 
 ## Maps and backups
 

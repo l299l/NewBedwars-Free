@@ -247,4 +247,16 @@ class ApiViewsTest {
         }
         assertEquals("d", new ApiTeam(red).getExtra(addon).getString("x", "d"));
     }
+
+    @Test
+    void generatorConfigAndGamePhasesComeFromTheArenaIds() {
+        when(arena.getGeneratorsLevelingId()).thenReturn("fast");
+        when(arena.getGamePhasesId()).thenReturn("quick");
+        assertEquals("fast", new ApiArena(arena).getGeneratorConfig());
+        assertEquals("quick", new ApiArena(arena).getGamePhases());
+        when(arena.getGeneratorsLevelingId()).thenReturn(null);
+        when(arena.getGamePhasesId()).thenReturn(null);
+        assertNull(new ApiArena(arena).getGeneratorConfig());
+        assertNull(new ApiArena(arena).getGamePhases());
+    }
 }

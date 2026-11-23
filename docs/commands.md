@@ -17,6 +17,7 @@ Commands depend on where you are: outside any arena (lobby), inside a game or sp
 | `/bw join [arena\|group]` | lobby | Open the arena selector, join a specific arena, or join the fullest waiting arena of a group. On a network lobby server `<server>:<arena>` joins that server's arena |
 | `/bw rejoin` | lobby | Rejoin the game you disconnected from |
 | `/bw spectate <arena>` | lobby | Join a running arena as a spectator |
+| `/bw team [team\|random]` | game (waiting) | Open the team menu, pick a team (name, any case) or clear your pick with `random`. Needs the gamerule `TeamSelection`; only while the arena is waiting or starting, not for spectators |
 | `/bw lobby` | lobby, game | Leave the arena and return to the lobby |
 | `/bw lang <en\|pl\|de\|es\|fr\|ru>` | lobby, game | Change your language |
 | `/bw help [page]` | lobby, game | Show the commands you can use |
@@ -95,14 +96,14 @@ Available outside arenas to players with the permission shown.
 `/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
 
 > [!NOTE]
-> `/bw update` is **available from 2.7-beta**. `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see [Configuration](configuration.md#updates)).
+> `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see [Configuration](configuration.md#updates)).
 
 Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `ARENA <arena>` joins that arena, and `SELECTOR [group]` opens the arena selector. On a network lobby server all three send players to the game servers. A group is a `/bw group` name; otherwise it is an arena name pattern (`solo_*`) or a team size (`4x1` = 4 teams of 1). Hologram lines and update speed are set under `JoinNpc` in `config.yml`.
 
 ## Web panel commands
 
 > [!NOTE]
-> **Available from 2.7-beta**, only with the `NewBedwars-Panel` addon installed. See [panel.md](panel.md).
+>, only with the `NewBedwars-Panel` addon installed. See [panel.md](panel.md).
 
 | Command | Permission | Description |
 |---|---|---|
@@ -156,6 +157,8 @@ Used inside the arena world after `/bw arena setup <name>`. Choose the mode with
 | `/bw gamerule <name> <true\|false>` | Gamerule of this arena |
 | `/bw setGui <shop\|upgrade> <guiId>` | Shop or upgrade GUI used on this arena |
 | `/bw setGeneratorLeveling <configId>` | Generator leveling configuration |
+| `/bw setGamePhases <id>` | Game phase list of this arena (an ID from `GamePhases` in `modes.yml`, tab-completed) |
+| `/bw setMode <mode>` | Copies a mode from `Modes` in `modes.yml` (generators, game phases, shop and upgrade menu, team size) into this arena once; nothing is changed if a part of the mode is missing (tab-completed) |
 | `/bw setResourcePack <url\|clear> [sha1]` | Per-arena resource pack |
 
 ### Automatic setup
@@ -225,5 +228,8 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.bw.profile` | true | `/bw profile` |
 | `newbedwars.bw.leaderboard` | true | `/bw leaderboard` |
 | `newbedwars.party` | true | All `/party` commands |
+| `newbedwars.teamselect` | true | Team selector item and `/bw team` (also part of `newbedwars.bw.player`) |
 
 All player permissions default to `true`, so everyone can use these commands until you deny a permission with a permissions plugin. Ops always bypass the checks. `/lobby` and `/lang` need the same permissions as `/bw lobby` and `/bw lang`.
+
+To stop a group from picking teams, take `newbedwars.teamselect` away with a permissions plugin, for example with LuckPerms: `lp group default permission set newbedwars.teamselect false`. Those players get no selector item, `/bw team` is refused and they are always placed automatically. Operators always keep it.

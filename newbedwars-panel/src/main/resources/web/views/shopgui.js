@@ -362,6 +362,47 @@ function editor(body, options, items, loaded, upgrades) {
       h('p', { class: 'hint measure' }, t('shop.gui.pricesHint')), overrideRows, addOverrideBox);
   }
 
+  const currencyNames = upgrades ? upgrades.currencies : ['IRON', 'GOLD', 'DIAMOND', 'EMERALD'];
+  const itemPriceRows = h('ol', { class: 'tier-rows item-price-rows' });
+  const itemPriceEmpty = h('p', { class: 'hint' }, t('shop.gui.itemPricesNone'));
+  let itemPriceNext = 0;
+  const refreshItemPrices = () => { itemPriceEmpty.hidden = itemPriceRows.children.length > 0; };
+  function addItemPrice(name, entry) {
+    const n = itemPriceNext++;
+    const item = select('ip-item-' + n, itemNames, canonical(name));
+    item.setAttribute('aria-label', t('shop.gui.itemPriceItem'));
+    const price = h('input', { type: 'number', min: '0', max: '100000', step: '1', required: true, id: 'ip-price-' + n, value: String(entry.price) });
+    price.setAttribute('aria-label', t('shop.upgrades.price'));
+    const currency = select('ip-cur-' + n, ['', ...currencyNames], entry.currency || '', { '': t('shop.gui.itemPriceKeepCurrency') });
+    currency.setAttribute('aria-label', t('shop.upgrades.currency'));
+    const amount = h('input', { type: 'number', min: '0', max: '64', step: '1', id: 'ip-amount-' + n, placeholder: t('shop.gui.itemPriceKeepAmount'), value: entry.amount ? String(entry.amount) : '' });
+    amount.setAttribute('aria-label', t('shop.item.amount'));
+    const remove = h('button', { class: 'btn btn-small btn-quiet', type: 'button' }, t('common.remove'));
+    const li = h('li', { class: 'inline-form tier-row item-price-row' }, item, price, currency, amount, remove);
+    remove.addEventListener('click', () => { li.remove(); refreshItemPrices(); });
+    itemPriceRows.append(li);
+    refreshItemPrices();
+  }
+  function readItemPrices() {
+    const out = {};
+    for (const li of itemPriceRows.children) {
+      const inputs = li.querySelectorAll('input');
+      const selects = li.querySelectorAll('select');
+      out[selects[0].value] = { price: Number(inputs[0].value), currency: selects[1].value || null, amount: Number(inputs[1].value) || 0 };
+    }
+    return out;
+  }
+  for (const [name, entry] of Object.entries(gui.itemPrices || {})) addItemPrice(name, entry);
+  const addItemPriceBtn = h('button', { class: 'btn btn-small', type: 'button', disabled: !itemNames.length }, t('shop.gui.addItemPrice'));
+  addItemPriceBtn.addEventListener('click', () => {
+    const used = new Set([...itemPriceRows.children].map(li => li.querySelector('select').value));
+    const first = items.find(i => !used.has(i.name)) || items[0];
+    addItemPrice(first.name, { price: first.price, currency: '', amount: 0 });
+  });
+  const itemPricesBox = h('section', { class: 'panel-section' }, h('h2', {}, t('shop.gui.itemPrices')),
+    h('p', { class: 'hint measure' }, t('shop.gui.itemPricesHint')), itemPriceRows, itemPriceEmpty, addItemPriceBtn);
+  refreshItemPrices();
+
   const error = h('p', { class: 'form-error', role: 'alert' });
   const save = h('button', { class: 'btn btn-primary', type: 'submit' }, creating ? t('shop.gui.create') : t('common.save'));
   const del = creating ? null : h('button', { class: 'btn btn-danger', type: 'button', disabled: gui.usedBy.length > 0 }, t('common.delete'));
@@ -394,6 +435,7 @@ function editor(body, options, items, loaded, upgrades) {
     h('section', { class: 'panel-section' }, palette),
     h('section', { class: 'panel-section' }, categoriesBox),
     pricesBox,
+    itemPricesBox,
     gui.usedBy.length ? h('p', { class: 'hint' }, t('shop.gui.usedBy', { list: gui.usedBy.map(usageText).join(', ') })) : null,
     error,
     h('div', { class: 'row-end' }, del, save));
@@ -409,6 +451,7 @@ function editor(body, options, items, loaded, upgrades) {
       fill: fill.value, empty: empty.value, slots: gui.slots,
       categories: gui.categories.map(c => ({ id: c.id, name: c.name, icon: c.icon, description: c.description, items: c.items })),
     };
+    payload.itemPrices = readItemPrices();
     if (upgrades) payload.upgradePrices = Object.fromEntries([...overrideEditors].map(([name, ed]) => [name, ed.read()]));
     busy(save, async () => {
       try {

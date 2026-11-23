@@ -10,6 +10,7 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
 import com.l299l.newbedwars.parties.Party;
 import com.l299l.newbedwars.arena.team.TeamAssigner;
+import com.l299l.newbedwars.arena.team.TeamSelectorManager;
 import com.l299l.newbedwars.arena.generators.Generator;
 import com.l299l.newbedwars.arena.generators.GeneratorType;
 import com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling;
@@ -75,6 +76,7 @@ public class Arena implements IArena {
 
     private final HashMap<String, Team> teams = new HashMap<>();
     private Gamerules gamerules;
+    private final com.l299l.newbedwars.arena.team.TeamPicks teamPicks = new com.l299l.newbedwars.arena.team.TeamPicks();
     private boolean enabled = false;
     private Setup setup = Setup.NO_SETUP;
     private Boolean persistedEnabled;
@@ -166,6 +168,7 @@ public class Arena implements IArena {
         broadcast("GameStarted");
         clearWaitingArea();
         assignTeams();
+        teamPicks.clearAll();
         ApiEvents.teamsAssigned(this);
         for (Team team : teams.values()) {
             team.start();
@@ -227,6 +230,7 @@ public class Arena implements IArena {
         setStatus(GameStatus.restarting);
         com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revokeArena(arenaName);
         if (!force) MapVoteManager.resetArena(this);
+        teamPicks.clearAll();
 
         if (tntParticleTask != null) {
             tntParticleTask.cancel();
@@ -421,6 +425,7 @@ public class Arena implements IArena {
         addToBossBar(player);
         showScoreboard("WaitingScoreboard", player);
         players.put(player.getUniqueId(), new GamePlayer(player, null));
+        TeamSelectorManager.joined(this, player);
         updateTablist(player);
         sendResourcePack(player);
     }
@@ -550,6 +555,7 @@ public class Arena implements IArena {
 
     private void doLeave(Player player, LeaveReason reason) {
         MapVoteManager.playerLeft(this, player);
+        teamPicks.clear(player.getUniqueId());
         if (gameStatus == GameStatus.playing && players.containsKey(player.getUniqueId())) {
             com.l299l.newbedwars.arena.shops.customitems.GamePermissions.suspend(player);
         } else {
@@ -626,6 +632,7 @@ public class Arena implements IArena {
                 ? leavingPlayer.getTeam().colored(player.getName()) : player.getName();
         if (leavingPlayer.getTeam() != null) leavingPlayer.getTeam().removePlayer(player);
         players.remove(player.getUniqueId());
+        if (!teamPicks.isEmpty()) TeamSelectorManager.refresh(this);
         if (gameStatus != GameStatus.restarting) broadcast("PlayerLeftArena", Map.of(
                 "/player/", playerName,
                 "/players/", Integer.toString(players.size()),
@@ -1413,6 +1420,16 @@ public class Arena implements IArena {
         return unresolvedGeneratorsLevelingId;
     }
 
+    @Override
+    public String getGamePhasesId() {
+        return gamePhases != null ? gamePhases.getID() : unresolvedGamePhasesId;
+    }
+
+    @Override
+    public String getGeneratorsLevelingId() {
+        return generatorsLeveling != null ? generatorsLeveling.getId() : unresolvedGeneratorsLevelingId;
+    }
+
     private void checkIfCanStart() {
         if (gameStatus == GameStatus.waiting && players.size() >= minPlayers && !hasEnoughTeams()) {
             broadcast("WaitingForOtherTeams");
@@ -1463,8 +1480,83 @@ public class Arena implements IArena {
     }
 
     private List<List<Player>> computeAssignment(boolean keepParties) {
-        return TeamAssigner.assign(buildGroups(keepParties), teams.size(), maxInTeam,
-                gamerules.RandomTeams, ThreadLocalRandom.current());
+        List<Team> teamList = new ArrayList<>(teams.values());
+        List<List<Player>> prefilled = new ArrayList<>();
+        for (int i = 0; i < teamList.size(); i++) prefilled.add(new ArrayList<>());
+        Set<UUID> placed = new HashSet<>();
+        if (teamSelectionEnabled()) {
+            for (Map.Entry<UUID, String> pick : teamPicks.all().entrySet()) {
+                Player picker = Bukkit.getPlayer(pick.getKey());
+                if (picker == null || !players.containsKey(pick.getKey())) continue;
+                int index = teamList.indexOf(teams.get(pick.getValue()));
+                if (index < 0) continue;
+                List<Player> group = new ArrayList<>();
+                for (Player member : pickGroup(picker)) {
+                    if (!placed.contains(member.getUniqueId())) group.add(member);
+                }
+                if (group.isEmpty() || prefilled.get(index).size() + group.size() > maxInTeam) continue;
+                prefilled.get(index).addAll(group);
+                for (Player member : group) placed.add(member.getUniqueId());
+            }
+        }
+        List<List<Player>> groups = new ArrayList<>();
+        for (List<Player> group : buildGroups(keepParties)) {
+            List<Player> rest = new ArrayList<>();
+            for (Player member : group) {
+                if (!placed.contains(member.getUniqueId())) rest.add(member);
+            }
+            if (!rest.isEmpty()) groups.add(rest);
+        }
+        return TeamAssigner.assign(groups, teamList.size(), maxInTeam,
+                gamerules.RandomTeams, ThreadLocalRandom.current(), prefilled);
+    }
+
+    private boolean teamSelectionEnabled() {
+        return Boolean.TRUE.equals(gamerules.TeamSelection);
+    }
+
+    private boolean partyLeaderPicks() {
+        return Boolean.TRUE.equals(gamerules.AllowParties) && !Boolean.FALSE.equals(gamerules.TeamSelectionPartyLeader);
+    }
+
+    @Override
+    public com.l299l.newbedwars.arena.team.TeamPicks getTeamPicks() {
+        return teamPicks;
+    }
+
+    @Override
+    public List<Player> pickGroup(Player picker) {
+        List<Player> group = new ArrayList<>();
+        if (!players.containsKey(picker.getUniqueId())) return group;
+        if (!partyLeaderPicks() || !NewBedwars.plugin.getPartyManager().isPlayerInParty(picker)) {
+            group.add(picker);
+            return group;
+        }
+        Party party = NewBedwars.plugin.getPartyManager().getParty(picker);
+        if (party == null) {
+            group.add(picker);
+            return group;
+        }
+        if (!party.isAdmin(picker.getUniqueId())) return group;
+        group.add(picker);
+        for (UUID memberId : party.getMembers()) {
+            if (memberId.equals(picker.getUniqueId()) || !players.containsKey(memberId)) continue;
+            Player member = Bukkit.getPlayer(memberId);
+            if (member != null) group.add(member);
+        }
+        return group;
+    }
+
+    @Override
+    public void onTeamPicksChanged() {
+        if (gameStatus == GameStatus.starting && !hasEnoughTeams()) {
+            if (countdownTimer != null) countdownTimer.cancel();
+            setStatus(GameStatus.waiting);
+            broadcast("StartCanceled");
+            broadcast("WaitingForOtherTeams");
+            return;
+        }
+        checkIfCanStart();
     }
 
     private static int nonEmptyTeams(List<List<Player>> assignment) {

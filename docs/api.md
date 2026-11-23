@@ -12,27 +12,13 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 > - [Parties](#parties): `getParty(Player)` (`PartyView`) and `PartyChangeEvent`.
 > - [Messages and languages](#messages-and-languages): `getLanguage`, `getMessage` and `registerMessages` for translated addon texts.
 > - [Statistics](#statistics-and-leaderboards): `getStats(UUID)`, `loadStats(UUID)` and `addStat` to count stats for addon game modes.
+> - [Game modes](#game-modes): `getModes()` (`ModeService`) lists the modes and phase lists of `modes.yml` and applies a mode to a waiting arena; `ArenaView.getGeneratorConfig()` and `getGamePhases()`.
 > - [Game control](#game-control): `destroyBed`, `eliminateTeam` and `setUpgradeLevel`.
 > - New [events](#events): `ArenaStateChangeEvent` (also the countdown start and cancel), `TeamsAssignedEvent`, `PlayerRespawnArenaEvent`, `PlayerSpectateEvent`, `TrapTriggerEvent`, `PartyChangeEvent`. `ShopPurchaseEvent` has `getTeam()` and `setPrice(int)`; `BedBreakEvent.getBreaker()` is null when the bed was destroyed through `destroyBed`.
 > - Custom generators: `GeneratorKind.CUSTOM`, `GeneratorView.getCustomId()`, `ArenaView.getCustomGeneratorIds()` and `ArenaEditor.addCustomGenerator(id, location)`. Before, custom generators were reported as `BASIC`.
 > - Team display names: `TeamEditor.setDisplayName` / `TeamView.getDisplayName()` change the name players see (e.g. `Lime` for a team `Red` that got a lime color) without renaming the team.
 > - `ShopItemStackEvent`: change or replace the item stack of a shop item per player, both the menu icon and the item the player gets.
 > - `ArenaView.getMaxPlayers()`, `getTeam(Player)` and `isSpectator(Player)`; `ShopLogic.perform(player, arena, itemName)` tells the logic which shop item was used.
-
-> [!IMPORTANT]
-> **New in 2.7-beta:**
->
-> - [Arena maintenance](#arena-maintenance): `NewBedwarsAPI.getMaintenance()` enables, disables, backs up, restores, exports, imports, copies, resets and deletes arenas like `/bw arena`.
-> - `ArenaView.getLoadProblems()`: why an arena was loaded disabled.
-> - [Statistics and leaderboards](#statistics-and-leaderboards): `getLeaderboard`, `loadStats` (offline players too), `findPlayers`.
-> - [Game control](#game-control): `NewBedwarsAPI.getGameControl()` starts, stops, skips phases and broadcasts like `/bw game`; `ArenaView.getNextPhase()` / `getPhaseTimeLeft()`.
-> - [Shop editor](#shop-editor): `NewBedwarsAPI.getShop()` reads and changes shop items, their texts and shop GUIs; `ArenaView.getShopGui()` / `getUpgradeGui()`, `ArenaEditor.setShopGui()` / `setUpgradeGui()`.
-> - `ArenaView.getQuickVoidY()` / `getSetupPlayers()`, `TeamView.getBed()`, `NewBedwarsAPI.getSetupArena(Player)` / `getSetupPlayers()`: who is in setup mode and for which arena, the team's bed and the arena's quick void level.
-> - [Shop items from addons](#shop-items): `registerShopItem` adds an `items.yml` entry (material, price, item logic) when it does not exist yet.
-> - New [events](#events): `GamePhaseChangeEvent`, `ArenaChatEvent`, `BedsDestroyedEvent`, `TeamEliminatedEvent`, `GeneratorUpgradeEvent`.
-> - [Subcommands](#subcommands) in several contexts at once (`registerCommand(owner, command, LOBBY, GAME, CONSOLE)`), and the new `CONSOLE` context with `AddonCommand.performConsole` / `tabCompleteConsole`.
->
-> Depend on `v2.7-beta` (or newer) to use them; on older NewBedwars versions these methods do not exist.
 
 - [Compatibility](#compatibility)
 - [Setup](#setup)
@@ -48,6 +34,7 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 - [Parties](#parties)
 - [Messages and languages](#messages-and-languages)
 - [Shop editor](#shop-editor)
+- [Game modes](#game-modes)
 - [Rules and good practice](#rules-and-good-practice)
 - [Full example](#full-example)
 
@@ -142,7 +129,7 @@ NewBedwarsAPI api = NewBedwarsAPI.get();
 | `getParty(Player)` **(2.8-beta)** | `Optional<PartyView>`, see [Parties](#parties) |
 | `getLanguage(Player)` / `getMessage(Player, key)` **(2.8-beta)** | the player's language code and a translated message, see [Messages and languages](#messages-and-languages) |
 
-**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine), **`getQuickVoidY` / `getSetupPlayers` (NEW in 2.7-beta)** (the quick void level, null while not set; online players who are setting the arena up), **`getMaxPlayers` / `getTeam(Player)` / `isSpectator(Player)` / `getCustomGeneratorIds` (NEW in 2.8-beta)** (teams times team size; the team of a player, empty before the teams are assigned; whether the player watches, is out or waits for a respawn; the ids from `CustomGenerators` in the arena's generator file).
+**`ArenaView`**: `getName`, `getState` (`ArenaState`), `isEnabled`, `getWorld`, `getMinPlayers`, `getMaxInTeam`, `getPlayers`, `getSpectators`, `getTeams`, `getTeam(name)`, `getGamePlayer(UUID)`, `getCurrentPhase`, `getGameTime` (seconds), **`getNextPhase` / `getPhaseTimeLeft` (NEW in 2.7-beta)** (next phase name or null; seconds left in the current phase, -1 when none), `getGenerators`, `getExtra(Plugin)`, `getShopGui` / `getUpgradeGui` (ids of the GUIs the arena's shop and upgrade NPCs open), **`getLoadProblems` (NEW in 2.7-beta)** (why the arena was loaded disabled; empty when it loaded fine), **`getQuickVoidY` / `getSetupPlayers` (NEW in 2.7-beta)** (the quick void level, null while not set; online players who are setting the arena up), **`getMaxPlayers` / `getTeam(Player)` / `isSpectator(Player)` / `getCustomGeneratorIds` (NEW in 2.8-beta)** (teams times team size; the team of a player, empty before the teams are assigned; whether the player watches, is out or waits for a respawn; the ids from `CustomGenerators` in the arena's generator file).
 
 **`TeamView`**: `getName` (never changes; identifies the team), **`getDisplayName` (2.8-beta)** (what players see: the display name or `getName`), `getColor`, `getPlayers`, `isAlive`, `isBedDestroyed`, `getSpawn` (may be null), **`getBed` (NEW in 2.7-beta, may be null)**, `getUpgradeLevel(String upgrade)`, `getExtra(Plugin)`.
 
@@ -169,7 +156,7 @@ Normal Bukkit events: register a `Listener` as usual. All arena events extend `A
 | `PlayerKillEvent` | no | a player dies in a running game | `getVictim()`, `getKiller()` (nullable), `isFinalKill()`, `getCause()` (`VOID` for every void death), `getDragonTeam()` (the team whose dragon killed the victim) |
 | `ShopPurchaseEvent` | yes | before a purchase is charged (only when the player can pay the normal price) | `getPlayer()`, `getItemName()`, `getKind()` (`ITEM`, `ARMOR`, `TOOL`, `UPGRADE`), `getPriceType()` (the material for `priceType: OTHER`), `getPrice()`, **`setPrice(int)` (2.8-beta)** (0 = free, never negative), **`getTeam()` (2.8-beta)** |
 | `TeamUpgradeEvent` | yes | before an upgrade or trap is bought | `getTeam()`, `getUpgrade()`, `getNewLevel()`, `getBuyer()` |
-| `ArmorEquipEvent` | no | before armor is applied (respawn, purchase) | `getPlayer()`, `setArmor(ItemStack[])` (boots, leggings, chestplate, helmet) |
+| `ArmorEquipEvent` | no | before armor is applied (respawn, purchase) | `getPlayer()`, `getArmor()`, `setArmor(ItemStack[])` (boots, leggings, chestplate, helmet) |
 | `MapVoteEvent` **(2.6-beta)** | yes | during the after-game time, a player of the ended arena votes for the next map | `getPlayer()`, `getVotedArena()` (null when the arena is on another game server), `getVotedNetworkArena()` |
 | `MapChosenEvent` **(2.6-beta)** | no | the after-game time is over and a next map won; the arena then stops and everyone joins the chosen arena | `getGroup()`, `getChosenArena()` (null when on another game server), `getChosenNetworkArena()` |
 | `GamePhaseChangeEvent` **(2.7-beta)** | no | the game moves to the next phase (also the first phase at game start) | `getPrevious()` (null at the first phase), `getNext()`, `isForced()` (admin skipped) |
@@ -184,6 +171,7 @@ Normal Bukkit events: register a `Listener` as usual. All arena events extend `A
 | `TrapTriggerEvent` **(2.8-beta)** | yes | before one trap of a team goes off (one event per trap); cancelled = the trap is kept and does nothing | `getTeam()` (the owner), `getEnemy()`, `getTrap()` (upgrade name) |
 | `ShopItemStackEvent` **(2.8-beta)** | no | NewBedwars built the stack of a shop item for one player: a menu icon (`ICON`, shop, upgrades, quick-buy editor) or the item the player gets (`GIVEN`, also permanent items after a respawn); not an `ArenaEvent` | `getPlayer()`, `getItemName()`, `getUse()`, `getItem()` / `setItem(ItemStack)`, `getArena()`, `getTeam()` (both `Optional`) |
 | `PartyChangeEvent` **(2.8-beta)** | no | after a party on this server changed (not for changes synced from the proxy; not an `ArenaEvent`) | `getParty()`, `getPlayer()` (null for `DISBANDED`), `getChange()` (`CREATED`, `JOINED`, `LEFT`, `KICKED`, `LEADER_CHANGED`, `DISBANDED`) |
+| `TeamPickEvent` **(2.8-beta)** | yes | before a player's pick in the waiting lobby is stored (team selector item or `/bw team`); cancelled = the old pick is kept | `getPlayer()`, `getTeam()` (`Optional<TeamView>`, empty = pick cleared / random), `getPreviousTeam()` (`Optional<TeamView>`), `getMovedPlayers()` (the whole party when the leader picks) |
 | `PlayerSendToLobbyEvent` | yes | whenever a player is sent to the lobby | `getPlayer()`, `getReason()` (`ADDON` for `api.sendToLobby`, from 2.8-beta), `getTarget()`/`setTarget()` |
 | `NetworkJoinRequestEvent` **(2.6-beta)** | yes | on a `LOBBY` server, before a join or rejoin request goes to the proxy (`/bw join`, NPCs, selector, `/bw rejoin`, API); cancelled = nothing is sent and NewBedwars sends no message | `getPlayer()`, `getKind()` (`ANY`, `GROUP`, `ARENA`, `REJOIN`, `SPECTATE`), `getTarget()` |
 | `NetworkArenasUpdateEvent` **(2.6-beta)** | no | on a `LOBBY` server, when the network arena list changed (not an `ArenaEvent`) | `getArenas()` |
@@ -209,7 +197,7 @@ All `register*` methods take your plugin as `owner`. A name that already exists 
 
 ### Phase actions
 
-Usable in `GamePhases` in `config.yml` as `NAME` or `NAME:argument` (everything after the first colon is the argument).
+Usable in `GamePhases` in [`modes.yml`](game-modes.md#game-phases) as `NAME` or `NAME:argument` (everything after the first colon is the argument).
 
 ```java
 api.registerPhaseAction(this, "ANNOUNCE", (arena, arg) ->
@@ -332,7 +320,7 @@ editor.removeGenerator(0);                   // index in ArenaView#getGenerators
 editor.removeTeam("Blue");
 ```
 
-`ArenaEditor`: `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `createTeam`, `getTeam`, `removeTeam`, `addGenerator` (`DIAMOND`/`EMERALD`), `addCustomGenerator(id, location)` **(2.8-beta)** (`IllegalArgumentException` when the arena's generator file has no such id), `removeGenerator`, `save`.
+`ArenaEditor`: `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `createTeam`, `getTeam`, `removeTeam`, `addGenerator` (`DIAMOND`/`EMERALD`), `addCustomGenerator(id, location)` **(2.8-beta)** (`IllegalArgumentException` when the arena's generator file has no such id), `removeGenerator`, `setShopGui(guiId)` / `setUpgradeGui(guiId)` (the GUI of `data/guis/` the shop and upgrade NPCs of the arena open), `save`.
 `TeamEditor`: `setColor`, `setDisplayName` **(2.8-beta)** (1 to 32 characters without colour codes or line breaks, `null` = show the name again; saved with the arena), `setSpawn`, `setBed`/`clearBed`, `setShop`/`clearShop`, `setUpgrades`/`clearUpgrades`, `setGenerator`/`clearGenerator`.
 
 ### Team colors and display names **(2.8-beta)**
@@ -365,9 +353,6 @@ Wool, glass, terracotta and the other team-colored blocks are already in the tea
 
 ## Arena maintenance
 
-> [!IMPORTANT]
-> **New in 2.7-beta.** Needs NewBedwars 2.7-beta or newer; check `api.getVersion()` if your addon also supports older versions.
-
 `api.getMaintenance()` returns `ArenaMaintenance`, the arena actions of `/bw arena` for addons such as a web panel. The same checks as the commands apply (e.g. nothing is changed while players are in the arena).
 
 | Method | Does |
@@ -396,9 +381,6 @@ api.getMaintenance().backup("castle").thenAccept(result -> {
 
 ## Statistics and leaderboards
 
-> [!IMPORTANT]
-> **New in 2.7-beta.**
-
 | Method | Returns |
 |---|---|
 | `getLeaderboard(StatType, limit)` | `CompletableFuture<List<LeaderboardEntry>>` (`getName()`, `getStats()`), best first, ties by name; `limit` 1 to 100 |
@@ -420,9 +402,6 @@ api.addStat(winner.getUniqueId(), winner.getName(), StatType.WINS, 1);
 `addStat` changes only the stat you pass; a win doesn't add a game played, so add `GAMES_PLAYED` yourself when it should count as a game.
 
 ## Game control
-
-> [!IMPORTANT]
-> **New in 2.7-beta.**
 
 `api.getGameControl()` returns `GameControl`, the actions of `/bw game` without a player in the arena. `actor` is the name players see in the messages (e.g. `"Panel: Alex"`).
 
@@ -516,9 +495,6 @@ Addon messages win over NewBedwars messages with the same key, so give your keys
 
 ## Shop editor
 
-> [!IMPORTANT]
-> **New in 2.7-beta.**
-
 `api.getShop()` returns `ShopEditor`, the data behind the web panel's shop editor. Every method can be called from any thread and returns a `CompletableFuture`; the work runs on the server thread. Changes apply at once (players see them the next time they open a shop) and the previous file is kept in `data/backups/shop/`.
 
 | Method | Does |
@@ -530,7 +506,10 @@ Addon messages win over NewBedwars messages with the same key, so give your keys
 | `getGuis()` / `getGui(id)` | `ShopGui`s with slots, categories, unresolved references (`problems`) and `usedBy` |
 | `createGui(gui)` / `saveGui(gui)` / `deleteGui(id)` | `deleteGui` is refused while an arena or `config.yml` uses it |
 | `getArenaShops()` / `setArenaShops(arena, shopGui, upgradeGui)` | which GUIs each arena opens; only while the arena is waiting (`BUSY` otherwise) |
+| `getUpgradePrices()` / `saveUpgradePrices(upgrade, tiers)` | `UpgradePrice`s of `data/upgrades.yml` (`name`, `tiers`, `maxLevel`, `builtIn`); a tier (`UpgradeTier`) is a `price` and a `currency` |
 | `getOptions()` | materials, enchantments, flags, logic keys, upgrades, price types, buy actions and languages of this server |
+
+`ShopGui.itemPrices()` **(2.8-beta)** is a map of shop item id to `ItemPrice` (`price`, `currency`, `amount`; the last two may be null = the item's own), the `ItemPrices` section of the file (see [Shop and upgrades](shop-and-upgrades.md)). When saving, `null` keeps the current prices and an empty map removes them. The older `ShopGui` constructors still work.
 
 Changes return a `ShopResult` (`OK`, `NOT_FOUND`, `INVALID` with the field in `detail`, `IN_USE` with the places in `detail`, `BUSY`, `NAME_TAKEN`, `FAILED`).
 
@@ -542,6 +521,33 @@ ShopEditor shop = api.getShop();
 shop.getItem("Wool").thenAccept(item -> item.ifPresent(wool ->
         shop.saveItem(new ShopItem(wool.name(), wool.material(), 32, wool.price(), wool.priceType(), wool.onBuy(),
                 wool.logic(), wool.permanent(), wool.permission(), wool.enchantments(), wool.flags(), List.of()))));
+```
+
+## Game modes
+
+> **New in 2.8-beta.**
+
+`api.getModes()` returns `ModeService`, the data behind the web panel's Modes page and its **Apply mode** picker. Every method can be called from any thread and returns a `CompletableFuture`; the work runs on the server thread and the futures complete there.
+
+| Method | Does |
+|---|---|
+| `getModes()` | `ModeInfo`s in the order of `modes.yml`, then built-in modes the file doesn't list: `id`, `generators`, `gamePhases`, `shopGui`, `upgradeGui` (null = the mode leaves it unchanged), `maxInTeam` (0 = unchanged), `teams` (a hint, never applied; 0 = not set) and `builtIn` |
+| `getPhaseLists()` | `PhaseListInfo`s: the `id` and its `phases` (`PhaseInfo`: `name`, `duration` in seconds until the next phase, 0 for the last one, and `actions` as written in `modes.yml`, e.g. `DIAMOND_GENERATOR:2`) |
+| `getArenaModes()` | `ArenaModeInfo` per arena, sorted by name: `arena`, `waiting` (only then can a mode be applied), `generators`, `gamePhases`, `shopGui`, `upgradeGui` (null when not set), `maxInTeam` and `teams` (team count) |
+| `getGeneratorConfigs()` | ids of every loaded generator config, sorted |
+| `applyMode(arena, mode)` | copies the mode into the arena once, like `/bw setMode` (generator config, phase list, GUIs and team size, each only when the mode sets it) and saves the arena. The mode name is matched ignoring case. Later edits to the mode don't change the arena |
+
+`applyMode` needs the arena to be waiting for players. It returns a `ModeResult` with a `code`: `OK`, `NOT_FOUND` (no such arena or mode), `MISSING_PARTS` (the mode names generator configs, phase lists or GUIs that don't exist; they are in `missing` and nothing was changed) or `BUSY` (a game is starting or running). With `OK`, `teamsDiffer` is `true` when the arena's team count differs from the mode's `teams`.
+
+`ArenaView.getGeneratorConfig()` and `getGamePhases()` return the ids of the generator config and the phase list an arena uses (null when it has none).
+
+```java
+ModeService modes = api.getModes();
+modes.applyMode("Island", "Duels").thenAccept(result -> {
+    if (result.code() == ModeResult.Code.OK && result.teamsDiffer()) {
+        getLogger().warning("Island has a different team count than Duels");
+    }
+});
 ```
 
 ## Rules and good practice

@@ -11,6 +11,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_status%` | Game status: `waiting` / `starting` / `playing` / `ending` / `restarting`, or `lobby` |
 | `%newbedwars_team%` | Team name (the display name when an addon set one), or `""` |
 | `%newbedwars_team_color%` | Team ChatColor code, or `""` |
+| `%newbedwars_picked_team%` | Coloured name of the team the player picked in the waiting lobby, or `""` when not picked or after the game started (use `%newbedwars_team%` during the game) |
 | `%newbedwars_kills%` | Kills in the current game |
 | `%newbedwars_deaths%` | Deaths in the current game |
 | `%newbedwars_final_kills%` | Final kills in the current game |

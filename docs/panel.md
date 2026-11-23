@@ -1,11 +1,12 @@
 # Web panel (NewBedwars-Panel)
 
 > [!NOTE]
-> **New in 2.7-beta.** The panel needs NewBedwars 2.8-beta or newer on the same server.
+> The panel needs NewBedwars 2.8-beta or newer on the same server.
 
 `NewBedwars-Panel` is a separate addon jar that adds a browser admin panel to your server. With it you can:
 
 - watch every arena live: its state, players, phase (with the time left and the next phase), game time, and each team's bed;
+- see every game mode and apply one to a waiting arena ([game modes](#game-modes));
 - control running games: start the countdown, start now, end as a draw, stop and reset, skip to the next phase, and send a message to everyone in the arena;
 - read each arena's game log: joins and leaves, chat and team chat, kills and final kills, beds, phases, generator upgrades, eliminated teams and admin actions, updated live;
 - look up any player's stats and the leaderboards (top 10, 25 or 100 by wins, kills, final kills, beds, deaths, losses or games);
@@ -22,6 +23,7 @@ The panel runs inside the Paper server (no extra program, no database). It speak
 - [The first admin account](#the-first-admin-account)
 - [Logging in and the certificate warning](#logging-in-and-the-certificate-warning)
 - [Accounts and roles](#accounts-and-roles)
+- [Game modes](#game-modes)
 - [Commands](#commands)
 - [Configuration](#configuration)
 - [Using your own certificate](#using-your-own-certificate)
@@ -108,6 +110,8 @@ Under **Roles**, admins (or anyone with `roles.manage`) can create their own rol
 | `audit.view` | the activity log |
 | `stats.view` | player stats and leaderboards |
 | `game.manage` | start, stop, skip phases of games and broadcast to an arena (like `/bw game`) |
+| `modes.view` | the **Modes** tab of the shop editor and the **Mode** column on Shop > Arenas. The built-in `admin` role has it, `staff` does not |
+| `modes.apply` | applying a game mode to an arena (the picker and **Apply** button on Shop > Arenas; only while the arena is waiting for players). Needs `modes.view` to be usable. The built-in `admin` role has it, `staff` does not |
 | `shop.edit` | the shop editor: items, their texts, shop GUIs and which GUIs the arenas use |
 | `shop.commands` | changing the commands of shop items (**Run commands**, `onBuyEvent: COMMANDS`) and the permission an item gives (**Give a permission for the game**, `GIVE_PERM`), and switching an item's action to or from those two. Commands run as the server console and a given permission can be any permission, so this gives full control of the server: give it only to people you would give console access. Without it, both fields are shown read-only and the action can not be switched |
 | `network.servers` | on a gateway panel: the server list and everything on the other servers of the network (what you may do there still depends on your other permissions). Never forwarded to other servers |
@@ -120,6 +124,16 @@ Rules that always apply:
 - The last `admin` account can't be deleted or given another role.
 - A role that is still assigned to an account can't be deleted.
 - Arena actions follow the same rules as `/bw arena`. For example, an arena with players in it can't be disabled. A refused action shows the plugin's own message.
+
+## Game modes
+
+The **Modes** tab (Shop > Modes, `#/shop/modes`, permission `modes.view`) lists every game mode with its settings (generator preset, game phases, shop and upgrade menu, players per team, team count), a tag for the built-in ones and the timeline of its game phases. Modes are not edited in the panel: change them in `modes.yml` (see [Game modes and phases](game-modes.md)). The shop editor itself still needs `shop.edit` to open.
+
+Shop > Arenas (`#/shop/arenas`) has a **Mode** column with each arena's mode and, under it, its generator config, phase list and team count x players per team. The mode is worked out from the arena's current settings: it is the mode whose settings all match, otherwise the arena shows **Custom**.
+
+With the permission `modes.apply` each row also has a mode picker and an **Apply** button. It copies the mode into the arena once, like `/bw setMode`, and works only while the arena is waiting for players; the shop and upgrade menu pickers of the row then show the new menus. The panel warns when the arena's team count differs from the mode's. If the mode names something that doesn't exist (a generator file, phase list or menu), nothing is changed and the missing names are shown.
+
+The dashboard lines the team columns up for arenas with different team counts. The **Group arenas** selector groups the list by team format (teams x players per team, e.g. "4 x 4 · 16 players"); the browser remembers your choice.
 
 ## Game control and game log
 
@@ -134,7 +148,7 @@ Commands typed by anyone in an arena's world (players, spectators, admins in set
 **Shop** (permission `shop.edit`) has four tabs:
 
 - **Items**: every item of `plugins/NewBedwars/data/items.yml`. An item has a material, amount, price and currency, what buying it does (give the item, armor or a tool, buy a team upgrade, or nothing for decoration), its item logic (TNT, fireball, bridge egg, ... and addon logic), enchantments, item flags, an optional permission and "permanent". Under **Texts** you set the display name, the shop icon description and the lore of the bought item for each language, with `&` colour codes and a preview. The texts are stored in the language files (`CustomItemsNames`). A new item's name can't be changed later.
-- **GUIs**: the shop and upgrade menus in `data/guis/`. The grid shows every slot of the inventory; header and footer rows (darker) are shown on every page, the rows between them show the home page or the open category. Drag an entry from the palette onto a slot, drag slots to swap them, or select a slot and choose what it shows on the right (arrow keys move, Delete empties). Categories are buttons that open a page with their items in the order you set; the category `home` is the start page. **Price overrides** give an upgrade GUI its own prices for some upgrades: arenas whose upgrade shop opens this GUI use them instead of the prices from the **Upgrades** tab (for example cheaper upgrades for solo arenas).
+- **GUIs**: the shop and upgrade menus in `data/guis/`. The grid shows every slot of the inventory; header and footer rows (darker) are shown on every page, the rows between them show the home page or the open category. Drag an entry from the palette onto a slot, drag slots to swap them, or select a slot and choose what it shows on the right (arrow keys move, Delete empties). Categories are buttons that open a page with their items in the order you set; the category `home` is the start page. **Price overrides** give an upgrade GUI its own prices for some upgrades: arenas whose upgrade shop opens this GUI use them instead of the prices from the **Upgrades** tab (for example cheaper upgrades for solo arenas). **Item prices** do the same for shop items: arenas whose shop opens this GUI (or a menu opened from it) use the price, currency and amount listed there instead of the item's own; leave the currency or amount empty to keep the item's value.
 - **Upgrades**: the prices of every team upgrade and trap (`data/upgrades.yml`). Each row is one level the team can buy, in order, with its own price and currency (iron, gold, diamond or emerald). Fewer rows mean fewer levels, no rows means the upgrade can't be bought; each upgrade shows how many levels it supports at most. Upgrade icons in the **Items** tab have no price of their own: buying them always uses these prices.
 - **Arenas**: which GUI the item shop and the upgrade shop of each arena open. Only arenas that are waiting can be changed.
 

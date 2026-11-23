@@ -688,4 +688,25 @@ class ArenaTest {
         assertFalse(arena.destroyBed(red));
         verify(red, never()).eliminate();
     }
+
+    @Test
+    void unresolvedIdsAreReportedWhenNothingIsResolved() {
+        assertNull(arena.getGamePhasesId());
+        assertNull(arena.getGeneratorsLevelingId());
+        arena.setUnresolvedIds("quick", "fast");
+        assertEquals("quick", arena.getGamePhasesId());
+        assertEquals("fast", arena.getGeneratorsLevelingId());
+    }
+
+    @Test
+    void resolvedObjectsWinOverUnresolvedIds() {
+        arena.setUnresolvedIds("old", "oldGen");
+        arena.setGamePhases(new com.l299l.newbedwars.arena.phases.GamePhases("quick", List.of()));
+        com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling leveling =
+                mock(com.l299l.newbedwars.arena.generators.leveling.GeneratorLeveling.class);
+        when(leveling.getId()).thenReturn("fast");
+        arena.setGeneratorsLeveling(leveling);
+        assertEquals("quick", arena.getGamePhasesId());
+        assertEquals("fast", arena.getGeneratorsLevelingId());
+    }
 }

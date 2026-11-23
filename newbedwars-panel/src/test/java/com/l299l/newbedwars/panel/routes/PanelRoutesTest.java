@@ -61,6 +61,7 @@ class PanelRoutesTest {
     private NewBedwarsAPI api;
     private GameControl control;
     private com.l299l.newbedwars.api.shop.ShopEditor shop;
+    private com.l299l.newbedwars.api.mode.ModeService modeService;
     private GameLogService gameLog;
     private Router router;
     private PanelServer server;
@@ -92,6 +93,8 @@ class PanelRoutesTest {
         new GameRoutes(control, gameLog, audit).register(router);
         shop = mock(com.l299l.newbedwars.api.shop.ShopEditor.class);
         new ShopRoutes(shop, audit).register(router);
+        modeService = mock(com.l299l.newbedwars.api.mode.ModeService.class);
+        new ModeRoutes(modeService, audit).register(router);
         server = new PanelServer(router, sessions, accounts, cookies, false, Logger.getAnonymousLogger());
         server.start(new InetSocketAddress("127.0.0.1", 0), null);
         base = "http://127.0.0.1:" + server.port();
@@ -328,6 +331,96 @@ class PanelRoutesTest {
     }
 
     @Test
+    void modesAreListedWithPhaseStarts() throws Exception {
+        var squads = new com.l299l.newbedwars.api.mode.ModeInfo("Squads", "fast", "quick", null, "ups", 4, 2, true);
+        var plain = new com.l299l.newbedwars.api.mode.ModeInfo("Plain", null, null, null, null, 0, 0, false);
+        var phases = new com.l299l.newbedwars.api.mode.PhaseListInfo("quick", List.of(
+                new com.l299l.newbedwars.api.mode.PhaseInfo("One", 60, List.of("A:1")),
+                new com.l299l.newbedwars.api.mode.PhaseInfo("Two", 120, List.of()),
+                new com.l299l.newbedwars.api.mode.PhaseInfo("Three", 0, List.of("B", "C"))));
+        when(modeService.getModes()).thenReturn(CompletableFuture.completedFuture(List.of(squads, plain)));
+        when(modeService.getPhaseLists()).thenReturn(CompletableFuture.completedFuture(List.of(phases)));
+        when(modeService.getGeneratorConfigs()).thenReturn(CompletableFuture.completedFuture(List.of("fast", "slow")));
+        Login helper = login("helper", "helper-password");
+        Login boss = login("boss", "boss-password");
+        assertEquals(403, send("GET", "/api/modes", helper, null).statusCode());
+        JsonObject body = json(send("GET", "/api/modes", boss, null));
+        JsonObject first = body.getAsJsonArray("modes").get(0).getAsJsonObject();
+        assertEquals("Squads", first.get("id").getAsString());
+        assertEquals("fast", first.get("generators").getAsString());
+        assertTrue(first.get("builtIn").getAsBoolean());
+        assertEquals(4, first.get("maxInTeam").getAsInt());
+        var timeline = first.getAsJsonArray("phases");
+        assertEquals(0, timeline.get(0).getAsJsonObject().get("start").getAsInt());
+        assertEquals(60, timeline.get(1).getAsJsonObject().get("start").getAsInt());
+        assertEquals(180, timeline.get(2).getAsJsonObject().get("start").getAsInt());
+        assertEquals(2, timeline.get(2).getAsJsonObject().getAsJsonArray("actions").size());
+        JsonObject second = body.getAsJsonArray("modes").get(1).getAsJsonObject();
+        assertFalse(second.has("phases"));
+        assertTrue(second.get("generators").isJsonNull() || !second.has("generators"));
+        assertEquals(1, body.getAsJsonArray("phaseLists").size());
+        assertEquals(2, body.getAsJsonArray("generatorConfigs").size());
+    }
+
+    @Test
+    void arenaModesAreDerivedPerArena() throws Exception {
+        var squads = new com.l299l.newbedwars.api.mode.ModeInfo("Squads", "fast", "quick", null, "ups", 4, 2, true);
+        when(modeService.getModes()).thenReturn(CompletableFuture.completedFuture(List.of(squads)));
+        when(modeService.getArenaModes()).thenReturn(CompletableFuture.completedFuture(List.of(
+                new com.l299l.newbedwars.api.mode.ArenaModeInfo("castle", true, "fast", "quick", "shop", "ups", 4, 2),
+                new com.l299l.newbedwars.api.mode.ArenaModeInfo("ruins", false, "slow", null, null, null, 2, 8))));
+        assertEquals(403, send("GET", "/api/modes/arenas", login("helper", "helper-password"), null).statusCode());
+        JsonObject body = json(send("GET", "/api/modes/arenas", login("boss", "boss-password"), null));
+        var arenas = body.getAsJsonArray("arenas");
+        assertEquals(2, arenas.size());
+        JsonObject castle = arenas.get(0).getAsJsonObject();
+        assertEquals("castle", castle.get("arena").getAsString());
+        assertTrue(castle.get("waiting").getAsBoolean());
+        assertEquals("Squads", castle.get("mode").getAsString());
+        assertEquals("fast", castle.get("generators").getAsString());
+        assertEquals(4, castle.get("maxInTeam").getAsInt());
+        assertEquals(2, castle.get("teams").getAsInt());
+        JsonObject ruins = arenas.get(1).getAsJsonObject();
+        assertFalse(ruins.get("waiting").getAsBoolean());
+        assertTrue(ruins.get("mode").isJsonNull());
+        assertEquals(8, ruins.get("teams").getAsInt());
+    }
+
+    @Test
+    void applyingAModeMapsResultsAndIsAudited() throws Exception {
+        Login boss = login("boss", "boss-password");
+        Login helper = login("helper", "helper-password");
+        
+        when(modeService.applyMode("castle", "Squads")).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.mode.ModeResult(com.l299l.newbedwars.api.mode.ModeResult.Code.OK, List.of(), true)));
+        when(modeService.applyMode("castle", "Ghost")).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.mode.ModeResult(com.l299l.newbedwars.api.mode.ModeResult.Code.NOT_FOUND, List.of(), false)));
+        when(modeService.applyMode("castle", "Broken")).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.mode.ModeResult(com.l299l.newbedwars.api.mode.ModeResult.Code.MISSING_PARTS, List.of("fast", "gui:x"), false)));
+        when(modeService.applyMode("castle", "Busy")).thenReturn(CompletableFuture.completedFuture(
+                new com.l299l.newbedwars.api.mode.ModeResult(com.l299l.newbedwars.api.mode.ModeResult.Code.BUSY, List.of(), false)));
+
+        assertEquals(403, send("POST", "/api/arenas/castle/mode", helper, "{\"mode\":\"Squads\"}").statusCode());
+        verifyNoInteractions(modeService);
+        assertEquals(400, send("POST", "/api/arenas/castle/mode", boss, "{}").statusCode());
+
+        JsonObject ok = json(send("POST", "/api/arenas/castle/mode", boss, "{\"mode\":\"Squads\"}"));
+        assertTrue(ok.get("ok").getAsBoolean());
+        assertTrue(ok.get("teamsDiffer").getAsBoolean());
+        HttpResponse<String> notFound = send("POST", "/api/arenas/castle/mode", boss, "{\"mode\":\"Ghost\"}");
+        assertEquals(404, notFound.statusCode());
+        assertEquals("mode_not_found", json(notFound).get("error").getAsString());
+        HttpResponse<String> missing = send("POST", "/api/arenas/castle/mode", boss, "{\"mode\":\"Broken\"}");
+        assertEquals(400, missing.statusCode());
+        assertEquals("mode_missing_parts", json(missing).get("error").getAsString());
+        assertEquals("gui:x", json(missing).getAsJsonArray("missing").get(1).getAsString());
+        HttpResponse<String> busy = send("POST", "/api/arenas/castle/mode", boss, "{\"mode\":\"Busy\"}");
+        assertEquals(409, busy.statusCode());
+        assertEquals("arena_busy", json(busy).get("error").getAsString());
+        assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("arena.mode") && e.target().equals("castle -> Squads") && e.result().equals("OK")));
+    }
+
+    @Test
     void gameActionsAreAuditedAndLogged() throws Exception {
         Login boss = login("boss", "boss-password");
         when(control.forceStart("castle", "Panel: boss")).thenReturn(CompletableFuture.completedFuture(
@@ -542,6 +635,31 @@ class PanelRoutesTest {
         assertEquals(java.util.Map.of("HASTE", List.of(new com.l299l.newbedwars.api.shop.UpgradeTier(1, "GOLD"))), gui.upgradePrices());
         assertNull(ShopRoutes.parseGui(com.google.gson.JsonParser.parseString("{\"size\":9}").getAsJsonObject(), "g").upgradePrices());
         assertEquals(1, ShopRoutes.gui(gui).getAsJsonObject("upgradePrices").getAsJsonArray("HASTE").size());
+    }
+
+    @Test
+    void guiItemPricesAreParsedAndListed() {
+        JsonObject body = com.google.gson.JsonParser.parseString("{\"title\":\"T\",\"size\":9,"
+                + "\"itemPrices\":{\"IronSword\":{\"price\":7,\"currency\":\"GOLD\",\"amount\":2},"
+                + "\"Wool\":{\"price\":3,\"currency\":null}}}").getAsJsonObject();
+        var gui = ShopRoutes.parseGui(body, "g");
+        assertEquals(java.util.Map.of("IronSword", new com.l299l.newbedwars.api.shop.ItemPrice(7, "GOLD", 2),
+                "Wool", new com.l299l.newbedwars.api.shop.ItemPrice(3, null, 0)), gui.itemPrices());
+        var kept = ShopRoutes.parseGui(com.google.gson.JsonParser.parseString("{\"size\":9}").getAsJsonObject(), "g");
+        assertNull(kept.itemPrices());
+        JsonObject sword = ShopRoutes.gui(gui).getAsJsonObject("itemPrices").getAsJsonObject("IronSword");
+        assertEquals(7, sword.get("price").getAsInt());
+        assertEquals("GOLD", sword.get("currency").getAsString());
+        assertEquals(2, sword.get("amount").getAsInt());
+        assertEquals(0, ShopRoutes.gui(kept).getAsJsonObject("itemPrices").size());
+    }
+
+    @Test
+    void guiItemPricesRejectBadShapes() {
+        assertThrows(com.l299l.newbedwars.panel.web.HttpError.class, () -> ShopRoutes.parseGui(
+                com.google.gson.JsonParser.parseString("{\"itemPrices\":[]}").getAsJsonObject(), "g"));
+        assertThrows(com.l299l.newbedwars.panel.web.HttpError.class, () -> ShopRoutes.parseGui(
+                com.google.gson.JsonParser.parseString("{\"itemPrices\":{\"A\":{\"price\":\"x\"}}}").getAsJsonObject(), "g"));
     }
 
     @Test

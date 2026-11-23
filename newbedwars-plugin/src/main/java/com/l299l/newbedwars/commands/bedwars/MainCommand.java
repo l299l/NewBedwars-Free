@@ -20,6 +20,7 @@ import com.l299l.newbedwars.commands.bedwars.admin.setup.normal.*;
 import com.l299l.newbedwars.commands.bedwars.main.HelpCommand;
 import com.l299l.newbedwars.commands.bedwars.main.JoinCommand;
 import com.l299l.newbedwars.commands.bedwars.main.LangCommand;
+import com.l299l.newbedwars.commands.bedwars.main.TeamCommand;
 import com.l299l.newbedwars.commands.bedwars.main.LeaderboardCommand;
 import com.l299l.newbedwars.commands.bedwars.main.LobbyCommand;
 import com.l299l.newbedwars.commands.bedwars.main.ProfileCommand;
@@ -263,6 +264,7 @@ public class MainCommand implements TabExecutor {
         register(new RejoinCommand(), Context.LOBBY);
         register(lobbyCmd, Context.LOBBY, Context.GAME);
         register(langCmd, Context.LOBBY, Context.GAME);
+        register(new TeamCommand(), Context.GAME);
         register(spectateCmd, Context.LOBBY);
         register(new StatsCommand(), Context.LOBBY);
         register(new ProfileCommand(), Context.LOBBY);
@@ -307,6 +309,8 @@ public class MainCommand implements TabExecutor {
         register(new SetResourcePackCommand(), Context.SETUP_ADVANCED);
         register(new SetArenaGUICommand(), Context.SETUP_ADVANCED);
         register(new SetGeneratorLevelingCommand(), Context.SETUP_ADVANCED);
+        register(new SetGamePhasesCommand(), Context.SETUP_ADVANCED);
+        register(new SetModeCommand(), Context.SETUP_ADVANCED);
 
         register(new StartAutomaticSetupCommand(), Context.SETUP_AUTOMATIC);
         register(new SetupHelpCommand(this::setupCommandsFor, this::getArena), Context.SETUP_BASIC);

@@ -110,7 +110,11 @@ public class ShopGUI extends BasicGUI {
 
     private void render(int slot, GUIEntry item) {
         if (item == null) return;
-        inv.setItem(slot, item.getIcon(getPlayer()));
+        if (item instanceof com.l299l.newbedwars.arena.shops.customitems.CustomItem custom) {
+            inv.setItem(slot, custom.getIcon(getPlayer(), offer(custom)));
+        } else {
+            inv.setItem(slot, item.getIcon(getPlayer()));
+        }
         if (item instanceof GUICategory category) categories.add(category);
         items.set(slot, item);
     }
@@ -152,6 +156,11 @@ public class ShopGUI extends BasicGUI {
 
     public List<GUICategory> getCategories() { return categories; }
     public GUISave getGuiSave() { return guiSave; }
+
+    public com.l299l.newbedwars.arena.shops.customitems.ItemPricing.Offer offer(com.l299l.newbedwars.arena.shops.customitems.CustomItem item) {
+        return com.l299l.newbedwars.arena.shops.customitems.ItemPricing.offer(item, guiSave.getDefinition(),
+                com.l299l.newbedwars.arena.ArenaRegistry.byWorld(getPlayer().getWorld()));
+    }
     public GUICategory getActualGuiCategory() { return guiCategory; }
     public GUIEntry getItemOnSlot(int slot) { return items.get(slot); }
     public void addCategory(GUICategory category) { categories.add(category); }

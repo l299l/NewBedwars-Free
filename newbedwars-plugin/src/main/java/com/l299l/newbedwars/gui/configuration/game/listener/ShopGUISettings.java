@@ -50,14 +50,15 @@ public class ShopGUISettings implements Listener {
             if (upgrade != null) buyUpgrade(player, upgrade, it);
         } else if (item instanceof CustomItem it) {
             Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
+                com.l299l.newbedwars.arena.shops.customitems.ItemPricing.Offer offer = gui.offer(it);
                 Map<String, String> values = Map.of(
                         "/item/", it.getName(),
-                        "/price/", String.valueOf(it.getPrice()),
-                        "/priceType/", it.priceLabel(),
-                        "/amount/", String.valueOf(it.getAmount()));
-                PurchaseResult result = it.buyItem(player);
+                        "/price/", String.valueOf(offer.price()),
+                        "/priceType/", offer.priceLabel(),
+                        "/amount/", String.valueOf(offer.amount()));
+                PurchaseResult result = it.buyItem(player, offer);
                 if (result.bought()) {
-                    boolean freeMenuLink = it.getOnBuyEvent() == OnBuyEvent.OPEN_GUI && it.getPrice() <= 0;
+                    boolean freeMenuLink = it.getOnBuyEvent() == OnBuyEvent.OPEN_GUI && offer.price() <= 0;
                     if (!freeMenuLink) msg.send(player, "BoughtItem", values);
                 } else if (result.messageKey() != null) {
                     msg.send(player, result.messageKey(), values);

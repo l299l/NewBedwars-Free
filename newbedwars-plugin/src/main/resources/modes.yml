@@ -1,0 +1,260 @@
+# =====================================================
+#  NewBedwars — Game modes and game phases
+#
+#  Modes bundle the settings an arena needs for one way of playing.
+#  /bw setMode <mode> (advanced setup) copies a mode into the arena once; after you edit a mode,
+#  run /bw setMode again in every arena that should get the change.
+#  The built-in modes Solo, Doubles, Squads, Rush and Duels (and their phase lists) are added back
+#  to this file when they are missing; your own modes and phase lists are never changed.
+#  Docs: https://l299l.github.io/NewBedwars-Free/game-modes/
+# =====================================================
+
+# ----- Modes --------------------------------------
+#   Generators  - generator config ID (generators/*.yml)
+#   GamePhases  - ID of a phase list below
+#   ShopGui / UpgradeGui - GUI IDs from data/guis/ (left out = the arena keeps its GUI)
+#   MaxInTeam   - players per team (left out = unchanged)
+#   Teams       - team count the mode is made for; only a warning when the arena has a different number
+Modes:
+  Solo:
+    Generators: Solo
+    GamePhases: Solo
+    UpgradeGui: upgradeSolo
+    MaxInTeam: 1
+    Teams: 8
+  Doubles:
+    Generators: Doubles
+    GamePhases: Doubles
+    UpgradeGui: upgradeDoubles
+    MaxInTeam: 2
+    Teams: 8
+  Squads:
+    Generators: Squads
+    GamePhases: Squads
+    UpgradeGui: upgradeSquads
+    MaxInTeam: 4
+    Teams: 4
+  Rush:
+    Generators: Rush
+    GamePhases: Rush
+    UpgradeGui: upgradeRush
+    MaxInTeam: 2
+    Teams: 4
+  Duels:
+    Generators: Duels
+    GamePhases: Duels
+    UpgradeGui: upgradeDuels
+    MaxInTeam: 1
+    Teams: 2
+
+
+# ----- Game phases --------------------------------
+# When a phase starts it runs its Actions; Duration seconds later the next phase starts.
+# The last phase usually has Duration 0 and ends the game.
+# Default is the old pre-2.8 phase list (deprecated, kept for existing arenas).
+#
+# Available Actions:
+#   DIAMOND_GENERATOR:<level>  - upgrade all diamond generators
+#   EMERALD_GENERATOR:<level>  - upgrade all emerald generators
+#   BED_DESTRUCTION            - destroy all remaining beds
+#   DISABLE_REGENERATION       - turn off natural health regen
+#   DISABLE_TEAMS_FORGE        - stop the team generators
+#   ENDER_DRAGON_START         - spawn Ender Dragons
+#   ENDER_DRAGON_END           - despawn Ender Dragons
+#   GAME_END:DRAW              - end the game as a draw
+#   GAME_END:MOST_KILLS        - end the game; winner = team with most kills
+#   Addons can register more actions.
+GamePhases:
+  - ID: Solo
+    Phases:
+      - Name: "Starting phase"
+        Duration: 300
+        Actions: []
+      - Name: "Diamonds II"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+      - Name: "Emeralds II"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:2"
+      - Name: "Diamonds III"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+      - Name: "Emeralds III"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 300
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Sudden death"
+        Duration: 300
+        Actions:
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "ENDER_DRAGON_END"
+          - "GAME_END:DRAW"
+  - ID: Doubles
+    Phases:
+      - Name: "Starting phase"
+        Duration: 300
+        Actions: []
+      - Name: "Diamonds II"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+      - Name: "Emeralds II"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:2"
+      - Name: "Diamonds III"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+      - Name: "Emeralds III"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 300
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Sudden death"
+        Duration: 300
+        Actions:
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "ENDER_DRAGON_END"
+          - "GAME_END:DRAW"
+  - ID: Squads
+    Phases:
+      - Name: "Starting phase"
+        Duration: 300
+        Actions: []
+      - Name: "Diamonds II"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+      - Name: "Emeralds II"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:2"
+      - Name: "Diamonds III"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+      - Name: "Emeralds III"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 300
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Sudden death"
+        Duration: 300
+        Actions:
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "ENDER_DRAGON_END"
+          - "GAME_END:DRAW"
+  - ID: Rush
+    Phases:
+      - Name: "Starting phase"
+        Duration: 180
+        Actions: []
+      - Name: "Upgrade I"
+        Duration: 180
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+          - "EMERALD_GENERATOR:2"
+      - Name: "Upgrade II"
+        Duration: 180
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 180
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Sudden death"
+        Duration: 180
+        Actions:
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "ENDER_DRAGON_END"
+          - "GAME_END:MOST_KILLS"
+  - ID: Duels
+    Phases:
+      - Name: "Starting phase"
+        Duration: 160
+        Actions: []
+      - Name: "Upgrade I"
+        Duration: 160
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+          - "EMERALD_GENERATOR:2"
+      - Name: "Upgrade II"
+        Duration: 160
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 240
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "GAME_END:MOST_KILLS"
+  - ID: Default
+    Phases:
+      - Name: "Starting phase"
+        Duration: 300
+        Actions: []
+      - Name: "Diamonds II"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:2"
+      - Name: "Emeralds II"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:2"
+      - Name: "Diamonds III"
+        Duration: 300
+        Actions:
+          - "DIAMOND_GENERATOR:3"
+      - Name: "Emeralds III"
+        Duration: 300
+        Actions:
+          - "EMERALD_GENERATOR:3"
+      - Name: "Bed destruction"
+        Duration: 300
+        Actions:
+          - "BED_DESTRUCTION"
+          - "DISABLE_REGENERATION"
+      - Name: "Sudden death"
+        Duration: 300
+        Actions:
+          - "ENDER_DRAGON_START"
+      - Name: "Game end"
+        Duration: 0
+        Actions:
+          - "ENDER_DRAGON_END"
+          - "GAME_END:DRAW"

@@ -172,7 +172,11 @@ permissions:
       newbedwars.bw.profile: true
       newbedwars.bw.leaderboard: true
       newbedwars.party: true
+      newbedwars.teamselect: true
 
+  newbedwars.teamselect:
+    description: Pick a team in the waiting lobby (team selector item and /bw team).
+    default: true
   newbedwars.bw.join:
     description: Join arenas.
     default: true

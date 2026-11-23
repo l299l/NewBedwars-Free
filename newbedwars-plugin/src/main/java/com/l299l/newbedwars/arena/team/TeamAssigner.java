@@ -11,9 +11,14 @@ public final class TeamAssigner {
 
     public static <T> List<List<T>> assign(List<? extends List<T>> groups, int teamCount, int maxInTeam,
                                            boolean random, Random rnd) {
+        return assign(groups, teamCount, maxInTeam, random, rnd, List.of());
+    }
+
+    public static <T> List<List<T>> assign(List<? extends List<T>> groups, int teamCount, int maxInTeam,
+                                           boolean random, Random rnd, List<? extends List<T>> prefilled) {
         List<List<T>> result = new ArrayList<>();
         for (int i = 0; i < teamCount; i++) {
-            result.add(new ArrayList<>());
+            result.add(i < prefilled.size() ? new ArrayList<>(prefilled.get(i)) : new ArrayList<>());
         }
         if (teamCount == 0) return result;
 

@@ -52,6 +52,10 @@ Stand at the right place and run the command; most position commands use your lo
 
 Made a mistake? `/bw remove team <name>` removes a team, and `/bw remove team <name> spawn` (or `bed`, `shop`, `upgrades`, ...) removes one point of it. `/bw remove generator <index>` removes a generator.
 
+## Choose a game mode
+
+New arenas use the defaults from `config.yml` (Squads on new installs; modes are in [`modes.yml`](game-modes.md)). For another mode, create the teams with the right size and, in advanced setup mode, run `/bw setMode <Mode>` (Solo, Doubles, Squads, Rush, Duels or your own). It copies the mode's generators, game phases, upgrade menu and team size into the arena in one step, and warns when the arena has a different number of teams than the mode is made for. See [Game modes and phases](game-modes.md).
+
 ## Automatic setup
 
 Pick **Automatic** in the setup menu, build the arena, stand in the middle of it and run:

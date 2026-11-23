@@ -73,6 +73,13 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
                 Team team = arena.getTeam(player);
                 return team != null ? team.getDisplayName() : "";
             }
+            case "picked_team": {
+                if (arena == null || com.l299l.newbedwars.arena.team.TeamSelectorManager.get() == null) return "";
+                String picked = com.l299l.newbedwars.arena.team.TeamSelectorManager.get().pickedTeam(player, arena);
+                if (picked == null) return "";
+                Team pickedTeam = arena.getTeams().get(picked);
+                return pickedTeam != null ? pickedTeam.colored(pickedTeam.getDisplayName()) : "";
+            }
             case "team_color": {
                 if (arena == null) return "";
                 Team team = arena.getTeam(player);

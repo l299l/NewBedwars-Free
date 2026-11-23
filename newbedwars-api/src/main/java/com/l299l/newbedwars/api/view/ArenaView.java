@@ -136,6 +136,24 @@ public interface ArenaView {
         return List.of();
     }
 
+    /**
+     * Id of the generator config ({@code generators/*.yml}) the arena uses, or {@code null} if none is set.
+     *
+     * @since 2.8-beta
+     */
+    default String getGeneratorConfig() {
+        return null;
+    }
+
+    /**
+     * Id of the phase list ({@code GamePhases} in {@code modes.yml}) the arena uses, or {@code null} if none is set.
+     *
+     * @since 2.8-beta
+     */
+    default String getGamePhases() {
+        return null;
+    }
+
     /** Data {@code owner} keeps on this arena, saved with the arena file. */
     ExtraData getExtra(Plugin owner);
 }

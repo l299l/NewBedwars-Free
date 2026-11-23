@@ -236,6 +236,32 @@ class ApiEventsTest {
     }
 
     @Test
+    void teamPickCarriesPlayerTeamsAndMovedPlayers() {
+        Player mate = mock(Player.class);
+        assertTrue(ApiEvents.teamPick(arena, player, team, null, java.util.List.of(player, mate)));
+        TeamPickEvent e = captured(TeamPickEvent.class);
+        assertSame(player, e.getPlayer());
+        assertEquals("A1", e.getArena().getName());
+        assertEquals("Red", e.getTeam().orElseThrow().getName());
+        assertTrue(e.getPreviousTeam().isEmpty());
+        assertEquals(java.util.List.of(player, mate), e.getMovedPlayers());
+    }
+
+    @Test
+    void teamPickClearedHasNoTeam() {
+        assertTrue(ApiEvents.teamPick(arena, player, null, team, java.util.List.of(player)));
+        TeamPickEvent e = captured(TeamPickEvent.class);
+        assertTrue(e.getTeam().isEmpty());
+        assertEquals("Red", e.getPreviousTeam().orElseThrow().getName());
+    }
+
+    @Test
+    void cancelledTeamPickIsReported() {
+        cancelEverything();
+        assertFalse(ApiEvents.teamPick(arena, player, team, null, java.util.List.of(player)));
+    }
+
+    @Test
     void mapChosenCarriesGroupAndChosenArena() {
         IArena chosen = mock(IArena.class);
         when(chosen.getArenaName()).thenReturn("B2");

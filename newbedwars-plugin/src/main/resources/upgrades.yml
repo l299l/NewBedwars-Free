@@ -2,39 +2,39 @@ DefaultCurrency: DIAMOND
 
 Upgrades:
   PROTECTION:
-    - {price: 2, currency: DIAMOND}
-    - {price: 4, currency: DIAMOND}
-    - {price: 8, currency: DIAMOND}
-    - {price: 12, currency: DIAMOND}
-    - {price: 16, currency: DIAMOND}
-  SHARPNESS:
-    - {price: 2, currency: DIAMOND}
-    - {price: 4, currency: DIAMOND}
-    - {price: 8, currency: DIAMOND}
-    - {price: 16, currency: DIAMOND}
-  HASTE:
-    - {price: 2, currency: DIAMOND}
-    - {price: 4, currency: DIAMOND}
-  FORGE:
-    - {price: 2, currency: DIAMOND}
     - {price: 3, currency: DIAMOND}
     - {price: 5, currency: DIAMOND}
-    - {price: 7, currency: DIAMOND}
-    - {price: 9, currency: DIAMOND}
-    - {price: 11, currency: DIAMOND}
+    - {price: 10, currency: DIAMOND}
+    - {price: 15, currency: DIAMOND}
+    - {price: 20, currency: DIAMOND}
+  SHARPNESS:
+    - {price: 3, currency: DIAMOND}
+    - {price: 5, currency: DIAMOND}
+    - {price: 10, currency: DIAMOND}
+    - {price: 20, currency: DIAMOND}
+  HASTE:
+    - {price: 3, currency: DIAMOND}
+    - {price: 5, currency: DIAMOND}
+  FORGE:
+    - {price: 6, currency: DIAMOND}
+    - {price: 8, currency: DIAMOND}
     - {price: 14, currency: DIAMOND}
-    - {price: 18, currency: DIAMOND}
+    - {price: 19, currency: DIAMOND}
+    - {price: 25, currency: DIAMOND}
+    - {price: 30, currency: DIAMOND}
+    - {price: 39, currency: DIAMOND}
+    - {price: 50, currency: DIAMOND}
   HEALPOOL:
-    - {price: 4, currency: DIAMOND}
+    - {price: 5, currency: DIAMOND}
   ALARMTRAP:
     - {price: 1, currency: DIAMOND}
-    - {price: 2, currency: DIAMOND}
+    - {price: 3, currency: DIAMOND}
   BLINDTRAP:
-    - {price: 2, currency: DIAMOND}
     - {price: 3, currency: DIAMOND}
-  MININGFATIGUETRAP:
-    - {price: 2, currency: DIAMOND}
-    - {price: 3, currency: DIAMOND}
-  DRAGONBUFF:
-    - {price: 2, currency: DIAMOND}
     - {price: 4, currency: DIAMOND}
+  MININGFATIGUETRAP:
+    - {price: 3, currency: DIAMOND}
+    - {price: 4, currency: DIAMOND}
+  DRAGONBUFF:
+    - {price: 3, currency: DIAMOND}
+    - {price: 5, currency: DIAMOND}

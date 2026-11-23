@@ -31,9 +31,11 @@ DefaultWaitingTime: 20
 DefaultRespawnTime: 5
 DefaultTeamShopGui: exampleShop
 DefaultTeamUpgradeGui: exampleUpgrade
-DefaultGeneratorConfig: DefaultGenerators
-# ID of a phase list from GamePhases below.
-DefaultGamePhase: Default
+# Built-in modes: Solo, Doubles, Squads, Rush, Duels (generators/<Mode>.yml and modes.yml).
+# DefaultGenerators and the Default phases are the old pre-2.8 values, kept for existing arenas (deprecated).
+DefaultGeneratorConfig: Squads
+# ID of a phase list from GamePhases in modes.yml.
+DefaultGamePhase: Squads
 
 
 # ----- Default gamerules --------------------------
@@ -56,6 +58,12 @@ DefaultGamerules:
   SplitPartiesToStart: true
   # In a grouped arena, players vote for the next map at the end of the game (see MapVote below); false = no vote.
   MapVote: true
+  # Players in the waiting lobby get an item (and /bw team) to pick their team; players who don't pick are placed automatically at start.
+  TeamSelection: false
+  # true: a team can only be picked while it is one of the least picked teams (keeps teams even); false: any team with a free slot.
+  TeamSelectionBalanced: true
+  # With AllowParties: true = only the party leader picks and the whole party joins that team; false = every member picks on their own.
+  TeamSelectionPartyLeader: true
 
 
 # ----- Gameplay -----------------------------------
@@ -98,81 +106,8 @@ ArenaChatEnabled: true
 TablistIsolationEnabled: true
 
 
-# ----- Game phases --------------------------------
-# Each phase runs for Duration seconds, then executes its Actions.
-#
-# Available Actions:
-#   DIAMOND_GENERATOR:<level>  - upgrade all diamond generators
-#   EMERALD_GENERATOR:<level>  - upgrade all emerald generators
-#   BED_DESTRUCTION            - destroy all remaining beds
-#   DISABLE_REGENERATION       - turn off natural health regen
-#   ENDER_DRAGON_START         - spawn Ender Dragons
-#   ENDER_DRAGON_END           - despawn Ender Dragons
-#   GAME_END:DRAW              - end the game as a draw
-#   GAME_END:MOST_KILLS        - end the game; winner = team with most kills
-
-GamePhases:
-  - ID: Default
-    Phases:
-      - Name: "Starting phase"
-        Duration: 300
-        Actions: []
-      - Name: "Diamonds II"
-        Duration: 300
-        Actions:
-          - "DIAMOND_GENERATOR:2"
-      - Name: "Emeralds II"
-        Duration: 300
-        Actions:
-          - "EMERALD_GENERATOR:2"
-      - Name: "Diamonds III"
-        Duration: 300
-        Actions:
-          - "DIAMOND_GENERATOR:3"
-      - Name: "Emeralds III"
-        Duration: 300
-        Actions:
-          - "EMERALD_GENERATOR:3"
-      - Name: "Bed destruction"
-        Duration: 300
-        Actions:
-          - "BED_DESTRUCTION"
-          - "DISABLE_REGENERATION"
-      - Name: "Sudden death"
-        Duration: 300
-        Actions:
-          - "ENDER_DRAGON_START"
-      - Name: "Game end"
-        Duration: 0
-        Actions:
-          - "ENDER_DRAGON_END"
-          - "GAME_END:DRAW"
-  - ID: Rush
-    Phases:
-      - Name: "Starting phase"
-        Duration: 200
-        Actions: []
-      - Name: "Upgrade I"
-        Duration: 300
-        Actions:
-          - "DIAMOND_GENERATOR:2"
-          - "EMERALD_GENERATOR:2"
-      - Name: "Upgrade II"
-        Duration: 300
-        Actions:
-          - "EMERALD_GENERATOR:3"
-          - "DIAMOND_GENERATOR:3"
-      - Name: "Sudden death"
-        Duration: 300
-        Actions:
-          - "BED_DESTRUCTION"
-          - "DISABLE_REGENERATION"
-          - "ENDER_DRAGON_START"
-      - Name: "Game end"
-        Duration: 0
-        Actions:
-          - "GAME_END:MOST_KILLS"
-          - "ENDER_DRAGON_END"
+# ----- Game phases and modes ----------------------
+# Game phases (GamePhases) and modes (Modes) are in modes.yml.
 
 
 # ----- Ender Dragons ------------------------------
@@ -221,6 +156,15 @@ MapVote:
     # Hotbar slot and material of the vote item. Slots 0, 4 and 8 hold spectator items, so they fall back to 2.
     Slot: 1
     Material: PAPER
+
+
+# ----- Team selector ------------------------------
+# Team selector item given in the waiting lobby when the TeamSelection gamerule is on. Slot 0-7 (slot 8 is the leave item).
+
+TeamSelector:
+  Item:
+    Slot: 0
+    Material: WHITE_WOOL
 
 
 # ----- Maps and backups ---------------------------

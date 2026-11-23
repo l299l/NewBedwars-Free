@@ -97,6 +97,10 @@ mysql:
   ssl-mode: PREFERRED              # DISABLED, PREFERRED, REQUIRED, VERIFY_CA or VERIFY_IDENTITY
   allow-public-key-retrieval: false
   poll-seconds: 5
+updates:
+  check: true                      # false = never look for a new proxy version
+  notify: true                     # one console line when a newer proxy version is out
+  channel: BETA                    # RELEASE, BETA or ALPHA
 ```
 
 - The proxy picks the fullest arena that still has room (the same rule as `/bw join` on one server). If the game server refuses (the arena filled up in the meantime), the proxy tries one other server. If that fails too, the players go back to the lobby.
@@ -105,6 +109,7 @@ mysql:
 - MySQL rows carry the game server's own clock, so the proxy never compares it with its clock: a server counts as alive when its row's heartbeat changes between two polls.
 - Incoming data is size-limited (64 arenas per server, names up to 64 characters, 256 rejoin places per server, 128 servers). When the network state for the lobbies would not fit one plugin message, rejoin data is left out first, then the least useful arenas (running and empty ones) are cut, and the proxy logs it once.
 - A player who just sent a join request cannot start another one for about 2 seconds (lobby servers also wait 1 second between requests). Join tickets carry a relative lifetime, so differing clocks between proxy and game servers do not matter.
+- The proxy checks for new versions of itself like the Paper plugin does (see [Updates](configuration.md#updates)). It only writes a console line and shows the result in `/nbwproxy`; it never downloads anything.
 - `/nbwproxy` (permission `newbedwars.proxy.admin`) lists the game servers and arenas the proxy knows.
 - Proxy texts are in `plugins/newbedwars-proxy/lang/en.yml` and `pl.yml` and are chosen by the player's client language.
 

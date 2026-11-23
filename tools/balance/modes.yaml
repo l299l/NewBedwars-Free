@@ -1,0 +1,71 @@
+# Map/team layout and player-behaviour assumptions per mode.
+#   diamond_share / emerald_share: expected fraction of ONE island generator's drops this team collects
+#     (summed over all island generators of that kind)
+#   collect_interval: seconds between base-generator pickups; island_interval: seconds between island trips
+#   death_interval: average seconds between deaths per player; carry_loss: fraction of carried resources lost
+#   preset: file in presets/ with generators, phases and prices; "baseline" = current plugin defaults
+
+solo:
+  teams: 8
+  team_size: 1
+  diamond_gens: 4
+  emerald_gens: 4
+  diamond_share: 0.25
+  emerald_share: 0.08
+  collect_interval: 25
+  island_interval: 90
+  death_interval: 240
+  carry_loss: 0.6
+  policy: balanced
+
+doubles:
+  teams: 8
+  team_size: 2
+  diamond_gens: 4
+  emerald_gens: 4
+  diamond_share: 0.3
+  emerald_share: 0.1
+  collect_interval: 15
+  island_interval: 75
+  death_interval: 240
+  carry_loss: 0.5
+  policy: balanced
+
+squads:
+  teams: 4
+  team_size: 4
+  diamond_gens: 4
+  emerald_gens: 2
+  diamond_share: 0.6
+  emerald_share: 0.25
+  collect_interval: 10
+  island_interval: 60
+  death_interval: 220
+  carry_loss: 0.4
+  policy: balanced
+
+rush:
+  teams: 4
+  team_size: 2
+  diamond_gens: 4
+  emerald_gens: 2
+  diamond_share: 0.6
+  emerald_share: 0.25
+  collect_interval: 10
+  island_interval: 45
+  death_interval: 120
+  carry_loss: 0.5
+  policy: rusher
+
+duels:
+  teams: 2
+  team_size: 1
+  diamond_gens: 2
+  emerald_gens: 1
+  diamond_share: 0.45
+  emerald_share: 0.45
+  collect_interval: 20
+  island_interval: 70
+  death_interval: 150
+  carry_loss: 0.6
+  policy: balanced

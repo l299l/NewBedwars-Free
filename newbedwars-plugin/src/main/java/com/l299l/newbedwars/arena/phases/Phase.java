@@ -69,4 +69,12 @@ public class Phase {
     public Integer getDuration() {
         return duration;
     }
+
+    public int getInitialDuration() {
+        return initialDuration == null ? 0 : initialDuration;
+    }
+
+    public List<PhaseAction> getActions() {
+        return actions == null ? List.of() : java.util.Collections.unmodifiableList(actions);
+    }
 }

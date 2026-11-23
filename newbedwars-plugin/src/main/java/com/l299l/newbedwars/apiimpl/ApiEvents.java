@@ -18,6 +18,7 @@ import com.l299l.newbedwars.api.events.PlayerJoinArenaEvent;
 import com.l299l.newbedwars.api.events.PlayerKillEvent;
 import com.l299l.newbedwars.api.events.PlayerLeaveArenaEvent;
 import com.l299l.newbedwars.api.events.ShopPurchaseEvent;
+import com.l299l.newbedwars.api.events.TeamPickEvent;
 import com.l299l.newbedwars.api.events.TeamUpgradeEvent;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
@@ -26,6 +27,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 public final class ApiEvents {
     private ApiEvents() {}
@@ -125,6 +128,10 @@ public final class ApiEvents {
 
     public static boolean playerJoin(IArena arena, Player player, boolean rejoin) {
         return !call(new PlayerJoinArenaEvent(view(arena), player, rejoin)).isCancelled();
+    }
+
+    public static boolean teamPick(IArena arena, Player player, Team team, Team previous, List<Player> moved) {
+        return !call(new TeamPickEvent(view(arena), player, team == null ? null : view(team), previous == null ? null : view(previous), moved)).isCancelled();
     }
 
     public static boolean mapVote(IArena host, Player player, IArena voted) {

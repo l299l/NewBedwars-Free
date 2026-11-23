@@ -39,6 +39,7 @@ public class Properties{
     public static Set<Material> DragonIndestructibleBlocks = new HashSet<>();
     public static HashMap<String, Boolean> DefaultGamerules = new HashMap<>();
     public static HashMap<String, GamePhases> GamePhases = new HashMap<>();
+    public static Map<String, GameMode> Modes = new java.util.LinkedHashMap<>();
     public static String DefaultLanguage;
     public static StorageType StorageType;
     public static Boolean ArenaChatEnabled;
@@ -66,6 +67,8 @@ public class Properties{
     public static Integer LeaderboardRefreshSeconds = 60;
     public static Integer MapVoteItemSlot = 2;
     public static String MapVoteItemMaterial = "PAPER";
+    public static Integer TeamSelectorItemSlot = 0;
+    public static String TeamSelectorItemMaterial = "WHITE_WOOL";
     public static Integer JoinNpcUpdateSeconds = 2;
     public static Boolean JoinNpcLeftClick = false;
     public static Double JoinNpcHologramOffset = 0.0;
@@ -123,6 +126,12 @@ public class Properties{
         DefaultGamerules.put("SplitPartiesToStart", typed("DefaultGamerules.SplitPartiesToStart", Boolean.class));
         Object dmv = get("DefaultGamerules.MapVote");
         DefaultGamerules.put("MapVote", dmv instanceof Boolean b ? b : true);
+        Object dts = get("DefaultGamerules.TeamSelection");
+        DefaultGamerules.put("TeamSelection", dts instanceof Boolean b ? b : false);
+        Object dtsb = get("DefaultGamerules.TeamSelectionBalanced");
+        DefaultGamerules.put("TeamSelectionBalanced", dtsb instanceof Boolean b ? b : true);
+        Object dtsp = get("DefaultGamerules.TeamSelectionPartyLeader");
+        DefaultGamerules.put("TeamSelectionPartyLeader", dtsp instanceof Boolean b ? b : true);
         DefaultLanguage = text("DefaultLanguage");
 
         RejoinTimeEnabled = typed("RejoinTimeLimitEnabled", Boolean.class);
@@ -175,6 +184,10 @@ public class Properties{
         MapVoteItemSlot = mvs instanceof Integer i && i >= 0 && i <= 8 ? i : 2;
         Object mvm = get("MapVote.Item.Material");
         MapVoteItemMaterial = mvm instanceof String str ? str : "PAPER";
+        Object tss = get("TeamSelector.Item.Slot");
+        TeamSelectorItemSlot = tss instanceof Integer i && i >= 0 && i <= 7 ? i : 0;
+        Object tsm = get("TeamSelector.Item.Material");
+        TeamSelectorItemMaterial = tsm instanceof String str ? str : "WHITE_WOOL";
 
         Object jnu = get("JoinNpc.UpdateSeconds");
         JoinNpcUpdateSeconds = jnu instanceof Integer i && i > 0 ? i : 2;
@@ -201,17 +214,63 @@ public class Properties{
             }
         }
 
-        Object allGamePhases = get("GamePhases");
-        if (!(allGamePhases instanceof List<?> phaseLists)) {
-            NewBedwars.plugin.getLogger().warning("config.yml: GamePhases is not a list; no game phases are loaded");
-            return;
+        Map<String, Object> own = com.l299l.newbedwars.config.ModesFile.current();
+        Map<String, Object> builtIn = com.l299l.newbedwars.config.ModesFile.bundled();
+        Set<String> configured = new HashSet<>();
+        Object ownPhases = own.get("GamePhases");
+        if (ownPhases instanceof List<?> phaseLists) {
+            loadGamePhases(phaseLists, configured, "modes.yml");
+        } else if (ownPhases != null) {
+            NewBedwars.plugin.getLogger().warning("modes.yml: GamePhases is not a list; only the built-in game phases are loaded");
         }
+        if (builtIn.get("GamePhases") instanceof List<?> lists) {
+            loadGamePhases(lists, configured, null);
+        }
+        loadModes(own, builtIn);
+    }
+
+    private void loadModes(Map<String, Object> own, Map<String, Object> builtIn) {
+        Map<String, GameMode> modes = new java.util.LinkedHashMap<>();
+        Object section = own.get("Modes");
+        if (section instanceof Map<?, ?> map) {
+            readModes(map, modes, true);
+        } else if (section != null) {
+            NewBedwars.plugin.getLogger().warning("modes.yml: Modes is not a section; only the built-in modes are loaded");
+        }
+        if (builtIn.get("Modes") instanceof Map<?, ?> map) {
+            readModes(map, modes, false);
+        }
+        Modes = modes;
+    }
+
+    private void readModes(Map<?, ?> section, Map<String, GameMode> modes, boolean warn) {
+        for (Map.Entry<?, ?> e : section.entrySet()) {
+            String id = String.valueOf(e.getKey());
+            if (modes.containsKey(id) || e.getValue() == null) continue;
+            if (!(e.getValue() instanceof Map<?, ?> mode)) {
+                if (warn) NewBedwars.plugin.getLogger().warning("modes.yml: mode '" + id + "' is not a section and was skipped");
+                continue;
+            }
+            modes.put(id, new GameMode(id, modeText(mode, "Generators"), modeText(mode, "GamePhases"),
+                    modeText(mode, "ShopGui"), modeText(mode, "UpgradeGui"),
+                    mode.get("MaxInTeam") instanceof Integer i && i > 0 ? i : 0,
+                    mode.get("Teams") instanceof Integer i && i > 0 ? i : 0));
+        }
+    }
+
+    private static String modeText(Map<?, ?> mode, String key) {
+        return mode.get(key) instanceof String str && !str.isBlank() ? str.trim() : null;
+    }
+
+    private void loadGamePhases(List<?> phaseLists, Set<String> configured, String source) {
         for (Object entry : phaseLists) {
             if (!(entry instanceof Map<?, ?> gamePhase) || !(gamePhase.get("ID") instanceof String ID)
                     || !(gamePhase.get("Phases") instanceof List<?> phases)) {
-                NewBedwars.plugin.getLogger().warning("config.yml: a GamePhases entry without ID or Phases list was skipped");
+                if (source != null) NewBedwars.plugin.getLogger().warning(source + ": a GamePhases entry without ID or Phases list was skipped");
                 continue;
             }
+            if (source == null && configured.contains(ID)) continue;
+            configured.add(ID);
             List<Phase> phaseList = new ArrayList<>();
             for (int i = 0; i < phases.size(); i++) {
                 if (!(phases.get(i) instanceof Map<?, ?> phase)) {

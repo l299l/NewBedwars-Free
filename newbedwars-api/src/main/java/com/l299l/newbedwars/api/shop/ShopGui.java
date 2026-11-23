@@ -24,11 +24,15 @@ import java.util.Map;
  * @param upgradePrices      price overrides per upgrade, for arenas that use this GUI as their upgrade GUI.
  *                           Same shape as {@link UpgradePrice#tiers()}. When saving, {@code null} keeps the
  *                           current overrides and an empty map removes them
+ * @param itemPrices         price and amount overrides per shop item id, for arenas that use this GUI (or a menu opened
+ *                           from it) as their shop. When saving, {@code null} keeps the current overrides and an empty
+ *                           map removes them. Since 2.8-beta
  * @since 2.7-beta
  */
 public record ShopGui(String id, String title, int size, int headerSize, int footerSize, @Deprecated(since = "2.8-beta", forRemoval = true) boolean closeOnTransaction,
                       String fill, String empty, List<String> slots, List<ShopCategory> categories,
-                      List<String> problems, List<String> usedBy, Map<String, List<UpgradeTier>> upgradePrices) {
+                      List<String> problems, List<String> usedBy, Map<String, List<UpgradeTier>> upgradePrices,
+                      Map<String, ItemPrice> itemPrices) {
     public ShopGui {
         closeOnTransaction = false;
         slots = slots == null ? List.of() : List.copyOf(slots);
@@ -36,11 +40,20 @@ public record ShopGui(String id, String title, int size, int headerSize, int foo
         problems = problems == null ? List.of() : List.copyOf(problems);
         usedBy = usedBy == null ? List.of() : List.copyOf(usedBy);
         upgradePrices = upgradePrices == null ? null : Map.copyOf(upgradePrices);
+        itemPrices = itemPrices == null ? null : Map.copyOf(itemPrices);
+    }
+
+    public ShopGui(String id, String title, int size, int headerSize, int footerSize, boolean closeOnTransaction,
+                   String fill, String empty, List<String> slots, List<ShopCategory> categories,
+                   List<String> problems, List<String> usedBy, Map<String, List<UpgradeTier>> upgradePrices) {
+        this(id, title, size, headerSize, footerSize, closeOnTransaction, fill, empty, slots, categories, problems, usedBy,
+                upgradePrices, null);
     }
 
     public ShopGui(String id, String title, int size, int headerSize, int footerSize, boolean closeOnTransaction,
                    String fill, String empty, List<String> slots, List<ShopCategory> categories,
                    List<String> problems, List<String> usedBy) {
-        this(id, title, size, headerSize, footerSize, closeOnTransaction, fill, empty, slots, categories, problems, usedBy, null);
+        this(id, title, size, headerSize, footerSize, closeOnTransaction, fill, empty, slots, categories, problems, usedBy,
+                null, null);
     }
 }

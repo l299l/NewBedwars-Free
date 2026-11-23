@@ -8,7 +8,7 @@
 
 | Plugin | Used for |
 |---|---|
-| PlaceholderAPI | 34 `%newbedwars_*%` placeholders ([list](placeholders.md)) |
+| PlaceholderAPI | Over 30 `%newbedwars_*%` placeholders ([list](placeholders.md)) |
 | WorldEdit / FastAsyncWorldEdit | Creating an arena from a `.schem` file |
 | Citizens | Lobby join NPCs with a live hologram (without it, `/bw npc create` spawns a simple NPC) |
 
@@ -32,26 +32,19 @@ Everything lives in `plugins/NewBedwars/`:
 | File or folder | Contents |
 |---|---|
 | `config.yml` | Main settings ([Configuration](configuration.md)) |
+| `modes.yml` | Game modes and game phases ([Game modes and phases](game-modes.md)) |
 | `language/*.yml` | Messages in every language; edit them or add your own language |
-| `scoreboards.yml`, `bossBars.yml` | Scoreboards and boss bars of the waiting lobby, the game and the end of the game |
-| `generators/*.yml` | Generator speeds and levels |
+| `scoreboards.yml`, `bossBars.yml` | Scoreboards and boss bars of the waiting lobby, the game and the end of the game ([Configuration](configuration.md#scoreboards-and-boss-bars)) |
+| `generators/*.yml` | Generator speeds and levels, one preset per game mode |
 | `data/items.yml` | Shop items ([Shop and upgrades](shop-and-upgrades.md)) |
 | `data/upgrades.yml` | Upgrade and trap prices per level |
 | `data/guis/*.yml` | Shop and upgrade menus |
 | `data/arenas/<name>.json` | Arena settings (written by the setup commands, with automatic backups) |
 | `data/maps/<arena>/template/` | Clean copy of every arena map, used to reset it after a game |
-| Player data | JSON files in `data/` by default, or MySQL ([Storage](storage.md)) |
-
-### Boss bars
-
-`bossBars.yml` has one boss bar per situation. Each one cycles through its `Texts`, `Colors`, `Styles` and `Effects` every `Time` seconds and can be turned off with `Enabled: false`.
-
-| Boss bar | Shown to | Default |
-|---|---|---|
-| `WaitingBeforeStart` | Players in the waiting lobby of an arena | On |
-| `GameInProgress` | Players and spectators of a running game | On |
-| `GameEnding` | Everyone in the arena when the game ends | On |
-| `MainLobby` | Players in the server lobby (not in an arena). `/players/` and `/max_players/` count all enabled arenas | **Off** (`Enabled: false`) |
+| `data/lobby.yml` | The lobby location (`/bw setLobby`) |
+| `data/groups.json`, `data/npcs.json` | Arena groups and join NPCs |
+| `data/backups/`, `data/exports/` | Arena and config backups, and arena zips from `/bw arena export` |
+| `data/playersData.json`, `data/playerStats.json` | Player data and stats (JSON by default, or MySQL, see [Storage](storage.md)) |
 
 `/bw reload` reloads the configuration, messages, scoreboards, boss bars, generators, shop, GUIs and arenas without a server restart.
 

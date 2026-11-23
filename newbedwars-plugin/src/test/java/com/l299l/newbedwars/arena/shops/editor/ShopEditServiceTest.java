@@ -358,7 +358,7 @@ class ShopEditServiceTest {
     void upgradePricesAreListedAndSaved() {
         UpgradePrice forge = ShopEditService.upgradePrices().stream().filter(u -> u.name().equals("FORGE")).findFirst().orElseThrow();
         assertEquals(8, forge.tiers().size());
-        assertEquals(new UpgradeTier(2, "DIAMOND"), forge.tiers().get(0));
+        assertEquals(new UpgradeTier(6, "DIAMOND"), forge.tiers().get(0));
         assertTrue(forge.builtIn());
         assertTrue(ShopEditService.upgradePrices().stream().noneMatch(u -> u.name().equals("CUSTOMTRAP")));
 

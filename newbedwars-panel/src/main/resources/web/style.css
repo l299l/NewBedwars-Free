@@ -174,7 +174,7 @@ label { font-weight: 550; font-size: .9375rem; }
 .arena { border-bottom: 1px solid var(--line); }
 .arena-link {
   display: grid;
-  grid-template-columns: minmax(10rem, 1fr) 7.5rem 6.5rem 10rem minmax(6rem, auto);
+  grid-template-columns: minmax(10rem, 1fr) 7.5rem 6.5rem 10rem calc(var(--bed-cols, 4) * (var(--block) + 4px) - 4px);
   align-items: center;
   gap: .5rem 1rem;
   padding: .8rem .5rem;
@@ -188,6 +188,8 @@ label { font-weight: 550; font-size: .9375rem; }
 .arena-phase { color: var(--muted); font-size: .875rem; }
 .arena.is-disabled .arena-name { color: var(--muted); }
 .arena-link .beds { justify-content: flex-end; }
+.arena-tools { justify-content: flex-end; margin: 0 0 .5rem; }
+.arena-format-title { margin: 1.25rem 0 .4rem; font-size: .9375rem; font-weight: 600; color: var(--muted); }
 
 .badge { display: inline-block; justify-self: start; padding: .05rem .5rem; border-radius: 999px; font-size: .8125rem; font-weight: 600; border: 1px solid currentColor; }
 .badge-waiting { color: var(--muted); }

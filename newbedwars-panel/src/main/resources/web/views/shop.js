@@ -1,4 +1,4 @@
-import { api, busy, can, confirmDialog, errorText, go, h, t } from '../app.js';
+import { ApiError, api, busy, can, confirmDialog, errorText, go, h, t, toast } from '../app.js';
 import { datalist, materialColor, mcText, select, shopOptions, shopTabs, showResult, swatch, syncButton, tierEditor, usageText } from './shopcommon.js';
 
 export function render(root, params) {
@@ -9,6 +9,11 @@ export function render(root, params) {
     let gone = false;
     import('./shopgui.js').then(m => { if (!gone) stop = page === 'gui' ? m.guiPage(root, arg) : m.guiList(root); });
     return () => { gone = true; if (stop) stop(); };
+  }
+  if (page === 'modes') {
+    let gone = false;
+    import('./modes.js').then(m => { if (!gone) m.render(root); });
+    return () => { gone = true; };
   }
   if (page === 'arenas') return arenasPage(root);
   if (page === 'upgrades') return upgradesPage(root);
@@ -268,25 +273,80 @@ function arenasPage(root) {
   root.append(h('p', { class: 'hint measure' }, t('shop.arenas.hint')));
   const list = h('div', { class: 'table-wrap' }, h('p', { class: 'muted' }, t('common.working')));
   root.append(list);
+  const showModes = can('modes.view');
+  const applyModes = showModes && can('modes.apply');
+
+  const modeText = err => {
+    if (err instanceof ApiError && err.code === 'mode_missing_parts') {
+      const missing = err.data && Array.isArray(err.data.missing) ? err.data.missing.join(', ') : '';
+      return t('error.mode_missing_parts', { missing });
+    }
+    return errorText(err);
+  };
 
   async function load() {
     try {
-      const [arenas, guis] = await Promise.all([api('GET', '/api/shop/arenas'), api('GET', '/api/shop/guis')]);
+      const [arenas, guis, modeArenas, modeData] = await Promise.all([
+        api('GET', '/api/shop/arenas'), api('GET', '/api/shop/guis'),
+        showModes ? api('GET', '/api/modes/arenas') : null, showModes ? api('GET', '/api/modes') : null]);
       const ids = guis.guis.map(g => g.id);
       if (!arenas.arenas.length) {
         list.replaceChildren(h('p', { class: 'empty' }, t('shop.arenas.none')));
         return;
       }
+      const infos = {};
+      if (modeArenas) for (const m of modeArenas.arenas) infos[m.arena] = m;
+      const modes = modeData ? modeData.modes : [];
       list.replaceChildren(h('table', { class: 'table' },
         h('thead', {}, h('tr', {}, h('th', {}, t('shop.arenas.arena')), h('th', {}, t('shop.arenas.shop')),
-          h('th', {}, t('shop.arenas.upgrades')), h('th', {}))),
-        h('tbody', {}, arenas.arenas.map(a => row(a, ids)))));
+          h('th', {}, t('shop.arenas.upgrades')), h('th', {}),
+          showModes ? h('th', {}, t('shop.arenas.mode')) : null, applyModes ? h('th', {}) : null)),
+        h('tbody', {}, arenas.arenas.map(a => row(a, ids, infos[a.arena], modes)))));
     } catch (err) {
       list.replaceChildren(h('p', { class: 'form-error' }, errorText(err)));
     }
   }
 
-  function row(a, ids) {
+  function modeCell(info) {
+    if (!info) return h('td', {}, h('span', { class: 'muted' }, '-'));
+    const phases = info.gamePhases || '-';
+    const gens = info.generators || '-';
+    return h('td', {}, info.mode || t('shop.arenas.modeCustom'),
+      h('div', { class: 'hint' }, gens + ' \u00b7 ' + phases + ' \u00b7 ' + info.teams + ' \u00d7 ' + info.maxInTeam));
+  }
+
+  function applyCell(a, info, modes) {
+    if (!info) return h('td', {});
+    const waiting = info.waiting;
+    const pick = h('select', { id: 'mode-' + a.arena, disabled: !waiting || !modes.length }, modes.map(m => h('option', { value: m.id }, m.id)));
+    pick.setAttribute('aria-label', t('shop.arenas.modeSelect') + ': ' + a.arena);
+    const apply = h('button', { class: 'btn btn-small', type: 'button', disabled: !waiting || !modes.length }, t('shop.arenas.modeApply'));
+    if (!waiting) {
+      pick.title = t('shop.arenas.modeNeedsWaiting');
+      apply.title = t('shop.arenas.modeNeedsWaiting');
+    }
+    apply.addEventListener('click', async () => {
+      const mode = pick.value;
+      if (!mode) return;
+      if (!await confirmDialog(t('shop.arenas.modeConfirm', { mode, arena: a.arena }))) return;
+      await busy(apply, async () => {
+        try {
+          const result = await api('POST', '/api/arenas/' + encodeURIComponent(a.arena) + '/mode', { mode });
+          toast(t('shop.arenas.modeApplied', { mode, arena: a.arena }));
+          if (result.teamsDiffer) {
+            const chosen = modes.find(m => m.id === mode);
+            toast(t('shop.arenas.modeTeamsDiffer', { mode, teams: chosen ? chosen.teams : '?' }), 'error');
+          }
+          await load();
+        } catch (err) {
+          toast(modeText(err), 'error');
+        }
+      });
+    });
+    return h('td', { class: 'actions-cell' }, h('div', { class: 'inline-form' }, pick, apply));
+  }
+
+  function row(a, ids, info, modes) {
     const shop = select('shop-' + a.arena, ids, a.shopGui);
     const upgrades = select('upg-' + a.arena, ids, a.upgradeGui);
     shop.setAttribute('aria-label', t('shop.arenas.shop') + ': ' + a.arena);
@@ -303,7 +363,8 @@ function arenasPage(root) {
       } catch (err) { showResult({ ok: false, code: 'FAILED', detail: errorText(err) }); }
     }));
     return h('tr', {}, h('td', {}, a.arena, a.waiting ? null : h('span', { class: 'hint' }, ' ' + t('shop.arenas.running'))),
-      h('td', {}, shop), h('td', {}, upgrades), h('td', { class: 'actions-cell' }, save));
+      h('td', {}, shop), h('td', {}, upgrades), h('td', { class: 'actions-cell' }, save),
+      showModes ? modeCell(info) : null, applyModes ? applyCell(a, info, modes) : null);
   }
 
   load();

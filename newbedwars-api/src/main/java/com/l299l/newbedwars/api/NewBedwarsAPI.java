@@ -299,6 +299,13 @@ public interface NewBedwarsAPI {
     ShopEditor getShop();
 
     /**
+     * Game modes and phase lists from {@code modes.yml}, and applying a mode to an arena.
+     *
+     * @since 2.8-beta
+     */
+    com.l299l.newbedwars.api.mode.ModeService getModes();
+
+    /**
      * The arena {@code player} is setting up in setup mode.
      *
      * @since 2.7-beta

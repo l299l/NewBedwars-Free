@@ -132,32 +132,82 @@ function importForm() {
     h('p', { class: 'muted' }, t('dash.importHint')), form);
 }
 
+const GROUP_KEY = 'nbw-dash-group';
+const MAX_BED_COLS = 8;
+
+function savedGroup() {
+  try { return localStorage.getItem(GROUP_KEY) === 'format' ? 'format' : 'none'; } catch (e) { return 'none'; }
+}
+
+function saveGroup(value) {
+  try { localStorage.setItem(GROUP_KEY, value); } catch (e) { }
+}
+
+function formatOf(arena) {
+  const teams = arena.teams.length;
+  const size = arena.maxInTeam || 0;
+  return { key: teams + 'x' + size, teams, size, players: arena.maxPlayers != null ? arena.maxPlayers : teams * size };
+}
+
+function arenaList(entries) {
+  const cols = Math.min(MAX_BED_COLS, Math.max(1, ...entries.map(e => e.arena.teams.length)));
+  const list = rows => {
+    const ul = h('ul', { class: 'arenas' }, rows.map(e => arenaRow(e.arena, e.serverId, e.away)));
+    ul.style.setProperty('--bed-cols', String(cols));
+    return ul;
+  };
+  if (savedGroup() !== 'format') return list(entries);
+  const groups = new Map();
+  for (const e of entries) {
+    const f = formatOf(e.arena);
+    if (!groups.has(f.key)) groups.set(f.key, { format: f, rows: [] });
+    groups.get(f.key).rows.push(e);
+  }
+  const sorted = [...groups.values()].sort((a, b) => a.format.players - b.format.players || a.format.teams - b.format.teams);
+  return h('div', { class: 'arena-groups' }, sorted.map(g => h('section', { class: 'arena-format' },
+    h('h3', { class: 'arena-format-title' }, t('dash.groupTitle', { teams: g.format.teams, size: g.format.size, players: g.format.players })),
+    list(g.rows))));
+}
+
+function groupPicker(onChange) {
+  const select = h('select', { id: 'dash-group' },
+    h('option', { value: 'none', selected: savedGroup() === 'none' }, t('dash.groupNone')),
+    h('option', { value: 'format', selected: savedGroup() === 'format' }, t('dash.groupFormat')));
+  select.addEventListener('change', () => { saveGroup(select.value); onChange(); });
+  return h('div', { class: 'inline-form arena-tools' }, h('label', { for: 'dash-group' }, t('dash.groupBy')), select);
+}
+
 export function render(root) {
   const serverBox = h('div', { class: 'server-box' }, h('p', { class: 'muted' }, t('dash.loading')));
   const notice = h('p', { class: 'notice notice-warn', hidden: true }, t('dash.stale'));
   const arenas = h('div');
   const network = h('div');
   const players = h('div');
-  root.append(...[h('h1', {}, t('dash.title')), notice, serverBox, arenas, can('arena.import') ? importForm() : null, network, players].filter(Boolean));
+  let last = null;
+  const tools = groupPicker(() => { if (last) draw(...last); });
+  root.append(...[h('h1', {}, t('dash.title')), notice, serverBox, tools, arenas, can('arena.import') ? importForm() : null, network, players].filter(Boolean));
 
-  return watch((data, failed, net) => {
+  const draw = (data, failed, net) => {
+    last = [data, failed, net];
     notice.hidden = !failed;
     if (net) {
       serverBox.replaceChildren(serversTable(net));
       const groups = net.servers.filter(s => s.data);
-      arenas.replaceChildren(groups.some(s => s.data.arenas.length)
-        ? h('ul', { class: 'arenas' }, groups.flatMap(s => s.data.arenas.map(a => arenaRow(a, s.local ? null : s.id, s.status !== 'ONLINE' ? s.status : null))))
-        : h('p', { class: 'empty' }, t('dash.noArenas')));
+      const entries = groups.flatMap(s => s.data.arenas.map(a => ({ arena: a, serverId: s.local ? null : s.id, away: s.status !== 'ONLINE' ? s.status : null })));
+      tools.hidden = !entries.length;
+      arenas.replaceChildren(entries.length ? arenaList(entries) : h('p', { class: 'empty' }, t('dash.noArenas')));
       network.replaceChildren(networkTable(net.servers.flatMap(s => s.networkArenas || [])) || '');
       players.replaceChildren(playersList(groups.filter(s => s.status === 'ONLINE').flatMap(s => s.data.players.map(p => s.local ? p : { ...p, server: s.id }))));
       return;
     }
     if (!data) return;
     serverBox.replaceChildren(serverStrip(data.server));
+    tools.hidden = !data.arenas.length;
     arenas.replaceChildren(data.arenas.length
-      ? h('ul', { class: 'arenas' }, data.arenas.map(a => arenaRow(a, null, false)))
+      ? arenaList(data.arenas.map(a => ({ arena: a, serverId: null, away: false })))
       : h('p', { class: 'empty' }, t('dash.noArenas')));
     network.replaceChildren(networkTable(data.network) || '');
     players.replaceChildren(playersList(data.players));
-  });
+  };
+  return watch(draw);
 }

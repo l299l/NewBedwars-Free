@@ -64,6 +64,7 @@ public class GUIDataManager {
                 log.log(Level.SEVERE, "Could not copy the default GUI files", e);
             }
         }
+        copyBuiltInModes();
         List<Path> paths;
         try (Stream<Path> s = Files.list(guiDir)) {
             paths = s.filter(p -> p.getFileName().toString().toLowerCase().endsWith(".yml") && Files.isRegularFile(p))
@@ -156,6 +157,24 @@ public class GUIDataManager {
 
     public Map<String, String> getBrokenFiles() {
         return Map.copyOf(brokenFiles);
+    }
+
+    private void copyBuiltInModes() {
+        if (!Files.isDirectory(guiDir)) return;
+        for (String mode : com.l299l.newbedwars.config.BuiltInModes.NAMES) {
+            String name = com.l299l.newbedwars.config.BuiltInModes.upgradeGuiFile(mode);
+            Path target = guiDir.resolve(name);
+            if (Files.exists(target)) continue;
+            try (InputStream in = GUIDataManager.class.getClassLoader().getResourceAsStream("guis/" + name)) {
+                if (in == null) {
+                    log.warning("Built-in upgrade GUI " + name + " is missing from the plugin jar");
+                    continue;
+                }
+                Files.copy(in, target);
+            } catch (IOException e) {
+                log.log(Level.WARNING, "Could not copy the built-in upgrade GUI " + name, e);
+            }
+        }
     }
 
     private void copyExample(String name) throws IOException {

@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.l299l.newbedwars.api.shop.ArenaShops;
+import com.l299l.newbedwars.api.shop.ItemPrice;
 import com.l299l.newbedwars.api.shop.ItemTexts;
 import com.l299l.newbedwars.api.shop.ShopCategory;
 import com.l299l.newbedwars.api.shop.ShopEditor;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeoutException;
 
 public final class ShopRoutes {
     private static final int MAX_LIST = 64;
+    private static final int MAX_ITEM_PRICES = 512;
     private static final List<String> CURRENCIES = List.of("IRON", "GOLD", "DIAMOND", "EMERALD");
 
     private final ShopEditor shop;
@@ -258,9 +260,22 @@ public final class ShopRoutes {
             prices = new LinkedHashMap<>();
             for (Map.Entry<String, JsonElement> e : p.getAsJsonObject().entrySet()) prices.put(e.getKey(), parseTiers(e.getValue()));
         }
+        Map<String, ItemPrice> itemPrices = null;
+        JsonElement ip = j.get("itemPrices");
+        if (ip != null && !ip.isJsonNull()) {
+            if (!ip.isJsonObject() || ip.getAsJsonObject().size() > MAX_ITEM_PRICES) throw new HttpError(400, "bad_itemPrices");
+            itemPrices = new LinkedHashMap<>();
+            for (Map.Entry<String, JsonElement> e : ip.getAsJsonObject().entrySet()) {
+                if (!e.getValue().isJsonObject()) throw new HttpError(400, "bad_itemPrices");
+                JsonObject o = e.getValue().getAsJsonObject();
+                String currency = str(o, "currency");
+                if (currency != null && currency.isBlank()) currency = null;
+                itemPrices.put(e.getKey(), new ItemPrice(integer(o.get("price")), currency, integer(o.get("amount"))));
+            }
+        }
         return new ShopGui(id, str(j, "title"), integer(j.get("size")), integer(j.get("headerSize")),
                 integer(j.get("footerSize")), false, str(j, "fill"), str(j, "empty"),
-                strings(j.get("slots")), categories, List.of(), List.of(), prices);
+                strings(j.get("slots")), categories, List.of(), List.of(), prices, itemPrices);
     }
 
     static List<UpgradeTier> parseTiers(JsonElement e) {
@@ -334,6 +349,17 @@ public final class ShopRoutes {
         JsonObject prices = new JsonObject();
         if (g.upgradePrices() != null) g.upgradePrices().forEach((name, list) -> prices.add(name, tiers(list)));
         o.add("upgradePrices", prices);
+        JsonObject itemPrices = new JsonObject();
+        if (g.itemPrices() != null) {
+            g.itemPrices().forEach((name, p) -> {
+                JsonObject po = new JsonObject();
+                po.addProperty("price", p.price());
+                po.addProperty("currency", p.currency());
+                po.addProperty("amount", p.amount());
+                itemPrices.add(name, po);
+            });
+        }
+        o.add("itemPrices", itemPrices);
         return o;
     }
 

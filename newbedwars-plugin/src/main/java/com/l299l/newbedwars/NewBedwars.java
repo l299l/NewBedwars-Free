@@ -65,6 +65,7 @@ public final class NewBedwars extends JavaPlugin {
     private final JoinNpcManager joinNpcManager;
     private final ArenaGroupManager arenaGroupManager;
     private final MapVoteManager mapVoteManager;
+    private final com.l299l.newbedwars.arena.team.TeamSelectorManager teamSelectorManager;
     private com.l299l.newbedwars.update.UpdateService updateService;
     private org.bukkit.scheduler.BukkitTask safetyTask;
 
@@ -78,6 +79,7 @@ public final class NewBedwars extends JavaPlugin {
         joinNpcManager = new JoinNpcManager();
         arenaGroupManager = new ArenaGroupManager();
         mapVoteManager = new MapVoteManager();
+        teamSelectorManager = new com.l299l.newbedwars.arena.team.TeamSelectorManager();
     }
 
     @Override
@@ -328,6 +330,7 @@ public final class NewBedwars extends JavaPlugin {
         }
         joinNpcManager.registerListeners();
         getServer().getPluginManager().registerEvents(mapVoteManager, this);
+        getServer().getPluginManager().registerEvents(teamSelectorManager, this);
         if (updateService != null) {
             getServer().getPluginManager().registerEvents(new com.l299l.newbedwars.update.UpdateNotifier(this, updateService), this);
         }

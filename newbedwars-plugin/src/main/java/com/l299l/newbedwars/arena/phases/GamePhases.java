@@ -39,6 +39,10 @@ public class GamePhases {
         return ID;
     }
 
+    public List<Phase> getPhases() {
+        return java.util.Collections.unmodifiableList(phases);
+    }
+
     public Phase getCurrentPhase() {
         if (currentPhase >= phases.size()) return null;
         return phases.get(currentPhase);

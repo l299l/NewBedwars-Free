@@ -90,13 +90,17 @@ public class CustomItem implements GUIEntry {
     }
 
     public ItemStack getItem(Player player) {
+        return getItem(player, amount);
+    }
+
+    public ItemStack getItem(Player player, int stackAmount) {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
         Material resolvedMaterial = material;
         if (TeamColor.undyedKind(material) != null) {
             Team team = ArenaRegistry.byWorld(player.getWorld()).getTeam(player);
             resolvedMaterial = TeamColor.recolor(material, team.getColor());
         }
-        ItemStack item = new ItemStack(resolvedMaterial, amount);
+        ItemStack item = new ItemStack(resolvedMaterial, Math.max(1, stackAmount));
         ItemMeta meta = item.getItemMeta();
         assert meta != null;
         String displayName = msg.getMsg(language, name + "-name");
@@ -135,6 +139,10 @@ public class CustomItem implements GUIEntry {
     }
 
     public PurchaseResult buyItem(Player player) {
+        return buyItem(player, (ItemPricing.Offer) null);
+    }
+
+    public PurchaseResult buyItem(Player player, ItemPricing.Offer offer) {
         if (onBuyEvent == OnBuyEvent.CANCEL) {
             return PurchaseResult.CANCELLED;
         }
@@ -188,21 +196,22 @@ public class CustomItem implements GUIEntry {
         if (onBuyEvent == OnBuyEvent.GIVE_PERM && GamePermissions.has(player.getUniqueId(), givePermission)) {
             return PurchaseResult.ALREADY_OWNED;
         }
-        if (priceType == PriceType.OTHER && otherPriceMaterial == null) {
+        if (offer == null) offer = ItemPricing.offer(this, null, arena);
+        if (offer.priceType() == PriceType.OTHER && offer.otherMaterial() == null) {
             return PurchaseResult.UNAVAILABLE;
         }
-        Material priceMaterial = priceMaterial();
-        if (priceMaterial != null && !player.getInventory().contains(priceMaterial, price)) {
+        Material priceMaterial = offer.priceMaterial();
+        if (priceMaterial != null && !player.getInventory().contains(priceMaterial, offer.price())) {
             return PurchaseResult.NOT_ENOUGH;
         }
-        int charged = price;
+        int charged = offer.price();
         if (arena != null) {
             ShopPurchaseEvent.Kind kind = switch (onBuyEvent) {
                 case GIVE_ARMOR -> ShopPurchaseEvent.Kind.ARMOR;
                 case GIVE_TOOL -> ShopPurchaseEvent.Kind.TOOL;
                 default -> ShopPurchaseEvent.Kind.ITEM;
             };
-            charged = ApiEvents.shopPurchase(arena, player, name, kind, priceLabel(), price, team);
+            charged = ApiEvents.shopPurchase(arena, player, name, kind, offer.priceLabel(), offer.price(), team);
             if (charged < 0) return PurchaseResult.CANCELLED;
             if (priceMaterial != null && charged > 0 && !player.getInventory().contains(priceMaterial, charged)) {
                 return PurchaseResult.NOT_ENOUGH;
@@ -213,7 +222,7 @@ public class CustomItem implements GUIEntry {
         }
         switch (onBuyEvent) {
             case GIVE_ITEM -> {
-                ArmorContents.giveOrDrop(player, getItem(player));
+                ArmorContents.giveOrDrop(player, getItem(player, offer.amount()));
                 if (isPermanent && team != null) {
                     team.getArmorContents(player).addOther(this);
                 }
@@ -374,15 +383,19 @@ public class CustomItem implements GUIEntry {
     }
 
     public ItemStack getIcon(Language language) {
-        return buildIcon(language, material, null);
+        return buildIcon(language, material, null, ItemPricing.base(this));
     }
 
     public ItemStack getIcon(Language language, Player viewer) {
-        return buildIcon(language, material, viewer);
+        return buildIcon(language, material, viewer, ItemPricing.base(this));
     }
 
     @Override
     public ItemStack getIcon(Player player) {
+        return getIcon(player, ItemPricing.offer(this, null, ArenaRegistry.byWorld(player.getWorld())));
+    }
+
+    public ItemStack getIcon(Player player, ItemPricing.Offer offer) {
         Language language = NewBedwars.plugin.getPlayerManager().getPlayer(player.getName()).language();
         Material iconMaterial = material;
         if (TeamColor.undyedKind(material) != null) {
@@ -392,10 +405,10 @@ public class CustomItem implements GUIEntry {
                 if (team != null) iconMaterial = TeamColor.recolor(material, team.getColor());
             }
         }
-        return buildIcon(language, iconMaterial, player);
+        return buildIcon(language, iconMaterial, player, offer);
     }
 
-    private ItemStack buildIcon(Language language, Material iconMaterial, Player viewer) {
+    private ItemStack buildIcon(Language language, Material iconMaterial, Player viewer, ItemPricing.Offer offer) {
         String desc = msg.getMsg(language, name + "-icon-description");
         if (desc == null || desc.isEmpty()) {
             desc = msg.getMsg(language, iconDesc);
@@ -407,8 +420,8 @@ public class CustomItem implements GUIEntry {
                     .filter(line -> !line.contains("/price/"))
                     .collect(Collectors.joining(";"));
         }
-        desc = desc.replace("/price/", price + " " + priceLabel());
-        desc = desc.replace("/amount/", String.valueOf(amount));
+        desc = desc.replace("/price/", offer.price() + " " + offer.priceLabel());
+        desc = desc.replace("/amount/", String.valueOf(offer.amount()));
         String displayName = msg.getMsg(language, name + "-name");
         if (displayName == null) displayName = name;
         desc = desc.replace("/name/", displayName);
@@ -500,16 +513,6 @@ public class CustomItem implements GUIEntry {
         return map;
     }
 
-    private Material priceMaterial() {
-        return switch (priceType) {
-            case EMERALD -> Material.EMERALD;
-            case DIAMOND -> Material.DIAMOND;
-            case GOLD -> Material.GOLD_INGOT;
-            case IRON -> Material.IRON_INGOT;
-            case OTHER -> otherPriceMaterial;
-            default -> null;
-        };
-    }
 
     private Map<String, Integer> getEnchantmentsAsHashMap() {
         Map<String, Integer> map = new java.util.TreeMap<>();

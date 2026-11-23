@@ -77,7 +77,7 @@ class UpgradePricingTest {
         UpgradePricing p = pricing();
         p.load(null);
         assertEquals(5, p.tiers(Upgrade.PROTECTION).size());
-        assertEquals(t(16, PriceType.DIAMOND), p.tiers(Upgrade.PROTECTION).get(4));
+        assertEquals(t(20, PriceType.DIAMOND), p.tiers(Upgrade.PROTECTION).get(4));
         assertTrue(Files.isRegularFile(file()));
         UpgradePricing again = pricing();
         again.load(null);

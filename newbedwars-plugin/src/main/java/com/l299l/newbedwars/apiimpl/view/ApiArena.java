@@ -176,6 +176,16 @@ public final class ApiArena implements ArenaView {
     }
 
     @Override
+    public String getGeneratorConfig() {
+        return arena.getGeneratorsLevelingId();
+    }
+
+    @Override
+    public String getGamePhases() {
+        return arena.getGamePhasesId();
+    }
+
+    @Override
     public ExtraData getExtra(org.bukkit.plugin.Plugin owner) {
         return new ApiExtra(arena::getExtra, owner.getName(), () -> ApiPersistence.requestSave(arena));
     }

@@ -1,7 +1,10 @@
 # =====================================================
-#  NewBedwars — Generator Configuration
+#  NewBedwars — Generator Configuration (DefaultGenerators, deprecated)
 #
-#  ConfigurationId must match DefaultGeneratorConfig in config.yml.
+#  The pre-2.8 generator values, kept for arenas that still use them.
+#  New arenas use the built-in modes in this folder: Solo, Doubles, Squads, Rush, Duels
+#  (DefaultGeneratorConfig in config.yml picks the one new arenas get).
+#  This file also holds CustomGenerators and documents the format for every generator file.
 #  Create additional files in the generators/ folder with
 #  different IDs to define alternative generator presets.
 #

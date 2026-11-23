@@ -120,4 +120,54 @@ class GamePhasesTest {
         GamePhases gp = new GamePhases("test", List.of(first, mockPhase()));
         assertSame(first, gp.getCurrentPhase());
     }
+
+    @Test
+    void getPhasesIsUnmodifiableAndKeepsOrder() {
+        Phase first = mockPhase();
+        Phase second = mockPhase();
+        GamePhases gp = new GamePhases("test", new java.util.ArrayList<>(List.of(first, second)));
+        assertEquals(List.of(first, second), gp.getPhases());
+        assertThrows(UnsupportedOperationException.class, () -> gp.getPhases().add(mockPhase()));
+        assertThrows(UnsupportedOperationException.class, () -> gp.getPhases().remove(0));
+    }
+
+    @Test
+    void phaseExposesInitialDurationAndActions() {
+        PhaseAction action = new PhaseAction("A:1");
+        Phase phase = new Phase("One", 90, List.of(action));
+        assertEquals(90, phase.getInitialDuration());
+        assertEquals(List.of(action), phase.getActions());
+        assertThrows(UnsupportedOperationException.class, () -> phase.getActions().add(action));
+        assertEquals(90, phase.copy().getInitialDuration());
+    }
+
+    @Test
+    void phaseNullDurationAndActionsDefaultToEmpty() {
+        Phase phase = new Phase("One", null, null);
+        assertEquals(0, phase.getInitialDuration());
+        assertTrue(phase.getActions().isEmpty());
+    }
+
+    @Test
+    void initialDurationIsUnchangedByTheCountdown() {
+        Phase phase = new Phase("One", 90, List.of());
+        org.bukkit.scheduler.BukkitScheduler scheduler = mock(org.bukkit.scheduler.BukkitScheduler.class);
+        org.bukkit.scheduler.BukkitTask task = mock(org.bukkit.scheduler.BukkitTask.class);
+        com.l299l.newbedwars.NewBedwars plugin = mock(com.l299l.newbedwars.NewBedwars.class);
+        com.l299l.newbedwars.NewBedwars.plugin = plugin;
+        try (org.mockito.MockedStatic<org.bukkit.Bukkit> bukkit = mockStatic(org.bukkit.Bukkit.class)) {
+            bukkit.when(org.bukkit.Bukkit::getScheduler).thenReturn(scheduler);
+            when(scheduler.runTaskTimer(any(), any(Runnable.class), anyLong(), anyLong())).thenAnswer(i -> {
+                Runnable r = i.getArgument(1);
+                r.run();
+                r.run();
+                return task;
+            });
+            phase.start(mock(IArena.class));
+            assertEquals(88, phase.getDuration());
+            assertEquals(90, phase.getInitialDuration());
+        } finally {
+            com.l299l.newbedwars.NewBedwars.plugin = null;
+        }
+    }
 }

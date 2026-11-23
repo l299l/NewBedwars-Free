@@ -78,11 +78,13 @@ nav:
       - Installation: installation.md
       - Arena setup: arena-setup.md
       - Shop and upgrades: shop-and-upgrades.md
+      - Game modes and phases: game-modes.md
   - Reference:
       - Configuration: configuration.md
       - Commands and permissions: commands.md
       - Placeholders: placeholders.md
       - Storage: storage.md
+      - Balance simulator: balance-simulator.md
   - Network and panel:
       - Network mode: network.md
       - Web panel: panel.md

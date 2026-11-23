@@ -22,6 +22,7 @@ import com.l299l.newbedwars.panel.network.PeerPins;
 import com.l299l.newbedwars.panel.routes.AdminRoutes;
 import com.l299l.newbedwars.panel.routes.NetworkRoutes;
 import com.l299l.newbedwars.panel.routes.GameRoutes;
+import com.l299l.newbedwars.panel.routes.ModeRoutes;
 import com.l299l.newbedwars.panel.routes.ShopRoutes;
 import com.l299l.newbedwars.panel.routes.StatsRoutes;
 import com.l299l.newbedwars.panel.routes.ArenaRoutes;
@@ -314,6 +315,7 @@ public final class NewBedwarsPanel extends JavaPlugin {
         new StatsRoutes(NewBedwarsAPI.get()).register(router);
         new GameRoutes(NewBedwarsAPI.get().getGameControl(), gameLog, audit).register(router);
         new ShopRoutes(NewBedwarsAPI.get().getShop(), audit).register(router);
+        new ModeRoutes(NewBedwarsAPI.get().getModes(), audit).register(router);
         if (network != null) {
             new NetworkRoutes(router, network, () -> {
                 DashboardState.Snapshot snapshot = dashboard.snapshot();

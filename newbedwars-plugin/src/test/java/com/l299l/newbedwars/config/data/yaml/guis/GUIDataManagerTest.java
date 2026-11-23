@@ -52,7 +52,7 @@ class GUIDataManagerTest {
         Files.writeString(guis.resolve("notes.txt"), "ignored");
         GUIDataManager m = manager();
         m.load();
-        assertEquals(1, m.getGuiSaves().size());
+        assertEquals(1 + com.l299l.newbedwars.config.BuiltInModes.NAMES.size(), m.getGuiSaves().size());
         assertSame(wool, m.get("a").getItem(0));
         assertEquals(2, m.getBrokenFiles().size());
         assertTrue(m.getBrokenFiles().get("c.yml").contains("already used"));
@@ -107,5 +107,18 @@ class GUIDataManagerTest {
         assertTrue(m.fileTaken("other"));
         assertFalse(m.fileTaken("different"));
         assertFalse(m.fileTaken("new"));
+    }
+
+    @Test
+    void builtInModeGuisAreCopiedWhenMissingAndNeverOverwritten() throws IOException {
+        Path guis = guis();
+        Files.writeString(guis.resolve("upgradeSolo.yml"), "GuiId: upgradeSolo\nSize: 9\n");
+        GUIDataManager m = manager();
+        m.load();
+        for (String mode : com.l299l.newbedwars.config.BuiltInModes.NAMES) {
+            assertNotNull(m.get("upgrade" + mode), mode);
+        }
+        assertEquals("GuiId: upgradeSolo\nSize: 9\n", Files.readString(guis.resolve("upgradeSolo.yml")));
+        assertTrue(m.get("upgradeSquads").getDefinition().extra().containsKey("UpgradePrices"));
     }
 }

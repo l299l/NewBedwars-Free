@@ -1,0 +1,46 @@
+# =====================================================
+#  NewBedwars — Rush generators (fast games, about 15 minutes)
+#
+#  Built-in mode preset, tuned with tools/balance (see docs/dev/BALANCE-SIM.md).
+#  Copied to plugins/NewBedwars/generators/ when missing; edit the copy there.
+#  Use it in an arena with /bw setGeneratorLeveling Rush
+#  Format: see defaultGenerators.yml.
+# =====================================================
+
+ConfigurationId: Rush
+
+# ----- Team (Basic) Generator --------------------
+TeamGenerator:
+  MaxLevel: 9
+  ShowNextSpawnTime: false
+  Iron:
+    SpawnRate: [87.7, 87.4, 87.7, 79.5, 79.7, 78.5, 82.7, 82.1, 81.5]
+    MaxAmount: [1, 1, 1, 2, 2, 2, 2, 2, 2]
+  Gold:
+    SpawnRate: [12.3, 12.6, 12.3, 17, 16.7, 16.8, 11.6, 11.6, 11.4]
+    MaxAmount: [1, 1, 1, 1, 1, 1, 2, 2, 2]
+  Emerald:
+    SpawnRate: [0, 0, 0, 3.4, 3.6, 4.2, 5, 5.4, 6.1]
+    MaxAmount: [0, 0, 0, 1, 1, 1, 1, 1, 1]
+  Diamond:
+    SpawnRate: [0, 0, 0, 0, 0, 0.5, 0.7, 0.9, 1]
+    MaxAmount: [0, 0, 0, 0, 0, 1, 1, 1, 1]
+  SpawnDelay: [0.4, 0.35, 0.3, 0.35, 0.3, 0.25, 0.25, 0.2, 0.2]
+
+# ----- Diamond Generator -------------------------
+DiamondGenerator:
+  MaxLevel: 3
+  ShowNextSpawnTime: true
+  Diamond:
+    SpawnRate: [100]
+    MaxAmount: [1]
+  SpawnDelay: [24, 16, 10]
+
+# ----- Emerald Generator -------------------------
+EmeraldGenerator:
+  MaxLevel: 3
+  ShowNextSpawnTime: true
+  Emerald:
+    SpawnRate: [100]
+    MaxAmount: [1]
+  SpawnDelay: [56, 40, 28]

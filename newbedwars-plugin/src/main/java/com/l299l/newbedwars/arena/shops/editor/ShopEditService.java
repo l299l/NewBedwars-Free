@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.shops.editor;
 
+import com.l299l.newbedwars.arena.shops.customitems.ItemPricing;
 import com.l299l.newbedwars.arena.shops.upgrades.UpgradePricing;
 import com.l299l.newbedwars.arena.shops.upgrades.UpgradeTier;
 import com.l299l.newbedwars.api.shop.UpgradePrice;
@@ -333,7 +334,8 @@ public final class ShopEditService {
             overrides.put(e.getKey(), toApi(e.getValue()));
         }
         return new ShopGui(d.id(), d.title(), d.size(), d.headerSize(), d.footerSize(), false,
-                d.fill(), d.empty(), d.slots(), categories, save.getProblems(), guiUsages(d.id()), overrides);
+                d.fill(), d.empty(), d.slots(), categories, save.getProblems(), guiUsages(d.id()), overrides,
+                ItemPricing.overrides(d));
     }
 
     public static List<String> guiUsages(String id) {
@@ -389,6 +391,20 @@ public final class ShopEditService {
             }
             if (overrides.isEmpty()) extra.remove(UpgradePricing.GUI_KEY);
             else extra.put(UpgradePricing.GUI_KEY, overrides);
+        }
+        if (gui.itemPrices() != null) {
+            Map<String, Object> prices = new LinkedHashMap<>();
+            for (Map.Entry<String, com.l299l.newbedwars.api.shop.ItemPrice> e : gui.itemPrices().entrySet()) {
+                CustomItem item = e.getKey() == null ? null : NewBedwars.plugin.getCustomItemManager().getCustomItem(e.getKey());
+                if (item == null) return invalid("itemPrices: unknown item " + e.getKey());
+                try {
+                    prices.put(item.getName(), ItemPricing.serialize(ItemPricing.validate(e.getValue())));
+                } catch (IllegalArgumentException ex) {
+                    return invalid("itemPrices." + item.getName() + ": " + ex.getMessage());
+                }
+            }
+            if (prices.isEmpty()) extra.remove(ItemPricing.GUI_KEY);
+            else extra.put(ItemPricing.GUI_KEY, prices);
         }
         GuiDefinition def = new GuiDefinition(gui.id(), previous == null ? "ShopGUI" : previous.guiClass(), gui.title(),
                 gui.size(), blankToEmpty(gui.fill()), blankToEmpty(gui.empty()),

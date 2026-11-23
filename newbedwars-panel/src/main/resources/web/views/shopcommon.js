@@ -1,4 +1,4 @@
-import { api, busy, confirmDialog, errorText, h, isGateway, serverPicker, state, t, toast } from '../app.js';
+import { api, busy, can, confirmDialog, errorText, h, isGateway, serverPicker, state, t, toast } from '../app.js';
 
 const COLORS = {
   '0': '#000000', '1': '#0000aa', '2': '#00aa00', '3': '#00aaaa', '4': '#aa0000', '5': '#aa00aa', '6': '#ffaa00', '7': '#aaaaaa',
@@ -100,6 +100,7 @@ export function usageText(usage) {
 
 export function shopTabs(active) {
   const tabs = [['items', 'shop.tab.items'], ['guis', 'shop.tab.guis'], ['upgrades', 'shop.tab.upgrades'], ['arenas', 'shop.tab.arenas']];
+  if (can('modes.view')) tabs.push(['modes', 'shop.tab.modes']);
   return h('div', {}, serverPicker(), h('nav', { class: 'tabs', 'aria-label': t('nav.shop') },
     tabs.map(([route, key]) => h('a', {
       href: '#/shop/' + route, class: 'tab' + (route === active ? ' is-active' : ''),
