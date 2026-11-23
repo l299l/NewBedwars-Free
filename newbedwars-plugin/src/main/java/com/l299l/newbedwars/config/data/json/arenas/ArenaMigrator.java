@@ -30,6 +30,7 @@ public final class ArenaMigrator {
         if (!isString(json, "worldName")) json.addProperty("worldName", json.get("arenaName").getAsString());
         if (!json.has("enabled") || !json.get("enabled").isJsonPrimitive()) json.addProperty("enabled", false);
         if (!json.has("gamerules") || !json.get("gamerules").isJsonObject()) json.add("gamerules", new JsonObject());
+        if (!json.has("tablist") || !json.get("tablist").isJsonPrimitive()) json.add("tablist", com.google.gson.JsonNull.INSTANCE);
         json.add("teams", keepObjectsWith(json.get("teams"), "name"));
         json.add("generators", keepObjectsWith(json.get("generators"), "type"));
     }

@@ -311,6 +311,7 @@ public class MainCommand implements TabExecutor {
         register(new SetGeneratorLevelingCommand(), Context.SETUP_ADVANCED);
         register(new SetGamePhasesCommand(), Context.SETUP_ADVANCED);
         register(new SetModeCommand(), Context.SETUP_ADVANCED);
+        register(new SetTablistCommand(), Context.SETUP_ADVANCED);
 
         register(new StartAutomaticSetupCommand(), Context.SETUP_AUTOMATIC);
         register(new SetupHelpCommand(this::setupCommandsFor, this::getArena), Context.SETUP_BASIC);

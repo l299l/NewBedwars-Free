@@ -44,6 +44,9 @@ public class ConnectionListener implements Listener {
     public void onLeave(PlayerQuitEvent e) {
         Player p = e.getPlayer();
         if (plugin.getPartyManager() != null) plugin.getPartyManager().cleanupOfflinePlayer(p);
+        if (plugin.getTablistManager() != null) plugin.getTablistManager().forget(p);
+        com.l299l.newbedwars.scoreboard.ScoreboardOverrides.forget(p);
+        if (plugin.getAddonBossBars() != null) plugin.getAddonBossBars().removeForPlayer(p);
         for (IArena arena : new ArrayList<>(ArenaRegistry.all())) {
             if (isInArena(arena, p) && !arena.getRejoinSlots().containsKey(p.getUniqueId())) {
                 arena.leave(p, LeaveReason.DISCONNECT);

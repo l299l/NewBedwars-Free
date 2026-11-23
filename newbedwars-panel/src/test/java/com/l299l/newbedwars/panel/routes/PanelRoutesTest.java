@@ -420,6 +420,112 @@ class PanelRoutesTest {
         assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("arena.mode") && e.target().equals("castle -> Squads") && e.result().equals("OK")));
     }
 
+    private static CompletableFuture<com.l299l.newbedwars.api.mode.EditResult> edit(com.l299l.newbedwars.api.mode.EditResult.Code code, List<String> problems, List<String> usedBy) {
+        return CompletableFuture.completedFuture(new com.l299l.newbedwars.api.mode.EditResult(code, problems, usedBy));
+    }
+
+    @Test
+    void modeEditingNeedsItsOwnPermission() throws Exception {
+        Login helper = login("helper", "helper-password");
+        for (String[] call : new String[][]{{"PUT", "/api/modes/Squads"}, {"DELETE", "/api/modes/Squads"}, {"PUT", "/api/phases/quick"},
+                {"DELETE", "/api/phases/quick"}, {"PUT", "/api/generators/fast"}, {"DELETE", "/api/generators/fast"}}) {
+            assertEquals(403, send(call[0], call[1], helper, "{}").statusCode(), call[1]);
+        }
+        assertEquals(403, send("GET", "/api/generators", helper, null).statusCode());
+        assertEquals(403, send("GET", "/api/phases", helper, null).statusCode());
+        verifyNoInteractions(modeService);
+        assertTrue(Permission.isKnown("modes.edit"));
+        assertFalse(Permission.LOCAL_ONLY.contains("modes.edit"));
+        assertTrue(Role.ADMIN_ROLE.has("modes.edit"));
+    }
+
+    @Test
+    void savingAModeParsesTheBodyMapsCodesAndAudits() throws Exception {
+        Login boss = login("boss", "boss-password");
+        when(modeService.getModes()).thenReturn(java.util.concurrent.CompletableFuture.completedFuture(List.of(
+                new com.l299l.newbedwars.api.mode.ModeInfo("squads", null, null, null, null, 4, 4, true, "Compact"))));
+        var ok = new com.l299l.newbedwars.api.mode.ModeInfo("Squads", "fast", null, "shop", null, 4, 2, false, "Compact");
+        when(modeService.saveMode(ok)).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.OK, List.of(), List.of()));
+        when(modeService.saveMode(new com.l299l.newbedwars.api.mode.ModeInfo("Bad", null, null, null, null, 0, 0, false)))
+                .thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.INVALID, List.of("no such phase list"), List.of()));
+
+        HttpResponse<String> saved = send("PUT", "/api/modes/Squads", boss,
+                "{\"generators\":\"fast\",\"gamePhases\":\"\",\"shopGui\":\"shop\",\"upgradeGui\":null,\"maxInTeam\":4,\"teams\":2}");
+        assertEquals(200, saved.statusCode(), saved.body());
+        assertEquals("OK", json(saved).get("code").getAsString());
+        HttpResponse<String> invalid = send("PUT", "/api/modes/Bad", boss, "{}");
+        assertEquals(400, invalid.statusCode());
+        assertEquals("INVALID", json(invalid).get("code").getAsString());
+        assertEquals("no such phase list", json(invalid).getAsJsonArray("problems").get(0).getAsString());
+        assertEquals(400, send("PUT", "/api/modes/Bad", boss, "{\"teams\":-1}").statusCode());
+        assertEquals(400, send("PUT", "/api/modes/Bad", boss, "{\"teams\":\"x\"}").statusCode());
+        assertEquals(400, send("PUT", "/api/modes/bad%20id", boss, "{}").statusCode());
+        assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("modes.save") && e.target().equals("Squads") && e.result().equals("OK")));
+    }
+
+    @Test
+    void deletesMapEveryCodeToAStatus() throws Exception {
+        Login boss = login("boss", "boss-password");
+        var code = com.l299l.newbedwars.api.mode.EditResult.Code.class;
+        when(modeService.deleteMode("a")).thenReturn(edit(code.getEnumConstants()[0], List.of(), List.of()));
+        when(modeService.deleteMode("b")).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.NOT_FOUND, List.of(), List.of()));
+        when(modeService.deleteMode("c")).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.BUILT_IN, List.of(), List.of()));
+        when(modeService.deletePhaseList("d")).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.IN_USE, List.of(), List.of("mode Squads", "arena castle")));
+        when(modeService.deleteGeneratorConfig("e")).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.FAILED, List.of("disk"), List.of()));
+
+        assertEquals(200, send("DELETE", "/api/modes/a", boss, null).statusCode());
+        assertEquals(404, send("DELETE", "/api/modes/b", boss, null).statusCode());
+        assertEquals(409, send("DELETE", "/api/modes/c", boss, null).statusCode());
+        HttpResponse<String> inUse = send("DELETE", "/api/phases/d", boss, null);
+        assertEquals(409, inUse.statusCode());
+        assertEquals("arena castle", json(inUse).getAsJsonArray("usedBy").get(1).getAsString());
+        assertEquals(500, send("DELETE", "/api/generators/e", boss, null).statusCode());
+        assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("phases.delete") && e.result().equals("IN_USE")));
+        assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("generators.delete") && e.result().equals("FAILED")));
+        assertEquals(403, send("DELETE", "/api/modes/a", boss, null, false).statusCode());
+    }
+
+    @Test
+    void phaseListsAreParsedStrictly() throws Exception {
+        Login boss = login("boss", "boss-password");
+        var list = new com.l299l.newbedwars.api.mode.PhaseListInfo("quick", List.of(
+                new com.l299l.newbedwars.api.mode.PhaseInfo("One", 360, List.of("DIAMOND_GENERATOR:2", "BED_DESTRUCTION")),
+                new com.l299l.newbedwars.api.mode.PhaseInfo("Two", 0, List.of())));
+        when(modeService.savePhaseList(list)).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.OK, List.of(), List.of()));
+        when(modeService.getPhaseLists()).thenReturn(CompletableFuture.completedFuture(List.of(list)));
+
+        assertEquals(200, send("PUT", "/api/phases/quick", boss,
+                "{\"phases\":[{\"name\":\"One\",\"duration\":360,\"actions\":[\"DIAMOND_GENERATOR:2\",\"BED_DESTRUCTION\"]},{\"name\":\"Two\",\"duration\":0}]}").statusCode());
+        assertEquals(400, send("PUT", "/api/phases/quick", boss, "{}").statusCode());
+        assertEquals(400, send("PUT", "/api/phases/quick", boss, "{\"phases\":[{\"duration\":5}]}").statusCode());
+        assertEquals(400, send("PUT", "/api/phases/quick", boss, "{\"phases\":[{\"name\":\"x\",\"duration\":-5}]}").statusCode());
+        assertEquals(400, send("PUT", "/api/phases/quick", boss, "{\"phases\":[{\"name\":\"x\",\"duration\":5,\"actions\":[1]}]}").statusCode());
+        JsonObject lists = json(send("GET", "/api/phases", boss, null));
+        assertEquals(360, lists.getAsJsonArray("phaseLists").get(0).getAsJsonObject().getAsJsonArray("phases").get(0).getAsJsonObject().get("duration").getAsInt());
+    }
+
+    @Test
+    void generatorConfigsAreListedReadAndSaved() throws Exception {
+        Login boss = login("boss", "boss-password");
+        when(modeService.getGeneratorConfigFiles()).thenReturn(CompletableFuture.completedFuture(List.of(
+                new com.l299l.newbedwars.api.mode.GeneratorConfigInfo("fast", "fast.yml", true))));
+        when(modeService.getGeneratorConfigText("fast")).thenReturn(CompletableFuture.completedFuture("ConfigurationId: fast\n"));
+        when(modeService.getGeneratorConfigText("ghost")).thenReturn(CompletableFuture.completedFuture(null));
+        when(modeService.saveGeneratorConfig("fast", "ConfigurationId: fast\n")).thenReturn(edit(com.l299l.newbedwars.api.mode.EditResult.Code.OK, List.of(), List.of()));
+
+        JsonObject files = json(send("GET", "/api/generators", boss, null)).getAsJsonArray("generators").get(0).getAsJsonObject();
+        assertEquals("fast.yml", files.get("fileName").getAsString());
+        assertTrue(files.get("builtIn").getAsBoolean());
+        assertEquals("ConfigurationId: fast\n", json(send("GET", "/api/generators/fast", boss, null)).get("yaml").getAsString());
+        assertEquals(404, send("GET", "/api/generators/ghost", boss, null).statusCode());
+        assertEquals(200, send("PUT", "/api/generators/fast", boss, "{\"yaml\":\"ConfigurationId: fast\\n\"}").statusCode());
+        assertEquals(400, send("PUT", "/api/generators/fast", boss, "{}").statusCode());
+        String big = "{\"yaml\":\"" + "a".repeat(49 * 1024) + "\"}";
+        assertEquals(413, send("PUT", "/api/generators/fast", boss, big).statusCode());
+        verify(modeService, never()).saveGeneratorConfig(eq("fast"), org.mockito.ArgumentMatchers.argThat(y -> y.length() > 40_000));
+        assertTrue(audit.recent(10).stream().anyMatch(e -> e.action().equals("generators.save") && e.result().equals("OK")));
+    }
+
     @Test
     void gameActionsAreAuditedAndLogged() throws Exception {
         Login boss = login("boss", "boss-password");

@@ -44,6 +44,8 @@ public class Properties{
     public static StorageType StorageType;
     public static Boolean ArenaChatEnabled;
     public static Boolean TablistIsolationEnabled;
+    public static boolean TablistEnabled = true;
+    public static String DefaultTablist = "Default";
     public static String MySQLHost;
     public static String MySQLUser;
     public static String MySQLPassword;
@@ -102,6 +104,8 @@ public class Properties{
         ArenaChatEnabled = ace instanceof Boolean b ? b : true;
         Object tie = get("TablistIsolationEnabled");
         TablistIsolationEnabled = tie instanceof Boolean b ? b : true;
+        TablistEnabled = !(get("Tablist.Enabled") instanceof Boolean te) || te;
+        DefaultTablist = get("DefaultTablist") instanceof String dt && !dt.isBlank() ? dt.trim() : "Default";
 
         DefaultMinPlayers = typed("DefaultMinPlayers", Integer.class);
         DefaultMaxInTeam = typed("DefaultMaxInTeam", Integer.class);
@@ -214,6 +218,11 @@ public class Properties{
             }
         }
 
+        reloadModes();
+    }
+
+    public static void reloadModes() {
+        GamePhases = new HashMap<>();
         Map<String, Object> own = com.l299l.newbedwars.config.ModesFile.current();
         Map<String, Object> builtIn = com.l299l.newbedwars.config.ModesFile.bundled();
         Set<String> configured = new HashSet<>();
@@ -229,7 +238,7 @@ public class Properties{
         loadModes(own, builtIn);
     }
 
-    private void loadModes(Map<String, Object> own, Map<String, Object> builtIn) {
+    private static void loadModes(Map<String, Object> own, Map<String, Object> builtIn) {
         Map<String, GameMode> modes = new java.util.LinkedHashMap<>();
         Object section = own.get("Modes");
         if (section instanceof Map<?, ?> map) {
@@ -243,7 +252,7 @@ public class Properties{
         Modes = modes;
     }
 
-    private void readModes(Map<?, ?> section, Map<String, GameMode> modes, boolean warn) {
+    private static void readModes(Map<?, ?> section, Map<String, GameMode> modes, boolean warn) {
         for (Map.Entry<?, ?> e : section.entrySet()) {
             String id = String.valueOf(e.getKey());
             if (modes.containsKey(id) || e.getValue() == null) continue;
@@ -254,7 +263,7 @@ public class Properties{
             modes.put(id, new GameMode(id, modeText(mode, "Generators"), modeText(mode, "GamePhases"),
                     modeText(mode, "ShopGui"), modeText(mode, "UpgradeGui"),
                     mode.get("MaxInTeam") instanceof Integer i && i > 0 ? i : 0,
-                    mode.get("Teams") instanceof Integer i && i > 0 ? i : 0));
+                    mode.get("Teams") instanceof Integer i && i > 0 ? i : 0, modeText(mode, "Tablist")));
         }
     }
 
@@ -262,7 +271,7 @@ public class Properties{
         return mode.get(key) instanceof String str && !str.isBlank() ? str.trim() : null;
     }
 
-    private void loadGamePhases(List<?> phaseLists, Set<String> configured, String source) {
+    private static void loadGamePhases(List<?> phaseLists, Set<String> configured, String source) {
         for (Object entry : phaseLists) {
             if (!(entry instanceof Map<?, ?> gamePhase) || !(gamePhase.get("ID") instanceof String ID)
                     || !(gamePhase.get("Phases") instanceof List<?> phases)) {

@@ -6,8 +6,8 @@ depend: [NewBedwars]
 description: Logs every NewBedwars API event for testing.
 commands:
   nbwlog:
-    description: "NewBedwarsEventLogger: /nbwlog [chat|dump|edit]"
-    usage: /nbwlog [chat|dump|edit]
+    description: "NewBedwarsEventLogger: /nbwlog [chat|modes|edit]"
+    usage: /nbwlog [chat|modes|edit]
     permission: nbwlogger.use
 permissions:
   nbwlogger.use:

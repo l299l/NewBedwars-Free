@@ -181,6 +181,28 @@ public final class ApiEvents {
         call(new com.l299l.newbedwars.api.events.GamePhaseChangeEvent(view(arena), previous, next, forced));
     }
 
+    public static String[] tablistUpdate(Player player, IArena arena, String layout, String[] texts) {
+        com.l299l.newbedwars.api.events.TablistUpdateEvent event = call(new com.l299l.newbedwars.api.events.TablistUpdateEvent(
+                player, arena == null ? null : view(arena), layout, texts[0], texts[1], texts[2]));
+        if (event.isCancelled()) return null;
+        return new String[]{event.getHeader() == null ? "" : event.getHeader(),
+                event.getFooter() == null ? "" : event.getFooter(), event.getPlayerListName()};
+    }
+
+    public static com.l299l.newbedwars.api.events.ScoreboardUpdateEvent scoreboardUpdate(Player player, IArena arena, String scoreboard,
+                                                                                         String title, java.util.List<String> lines) {
+        com.l299l.newbedwars.api.events.ScoreboardUpdateEvent event = call(new com.l299l.newbedwars.api.events.ScoreboardUpdateEvent(
+                player, arena == null ? null : view(arena), scoreboard, title, lines));
+        return event.isCancelled() ? null : event;
+    }
+
+    public static com.l299l.newbedwars.api.events.BossBarUpdateEvent bossBarUpdate(IArena arena, String bossBar, String text,
+                                                                                   org.bukkit.boss.BarColor color, org.bukkit.boss.BarStyle style) {
+        com.l299l.newbedwars.api.events.BossBarUpdateEvent event = call(new com.l299l.newbedwars.api.events.BossBarUpdateEvent(
+                arena == null ? null : view(arena), bossBar, text, color, style));
+        return event.isCancelled() ? null : event;
+    }
+
     public static void arenaChat(IArena arena, Player player, String message, boolean teamChat, Team team) {
         call(new com.l299l.newbedwars.api.events.ArenaChatEvent(view(arena), player, message, teamChat, view(team)));
     }

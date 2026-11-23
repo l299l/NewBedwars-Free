@@ -39,7 +39,7 @@ public final class NetworkRoutes {
 
     public void register(Router router) {
         router.allowed("GET", "/api/network", Set.of(Permission.NETWORK_SERVERS), r -> Response.ok(network.overview(local.get())));
-        for (String method : new String[]{"GET", "POST", "DELETE"}) {
+        for (String method : new String[]{"GET", "POST", "PUT", "DELETE"}) {
             router.loggedIn(method, "/api/s/{server}/{*rest}", this::forward);
         }
     }

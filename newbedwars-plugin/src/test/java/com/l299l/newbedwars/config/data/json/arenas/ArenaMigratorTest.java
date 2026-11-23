@@ -27,6 +27,16 @@ class ArenaMigratorTest {
     }
 
     @Test
+    void tablistDefaultsToNullAndKeepsAnExistingId() {
+        JsonObject json = JsonParser.parseString("{\"arenaName\":\"a\",\"schemaVersion\":2}").getAsJsonObject();
+        ArenaMigrator.migrate(json);
+        assertTrue(json.get("tablist").isJsonNull());
+        JsonObject set = JsonParser.parseString("{\"arenaName\":\"a\",\"schemaVersion\":2,\"tablist\":\"Fancy\"}").getAsJsonObject();
+        ArenaMigrator.migrate(set);
+        assertEquals("Fancy", set.get("tablist").getAsString());
+    }
+
+    @Test
     void newerSchemaIsRejected() {
         JsonObject json = JsonParser.parseString("{\"schemaVersion\":99}").getAsJsonObject();
         assertThrows(IllegalStateException.class, () -> ArenaMigrator.migrate(json));

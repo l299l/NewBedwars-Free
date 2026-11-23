@@ -24,12 +24,14 @@ public class Updater extends PluginFiles {
     private final Map<Language, File> langFiles = new EnumMap<>(Language.class);
     private FileConfiguration bossBarsConf = null;
     private FileConfiguration scoreboardsConf = null;
+    private FileConfiguration tablistsConf = null;
     private final List<FileConfiguration> generatorsConfigurations = new ArrayList<>();
     private FileConfiguration defaultGeneratorsConf = null;
     private final ClassLoader classLoader;
     private Map<String, Object> legacyUpgradePrices;
     private final File bossBarsFile = new File(NewBedwars.plugin.getDataFolder(), "bossBars.yml");
     private final File scoreboardFile = new File(NewBedwars.plugin.getDataFolder(), "scoreboards.yml");
+    private final File tablistFile = new File(NewBedwars.plugin.getDataFolder(), "tablists.yml");
     private final File generatorsFolder = new File(NewBedwars.plugin.getDataFolder(), "generators");
     private final File generatorsFile = new File(NewBedwars.plugin.getDataFolder(), "generators/defaultGenerators.yml");
     private final String error = ChatColor.RED + "[NewBedwars]: " + ChatColor.DARK_RED + "The language file could not be saved!";
@@ -91,6 +93,10 @@ public class Updater extends PluginFiles {
         scoreboardsConf = refresh("scoreboards.yml", scoreboardFile, scoreboardsConf);
     }
 
+    public void reloadTablists() {
+        tablistsConf = refresh("tablists.yml", tablistFile, tablistsConf);
+    }
+
     public void reloadGeneratorsConfigurations() {
         if (!usable(generatorsFile)) {
             reloadGenerators();
@@ -124,6 +130,10 @@ public class Updater extends PluginFiles {
 
     public FileConfiguration getScoreboardsConf() {
         return scoreboardsConf;
+    }
+
+    public FileConfiguration getTablistsConf() {
+        return tablistsConf;
     }
 
     public List<FileConfiguration> getGeneratorsConfigurations() {

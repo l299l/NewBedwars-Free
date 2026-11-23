@@ -408,6 +408,8 @@ GeneratorLevelingSet: "&b[NewBedwars] &8&l> &fKonfiguracja poziomowania generato
 GeneratorLevelingInvalid: "&4&lBłąd: &r&cKonfiguracja poziomowania generatorów &e/configId/ &cnie znaleziona! Dostępne: &e/available/"
 GamePhasesSet: "&b[NewBedwars] &8&l> &fFazy gry ustawione na &e/id/&f!"
 GamePhasesInvalid: "&4&lBłąd: &r&cFazy gry &e/id/ &cnie znalezione! Dostępne: &e/available/"
+TablistSet: "&b[NewBedwars] &8&l> &fUkład tablisty ustawiony na &e/id/&f!"
+TablistInvalid: "&4&lBłąd: &r&cUkład tablisty &e/id/ &cnie znaleziony! Dostępne: &e/available/"
 ModeSet: "&b[NewBedwars] &8&l> &fTryb &e/mode/ &fskopiowany do tej areny (generatory, fazy gry, GUI, rozmiar drużyny)."
 ModeInvalid: "&4&lBłąd: &r&cTryb &e/mode/ &cnie znaleziony! Dostępne: &e/available/"
 ModeMissingParts: "&4&lBłąd: &r&cTryb &e/mode/ &cużywa ustawień, które nie istnieją: &e/missing/&c. Nic nie zostało zmienione."

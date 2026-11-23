@@ -53,8 +53,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Arena implements IArena {
     public static void updateTablist(Player player) {
-        if (!Properties.TablistIsolationEnabled) return;
         if (!NewBedwars.plugin.isEnabled()) return;
+        com.l299l.newbedwars.tablist.TablistManager tablists = NewBedwars.plugin.getTablistManager();
+        if (tablists != null) tablists.update(player);
+        if (!Properties.TablistIsolationEnabled) return;
         IArena playerArena = ArenaRegistry.byWorld(player.getWorld());
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other.equals(player)) continue;
@@ -101,6 +103,7 @@ public class Arena implements IArena {
     private final Set<UUID> forfeited = new HashSet<>();
     private final Set<UUID> leaving = new HashSet<>();
     private final HashMap<UUID, NScoreboard> scoreboards = new HashMap<>();
+    private final HashMap<UUID, String> scoreboardBases = new HashMap<>();
     private final String worldName;
     private Location waitingPos1;
     private Location waitingPos2;
@@ -125,6 +128,7 @@ public class Arena implements IArena {
     private long gameStartMillis = 0;
     private String shopGuiId;
     private String upgradeGuiId;
+    private String tablistId;
 
     public Arena(String arenaName, World world) {
         this.arenaName = arenaName;
@@ -278,6 +282,7 @@ public class Arena implements IArena {
             scoreboard.kill();
         }
         scoreboards.clear();
+        scoreboardBases.clear();
         playersWithResourcePack.clear();
 
         IronGolemLogic.cleanupAllForArena(arenaName);
@@ -585,6 +590,10 @@ public class Arena implements IArena {
         if (playerScoreboard != null) {
             playerScoreboard.kill();
         }
+        scoreboardBases.remove(player.getUniqueId());
+        com.l299l.newbedwars.scoreboard.ScoreboardOverrides.forget(player);
+        com.l299l.newbedwars.bossbar.AddonBossBars addonBars = NewBedwars.plugin.getAddonBossBars();
+        if (addonBars != null) addonBars.removeForArena(player, arenaName);
         GamePlayer leavingPlayer = players.get(player.getUniqueId());
         if (leavingPlayer == null) return;
         leavingPlayer.cancelRespawnTask();
@@ -1112,6 +1121,10 @@ public class Arena implements IArena {
     public String getUpgradeGuiId() { return upgradeGuiId; }
     @Override
     public void setUpgradeGuiId(String id) { this.upgradeGuiId = id; }
+    @Override
+    public String getTablistId() { return tablistId; }
+    @Override
+    public void setTablistId(String id) { this.tablistId = id; }
 
     public void setWaitingPos1(Location waitingPos1) {
         this.waitingPos1 = waitingPos1;
@@ -1600,10 +1613,33 @@ public class Arena implements IArena {
     }
 
     private void showScoreboard(String template, Player player) {
-        NScoreboard scoreboard = scoreboardManager.createPlayerScoreboard(template, this, player);
+        scoreboardBases.put(player.getUniqueId(), template);
+        String effective = scoreboardManager.effectiveTemplate(template, this, player);
+        if (effective == null) return;
+        NScoreboard scoreboard = scoreboardManager.createPlayerScoreboard(effective, this, player);
         if (scoreboard != null) {
             scoreboards.put(player.getUniqueId(), scoreboard);
         }
+    }
+
+    @Override
+    public void refreshScoreboard(Player player) {
+        String base = scoreboardBases.get(player.getUniqueId());
+        if (base == null) return;
+        NScoreboard old = scoreboards.get(player.getUniqueId());
+        if (old != null && old.getName().equals(scoreboardManager.effectiveTemplate(base, this, player))) {
+            old.refresh();
+            return;
+        }
+        scoreboards.remove(player.getUniqueId());
+        if (old != null) old.kill();
+        showScoreboard(base, player);
+    }
+
+    @Override
+    public String getCurrentScoreboardId(Player player) {
+        NScoreboard shown = scoreboards.get(player.getUniqueId());
+        return shown == null ? null : shown.getName();
     }
 
     private void discardBossBar() {

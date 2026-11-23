@@ -44,6 +44,7 @@ The `Modes` section of `modes.yml` lists the modes that `/bw setMode` knows (and
 | `ShopGui` | Shop menu (`GuiId` of a file in `data/guis/`) |
 | `UpgradeGui` | Upgrade menu (`GuiId` of a file in `data/guis/`) |
 | `MaxInTeam` | Players per team (a whole number above 0) |
+| `Tablist` | Tab list layout (a layout name from `tablists.yml`, see [configuration](configuration.md#custom-tab-list)); copied to the arena like the other keys |
 | `Teams` | Number of teams the mode is made for. It is not applied: `/bw setMode` only warns when the arena has a different number of teams |
 
 ```yaml

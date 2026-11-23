@@ -101,7 +101,7 @@ NewBedwars is a free Bedwars plugin for **Paper 1.17 to 26.x**. Arenas are built
 
     ---
 
-    An [addon API](api.md) with events and registries, update notifications, and the optional [web panel](panel.md).
+    An [addon API](api/index.md) with events and registries, update notifications, and the optional [web panel](panel.md).
 
 </div>
 

@@ -77,6 +77,21 @@ New installs default to Squads. Existing servers keep their own values (`Default
 
 Players with `newbedwars.chat.color` can use `&` colour codes in arena and team chat.
 
+### Custom tab list
+
+The tab list (header, footer and how player names look) is customised per arena with the layouts in `tablists.yml`.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `Tablist.Enabled` | `true` | `false` = the plugin never touches the tab list header, footer or player names (vanilla look). Independent of `TablistIsolationEnabled` |
+| `DefaultTablist` | `Default` | Layout used by arenas that have none of their own |
+
+`tablists.yml` has a `Lobby` section for players outside arenas (**off** by default, `Enabled: false`, like the `MainLobby` boss bar) and a `Layouts` section. A layout has up to three parts: `Waiting` (lobby and countdown), `Playing` and `Spectator` (the spectator's own entry). Each part can set `Header` and `Footer` (lists of lines) and `PlayerFormat`; keys that are missing fall back to the other parts (`Spectator` to `Playing`, `Playing` and `Waiting` to each other). The shipped `Default` layout shows team-coloured names: `{teamColor}{player}` while waiting and `{teamColor}[{teamShort}] {player}` during the game.
+
+Use `&` colour codes. Placeholders: `{player}`, `{teamColor}`, `{teamName}`, `{teamShort}`, `{arena}`, `{players}`, `{maxPlayers}`, `{minPlayers}`, `{phase}`, `{phaseTime}`, `{gameTime}`, `{kills}`, `{finalKills}`, `{bedsBroken}`, `{server}` and `{online}`. PlaceholderAPI placeholders (`%...%`) work too when PlaceholderAPI is installed.
+
+An arena uses, in this order: the layout set with `/bw setTablist <layout>`, the `Tablist` key of the mode applied with `/bw setMode`, then `DefaultTablist`. An unknown layout name falls back to `Default` with a console warning. The tab list refreshes every second and when players join or leave.
+
 ## Scoreboards and boss bars
 
 `bossBars.yml` has one boss bar per situation. Each one cycles through its `Texts`, `Colors`, `Styles` and `Effects` every `Time` seconds and can be turned off with `Enabled: false`.

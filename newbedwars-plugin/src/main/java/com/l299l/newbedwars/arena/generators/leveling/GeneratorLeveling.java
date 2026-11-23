@@ -14,6 +14,11 @@ public class GeneratorLeveling {
     private final Map<String, CustomGeneratorSettings> customGenerators;
 
     public GeneratorLeveling(FileConfiguration configuration) {
+        this(configuration, com.l299l.newbedwars.NewBedwars.plugin != null
+                ? com.l299l.newbedwars.NewBedwars.plugin.getLogger() : Logger.getLogger("NewBedwars"));
+    }
+
+    public GeneratorLeveling(FileConfiguration configuration, Logger log) {
         if (configuration == null) {
             throw new IllegalArgumentException("configuration cannot be null");
         }
@@ -21,8 +26,7 @@ public class GeneratorLeveling {
         basicGeneratorSettings = new GeneratorSettings(configuration.getConfigurationSection("TeamGenerator"));
         diamondGeneratorSettings = new GeneratorSettings(configuration.getConfigurationSection("DiamondGenerator"));
         emeraldGeneratorSettings = new GeneratorSettings(configuration.getConfigurationSection("EmeraldGenerator"));
-        customGenerators = CustomGeneratorSettings.read(configuration.getConfigurationSection("CustomGenerators"),
-                com.l299l.newbedwars.NewBedwars.plugin != null ? com.l299l.newbedwars.NewBedwars.plugin.getLogger() : Logger.getLogger("NewBedwars"));
+        customGenerators = CustomGeneratorSettings.read(configuration.getConfigurationSection("CustomGenerators"), log);
     }
 
     public String getId() {

@@ -48,12 +48,35 @@ public class ScoreboardManager {
         }
     }
 
-    public NScoreboard createPlayerScoreboard(String name, IArena arena, Player player) {
-        if (!scoreboards.containsKey(name)) {
-            return null;
+    public List<String> getIds() {
+        List<String> ids = new ArrayList<>(scoreboards.keySet());
+        Collections.sort(ids);
+        return ids;
+    }
+
+    public String find(String id) {
+        if (id == null) return null;
+        if (scoreboards.containsKey(id)) return id;
+        for (String key : scoreboards.keySet()) {
+            if (key.equalsIgnoreCase(id.trim())) return key;
         }
+        return null;
+    }
+
+    public boolean isEnabled(String id) {
+        ScoreboardSave save = id == null ? null : scoreboards.get(id);
+        return save != null && save.enabled();
+    }
+
+    public String effectiveTemplate(String base, IArena arena, Player player) {
+        if (ScoreboardOverrides.isHidden(player)) return null;
+        String forced = ScoreboardOverrides.get(player, arena == null ? null : arena.getArenaName());
+        return forced == null ? base : forced;
+    }
+
+    public NScoreboard createPlayerScoreboard(String name, IArena arena, Player player) {
         ScoreboardSave scoreboardSave = scoreboards.get(name);
-        if (!scoreboardSave.enabled()) {
+        if (scoreboardSave == null || !scoreboardSave.enabled()) {
             return null;
         }
         String id = OBJECTIVE_ID;
@@ -61,17 +84,20 @@ public class ScoreboardManager {
         scoreboard.registerNewObjective(id, "dummy");
         scoreboard.getObjective(id).setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreboardSave.title()));
         scoreboard.getObjective(id).setDisplaySlot(DisplaySlot.SIDEBAR);
-        TextEffect textEffect = scoreboardSave.textEffect();
-
-        List<String> old = updateScoreboard(id, name, scoreboard, arena, player, null);
-
+        NScoreboard board = new NScoreboard(id, name, scoreboard, this, arena, player, scoreboardSave.textEffect(), scoreboardSave.title());
+        board.update();
         player.setScoreboard(scoreboard);
-        return new NScoreboard(id, name, scoreboard, this, arena, player, old, textEffect, scoreboardSave.title());
+        return board;
     }
 
-    public List<String> updateScoreboard(String id, String name, Scoreboard scoreboard, IArena arena, Player player, List<String> old) {
+    public String titleOf(String name) {
+        ScoreboardSave save = scoreboards.get(name);
+        return save == null ? "" : ChatColor.translateAlternateColorCodes('&', save.title());
+    }
+
+    public List<String> render(String name, IArena arena, Player player) {
         ScoreboardSave scoreboardSave = scoreboards.get(name);
-        if (!scoreboardSave.enabled()) {
+        if (scoreboardSave == null || !scoreboardSave.enabled()) {
             return null;
         }
         List<String> lines = new ArrayList<>();
@@ -101,6 +127,10 @@ public class ScoreboardManager {
                 lines.add(setInfo(line, arena, player));
             }
         }
+        return lines;
+    }
+
+    public void applyLines(String id, Scoreboard scoreboard, List<String> lines, List<String> old) {
         if (old != null) {
             java.util.Set<String> keep = new java.util.HashSet<>(lines);
             for (String line : old) {
@@ -110,7 +140,17 @@ public class ScoreboardManager {
         for (int i = 0; i < lines.size(); i++) {
             scoreboard.getObjective(id).getScore(lines.get(i)).setScore(lines.size() - i);
         }
-        return lines;
+    }
+
+    public static List<String> makeUnique(List<String> lines) {
+        List<String> out = new ArrayList<>(lines.size());
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String line : lines) {
+            String unique = line;
+            while (!seen.add(unique)) unique += ChatColor.RESET;
+            out.add(unique);
+        }
+        return out;
     }
 
     private String setInfo(String line, IArena arena, Player player) {
@@ -145,6 +185,7 @@ public class ScoreboardManager {
                 line = line.replaceAll("/player\\.stats\\.\\w+/", "0");
             }
         }
+        line = com.l299l.newbedwars.placeholder.AddonPlaceholders.apply(line, '/', '/', player, arena);
         return ChatColor.translateAlternateColorCodes('&', line);
     }
 

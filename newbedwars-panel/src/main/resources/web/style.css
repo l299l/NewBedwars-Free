@@ -370,3 +370,17 @@ label { font-weight: 550; font-size: .9375rem; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+.mode-form { padding: .75rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.mode-form .field { display: flex; flex-direction: column; gap: .25rem; margin-bottom: .5rem; min-width: 0; }
+.mode-form .field .hint { margin: 0; }
+.yaml-edit { width: 100%; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8125rem; white-space: pre; overflow: auto; }
+.phase-rows { display: flex; flex-direction: column; gap: .75rem; }
+.phase-row { border-top: 1px solid var(--line); padding-top: .6rem; }
+.phase-head { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-bottom: .4rem; }
+.phase-head input[type=text]:not(.time-input) { flex: 1 1 8rem; min-width: 0; width: auto; }
+.phase-head .time-input { flex: none; width: 5.5rem; }
+.chips { list-style: none; margin: 0 0 .4rem; padding: 0; display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip { display: inline-flex; align-items: center; gap: .15rem; padding: 0 .1rem 0 .5rem; border: 1px solid var(--line); border-radius: 999px; font-size: .8125rem; max-width: 100%; overflow-wrap: anywhere; }
+.actions-edit .inline-form { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.actions-edit .inline-form select { width: auto; max-width: 100%; flex: 1 1 10rem; }
+.actions-edit .inline-form input[type=number] { width: 4.5rem; flex: none; }

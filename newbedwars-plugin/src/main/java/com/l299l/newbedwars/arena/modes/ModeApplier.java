@@ -37,12 +37,15 @@ public final class ModeApplier {
         if (mode.gamePhases() != null && phases == null) missing.add(mode.gamePhases());
         if (mode.shopGui() != null && NewBedwars.plugin.getGuiManager().getGui(mode.shopGui()) == null) missing.add(mode.shopGui());
         if (mode.upgradeGui() != null && NewBedwars.plugin.getGuiManager().getGui(mode.upgradeGui()) == null) missing.add(mode.upgradeGui());
+        com.l299l.newbedwars.tablist.TablistManager tablists = NewBedwars.plugin.getTablistManager();
+        if (mode.tablist() != null && tablists != null && !tablists.hasLayout(mode.tablist())) missing.add(mode.tablist());
         int teams = arena.getTeams().size();
         if (!missing.isEmpty()) return new Result(false, List.copyOf(missing), false, teams);
         if (leveling != null) arena.setGeneratorsLeveling(leveling);
         if (phases != null) arena.setGamePhases(phases);
         if (mode.shopGui() != null) arena.setShopGuiId(mode.shopGui());
         if (mode.upgradeGui() != null) arena.setUpgradeGuiId(mode.upgradeGui());
+        if (mode.tablist() != null) arena.setTablistId(mode.tablist());
         if (mode.maxInTeam() > 0) arena.setMaxInTeam(mode.maxInTeam());
         new ArenaDataJson(arena).save();
         return new Result(true, List.of(), mode.teams() > 0 && teams != mode.teams(), teams);

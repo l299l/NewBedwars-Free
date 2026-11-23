@@ -59,6 +59,20 @@ public interface IArena {
     void disable();
     void setGamePhases(GamePhases gamePhases);
 
+    default void refreshScoreboard(Player player) {
+    }
+
+    default String getCurrentScoreboardId(Player player) {
+        return null;
+    }
+
+    default String getTablistId() {
+        return null;
+    }
+
+    default void setTablistId(String id) {
+    }
+
     default String getGamePhasesId() {
         return null;
     }

@@ -154,6 +154,16 @@ public interface ArenaView {
         return null;
     }
 
+    /**
+     * Id of the tab list layout ({@code tablists.yml}) set on this arena, or {@code null} for the server default
+     * ({@link com.l299l.newbedwars.api.tablist.TablistService#getDefaultLayout()}).
+     *
+     * @since 2.8-beta
+     */
+    default String getTablist() {
+        return null;
+    }
+
     /** Data {@code owner} keeps on this arena, saved with the arena file. */
     ExtraData getExtra(Plugin owner);
 }

@@ -113,7 +113,7 @@ The panel shows every arena live (state, players, phase, teams and beds), online
 
 [![JitPack build status](https://jitpack.io/v/l299l/NewBedwars-Free.svg)](https://jitpack.io/#l299l/NewBedwars-Free)
 
-Addons can read arenas, teams and players, listen to events, edit arenas that are waiting, and register shop logic, upgrades, armor tiers, commands and phase actions. Only the `com.l299l.newbedwars.api` package is stable. The full guide is [docs/api.md](https://l299l.github.io/NewBedwars-Free/api/).
+Addons can read arenas, teams and players, listen to events, edit arenas that are waiting, and register shop logic, upgrades, armor tiers, commands and phase actions. Only the `com.l299l.newbedwars.api` package is stable. The full guide is [docs/api](https://l299l.github.io/NewBedwars-Free/api/).
 
 <details>
 <summary>Example and event list</summary>

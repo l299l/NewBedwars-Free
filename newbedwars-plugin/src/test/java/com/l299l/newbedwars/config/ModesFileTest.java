@@ -22,6 +22,8 @@ import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ModesFileTest {
@@ -291,5 +293,104 @@ class ModesFileTest {
         assertTrue(modeKeys(ModesFile.current()).contains("Mine"));
         assertFalse(modeKeys(ModesFile.current()).contains("LegacyMode"));
         assertComplete();
+    }
+
+    private static List<com.l299l.newbedwars.api.mode.PhaseInfo> onePhase() {
+        return List.of(new com.l299l.newbedwars.api.mode.PhaseInfo("Go \"now\"", 30, List.of("DIAMOND_GENERATOR:2")),
+                new com.l299l.newbedwars.api.mode.PhaseInfo("End", 0, List.of()));
+    }
+
+    @Test
+    void newModeIsAppendedAndOtherCommentsStay() {
+        String edited = ModesFile.withMode(bundledText, "Fun", ModesFile.modeBlock("Fun", "Solo", "Default", null, "upgradeSolo", 3, 6));
+        Map<String, Object> root = ModesFile.parse(edited);
+        assertNotNull(root);
+        assertTrue(ModesFile.hasMode(root, "Fun"));
+        Map<?, ?> fun = (Map<?, ?>) ((Map<?, ?>) root.get("Modes")).get("Fun");
+        assertEquals("Solo", fun.get("Generators"));
+        assertEquals(3, fun.get("MaxInTeam"));
+        assertFalse(fun.containsKey("ShopGui"));
+        assertTrue(modeKeys(root).containsAll(MODES));
+        assertEquals(phaseIds(ModesFile.parse(bundledText)), phaseIds(root));
+        assertTrue(edited.contains("#   Generators  - generator config ID"));
+    }
+
+    @Test
+    void replacingAModeChangesOnlyItsBlock() {
+        String edited = ModesFile.withMode(bundledText, "Squads", ModesFile.modeBlock("Squads", "Duels", null, null, null, 2, 0));
+        Map<String, Object> before = ModesFile.parse(bundledText);
+        Map<String, Object> root = ModesFile.parse(edited);
+        Map<?, ?> squads = (Map<?, ?>) ((Map<?, ?>) root.get("Modes")).get("Squads");
+        assertEquals(Map.of("Generators", "Duels", "MaxInTeam", 2), squads);
+        for (String other : List.of("Solo", "Doubles", "Rush", "Duels")) {
+            assertEquals(((Map<?, ?>) before.get("Modes")).get(other), ((Map<?, ?>) root.get("Modes")).get(other));
+        }
+        assertEquals(before.get("GamePhases"), root.get("GamePhases"));
+        assertTrue(edited.contains("#   Generators  - generator config ID"));
+    }
+
+    @Test
+    void modeWithoutSettingsStillLoadsAsASection() {
+        Map<String, Object> root = ModesFile.parse(ModesFile.withMode(bundledText, "Empty", ModesFile.modeBlock("Empty", null, " ", null, null, 0, 0)));
+        assertTrue(ModesFile.hasMode(root, "Empty"));
+    }
+
+    @Test
+    void modeIsRemovedAndMissingOneReturnsNull() {
+        String edited = ModesFile.withoutMode(bundledText, "Rush");
+        Map<String, Object> root = ModesFile.parse(edited);
+        assertFalse(ModesFile.hasMode(root, "Rush"));
+        assertTrue(ModesFile.hasMode(root, "Duels"));
+        assertTrue(ModesFile.hasMode(root, "Squads"));
+        assertNull(ModesFile.withoutMode(bundledText, "Nope"));
+    }
+
+    @Test
+    void phaseListsAreAddedReplacedAndRemoved() {
+        String added = ModesFile.withPhaseList(bundledText, "Quick", ModesFile.phaseBlock("Quick", onePhase()));
+        Map<String, Object> root = ModesFile.parse(added);
+        assertTrue(ModesFile.hasPhaseList(root, "Quick"));
+        List<?> lists = (List<?>) root.get("GamePhases");
+        Map<?, ?> quick = (Map<?, ?>) lists.get(lists.size() - 1);
+        Map<?, ?> first = (Map<?, ?>) ((List<?>) quick.get("Phases")).get(0);
+        assertEquals("Go \"now\"", first.get("Name"));
+        assertEquals(30, first.get("Duration"));
+        assertEquals(List.of("DIAMOND_GENERATOR:2"), first.get("Actions"));
+
+        String replaced = ModesFile.withPhaseList(added, "Solo", ModesFile.phaseBlock("Solo", onePhase()));
+        Map<String, Object> after = ModesFile.parse(replaced);
+        assertEquals(phaseIds(root), phaseIds(after));
+        Map<?, ?> solo = (Map<?, ?>) ((List<?>) after.get("GamePhases")).get(0);
+        assertEquals(2, ((List<?>) solo.get("Phases")).size());
+        assertTrue(replaced.contains("  - ID: Doubles"));
+
+        String removed = ModesFile.withoutPhaseList(replaced, "Quick");
+        assertFalse(ModesFile.hasPhaseList(ModesFile.parse(removed), "Quick"));
+        assertTrue(ModesFile.hasPhaseList(ModesFile.parse(removed), "Default"));
+        assertNull(ModesFile.withoutPhaseList(bundledText, "Nope"));
+    }
+
+    @Test
+    void editWritesTheFileAndRefusesAnUnexpectedResult() throws IOException {
+        load(null, null);
+        ModesFile modes = new ModesFile(dir, "", logger);
+        Map<String, Object> root = modes.edit(t -> ModesFile.withMode(t, "Fun", ModesFile.modeBlock("Fun", null, null, null, null, 2, 0)),
+                r -> ModesFile.hasMode(r, "Fun"));
+        assertTrue(ModesFile.hasMode(root, "Fun"));
+        assertTrue(text().contains("  Fun:\n    MaxInTeam: 2"));
+        String before = text();
+        assertThrows(IOException.class, () -> modes.edit(t -> ModesFile.withoutMode(t, "Fun"), r -> ModesFile.hasMode(r, "Fun")));
+        assertThrows(IOException.class, () -> modes.edit(t -> null, r -> true));
+        assertThrows(IOException.class, () -> modes.edit(t -> "Modes: [", r -> true));
+        assertEquals(before, text());
+    }
+
+    @Test
+    void modeBlockKeepsTheTablistKey() {
+        List<String> block = ModesFile.modeBlock("Fun", null, null, null, null, 2, 0, "Fancy");
+        assertTrue(block.contains("    Tablist: \"Fancy\""));
+        Map<String, Object> root = ModesFile.parse(ModesFile.withMode(bundledText, "Fun", block));
+        assertEquals("Fancy", ((Map<?, ?>) ((Map<?, ?>) root.get("Modes")).get("Fun")).get("Tablist"));
+        assertFalse(ModesFile.modeBlock("Fun", null, null, null, null, 2, 0).toString().contains("Tablist"));
     }
 }

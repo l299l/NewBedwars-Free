@@ -306,6 +306,41 @@ public interface NewBedwarsAPI {
     com.l299l.newbedwars.api.mode.ModeService getModes();
 
     /**
+     * The custom tab list: layouts, your own placeholders and per-player layouts.
+     *
+     * @since 2.8-beta
+     */
+    com.l299l.newbedwars.api.tablist.TablistService getTablists();
+
+    /**
+     * The sidebar scoreboards: which exist, per-player overrides, hiding and refreshing.
+     *
+     * @since 2.8-beta
+     */
+    com.l299l.newbedwars.api.scoreboard.ScoreboardService getScoreboards();
+
+    /**
+     * The boss bars of {@code bossBars.yml} and boss bars shown by addons.
+     *
+     * @since 2.8-beta
+     */
+    com.l299l.newbedwars.api.bossbar.BossBarService getBossBars();
+
+    /**
+     * Adds a custom placeholder for the texts NewBedwars renders: {@code {name}} in {@code tablists.yml}, and
+     * {@code /name/} in {@code scoreboards.yml}, {@code bossBars.yml} and addon boss bars. One registration works
+     * everywhere. It is resolved before {@code &} color codes are translated. A placeholder that throws is logged
+     * once and renders as empty. It is removed when {@code owner} is disabled or {@link #unregisterAll} is called.
+     *
+     * @param name letters, digits and {@code _}, 1 to 32 characters, without the braces or slashes
+     * @throws IllegalArgumentException for an invalid name, a name any of the three systems already uses
+     *                                  (such as {@code player} or {@code arena}, compared ignoring case) and a name
+     *                                  that is already registered
+     * @since 2.8-beta
+     */
+    void registerPlaceholder(Plugin owner, String name, com.l299l.newbedwars.api.text.TextPlaceholder placeholder);
+
+    /**
      * The arena {@code player} is setting up in setup mode.
      *
      * @since 2.7-beta

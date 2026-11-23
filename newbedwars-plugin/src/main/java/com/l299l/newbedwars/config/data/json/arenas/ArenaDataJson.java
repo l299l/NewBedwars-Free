@@ -53,7 +53,7 @@ public class ArenaDataJson {
     private static final Set<String> KNOWN_FIELDS = Set.of("schemaVersion", "arenaName", "worldName", "minPlayers",
             "maxInTeam", "waitingTime", "respawnTime", "setup", "enabled", "quickVoidY", "waitingPos1", "waitingPos2",
             "waitingSpawn", "gamePhasesId", "generatorsLeveling", "gamerules", "teams", "generators", "resourcePackUrl",
-            "resourcePackHash", "shopGuiId", "upgradeGuiId", "shopGui", "upgradeGui", "extra");
+            "resourcePackHash", "shopGuiId", "upgradeGuiId", "shopGui", "upgradeGui", "tablist", "extra");
 
     public ArenaDataJson(String json) {
         this(json, null);
@@ -219,6 +219,9 @@ public class ArenaDataJson {
             arena.setGamePhases(gamePhases);
             if (shopGuiId != null) arena.setShopGuiId(shopGuiId);
             if (upgradeGuiId != null) arena.setUpgradeGuiId(upgradeGuiId);
+            if (jsonObject.has("tablist") && jsonObject.get("tablist").isJsonPrimitive()) {
+                arena.setTablistId(jsonObject.get("tablist").getAsString());
+            }
             if (jsonObject.has("resourcePackUrl") && !jsonObject.get("resourcePackUrl").isJsonNull()) {
                 arena.setResourcePackUrl(jsonObject.get("resourcePackUrl").getAsString());
             }

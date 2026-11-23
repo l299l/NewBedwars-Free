@@ -105,6 +105,13 @@ ArenaChatEnabled: true
 # and lobby players don't see arena players either.
 TablistIsolationEnabled: true
 
+# Custom tab list (header, footer and player names), layouts are in tablists.yml.
+# Enabled: false = the plugin never touches the tab list header, footer or player names.
+# Layout used by arenas that don't have their own (/bw setTablist or the Tablist key of a mode).
+Tablist:
+  Enabled: true
+DefaultTablist: Default
+
 
 # ----- Game phases and modes ----------------------
 # Game phases (GamePhases) and modes (Modes) are in modes.yml.

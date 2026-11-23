@@ -62,6 +62,15 @@ public interface ArenaEditor {
     void setShopGui(String guiId);
 
     /**
+     * Sets the tab list layout ({@code tablists.yml}) of the arena and refreshes the tab list of its players.
+     *
+     * @param layoutId a layout id (any capitalization), or {@code null} to use the server default
+     * @throws IllegalArgumentException when there is no layout with that id
+     * @since 2.8-beta
+     */
+    void setTablist(String layoutId);
+
+    /**
      * Sets the GUI the team upgrade shop opens.
      *
      * @throws IllegalArgumentException when there is no GUI with that id

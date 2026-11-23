@@ -411,6 +411,8 @@ GeneratorLevelingSet: "&b[NewBedwars] &8&l> &fGenerator leveling config set to &
 GeneratorLevelingInvalid: "&4&lError: &r&cGenerator leveling config &e/configId/ &cnot found! Available: &e/available/"
 GamePhasesSet: "&b[NewBedwars] &8&l> &fGame phases set to &e/id/&f!"
 GamePhasesInvalid: "&4&lError: &r&cGame phases &e/id/ &cnot found! Available: &e/available/"
+TablistSet: "&b[NewBedwars] &8&l> &fTab list layout set to &e/id/&f!"
+TablistInvalid: "&4&lError: &r&cTab list layout &e/id/ &cnot found! Available: &e/available/"
 ModeSet: "&b[NewBedwars] &8&l> &fMode &e/mode/ &fcopied into this arena (generators, game phases, GUIs, team size)."
 ModeInvalid: "&4&lError: &r&cMode &e/mode/ &cnot found! Available: &e/available/"
 ModeMissingParts: "&4&lError: &r&cMode &e/mode/ &cuses settings that don't exist: &e/missing/&c. Nothing was changed."

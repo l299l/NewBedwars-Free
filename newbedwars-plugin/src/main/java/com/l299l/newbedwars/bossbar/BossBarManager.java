@@ -6,6 +6,10 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.properties.Properties;
+import com.l299l.newbedwars.api.events.BossBarUpdateEvent;
+import com.l299l.newbedwars.apiimpl.ApiEvents;
+import com.l299l.newbedwars.placeholder.AddonPlaceholders;
+import com.l299l.newbedwars.placeholder.PapiText;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
@@ -84,20 +88,14 @@ public class BossBarManager {
         bossBar.setVisible(bossBarSave.isEnabled());
         List<BukkitTask> bossBarTasks = new ArrayList<>();
         tasks.put(bossBar, bossBarTasks);
-        BukkitTask[] effect = {setEffect(bossBar, bossBarSave.getTexts()[0], bossBarSave.getEffects()[0], arena)};
-        bossBarTasks.add(effect[0]);
+        BukkitTask[] effect = {null};
+        showStep(name, bossBar, bossBarSave, 0, arena, bossBarTasks, effect, true);
         if (bossBarSave.isAnimated()) {
             bossBarTasks.add(new BukkitRunnable() {
                 int i = 1;
                 @Override
                 public void run() {
-                    bossBar.setTitle(addInfo(bossBarSave.getTexts()[i], arena));
-                    bossBar.setColor(bossBarSave.getColor()[i]);
-                    bossBar.setStyle(bossBarSave.getStyle()[i]);
-                    effect[0].cancel();
-                    bossBarTasks.remove(effect[0]);
-                    effect[0] = setEffect(bossBar, bossBarSave.getTexts()[i], bossBarSave.getEffects()[i], arena);
-                    bossBarTasks.add(effect[0]);
+                    showStep(name, bossBar, bossBarSave, i, arena, bossBarTasks, effect, false);
                     i++;
                     if (i == bossBarSave.getTexts().length) {
                         i = 0;
@@ -106,6 +104,45 @@ public class BossBarManager {
             }.runTaskTimer(NewBedwars.plugin, 0, 20L * bossBarSave.getTime()));
         }
         return bossBar;
+    }
+
+    private void showStep(String id, BossBar bossBar, BossBarSave save, int i, IArena arena,
+                          List<BukkitTask> bossBarTasks, BukkitTask[] effect, boolean first) {
+        String resolved = addInfo(save.getTexts()[i], arena);
+        BarColor color = save.getColor()[i];
+        BarStyle style = save.getStyle()[i];
+        String text = resolved;
+        BossBarUpdateEvent event = ApiEvents.bossBarUpdate(arena, id, resolved, color, style);
+        if (event == null) {
+            if (!first) return;
+        } else {
+            text = event.getText();
+            color = event.getColor();
+            style = event.getStyle();
+        }
+        bossBar.setTitle(text);
+        bossBar.setColor(color);
+        bossBar.setStyle(style);
+        if (effect[0] != null) {
+            effect[0].cancel();
+            bossBarTasks.remove(effect[0]);
+            effect[0] = null;
+        }
+        if (text.equals(resolved)) {
+            effect[0] = setEffect(bossBar, save.getTexts()[i], save.getEffects()[i], arena);
+            bossBarTasks.add(effect[0]);
+        }
+    }
+
+    public List<String> getIds() {
+        List<String> ids = new ArrayList<>(bossBars.keySet());
+        java.util.Collections.sort(ids);
+        return ids;
+    }
+
+    public boolean isEnabled(String id) {
+        BossBarSave save = id == null ? null : bossBars.get(id);
+        return save != null && save.isEnabled();
     }
 
     public void removeBossBar(BossBar bossBar) {
@@ -170,6 +207,11 @@ public class BossBarManager {
     }
 
     private String addInfo(String text, IArena arena) {
+        return render(text, arena, null);
+    }
+
+    static String render(String text, IArena arena, Player viewer) {
+        String out;
         if (arena == null) {
             int players = 0;
             int max = 0;
@@ -178,15 +220,18 @@ public class BossBarManager {
                 players += a.getActivePlayerCount();
                 max += a.getMaxPlayers();
             }
-            return ChatColor.translateAlternateColorCodes('&',
-                    lobbyInfo(text.replace("/server_name/", Properties.ServerName), players, max));
+            out = lobbyInfo(text.replace("/server_name/", Properties.ServerName), players, max);
+        } else {
+            out = text
+                    .replace("/server_name/", Properties.ServerName)
+                    .replace("/arena_name/", arena.getArenaName())
+                    .replace("/players/", String.valueOf(arena.getActivePlayerCount()))
+                    .replace("/max_players/", String.valueOf(arena.getMaxPlayers()))
+                    .replace("/phase/", arena.getCurrentGamePhase());
         }
-        return ChatColor.translateAlternateColorCodes('&', text
-                .replace("/server_name/", Properties.ServerName)
-                .replace("/arena_name/", arena.getArenaName())
-                .replace("/players/", String.valueOf(arena.getActivePlayerCount()))
-                .replace("/max_players/", String.valueOf(arena.getMaxPlayers()))
-                .replace("/phase/", arena.getCurrentGamePhase()));
+        out = AddonPlaceholders.apply(out, '/', '/', viewer, arena);
+        out = ChatColor.translateAlternateColorCodes('&', out);
+        return PapiText.apply(viewer, out);
     }
 
 }

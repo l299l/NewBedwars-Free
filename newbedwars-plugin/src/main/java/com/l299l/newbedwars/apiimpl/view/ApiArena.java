@@ -181,6 +181,11 @@ public final class ApiArena implements ArenaView {
     }
 
     @Override
+    public String getTablist() {
+        return arena.getTablistId();
+    }
+
+    @Override
     public String getGamePhases() {
         return arena.getGamePhasesId();
     }

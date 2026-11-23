@@ -112,6 +112,7 @@ Under **Roles**, admins (or anyone with `roles.manage`) can create their own rol
 | `game.manage` | start, stop, skip phases of games and broadcast to an arena (like `/bw game`) |
 | `modes.view` | the **Modes** tab of the shop editor and the **Mode** column on Shop > Arenas. The built-in `admin` role has it, `staff` does not |
 | `modes.apply` | applying a game mode to an arena (the picker and **Apply** button on Shop > Arenas; only while the arena is waiting for players). Needs `modes.view` to be usable. The built-in `admin` role has it, `staff` does not |
+| `modes.edit` | creating, editing and deleting game modes, phase lists and generator configs on the Modes tab (see [game modes](#game-modes)). Needs `modes.view` to be usable. The built-in `admin` role has it, `staff` does not. Not local-only: on a network it works on every game server through the gateway |
 | `shop.edit` | the shop editor: items, their texts, shop GUIs and which GUIs the arenas use |
 | `shop.commands` | changing the commands of shop items (**Run commands**, `onBuyEvent: COMMANDS`) and the permission an item gives (**Give a permission for the game**, `GIVE_PERM`), and switching an item's action to or from those two. Commands run as the server console and a given permission can be any permission, so this gives full control of the server: give it only to people you would give console access. Without it, both fields are shown read-only and the action can not be switched |
 | `network.servers` | on a gateway panel: the server list and everything on the other servers of the network (what you may do there still depends on your other permissions). Never forwarded to other servers |
@@ -127,7 +128,15 @@ Rules that always apply:
 
 ## Game modes
 
-The **Modes** tab (Shop > Modes, `#/shop/modes`, permission `modes.view`) lists every game mode with its settings (generator preset, game phases, shop and upgrade menu, players per team, team count), a tag for the built-in ones and the timeline of its game phases. Modes are not edited in the panel: change them in `modes.yml` (see [Game modes and phases](game-modes.md)). The shop editor itself still needs `shop.edit` to open.
+The **Modes** tab (Shop > Modes, `#/shop/modes`, permission `modes.view`) lists every game mode with its settings (generator preset, game phases, shop and upgrade menu, players per team, team count), a tag for the built-in ones and the timeline of its game phases. Without the permission `modes.edit` they are read-only here: change them in `modes.yml` (see [Game modes and phases](game-modes.md)) or ask an admin. The shop editor itself still needs `shop.edit` to open.
+
+With the permission `modes.edit` the Modes tab becomes an editor and the changes are written to the server's files and reloaded at once:
+
+- **Modes**: **New mode**, and **Edit** / **Delete** on each mode. A mode picks a generator config, a phase list, a shop and an upgrade menu (each can stay "unchanged") and the players per team and team count (0 = unchanged). Built-in modes can be edited but not deleted. Arenas that already got a mode keep their copy.
+- **Phase lists**: each phase has a name, a duration typed as `mm:ss` and a list of actions chosen from the known ones (generator upgrades with a level, bed destruction, Ender Dragons, game end, ...). Phases can be added, removed and moved up and down. The built-in lists cannot be deleted.
+- **Generator configs**: the YAML of a generator preset in a text box. **New generator config** asks for a name and which config to copy from; the `ConfigurationId` line is set to the new name for you. The `ConfigurationId` must equal the name. The text is limited to 48 KB. The built-in configs can be edited but not deleted.
+
+A phase list or generator config that a mode or an arena still uses cannot be deleted; the panel lists who uses it. If the server rejects a change as invalid, the reasons are shown under the form. Every change is written to the activity log (`modes.save`, `modes.delete`, `phases.save`, `phases.delete`, `generators.save`, `generators.delete`).
 
 Shop > Arenas (`#/shop/arenas`) has a **Mode** column with each arena's mode and, under it, its generator config, phase list and team count x players per team. The mode is worked out from the arena's current settings: it is the mode whose settings all match, otherwise the arena shows **Custom**.
 

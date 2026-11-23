@@ -2,6 +2,8 @@ package com.l299l.newbedwars.apiimpl;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.api.mode.ArenaModeInfo;
+import com.l299l.newbedwars.api.mode.EditResult;
+import com.l299l.newbedwars.api.mode.GeneratorConfigInfo;
 import com.l299l.newbedwars.api.mode.ModeInfo;
 import com.l299l.newbedwars.api.mode.ModeResult;
 import com.l299l.newbedwars.api.mode.ModeService;
@@ -56,13 +58,53 @@ public final class ApiModeService implements ModeService {
         return run(() -> apply(arena, mode));
     }
 
+    @Override
+    public CompletableFuture<EditResult> saveMode(ModeInfo mode) {
+        return ModeEdits.execute(() -> ModeEdits.saveMode(mode));
+    }
+
+    @Override
+    public CompletableFuture<EditResult> deleteMode(String id) {
+        return ModeEdits.execute(() -> ModeEdits.deleteMode(id));
+    }
+
+    @Override
+    public CompletableFuture<EditResult> savePhaseList(PhaseListInfo list) {
+        return ModeEdits.execute(() -> ModeEdits.savePhaseList(list));
+    }
+
+    @Override
+    public CompletableFuture<EditResult> deletePhaseList(String id) {
+        return ModeEdits.execute(() -> ModeEdits.deletePhaseList(id));
+    }
+
+    @Override
+    public CompletableFuture<List<GeneratorConfigInfo>> getGeneratorConfigFiles() {
+        return ModeEdits.offload(ModeEdits::generatorFiles, files -> files);
+    }
+
+    @Override
+    public CompletableFuture<String> getGeneratorConfigText(String id) {
+        return ModeEdits.offload(() -> ModeEdits.generatorText(id), text -> text);
+    }
+
+    @Override
+    public CompletableFuture<EditResult> saveGeneratorConfig(String id, String yaml) {
+        return ModeEdits.execute(() -> ModeEdits.saveGeneratorConfig(id, yaml));
+    }
+
+    @Override
+    public CompletableFuture<EditResult> deleteGeneratorConfig(String id) {
+        return ModeEdits.execute(() -> ModeEdits.deleteGeneratorConfig(id));
+    }
+
     static List<ModeInfo> modes() {
         Object builtIn = ModesFile.bundled().get(ModesFile.MODES);
         List<ModeInfo> out = new ArrayList<>();
         for (GameMode m : Properties.Modes.values()) {
             boolean bundled = builtIn instanceof Map<?, ?> map && map.containsKey(m.id());
             out.add(new ModeInfo(m.id(), m.generators(), m.gamePhases(), m.shopGui(), m.upgradeGui(),
-                    m.maxInTeam(), m.teams(), bundled));
+                    m.maxInTeam(), m.teams(), bundled, m.tablist()));
         }
         return out;
     }

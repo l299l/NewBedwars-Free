@@ -89,4 +89,12 @@ nav:
       - Network mode: network.md
       - Web panel: panel.md
   - Developers:
-      - Addon API: api.md
+      - Addon API:
+          - Getting started: api/index.md
+          - Reading data and events: api/data-and-events.md
+          - Registering content: api/registering.md
+          - Arenas: api/arenas.md
+          - Players: api/players.md
+          - Display: api/display.md
+          - Shop editor and game modes: api/shop-and-modes.md
+          - Full example: api/example.md

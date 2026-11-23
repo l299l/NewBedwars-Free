@@ -60,6 +60,10 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     private final ApiShopEditor shopEditor = new ApiShopEditor();
     private final ApiModeService modeService = new ApiModeService();
     private final ApiMessages messages = new ApiMessages();
+    private final ApiTablists tablists = new ApiTablists(registrations);
+    private final ApiPlaceholders placeholders = new ApiPlaceholders(registrations);
+    private final ApiScoreboards scoreboards = new ApiScoreboards();
+    private final ApiBossBars bossBars = new ApiBossBars(registrations);
 
     @Override
     public String getVersion() {
@@ -157,6 +161,26 @@ public final class NewBedwarsApiImpl implements NewBedwarsAPI, Listener {
     @Override
     public com.l299l.newbedwars.api.mode.ModeService getModes() {
         return modeService;
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.tablist.TablistService getTablists() {
+        return tablists;
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.scoreboard.ScoreboardService getScoreboards() {
+        return scoreboards;
+    }
+
+    @Override
+    public com.l299l.newbedwars.api.bossbar.BossBarService getBossBars() {
+        return bossBars;
+    }
+
+    @Override
+    public void registerPlaceholder(Plugin owner, String name, com.l299l.newbedwars.api.text.TextPlaceholder placeholder) {
+        placeholders.register(owner, name, placeholder);
     }
 
     @Override

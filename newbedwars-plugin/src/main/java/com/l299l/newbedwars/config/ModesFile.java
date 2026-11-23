@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.config;
 
+import com.l299l.newbedwars.api.mode.PhaseInfo;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,6 +96,142 @@ public final class ModesFile {
             log.log(Level.WARNING, "Could not read or write " + file, e);
             use(Map.of(), bundledRoot);
         }
+    }
+
+    public Map<String, Object> edit(UnaryOperator<String> change, Predicate<Map<String, Object>> check) throws IOException {
+        String text = Files.isRegularFile(file) ? Files.readString(file, StandardCharsets.UTF_8) : bundledText;
+        String changed = change.apply(text);
+        if (changed == null) throw new IOException("the block could not be edited in place");
+        Map<String, Object> root = parse(changed);
+        if (root == null || !check.test(root)) throw new IOException(FILE + " could not be edited in place (unusual formatting); nothing was changed");
+        write(changed);
+        return root;
+    }
+
+    public static boolean hasMode(Map<String, Object> root, String id) {
+        return root.get(MODES) instanceof Map<?, ?> m && m.get(id) instanceof Map<?, ?>;
+    }
+
+    public static boolean hasPhaseList(Map<String, Object> root, String id) {
+        return phaseIds(root.get(PHASES)).contains(id);
+    }
+
+    public static List<String> modeBlock(String id, String generators, String gamePhases, String shopGui,
+                                         String upgradeGui, int maxInTeam, int teams) {
+        return modeBlock(id, generators, gamePhases, shopGui, upgradeGui, maxInTeam, teams, null);
+    }
+
+    public static List<String> modeBlock(String id, String generators, String gamePhases, String shopGui,
+                                         String upgradeGui, int maxInTeam, int teams, String tablist) {
+        List<String> out = new ArrayList<>();
+        out.add("  " + id + ":");
+        if (notBlank(generators)) out.add("    Generators: " + quote(generators.trim()));
+        if (notBlank(gamePhases)) out.add("    GamePhases: " + quote(gamePhases.trim()));
+        if (notBlank(shopGui)) out.add("    ShopGui: " + quote(shopGui.trim()));
+        if (notBlank(upgradeGui)) out.add("    UpgradeGui: " + quote(upgradeGui.trim()));
+        if (maxInTeam > 0) out.add("    MaxInTeam: " + maxInTeam);
+        if (teams > 0) out.add("    Teams: " + teams);
+        if (notBlank(tablist)) out.add("    Tablist: " + quote(tablist.trim()));
+        if (out.size() == 1) out.add("    MaxInTeam: 0");
+        return out;
+    }
+
+    public static List<String> phaseBlock(String id, List<PhaseInfo> phases) {
+        List<String> out = new ArrayList<>();
+        out.add("  - ID: " + id);
+        out.add("    Phases:");
+        for (PhaseInfo phase : phases) {
+            out.add("      - Name: " + quote(phase.name() == null ? "" : phase.name()));
+            out.add("        Duration: " + Math.max(0, phase.duration()));
+            if (phase.actions().isEmpty()) {
+                out.add("        Actions: []");
+            } else {
+                out.add("        Actions:");
+                for (String action : phase.actions()) out.add("          - " + quote(action));
+            }
+        }
+        return out;
+    }
+
+    public static String withMode(String text, String id, List<String> block) {
+        return replaceEntry(text, MODES, MODE_ENTRY, id, block);
+    }
+
+    public static String withoutMode(String text, String id) {
+        return replaceEntry(text, MODES, MODE_ENTRY, id, null);
+    }
+
+    public static String withPhaseList(String text, String id, List<String> block) {
+        return replaceEntry(text, PHASES, PHASE_ENTRY, id, block);
+    }
+
+    public static String withoutPhaseList(String text, String id) {
+        return replaceEntry(text, PHASES, PHASE_ENTRY, id, null);
+    }
+
+    private static String replaceEntry(String text, String section, Pattern entry, String id, List<String> block) {
+        List<String> lines = new ArrayList<>(List.of(text.split("\n", -1)));
+        int start = topKey(lines, section);
+        int[] range = start < 0 ? null : locate(lines, start, entry, id);
+        if (range == null) {
+            if (block == null) return null;
+            insert(lines, section, entry, block);
+            return String.join("\n", lines);
+        }
+        int indent = entryIndent(lines, start, entry);
+        List<String> shifted = new ArrayList<>();
+        if (block != null) for (String line : block) shifted.add(shift(line, indent - 2));
+        for (int i = range[1] - 1; i >= range[0]; i--) lines.remove(i);
+        lines.addAll(range[0], shifted);
+        return String.join("\n", lines);
+    }
+
+    private static int entryIndent(List<String> lines, int start, Pattern entry) {
+        int end = sectionEnd(lines, start);
+        for (int i = start + 1; i < end; i++) {
+            Matcher m = entry.matcher(lines.get(i));
+            if (m.matches()) return m.group(1).length();
+        }
+        return 2;
+    }
+
+    private static int[] locate(List<String> lines, int start, Pattern entry, String id) {
+        int end = sectionEnd(lines, start);
+        int indent = entryIndent(lines, start, entry);
+        int from = -1;
+        for (int i = start + 1; i <= end; i++) {
+            Matcher m = i < end ? entry.matcher(lines.get(i)) : null;
+            boolean isEntry = m != null && m.matches() && m.group(1).length() == indent;
+            if (from >= 0 && (isEntry || i == end)) {
+                int to = i;
+                while (to > from + 1 && (lines.get(to - 1).isBlank() || lines.get(to - 1).trim().startsWith("#"))) to--;
+                return new int[]{from, to};
+            }
+            if (isEntry && m.group(2).equals(id)) from = i;
+        }
+        return null;
+    }
+
+    private static boolean notBlank(String text) {
+        return text != null && !text.isBlank();
+    }
+
+    public static String quote(String text) {
+        StringBuilder sb = new StringBuilder("\"");
+        for (char c : text.toCharArray()) {
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '"' -> sb.append("\\\"");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                default -> {
+                    if (c < 0x20 || c == 0x7f) sb.append(String.format("\\u%04x", (int) c));
+                    else sb.append(c);
+                }
+            }
+        }
+        return sb.append('"').toString();
     }
 
     String migrated(Object legacyPhases, Object legacyModes) {

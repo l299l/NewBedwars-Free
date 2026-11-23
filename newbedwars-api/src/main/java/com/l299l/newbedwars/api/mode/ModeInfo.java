@@ -11,8 +11,14 @@ package com.l299l.newbedwars.api.mode;
  * @param maxInTeam  players per team, 0 when the mode leaves it unchanged
  * @param teams      team count the mode is made for (only a hint, never applied), 0 when not set
  * @param builtIn    {@code true} for a mode that ships with NewBedwars
+ * @param tablist    tab list layout id, or {@code null} when the mode leaves it unchanged
  * @since 2.8-beta
  */
 public record ModeInfo(String id, String generators, String gamePhases, String shopGui, String upgradeGui,
-                       int maxInTeam, int teams, boolean builtIn) {
+                       int maxInTeam, int teams, boolean builtIn, String tablist) {
+    /** Same as the full constructor with {@code tablist = null}. */
+    public ModeInfo(String id, String generators, String gamePhases, String shopGui, String upgradeGui,
+                    int maxInTeam, int teams, boolean builtIn) {
+        this(id, generators, gamePhases, shopGui, upgradeGui, maxInTeam, teams, builtIn, null);
+    }
 }

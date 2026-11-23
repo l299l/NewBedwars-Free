@@ -22,13 +22,14 @@ public final class Permission {
     public static final String GAME_LOG = "game.log";
     public static final String MODES_VIEW = "modes.view";
     public static final String MODES_APPLY = "modes.apply";
+    public static final String MODES_EDIT = "modes.edit";
     public static final String SHOP_EDIT = "shop.edit";
     public static final String SHOP_COMMANDS = "shop.commands";
     public static final String NETWORK_SERVERS = "network.servers";
 
     public static final List<String> ALL = List.of(
             DASHBOARD_VIEW, STATS_VIEW, GAME_MANAGE, GAME_LOG, SHOP_EDIT, SHOP_COMMANDS, ARENA_ENABLE, ARENA_DISABLE, ARENA_BACKUP, ARENA_RESTORE, ARENA_RESETMAP,
-            ARENA_EXPORT, ARENA_IMPORT, ARENA_COPY, ARENA_DELETE, MODES_VIEW, MODES_APPLY, USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW, NETWORK_SERVERS);
+            ARENA_EXPORT, ARENA_IMPORT, ARENA_COPY, ARENA_DELETE, MODES_VIEW, MODES_APPLY, MODES_EDIT, USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW, NETWORK_SERVERS);
 
     public static final Set<String> LOCAL_ONLY = Set.of(USERS_MANAGE, ROLES_MANAGE, AUDIT_VIEW, NETWORK_SERVERS);
 

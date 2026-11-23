@@ -62,6 +62,8 @@ public final class NewBedwars extends JavaPlugin {
     private PartyManager partyManager;
     private BossBarManager bossBarManager;
     private ScoreboardManager scoreboardManager;
+    private com.l299l.newbedwars.tablist.TablistManager tablistManager;
+    private com.l299l.newbedwars.bossbar.AddonBossBars addonBossBars;
     private final JoinNpcManager joinNpcManager;
     private final ArenaGroupManager arenaGroupManager;
     private final MapVoteManager mapVoteManager;
@@ -102,6 +104,8 @@ public final class NewBedwars extends JavaPlugin {
             com.l299l.newbedwars.placeholder.PapiText.enable();
         }
         joinNpcManager.start();
+        addonBossBars = new com.l299l.newbedwars.bossbar.AddonBossBars();
+        addonBossBars.start();
         apiImpl = new com.l299l.newbedwars.apiimpl.NewBedwarsApiImpl();
         getServer().getPluginManager().registerEvents(apiImpl, this);
         getServer().getServicesManager().register(com.l299l.newbedwars.api.NewBedwarsAPI.class, apiImpl, this, org.bukkit.plugin.ServicePriority.Normal);
@@ -118,6 +122,8 @@ public final class NewBedwars extends JavaPlugin {
             getServer().getServicesManager().unregisterAll(this);
             if (updateService != null) updateService.stop();
             if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
+            if (tablistManager != null) tablistManager.stop();
+            if (addonBossBars != null) addonBossBars.stop();
         });
         shutdownStep("join NPCs", joinNpcManager::shutdown);
         int active = 0;
@@ -194,6 +200,7 @@ public final class NewBedwars extends JavaPlugin {
         updater.reloadLanguages();
         updater.reloadBossBars();
         updater.reloadScoreboards();
+        updater.reloadTablists();
         updater.reloadGeneratorsConfigurations();
         langMessages = new LangMessages(updater.getLangConfs());
         langMessages.reloadMessages();
@@ -212,6 +219,11 @@ public final class NewBedwars extends JavaPlugin {
         bossBarManager.startLobbyBossBar();
         scoreboardManager = new ScoreboardManager(updater.getScoreboardsConf());
         scoreboardManager.loadScoreboards();
+        if (tablistManager != null) tablistManager.stop();
+        com.l299l.newbedwars.tablist.TablistManager previousTablists = tablistManager;
+        tablistManager = com.l299l.newbedwars.tablist.TablistManager.load(updater.getTablistsConf(), getLogger());
+        if (previousTablists != null) tablistManager.inheritOverrides(previousTablists);
+        tablistManager.start();
         reloadGenerators();
         reloadEvents();
         lobbyLocation = null;
@@ -246,6 +258,14 @@ public final class NewBedwars extends JavaPlugin {
 
     public BossBarManager getBossBarManager() {
         return bossBarManager;
+    }
+
+    public com.l299l.newbedwars.bossbar.AddonBossBars getAddonBossBars() {
+        return addonBossBars;
+    }
+
+    public com.l299l.newbedwars.tablist.TablistManager getTablistManager() {
+        return tablistManager;
     }
 
     public ScoreboardManager getScoreboardManager() {
@@ -335,6 +355,11 @@ public final class NewBedwars extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new com.l299l.newbedwars.update.UpdateNotifier(this, updateService), this);
         }
         guiManager.reloadGuis();
+    }
+
+    public void reloadGeneratorConfigs() {
+        updater.reloadGeneratorsConfigurations();
+        reloadGenerators();
     }
 
     private void reloadGenerators() {

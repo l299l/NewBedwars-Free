@@ -158,6 +158,7 @@ Used inside the arena world after `/bw arena setup <name>`. Choose the mode with
 | `/bw setGui <shop\|upgrade> <guiId>` | Shop or upgrade GUI used on this arena |
 | `/bw setGeneratorLeveling <configId>` | Generator leveling configuration |
 | `/bw setGamePhases <id>` | Game phase list of this arena (an ID from `GamePhases` in `modes.yml`, tab-completed) |
+| `/bw setTablist <layout>` | Tab list layout of this arena (a layout from `tablists.yml`, tab-completed) |
 | `/bw setMode <mode>` | Copies a mode from `Modes` in `modes.yml` (generators, game phases, shop and upgrade menu, team size) into this arena once; nothing is changed if a part of the mode is missing (tab-completed) |
 | `/bw setResourcePack <url\|clear> [sha1]` | Per-arena resource pack |
 

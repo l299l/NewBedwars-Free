@@ -80,6 +80,15 @@ class ModeApplierTest {
     }
 
     @Test
+    void modeTablistIsCopiedToTheArena() {
+        GameMode mode = put(new GameMode("T", null, null, null, null, 0, 0, "Fancy"));
+        try (MockedConstruction<ArenaDataJson> json = mockConstruction(ArenaDataJson.class)) {
+            assertTrue(ModeApplier.apply(arena, mode).applied());
+        }
+        verify(arena).setTablistId("Fancy");
+    }
+
+    @Test
     void findExactThenCaseInsensitive() {
         GameMode squads = put(new GameMode("Squads", null, null, null, null, 0, 0));
         GameMode lower = put(new GameMode("squads", null, null, null, null, 0, 0));

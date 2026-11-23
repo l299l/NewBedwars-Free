@@ -14,6 +14,7 @@
 #   GamePhases  - ID of a phase list below
 #   ShopGui / UpgradeGui - GUI IDs from data/guis/ (left out = the arena keeps its GUI)
 #   MaxInTeam   - players per team (left out = unchanged)
+#   Tablist     - tab list layout from tablists.yml (left out = the arena keeps its layout)
 #   Teams       - team count the mode is made for; only a warning when the arena has a different number
 Modes:
   Solo:

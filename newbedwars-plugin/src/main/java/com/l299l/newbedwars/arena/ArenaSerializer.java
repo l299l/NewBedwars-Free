@@ -48,6 +48,7 @@ final class ArenaSerializer {
         String upgradeGuiId = arena.getUpgradeGuiId();
         sb.append("\"shopGuiId\": ").append(JsonUtils.quote(shopGuiId == null ? Properties.DefaultTeamShopGui : shopGuiId)).append(",");
         sb.append("\"upgradeGuiId\": ").append(JsonUtils.quote(upgradeGuiId == null ? Properties.DefaultUpgradeShopGui : upgradeGuiId)).append(",");
+        sb.append("\"tablist\": ").append(JsonUtils.quote(arena.getTablistId())).append(",");
         sb.append("\"extra\": ").append(arena.getExtra());
         for (Map.Entry<String, JsonElement> unknown : arena.getUnknownFields().entrySet()) {
             sb.append(",").append(JsonUtils.quote(unknown.getKey())).append(": ").append(unknown.getValue());

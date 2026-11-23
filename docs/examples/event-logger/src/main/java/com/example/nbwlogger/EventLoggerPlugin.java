@@ -1,6 +1,7 @@
 package com.example.nbwlogger;
 
 import com.l299l.newbedwars.api.view.*;
+import com.l299l.newbedwars.api.bossbar.*;
 import com.l299l.newbedwars.api.edit.*;
 import com.l299l.newbedwars.api.command.*;
 import com.l299l.newbedwars.api.registry.*;
@@ -10,6 +11,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.command.Command;
@@ -21,12 +24,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
  * Logs every NewBedwars API event to the console (and optionally to chat of ops) so each event can be
- * checked in a real game. Use {@code /nbwlog chat} to toggle chat output and {@code /nbwlog dump} to print
- * what the read-only API sees right now.
+ * checked in a real game. Use {@code /nbwlog chat} to toggle chat output, {@code /nbwlog modes} to list the
+ * game modes and {@code /nbwlog edit} to try the arena editor.
  * <p>
  * It also exercises the registration API (phase action, shop logic, armor tier, upgrade, trap, subcommand),
  * the extra data and the arena editor; see README.md for how to check each.
@@ -37,12 +41,18 @@ import java.util.stream.Collectors;
 public class EventLoggerPlugin extends JavaPlugin implements Listener {
     private static final boolean CANCEL_TEST = false;
     private boolean chat = true;
+    private final AtomicInteger loggedEvents = new AtomicInteger();
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         NewBedwarsAPI api = NewBedwarsAPI.get();
         getLogger().info("API version of NewBedwars: " + api.getVersion());
+        if (api.getApiVersion() < 1) {
+            getLogger().warning("NewBedwars 2.8-beta or newer is needed for the display APIs, disabling.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         registerAll(api);
     }
 
@@ -79,7 +89,10 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
 
         // One subcommand in three places: /bw nbwinfo in a game, as a lobby admin, and from the console.
         api.registerCommand(this, new InfoCommand("nbwinfo"), CommandContext.GAME, CommandContext.LOBBY_ADMIN, CommandContext.CONSOLE);
-        log("Registered phase action, shop logic, armor tier, upgrade, trap and 2 commands");
+
+        // Placeholder: {logger_events} in tablists.yml, /logger_events/ in scoreboards.yml and bossBars.yml.
+        api.registerPlaceholder(this, "logger_events", (viewer, arena) -> String.valueOf(loggedEvents.get()));
+        log("Registered phase action, shop logic, armor tier, upgrade, trap, placeholder and 2 commands");
     }
 
     /** Prints the arena's extra data and the team upgrade levels. */
@@ -163,6 +176,7 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
     }
 
     private void log(String text) {
+        loggedEvents.incrementAndGet();
         getLogger().info(text);
         if (!chat) return;
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -214,6 +228,31 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
         if (CANCEL_TEST && e.getTeam().getName().equalsIgnoreCase("Red")) e.setCancelled(true);
         String breaker = e.getBreaker() == null ? "the server" : e.getBreaker().getName();
         log("BedBreak team=" + e.getTeam().getName() + " by " + breaker + " cancelled=" + e.isCancelled());
+        if (!e.isCancelled()) e.getTeam().getPlayers().forEach(this::showBedBar);
+    }
+
+    /** Addon boss bar: red, full, removed again after 5 seconds (NewBedwars also removes it when the player leaves). */
+    private void showBedBar(Player player) {
+        AddonBossBar bar = NewBedwarsAPI.get().getBossBars()
+                .show(this, player, "&cYour bed is gone!", BarColor.RED, BarStyle.SOLID, 1.0);
+        Bukkit.getScheduler().runTaskLater(this, bar::remove, 5 * 20L);
+    }
+
+    /** Appends one line to the sidebar when there is room. */
+    @EventHandler
+    public void onScoreboard(ScoreboardUpdateEvent e) {
+        List<String> lines = e.getLines();
+        if (lines.size() >= ScoreboardUpdateEvent.MAX_LINES) return;
+        lines.add(ChatColor.GRAY + "Logged: " + loggedEvents.get());
+        e.setLines(lines);
+    }
+
+    /** Adds a line to the footer of the tab list. */
+    @EventHandler
+    public void onTablist(TablistUpdateEvent e) {
+        String footer = e.getFooter();
+        String line = ChatColor.GRAY + "Events logged: " + loggedEvents.get();
+        e.setFooter(footer.isEmpty() ? line : footer + "\n" + line);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -297,6 +336,11 @@ public class EventLoggerPlugin extends JavaPlugin implements Listener {
             return true;
         }
         NewBedwarsAPI api = NewBedwarsAPI.get();
+        if (args.length > 0 && args[0].equalsIgnoreCase("modes")) {
+            api.getModes().getModes().thenAccept(modes -> modes.forEach(m -> sender.sendMessage(
+                    " mode " + m.id() + " maxInTeam=" + m.maxInTeam() + " phases=" + m.gamePhases() + " builtIn=" + m.builtIn())));
+            return true;
+        }
         sender.sendMessage("NewBedwars " + api.getVersion() + ", arenas: " + api.getArenas().size());
         for (ArenaView arena : api.getArenas()) {
             sender.sendMessage(" " + arena.getName() + " state=" + arena.getState() + " enabled=" + arena.isEnabled()

@@ -146,6 +146,21 @@ public final class ApiEditor implements ArenaEditor {
         changed();
     }
 
+    @Override
+    public void setTablist(String layoutId) {
+        requireEditable();
+        String stored = null;
+        com.l299l.newbedwars.tablist.TablistManager manager = com.l299l.newbedwars.NewBedwars.plugin.getTablistManager();
+        if (layoutId != null) {
+            com.l299l.newbedwars.tablist.TablistLayout layout = manager == null ? null : manager.getConfig().find(layoutId);
+            if (layout == null) throw new IllegalArgumentException("there is no tab list layout " + layoutId);
+            stored = layout.id();
+        }
+        arena.setTablistId(stored);
+        changed();
+        if (manager != null) manager.refresh(arena);
+    }
+
     private static String requireGui(String guiId) {
         if (guiId == null || com.l299l.newbedwars.NewBedwars.plugin.getGuiManager().getGui(guiId) == null) {
             throw new IllegalArgumentException("there is no GUI with the id " + guiId);

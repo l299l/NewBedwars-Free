@@ -54,7 +54,7 @@ public final class ShopRoutes {
         router.allowed("POST", "/api/shop/items/{name}", edit, this::saveItem);
         router.allowed("POST", "/api/shop/items/{name}/texts", edit, this::saveTexts);
         router.allowed("POST", "/api/shop/items/{name}/delete", edit, this::deleteItem);
-        router.allowed("GET", "/api/shop/guis", edit, this::guis);
+        router.allowed("GET", "/api/shop/guis", Set.of(Permission.SHOP_EDIT, Permission.MODES_EDIT), this::guis);
         router.allowed("GET", "/api/shop/guis/{id}", edit, this::gui);
         router.allowed("POST", "/api/shop/guis", edit, this::createGui);
         router.allowed("POST", "/api/shop/guis/{id}", edit, this::saveGui);
