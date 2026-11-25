@@ -106,6 +106,7 @@ async function itemPage(root, name) {
     if (powerActions.includes(item.onBuy)) onBuy.disabled = true;
     else [...onBuy.options].forEach(o => { if (powerActions.includes(o.value)) o.remove(); });
   }
+  const powerLocked = !mayEditCommands && ['COMMANDS', 'GIVE_PERM'].includes(item.onBuy);
   const commands = h('textarea', { id: 'item-commands', rows: '4', maxlength: '5200', spellcheck: 'false', readonly: !mayEditCommands });
   commands.value = (item.commands || []).join('\n');
   const openGui = select('item-open-gui', guiIds, item.openGui || guiIds[0] || '');
@@ -212,7 +213,12 @@ async function itemPage(root, name) {
     h('section', { class: 'panel-section' }, h('h2', {}, t('shop.texts.title')), h('p', { class: 'hint' }, t('shop.texts.hint')),
       textBlocks.map(b => b.block)),
     usage, error,
+    powerLocked ? h('p', { class: 'hint' }, t('shop.item.commandsLocked')) : null,
     h('div', { class: 'row-end' }, del, save));
+  if (powerLocked) {
+    save.disabled = true;
+    if (del) del.disabled = true;
+  }
   body.replaceChildren(form);
 
   if (del) {

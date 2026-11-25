@@ -16,6 +16,10 @@ public final class ApiSubCommand extends SubCommand {
         this.command = command;
     }
 
+    public String getPermission() {
+        return command.permission();
+    }
+
     @Override
     public String getName() {
         return command.getName();

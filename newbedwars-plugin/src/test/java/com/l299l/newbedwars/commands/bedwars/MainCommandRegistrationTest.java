@@ -138,4 +138,59 @@ class MainCommandRegistrationTest {
         assertFalse(main.unregister(command));
         assertDoesNotThrow(() -> main.register(command("temp"), MainCommand.Context.LOBBY));
     }
+
+    private com.l299l.newbedwars.api.command.AddonCommand addon(String name, String permission) {
+        com.l299l.newbedwars.api.command.AddonCommand addon = mock(com.l299l.newbedwars.api.command.AddonCommand.class);
+        when(addon.getName()).thenReturn(name);
+        when(addon.permission()).thenReturn(permission);
+        when(addon.tabComplete(any(), any())).thenReturn(List.of("opt"));
+        return addon;
+    }
+
+    private Player playerWith(String... permissions) {
+        Player player = mock(Player.class);
+        when(player.getWorld()).thenReturn(mock(World.class));
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        for (String permission : permissions) when(player.hasPermission(permission)).thenReturn(true);
+        return player;
+    }
+
+    @Test
+    void addonLobbyAdminCommandNeedsAdminOrItsOwnPermission() {
+        com.l299l.newbedwars.api.command.AddonCommand addon = addon("addonadmin", "myaddon.use");
+        main.register(new com.l299l.newbedwars.apiimpl.adapter.ApiSubCommand(addon), MainCommand.Context.LOBBY_ADMIN);
+        Command bw = mock(Command.class);
+        String[] args = {"addonadmin"};
+
+        Player updater = playerWith("newbedwars.bw.update");
+        main.onCommand(updater, bw, "bw", args);
+        verify(addon, never()).perform(any(), any(), any());
+        verify(NewBedwars.plugin.getMessages()).send(updater, "NoPermissions");
+        assertFalse(main.onTabComplete(updater, bw, "bw", new String[]{"addon"}).contains("addonadmin"));
+        assertTrue(main.onTabComplete(updater, bw, "bw", new String[]{"addonadmin", ""}).isEmpty());
+
+        Player permitted = playerWith("newbedwars.bw.update", "myaddon.use");
+        main.onCommand(permitted, bw, "bw", args);
+        verify(addon).perform(eq(permitted), eq(args), any());
+        assertTrue(main.onTabComplete(permitted, bw, "bw", new String[]{"addon"}).contains("addonadmin"));
+        assertEquals(List.of("opt"), main.onTabComplete(permitted, bw, "bw", new String[]{"addonadmin", ""}));
+
+        Player admin = playerWith("newbedwars.bw.admin");
+        main.onCommand(admin, bw, "bw", args);
+        verify(addon).perform(eq(admin), eq(args), any());
+        assertTrue(main.onTabComplete(admin, bw, "bw", new String[]{"addon"}).contains("addonadmin"));
+    }
+
+    @Test
+    void addonAdminCommandWithoutPermissionIsAdminOnly() {
+        com.l299l.newbedwars.api.command.AddonCommand addon = addon("adminonly", null);
+        main.register(new com.l299l.newbedwars.apiimpl.adapter.ApiSubCommand(addon), MainCommand.Context.LOBBY_ADMIN);
+        Command bw = mock(Command.class);
+        Player updater = playerWith("newbedwars.bw.update");
+        main.onCommand(updater, bw, "bw", new String[]{"adminonly"});
+        verify(addon, never()).perform(any(), any(), any());
+        Player admin = playerWith("newbedwars.bw.admin");
+        main.onCommand(admin, bw, "bw", new String[]{"adminonly"});
+        verify(addon).perform(eq(admin), any(), any());
+    }
 }

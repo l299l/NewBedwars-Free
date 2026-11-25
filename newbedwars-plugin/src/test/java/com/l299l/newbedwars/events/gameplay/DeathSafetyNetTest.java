@@ -170,6 +170,28 @@ class DeathSafetyNetTest {
     }
 
     @Test
+    void lobbyDeathMessageOnlyReachesPlayersOutsideArenas() {
+        World lobbyWorld = mock(World.class);
+        Player lobbyPlayer = mock(Player.class);
+        when(lobbyPlayer.getWorld()).thenReturn(lobbyWorld);
+        Player inArena = mock(Player.class);
+        World arenaWorld = player.getWorld();
+        when(inArena.getWorld()).thenReturn(arenaWorld);
+        PlayerDeathEvent e = mock(PlayerDeathEvent.class);
+        when(e.getDeathMessage()).thenReturn("Steve fell");
+        org.bukkit.command.ConsoleCommandSender console = mock(org.bukkit.command.ConsoleCommandSender.class);
+        try (org.mockito.MockedStatic<org.bukkit.Bukkit> bukkit = org.mockito.Mockito.mockStatic(org.bukkit.Bukkit.class)) {
+            bukkit.when(org.bukkit.Bukkit::getOnlinePlayers).thenReturn(java.util.List.of(lobbyPlayer, inArena));
+            bukkit.when(org.bukkit.Bukkit::getConsoleSender).thenReturn(console);
+            CombatListener.keepDeathMessageOutOfArenas(e);
+        }
+        verify(e).setDeathMessage(null);
+        verify(lobbyPlayer).sendMessage("Steve fell");
+        verify(inArena, never()).sendMessage(anyString());
+        verify(console).sendMessage("Steve fell");
+    }
+
+    @Test
     void safetyTaskKillsAPlayerBelowTheVoidLine() {
         when(arena.status()).thenReturn(GameStatus.playing);
         doNothing().when(listener).voidDeath(any(), any());

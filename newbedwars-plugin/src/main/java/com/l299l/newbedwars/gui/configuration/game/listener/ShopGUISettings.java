@@ -47,7 +47,7 @@ public class ShopGUISettings implements Listener {
 
         if (item instanceof CustomItem it && it.getOnBuyEvent() == OnBuyEvent.UPGRADE) {
             Upgrade upgrade = findUpgrade(it.getName());
-            if (upgrade != null) buyUpgrade(player, upgrade, it);
+            if (upgrade != null) buyUpgrade(player, upgrade, it, gui);
         } else if (item instanceof CustomItem it) {
             Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
                 com.l299l.newbedwars.arena.shops.customitems.ItemPricing.Offer offer = gui.offer(it);
@@ -70,11 +70,11 @@ public class ShopGUISettings implements Listener {
             player.openInventory(newGui.getInventory());
         } else if (item instanceof GUIUpgrade guiUpgrade) {
             Upgrade upgrade = guiUpgrade.upgrade();
-            if (upgrade != null) buyUpgrade(player, upgrade, guiUpgrade.icon());
+            if (upgrade != null) buyUpgrade(player, upgrade, guiUpgrade.icon(), gui);
         }
     }
 
-    private void buyUpgrade(Player player, Upgrade upgrade, CustomItem icon) {
+    private void buyUpgrade(Player player, Upgrade upgrade, CustomItem icon, ShopGUI gui) {
         Bukkit.getScheduler().runTask(NewBedwars.plugin, () -> {
             IArena arena = ArenaRegistry.byWorld(player.getWorld());
             if (!UpgradePurchase.canBuy(arena, player)) {
@@ -100,7 +100,8 @@ public class ShopGUISettings implements Listener {
                     "/amount/", "1");
             if (result.bought()) {
                 msg.send(player, "BoughtItem", values);
-                team.getTeamUpgrades().open(player);
+                if (player.getOpenInventory().getTopInventory().getHolder() == gui) gui.refresh();
+                else team.getTeamUpgrades().open(player);
             } else {
                 msg.send(player, "NotEnoughMoney", values);
             }

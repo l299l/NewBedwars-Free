@@ -20,7 +20,7 @@ A menu asks which setup mode you want; `/bw setupMode` opens it again. Each mode
 | Mode | For |
 |---|---|
 | **Normal** | Placing everything by hand with commands: teams, beds, spawns, shops, generators, areas |
-| **Advanced** | Normal, plus per-arena gamerules, shop and upgrade menus, generator levels and a resource pack |
+| **Advanced** | Normal, plus per-arena gamerules, shop and upgrade menus, generator levels, a resource pack, a game mode (`/bw setMode`), game phases (`/bw setGamePhases`) and a tab list layout (`/bw setTablist`) |
 | **Automatic** | The plugin scans your built map and sets up what it finds ([see below](#automatic-setup)) |
 
 `/bw setupHelp` lists the commands of your current mode, and `/bw info` (or `/bw info gui`) shows what is still missing.
@@ -55,6 +55,15 @@ Made a mistake? `/bw remove team <name>` removes a team, and `/bw remove team <n
 ## Choose a game mode
 
 New arenas use the defaults from `config.yml` (Squads on new installs; modes are in [`modes.yml`](game-modes.md)). For another mode, create the teams with the right size and, in advanced setup mode, run `/bw setMode <Mode>` (Solo, Doubles, Squads, Rush, Duels or your own). It copies the mode's generators, game phases, upgrade menu and team size into the arena in one step, and warns when the arena has a different number of teams than the mode is made for. See [Game modes and phases](game-modes.md).
+
+## Team selection
+
+With the arena gamerule `TeamSelection` (off by default; in advanced setup `/bw gamerule TeamSelection true`), players in the waiting lobby get a team selector item and can pick their team with the menu or with `/bw team <team|random>` (`random` clears the pick). Players who don't pick are placed automatically at the start of the game. Two more gamerules fine-tune it:
+
+- `TeamSelectionBalanced` (default `true`): a team can only be picked while it is one of the least picked teams, so the teams stay even.
+- `TeamSelectionPartyLeader` (default `true`): only the party leader picks, and the whole party goes to that team.
+
+The game keeps waiting while fewer than two teams have players. The selector item (`TeamSelector.Item` in `config.yml`) and all options are described in [Configuration](configuration.md#team-selector).
 
 ## Automatic setup
 

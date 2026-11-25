@@ -21,7 +21,7 @@ public class Hologram {
         text = ChatColor.translateAlternateColorCodes('&', text);
         if (replacements != null) {
             for (String key : replacements.keySet()) {
-                text = text.replace(key, replacements.get(key));
+                text = com.l299l.newbedwars.text.Tokens.replaceKey(text, key, replacements.get(key));
             }
         }
         String[] lines = text.split(";|\n");
@@ -65,7 +65,7 @@ public class Hologram {
         text = ChatColor.translateAlternateColorCodes('&', text);
         if (replacements != null) {
             for (String key : replacements.keySet()) {
-                text = text.replace(key, replacements.get(key));
+                text = com.l299l.newbedwars.text.Tokens.replaceKey(text, key, replacements.get(key));
             }
         }
         String[] lines = text.split(";|\n");

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.commands.bedwars;
 
+import com.l299l.newbedwars.apiimpl.adapter.ApiSubCommand;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.GameStatus;
@@ -141,7 +142,7 @@ public class MainCommand implements TabExecutor {
             Setup setupMode = getArenaSetupMode(p);
             if (setupMode == null || setupMode == Setup.NO_SETUP || setupMode == Setup.READY) {
                 Route route = routeFor(p);
-                boolean handled = route.adminCmds() != null && subCmd(route.adminCmds(), args, p, route.adminNeedsArena());
+                boolean handled = route.adminCmds() != null && subCmd(route.adminCmds(), args, p, route.adminNeedsArena(), false, true);
                 if (!handled) {
                     subCmd(route.publicCmds(), args, p, false, route.adminNeedsArena());
                 }
@@ -150,7 +151,7 @@ public class MainCommand implements TabExecutor {
                     msg.send(p, "NoPermissions");
                     return true;
                 }
-                subCmd(setupCommandsFor(setupMode), args, p, true);
+                subCmd(setupCommandsFor(setupMode), args, p, true, false, true);
                 if (setupMode == Setup.AUTOMATIC_SETUP && !args[0].equalsIgnoreCase("startAutomaticSetup")) {
                     notifyAutoSetup(p);
                 }
@@ -231,15 +232,15 @@ public class MainCommand implements TabExecutor {
             if (setupMode == null || setupMode == Setup.NO_SETUP || setupMode == Setup.READY) {
                 return filterAndSort(subArgs(visibleCommands(p, routeFor(p))), typed);
             } else if (canSetup(p)) {
-                return filterAndSort(subArgs(setupCommandsFor(setupMode)), typed);
+                return filterAndSort(subArgs(allowedIn(setupCommandsFor(setupMode), p)), typed);
             }
         } else if (args.length >= 2) {
             String sub = args[args.length - 1].toLowerCase();
             List<String> raw = null;
             if (setupMode == null || setupMode == Setup.NO_SETUP) {
-                raw = subSubArgs(lobbyRoute(p).all(), args, p);
+                raw = subSubArgs(allowedIn(lobbyRoute(p), p), args, p);
             } else if (setupMode == Setup.READY) {
-                raw = subSubArgs(routeFor(p).all(), args, p);
+                raw = subSubArgs(allowedIn(routeFor(p), p), args, p);
             } else if (canSetup(p)) {
                 raw = joinedSubSubArgs(args, p);
             }
@@ -364,16 +365,48 @@ public class MainCommand implements TabExecutor {
         if (cmd instanceof NpcCommand) return p.hasPermission("newbedwars.bw.npc");
         if (cmd instanceof UpdateCommand) return p.hasPermission(UpdateCommand.PERMISSION);
         if (cmd instanceof ReloadCommand) return false;
+        if (cmd instanceof ApiSubCommand api) {
+            String permission = api.getPermission();
+            return permission != null && p.hasPermission(permission);
+        }
         return true;
     }
 
-    private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set) {
-        return subCmd(sub, args, p, set, false);
+    private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set, boolean inArena) {
+        return subCmd(sub, args, p, set, inArena, false);
     }
 
-    private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set, boolean inArena) {
+    private boolean addonAllowed(Player p, SubCommand cmd, boolean setup) {
+        if (!(cmd instanceof ApiSubCommand api)) return true;
+        if (setup && api.getPermission() == null) return true;
+        return canSee(p, cmd);
+    }
+
+    private List<SubCommand> allowedIn(List<SubCommand> cmds, Player p) {
+        return allowedIn(cmds, p, true);
+    }
+
+    private List<SubCommand> allowedIn(List<SubCommand> cmds, Player p, boolean setup) {
+        List<SubCommand> result = new ArrayList<>();
+        for (SubCommand cmd : cmds) {
+            if (addonAllowed(p, cmd, setup)) result.add(cmd);
+        }
+        return result;
+    }
+
+    private List<SubCommand> allowedIn(Route route, Player p) {
+        List<SubCommand> result = new ArrayList<>(route.publicCmds());
+        if (route.adminCmds() != null) result.addAll(allowedIn(route.adminCmds(), p, false));
+        return result;
+    }
+
+    private boolean subCmd(List<SubCommand> sub, String[] args, Player p, boolean set, boolean inArena, boolean restricted) {
         for (SubCommand subCommand : sub) {
             if (args[0].equalsIgnoreCase(subCommand.getName())) {
+                if (restricted && !addonAllowed(p, subCommand, set)) {
+                    msg.send(p, "NoPermissions");
+                    return true;
+                }
                 if (set) {
                     IArena arena = getArena(p);
                     if (arena != null) {
@@ -397,8 +430,7 @@ public class MainCommand implements TabExecutor {
     }
 
     private List<String> joinedSubSubArgs(String[] args, Player p) {
-        ArrayList<SubCommand> allSubCommands = joinedSubSubCommands();
-        return subSubArgs(allSubCommands, args, p);
+        return subSubArgs(allowedIn(joinedSubSubCommands(), p), args, p);
     }
 
     private List<SubCommand> setupCommandsFor(IArena arena) {

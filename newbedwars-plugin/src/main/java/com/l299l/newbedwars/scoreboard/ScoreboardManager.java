@@ -103,7 +103,7 @@ public class ScoreboardManager {
         List<String> lines = new ArrayList<>();
         int sep = 1;
         for (String line : scoreboardSave.lines()) {
-            if (line.contains("/teams/")) {
+            if (line.contains("/teams/") || line.contains("{teams}")) {
                 if (arena.getTeams() != null) {
                     for (String team : arena.getTeams().keySet()) {
                         Team t = arena.getTeam(team);
@@ -111,13 +111,14 @@ public class ScoreboardManager {
                         if (arena.getTeam(player) != null) {
                             yourTeam = arena.getTeam(player).equals(t) ? ChatColor.GRAY + text(player, "ScoreboardYou") : "";
                         }
-                        lines.add(setInfo(line.replace("/teams/", getTeamID(t))
-                                        .replace("/bed/",  getTeamBedInfo(t))
-                                        .replace("/yourteam/", yourTeam),
+                        lines.add(setInfo(com.l299l.newbedwars.text.Tokens.apply(line, java.util.Map.of(
+                                        "teams", getTeamID(t),
+                                        "bed", getTeamBedInfo(t),
+                                        "yourteam", yourTeam)),
                                 arena, player));
                     }
                 }
-            } else if (line.contains("/server/") && com.l299l.newbedwars.network.NetworkManager.get() == null) {
+            } else if ((line.contains("/server/") || line.contains("{server}")) && com.l299l.newbedwars.network.NetworkManager.get() == null) {
 
                 continue;
             }else if (line.isEmpty()) {
@@ -127,7 +128,58 @@ public class ScoreboardManager {
                 lines.add(setInfo(line, arena, player));
             }
         }
-        return lines;
+        return fitLines(lines);
+    }
+
+    public static final int MAX_LINES = 15;
+    public static final int LEGACY_ENTRY_LIMIT = 40;
+
+    public static List<String> fitLines(List<String> lines) {
+        List<String> out = new ArrayList<>(lines);
+        for (int i = out.size() - 1; i >= 0 && out.size() > MAX_LINES; i--) {
+            if (ChatColor.stripColor(out.get(i)).isBlank()) out.remove(i);
+        }
+        while (out.size() > MAX_LINES) out.remove(out.size() - 1);
+        return out;
+    }
+
+    public static String truncateEntry(String entry, int max) {
+        if (max <= 0) return "";
+        if (entry.length() <= max) return entry;
+        String cut = entry.substring(0, max);
+        if (cut.endsWith("§")) cut = cut.substring(0, cut.length() - 1);
+        return cut;
+    }
+
+    public static List<String> makeUnique(List<String> lines, int max) {
+        List<String> out = new ArrayList<>(lines.size());
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        String reset = ChatColor.RESET.toString();
+        for (String line : lines) {
+            String candidate = truncateEntry(line, max);
+            int n = 0;
+            while (!seen.add(candidate)) {
+                n++;
+                candidate = truncateEntry(line, max - 2 * n) + reset.repeat(n);
+            }
+            out.add(candidate);
+        }
+        return out;
+    }
+
+    public static List<String> prepare(List<String> lines) {
+        List<String> fitted = fitLines(lines);
+        boolean tooLong = false;
+        for (String line : fitted) {
+            if (line.length() > LEGACY_ENTRY_LIMIT) {
+                tooLong = true;
+                break;
+            }
+        }
+        if (tooLong && !com.l299l.newbedwars.version.VersionCompat.isAtLeast(1, 20, 3)) {
+            return makeUnique(fitted, LEGACY_ENTRY_LIMIT);
+        }
+        return makeUnique(fitted);
     }
 
     public void applyLines(String id, Scoreboard scoreboard, List<String> lines, List<String> old) {
@@ -154,39 +206,41 @@ public class ScoreboardManager {
     }
 
     private String setInfo(String line, IArena arena, Player player) {
-        line = line.replace("/datetime/", TimeUtils.getActualDateTime());
-        line = line.replace("/date/", TimeUtils.getActualDate());
-        line = line.replace("/servername/", ChatColor.translateAlternateColorCodes('&', Properties.ServerName));
-        if (line.contains("/server/")) {
+        java.util.Map<String, String> v = new java.util.HashMap<>();
+        v.put("datetime", TimeUtils.getActualDateTime());
+        v.put("date", TimeUtils.getActualDate());
+        v.put("servername", ChatColor.translateAlternateColorCodes('&', Properties.ServerName));
+        if (line.contains("/server/") || line.contains("{server}")) {
             com.l299l.newbedwars.network.NetworkManager network = com.l299l.newbedwars.network.NetworkManager.get();
-            line = line.replace("/server/", network == null ? "" : network.getServerId());
+            v.put("server", network == null ? "" : network.getServerId());
         }
         if (arena != null) {
-            line = line.replace("/map/", arena.getArenaName());
-            line = line.replace("/players/", String.valueOf(arena.getActivePlayerCount()));
-            line = line.replace("/maxplayers/", String.valueOf(arena.getMaxPlayers()));
-            line = line.replace("/minplayers/", String.valueOf(arena.getMinPlayers()));
-            line = line.replace("/status/", getInteractiveStatus(arena.status(), arena, player));
-            line = line.replace("/gameTime/", TimeUtils.formatTime(arena.getGameTime()));
-            line = line.replace("/phase/", arena.getNextGamePhase());
-            line = line.replace("/phaseTime/", TimeUtils.formatTime(arena.getPhaseTime()));
+            v.put("map", arena.getArenaName());
+            v.put("players", String.valueOf(arena.getActivePlayerCount()));
+            v.put("maxplayers", String.valueOf(arena.getMaxPlayers()));
+            v.put("minplayers", String.valueOf(arena.getMinPlayers()));
+            v.put("status", getInteractiveStatus(arena.status(), arena, player));
+            v.put("gameTime", TimeUtils.formatTime(arena.getGameTime()));
+            v.put("phase", arena.getNextGamePhase());
+            v.put("phaseTime", TimeUtils.formatTime(arena.getPhaseTime()));
         }
         if (player != null) {
-            line = line.replace("/player/", player.getName());
+            v.put("player", player.getName());
             if (arena != null) {
                 GamePlayer gp = arena.getPlayer(player.getUniqueId());
                 if (gp != null) {
-                    line = line.replace("/player.stats.kills/", String.valueOf(gp.getKills()));
-                    line = line.replace("/player.stats.final_kills/", String.valueOf(gp.getFinalKills()));
-                    line = line.replace("/player.stats.beds_broken/", String.valueOf(gp.getBedsBroken()));
+                    v.put("player.stats.kills", String.valueOf(gp.getKills()));
+                    v.put("player.stats.final_kills", String.valueOf(gp.getFinalKills()));
+                    v.put("player.stats.beds_broken", String.valueOf(gp.getBedsBroken()));
                 }
             }
-            if (line.contains("/player.stats.")) {
-                line = line.replaceAll("/player\\.stats\\.\\w+/", "0");
-            }
+        }
+        line = com.l299l.newbedwars.text.Tokens.apply(line, v);
+        if (player != null && (line.contains("/player.stats.") || line.contains("{player.stats."))) {
+            line = line.replaceAll("/player\\.stats\\.\\w+/|\\{player\\.stats\\.\\w+}", "0");
         }
         line = com.l299l.newbedwars.placeholder.AddonPlaceholders.apply(line, '/', '/', player, arena);
-        return ChatColor.translateAlternateColorCodes('&', line);
+        return com.l299l.newbedwars.placeholder.PapiText.apply(player, ChatColor.translateAlternateColorCodes('&', line));
     }
 
     private String getInteractiveStatus(GameStatus status, IArena arena, Player player) {

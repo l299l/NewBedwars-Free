@@ -24,10 +24,20 @@ public class SpectatorPlayersGUI extends BasicGUI {
         init();
     }
 
+    public static boolean ownTeamOnly(IArena arena, Player viewer) {
+        return arena.isPlayerInArena(viewer) && arena.getTeam(viewer) != null
+                && Boolean.FALSE.equals(arena.getGamerules().AllowSpectatingOtherTeams);
+    }
+
+    private boolean visible(Team team) {
+        if (!team.isAlive()) return false;
+        return !ownTeamOnly(arena, getPlayer()) || team.equals(arena.getTeam(getPlayer()));
+    }
+
     private int countAlivePlayers() {
         int count = 0;
         for (Team t : arena.getTeams().values()) {
-            if (t.isAlive()) count += t.getPlayers().size();
+            if (visible(t)) count += t.getPlayers().size();
         }
         return Math.max(count, 1);
     }
@@ -37,7 +47,7 @@ public class SpectatorPlayersGUI extends BasicGUI {
         List<String> loreList = Arrays.stream(lore.split("\n")).toList();
         int slot = 0;
         for (Team team : arena.getTeams().values()) {
-            if (!team.isAlive()) continue;
+            if (!visible(team)) continue;
             for (Player target : team.getPlayers()) {
                 if (slot >= inv.getSize()) break;
                 String displayName = team.getColor() + target.getName();

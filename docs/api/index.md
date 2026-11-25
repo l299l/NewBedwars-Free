@@ -1,6 +1,6 @@
 # Getting started
 
-Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`, `game`, `maintenance`, `shop`) is the stable contract for addons. All other packages are internal and can change in any update.
+Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`, `edit`, `command`, `registry`, `events`, `game`, `maintenance`, `shop`, `mode`, `tablist`, `scoreboard`, `bossbar`, `text`) is the stable contract for addons. All other packages are internal and can change in any update.
 
 > [!IMPORTANT]
 > **New in 2.8-beta:**
@@ -14,6 +14,9 @@ Everything in the `com.l299l.newbedwars.api` package and its subpackages (`view`
 > - [Statistics](players.md#statistics-and-leaderboards): `getStats(UUID)`, `loadStats(UUID)` and `addStat` to count stats for addon game modes.
 > - [Game modes](shop-and-modes.md#game-modes): `getModes()` (`ModeService`) lists the modes and phase lists of `modes.yml` and applies a mode to a waiting arena; `ArenaView.getGeneratorConfig()` and `getGamePhases()`.
 > - [Game control](arenas.md#game-control): `destroyBed`, `eliminateTeam` and `setUpgradeLevel`.
+> - [Display](display.md): custom placeholders, tab lists (`TablistService`, `TablistUpdateEvent`), scoreboards (`ScoreboardService`, `ScoreboardUpdateEvent`) and boss bars (`BossBarService`, `BossBarUpdateEvent`).
+> - [Game modes](shop-and-modes.md#game-modes) can also be created and saved through the API (`saveMode` and related methods).
+> - `TeamPickEvent`: fired when a player picks a team in the waiting lobby (cancellable).
 > - New [events](data-and-events.md#events): `ArenaStateChangeEvent` (also the countdown start and cancel), `TeamsAssignedEvent`, `PlayerRespawnArenaEvent`, `PlayerSpectateEvent`, `TrapTriggerEvent`, `PartyChangeEvent`. `ShopPurchaseEvent` has `getTeam()` and `setPrice(int)`; `BedBreakEvent.getBreaker()` is null when the bed was destroyed through `destroyBed`.
 > - Custom generators: `GeneratorKind.CUSTOM`, `GeneratorView.getCustomId()`, `ArenaView.getCustomGeneratorIds()` and `ArenaEditor.addCustomGenerator(id, location)`. Before, custom generators were reported as `BASIC`.
 > - Team display names: `TeamEditor.setDisplayName` / `TeamView.getDisplayName()` change the name players see (e.g. `Lime` for a team `Red` that got a lime color) without renaming the team.

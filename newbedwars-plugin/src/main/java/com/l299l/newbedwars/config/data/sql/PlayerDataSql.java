@@ -71,6 +71,8 @@ public final class PlayerDataSql implements Listener {
         } catch (SQLException | RuntimeException e) {
             plugin.getLogger().log(Level.SEVERE, "[MySQL] Could not prepare the database (nothing was moved or imported; it is tried again on the next start); player data and stats may not be saved", e);
         }
+        PendingStatsSpill spill = spill();
+        if (spill != null && spill.hasPending()) db.submit("Saving kept stats", spill::replay);
         pm().getAllStats().clear();
         pm().setDropOfflineGameResults(true);
         for (Player p : Bukkit.getOnlinePlayers()) loadPlayer(p);
@@ -193,7 +195,17 @@ public final class PlayerDataSql implements Listener {
     }
 
     public void recordGame(UUID id, String name, PlayerStats delta) {
-        db.submitRetrying("Saving the stats of " + name, c -> PlayerSqlRepo.addStats(c, id, name, delta));
+        PendingStatsSpill spill = spill();
+        db.submitRetrying("Saving the stats of " + name, c -> {
+            PlayerSqlRepo.addStats(c, id, name, delta);
+            if (spill != null && spill.hasPending()) spill.replay(c);
+        }, spill == null ? null : () -> spill.append(id, name, delta));
+    }
+
+    private PendingStatsSpill spill() {
+        java.io.File folder = plugin.getDataFolder();
+        if (folder == null) return null;
+        return new PendingStatsSpill(new java.io.File(new java.io.File(folder, "data"), "pending-stats.jsonl").toPath(), plugin.getLogger());
     }
 
     public void refreshLeaderboards() {

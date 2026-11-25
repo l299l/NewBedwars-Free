@@ -52,6 +52,8 @@ New installs default to Squads. Existing servers keep their own values (`Default
 | `MapVote` | `true` | In a grouped arena, players vote for the next map at the end of the game ([Map voting](#map-voting)) |
 | `TeamSelection` | `false` | Players in the waiting lobby get an item and `/bw team` to pick their team; players who don't pick are placed automatically at the start ([Team selector](#team-selector)) |
 | `TeamSelectionBalanced` | `true` | A team can only be picked while it is one of the least picked teams (keeps teams even); `false` = any team with a free slot |
+| `AllowSpectatingOtherTeams` | `true` | `true` = players waiting to respawn (their bed is still alive) can watch every team with the spectator compass; `false` = only their own team. Eliminated players and `/bw spectate` spectators can always watch everyone |
+| `TeamChatByDefault` | `false` | `true` = normal chat goes to your team only and `!message` to everyone in the arena (the opposite of the default). Players without a team (waiting lobby, spectators) always chat with everyone |
 | `TeamSelectionPartyLeader` | `true` | With `AllowParties`: only the party leader picks and the whole party joins that team; `false` = every member picks on their own |
 
 ## Gameplay
@@ -64,6 +66,7 @@ New installs default to Squads. Existing servers keep their own values (`Default
 | `RejoinTime` | `5` | Minutes a player has to rejoin |
 | `BedLeaveConfirmEnabled` | `true` | Leaving with the bed item asks for a confirmation: click once to start a countdown, again to cancel |
 | `BedLeaveConfirmDelay` | `3` | Seconds of that countdown |
+| `StartCountdown.Title`, `.Chat`, `.Sound` | `Enabled: true`, `LastSeconds: 0` | The big title, the chat message and the sound during the countdown before the game starts. `Enabled: false` turns one off; `LastSeconds: 3` shows it only during the last 3 seconds (`0` = every second) |
 | `AfterGameWatchTime` | `30` | Seconds players can look around after the game before the arena resets |
 | `TntParticlesEnabled` | `true` | Red particles above players carrying TNT |
 | `IronGolemLifetime` | `120` | Seconds a bought iron golem stays alive |
@@ -73,6 +76,7 @@ New installs default to Squads. Existing servers keep their own values (`Default
 | Setting | Default | Meaning |
 |---|---|---|
 | `ArenaChatEnabled` | `true` | `false` = players in arenas can't chat at all. The gamerules `AllowTeamChat` and `AllowGlobalChat` also apply. Start a message with `!` to send it to your team only |
+| `LobbyJoinMessages` | `true` | `false` = no "<player> joined/left the game" message for players outside arenas (the vanilla one is always hidden). The texts are `PlayerJoinedServer` / `PlayerLeftServer` in the language files; `/player/`, `{player}` and PlaceholderAPI placeholders work in them |
 | `TablistIsolationEnabled` | `true` | Every arena has its own tab list: players in an arena only see that arena's players, and lobby players don't see arena players |
 
 Players with `newbedwars.chat.color` can use `&` colour codes in arena and team chat.
@@ -102,6 +106,30 @@ An arena uses, in this order: the layout set with `/bw setTablist <layout>`, the
 | `GameInProgress` | Players and spectators of a running game | On |
 | `GameEnding` | Everyone in the arena when the game ends | On |
 | `MainLobby` | Players in the server lobby (not in an arena). `/players/` and `/max_players/` count all enabled arenas | **Off** (`Enabled: false`) |
+
+### Scoreboard placeholders
+
+`scoreboards.yml` has three scoreboards: `WaitingScoreboard` (waiting lobby and countdown), `InGameScoreboard` and `EndingScoreboard`. Each has `Enabled`, `Title`, `TitleEffect` (`NONE` or `RAINBOW`) and a list of `Lines`. Placeholders are written between slashes (`/players/`); the curly form (`{players}`) works too, in scoreboards, boss bars, tab lists, join NPC holograms and messages, and capitals and underscores in the name don't matter (`{max_players}` = `/maxplayers/`):
+
+| Placeholder | Meaning |
+|---|---|
+| `/datetime/`, `/date/` | Current date and time, or only the date |
+| `/map/` | Arena name |
+| `/players/`, `/maxplayers/`, `/minplayers/` | Player count, maximum and minimum of the arena |
+| `/status/` | Arena status |
+| `/servername/` | Server name from `config.yml` |
+| `/server/` | Network mode: this server's id in the proxy (`Network.ServerId`); a line with it is left out on a single server |
+| `/phase/`, `/phaseTime/` | Next game phase and the time until it |
+| `/gameTime/` | Time since the game started |
+| `/player/` | Name of the player looking at the scoreboard |
+| `/teams/` | Repeats the line once per team, together with `/bed/` (bed status icon) and `/yourteam/` (marks the viewer's own team) |
+| `/player.stats.kills/`, `/player.stats.final_kills/`, `/player.stats.beds_broken/` | The player's kills, final kills and beds broken in this game |
+
+The sidebar shows at most 15 lines; with many teams, blank lines are dropped first. Placeholders of addons (`registerPlaceholder`) work here too; PlaceholderAPI placeholders (`%...%`) work in the lines too (not in the title).
+
+### Boss bar placeholders
+
+Boss bar texts can use `/server_name/`, `/arena_name/`, `/players/`, `/max_players/` and `/phase/`. In `MainLobby` (no arena) the arena name and phase are empty and the player counts cover all enabled arenas.
 
 ## Permissions
 

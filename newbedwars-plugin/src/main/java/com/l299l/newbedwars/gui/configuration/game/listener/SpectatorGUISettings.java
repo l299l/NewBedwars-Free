@@ -26,6 +26,12 @@ public class SpectatorGUISettings implements Listener {
             String targetName = skull.getOwner();
             if (targetName == null) return;
             Player target = org.bukkit.Bukkit.getPlayerExact(targetName);
+            com.l299l.newbedwars.arena.IArena arena = com.l299l.newbedwars.arena.ArenaRegistry.byWorld(player.getWorld());
+            if (arena != null && SpectatorPlayersGUI.ownTeamOnly(arena, player)
+                    && (arena.getTeam(target) == null || !arena.getTeam(target).equals(arena.getTeam(player)))) {
+                player.closeInventory();
+                return;
+            }
             if (target != null && target.isOnline()) {
                 player.closeInventory();
                 player.teleport(target.getLocation());

@@ -26,9 +26,13 @@ public final class AtomicFileWriter {
         Path tmp = parent.resolve(target.getFileName() + ".tmp");
         Files.writeString(tmp, content, StandardCharsets.UTF_8);
         if (backupDir != null && keep > 0 && Files.isRegularFile(target) && !sameContent(target, content)) {
-            Files.createDirectories(backupDir);
-            Files.copy(target, backupDir.resolve(MapTemplateManager.timestamp() + backupExtension), StandardCopyOption.REPLACE_EXISTING);
-            MapTemplateManager.rotate(backupDir, backupExtension, keep);
+            try {
+                Files.createDirectories(backupDir);
+                Files.copy(target, backupDir.resolve(MapTemplateManager.timestamp() + backupExtension), StandardCopyOption.REPLACE_EXISTING);
+                MapTemplateManager.rotate(backupDir, backupExtension, keep);
+            } catch (IOException | RuntimeException e) {
+                LOG.log(Level.WARNING, "Could not back up " + target + " to " + backupDir + "; saving anyway", e);
+            }
         }
         try {
             Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

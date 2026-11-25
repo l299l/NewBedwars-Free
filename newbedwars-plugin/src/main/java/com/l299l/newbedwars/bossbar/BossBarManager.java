@@ -9,6 +9,7 @@ import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.api.events.BossBarUpdateEvent;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.placeholder.AddonPlaceholders;
+import com.l299l.newbedwars.text.Tokens;
 import com.l299l.newbedwars.placeholder.PapiText;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -154,6 +155,14 @@ public class BossBarManager {
         bossBar.setVisible(false);
     }
 
+    public void stopAll() {
+        stopLobbyBossBar();
+        for (BossBar bossBar : new ArrayList<>(tasks.keySet())) {
+            removeBossBar(bossBar);
+        }
+        tasks.clear();
+    }
+
     private BukkitTask setEffect(BossBar bossBar, String template, TextEffect effect, IArena arena) {
         TextAnimator animator = new TextAnimator(effect, addInfo(template, arena), null);
         long period = animator.period(1);
@@ -200,10 +209,11 @@ public class BossBarManager {
     }
 
     static String lobbyInfo(String text, int players, int maxPlayers) {
-        return text.replace("/arena_name/", "")
-                .replace("/players/", String.valueOf(players))
-                .replace("/max_players/", String.valueOf(maxPlayers))
-                .replace("/phase/", "");
+        return com.l299l.newbedwars.text.Tokens.apply(text, Map.of(
+                "arena_name", "",
+                "players", String.valueOf(players),
+                "max_players", String.valueOf(maxPlayers),
+                "phase", ""));
     }
 
     private String addInfo(String text, IArena arena) {
@@ -215,19 +225,22 @@ public class BossBarManager {
         if (arena == null) {
             int players = 0;
             int max = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (ArenaRegistry.byWorld(online.getWorld()) == null) players++;
+            }
             for (IArena a : ArenaRegistry.all()) {
                 if (!a.isEnabled()) continue;
                 players += a.getActivePlayerCount();
                 max += a.getMaxPlayers();
             }
-            out = lobbyInfo(text.replace("/server_name/", Properties.ServerName), players, max);
+            out = lobbyInfo(Tokens.apply(text, Map.of("server_name", String.valueOf(Properties.ServerName))), players, max);
         } else {
-            out = text
-                    .replace("/server_name/", Properties.ServerName)
-                    .replace("/arena_name/", arena.getArenaName())
-                    .replace("/players/", String.valueOf(arena.getActivePlayerCount()))
-                    .replace("/max_players/", String.valueOf(arena.getMaxPlayers()))
-                    .replace("/phase/", arena.getCurrentGamePhase());
+            out = Tokens.apply(text, Map.of(
+                    "server_name", String.valueOf(Properties.ServerName),
+                    "arena_name", arena.getArenaName(),
+                    "players", String.valueOf(arena.getActivePlayerCount()),
+                    "max_players", String.valueOf(arena.getMaxPlayers()),
+                    "phase", String.valueOf(arena.getCurrentGamePhase())));
         }
         out = AddonPlaceholders.apply(out, '/', '/', viewer, arena);
         out = ChatColor.translateAlternateColorCodes('&', out);

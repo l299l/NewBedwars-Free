@@ -59,7 +59,10 @@ public class CombatListener implements Listener {
     public void playerDeathEvent(PlayerDeathEvent e) {
         Player p = e.getEntity();
         IArena arena = ArenaRegistry.byWorld(p.getWorld());
-        if (arena == null) return;
+        if (arena == null) {
+            keepDeathMessageOutOfArenas(e);
+            return;
+        }
         boolean spectator = arena.getSpectators().contains(p);
         if (!arena.isPlayerInArena(p) && !spectator) return;
         e.setCancelled(true);
@@ -71,6 +74,16 @@ public class CombatListener implements Listener {
         } else {
             rescueFromVoid(p, arena);
         }
+    }
+
+    static void keepDeathMessageOutOfArenas(PlayerDeathEvent e) {
+        String message = e.getDeathMessage();
+        if (message == null || message.isEmpty()) return;
+        e.setDeathMessage(null);
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (ArenaRegistry.byWorld(online.getWorld()) == null) online.sendMessage(message);
+        }
+        Bukkit.getConsoleSender().sendMessage(message);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -201,6 +214,12 @@ public class CombatListener implements Listener {
 
     @EventHandler
     public void onTeamDamage(EntityDamageByEntityEvent e) {
+        if (e.getEntity() instanceof org.bukkit.entity.IronGolem || e.getEntity() instanceof org.bukkit.entity.Silverfish) {
+            Player mobAttacker = GameplayUtil.playerDamager(e.getDamager());
+            IArena mobArena = mobAttacker == null ? null : ArenaRegistry.byWorld(mobAttacker.getWorld());
+            if (mobArena != null && mobArena.getSpectators().contains(mobAttacker)) e.setCancelled(true);
+            return;
+        }
         if (!(e.getEntity() instanceof Player victim)) return;
         IArena arena = ArenaRegistry.byWorld(victim.getWorld());
         if (arena == null || arena.status() != GameStatus.playing) return;

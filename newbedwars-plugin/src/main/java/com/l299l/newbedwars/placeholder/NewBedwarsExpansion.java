@@ -48,6 +48,8 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
         if (params.startsWith("group_")) {
             return GroupPlaceholders.resolve(params.substring("group_".length()));
         }
+        String global = resolveGlobal(params);
+        if (global != null) return global;
         if (params.startsWith("top_")) {
             return LeaderboardPlaceholders.resolve(params.substring("top_".length()),
                     plugin.getMessages().getMsgToConsole("LeaderboardPlaceholderEmpty"));
@@ -105,6 +107,57 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
                 GamePlayer gp = arena.getPlayer(player.getUniqueId());
                 return gp != null ? String.valueOf(gp.getBedsBroken()) : "0";
             }
+            case "map":
+                return arena != null ? arena.getArenaName() : "";
+            case "in_arena":
+                return String.valueOf(arena != null && (arena.isPlayerInArena(player) || arena.getSpectators().contains(player)));
+            case "team_colored": {
+                Team team = arena == null ? null : arena.getTeam(player);
+                return team != null ? team.colored(team.getDisplayName()) : "";
+            }
+            case "team_short": {
+                Team team = arena == null ? null : arena.getTeam(player);
+                return team == null || team.getDisplayName().isEmpty() ? "" : team.getDisplayName().substring(0, 1).toUpperCase();
+            }
+            case "team_players": {
+                Team team = arena == null ? null : arena.getTeam(player);
+                return team != null ? String.valueOf(team.getPlayers().size()) : "0";
+            }
+            case "team_alive": {
+                Team team = arena == null ? null : arena.getTeam(player);
+                return String.valueOf(team != null && team.isAlive());
+            }
+            case "team_bed": {
+                Team team = arena == null ? null : arena.getTeam(player);
+                if (team == null) return "";
+                return team.isBedDestroyed() ? "destroyed" : "alive";
+            }
+            case "teams_total":
+                return arena != null ? String.valueOf(arena.getTeams().size()) : "0";
+            case "teams_alive": {
+                if (arena == null) return "0";
+                int alive = 0;
+                for (Team t : arena.getTeams().values()) if (t.isAlive()) alive++;
+                return String.valueOf(alive);
+            }
+            case "min_players":
+                return arena != null ? String.valueOf(arena.getMinPlayers()) : "0";
+            case "spectators":
+                return arena != null ? String.valueOf(arena.getSpectators().size()) : "0";
+            case "next_phase":
+                return arena != null ? arena.getNextGamePhase() : "";
+            case "phase_time":
+                return arena != null ? String.valueOf(arena.getPhaseTime()) : "0";
+            case "phase_time_formatted":
+                return arena != null ? com.l299l.newbedwars.utils.TimeUtils.formatTime(arena.getPhaseTime()) : "";
+            case "game_time_formatted":
+                return arena != null ? com.l299l.newbedwars.utils.TimeUtils.formatTime(arena.getGameTime()) : "";
+            case "tablist_name":
+                return tablistPart(player, 2);
+            case "tablist_header":
+                return tablistPart(player, 0);
+            case "tablist_footer":
+                return tablistPart(player, 1);
             case "players":
                 return arena != null ? String.valueOf(arena.getActivePlayerCount()) : "0";
             case "max_players":
@@ -124,8 +177,53 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
     }
 
 
+    private String tablistPart(Player player, int index) {
+        com.l299l.newbedwars.tablist.TablistManager manager = plugin.getTablistManager();
+        if (manager == null) return "";
+        String[] parts = manager.preview(player);
+        return parts == null || parts[index] == null ? "" : parts[index];
+    }
+
+    private @Nullable String resolveGlobal(String params) {
+        switch (params) {
+            case "server_name":
+                return com.l299l.newbedwars.config.properties.Properties.ServerName == null ? ""
+                        : org.bukkit.ChatColor.translateAlternateColorCodes('&', com.l299l.newbedwars.config.properties.Properties.ServerName);
+            case "lobby_players": {
+                int count = 0;
+                for (Player p : org.bukkit.Bukkit.getOnlinePlayers()) if (ArenaRegistry.byWorld(p.getWorld()) == null) count++;
+                return String.valueOf(count);
+            }
+            case "total_players": {
+                int count = 0;
+                for (IArena a : ArenaRegistry.all()) if (a.isEnabled()) count += a.getActivePlayerCount();
+                return String.valueOf(count);
+            }
+            case "total_arenas": {
+                int count = 0;
+                for (IArena a : ArenaRegistry.all()) if (a.isEnabled()) count++;
+                return String.valueOf(count);
+            }
+            case "arenas_waiting":
+                return String.valueOf(countArenas(com.l299l.newbedwars.arena.GameStatus.waiting, com.l299l.newbedwars.arena.GameStatus.starting));
+            case "arenas_playing":
+                return String.valueOf(countArenas(com.l299l.newbedwars.arena.GameStatus.playing, com.l299l.newbedwars.arena.GameStatus.ending));
+            default:
+                return null;
+        }
+    }
+
+    private int countArenas(com.l299l.newbedwars.arena.GameStatus... statuses) {
+        int count = 0;
+        for (IArena a : ArenaRegistry.all()) {
+            if (!a.isEnabled()) continue;
+            for (com.l299l.newbedwars.arena.GameStatus s : statuses) if (a.status() == s) count++;
+        }
+        return count;
+    }
+
     private @Nullable String resolveArenaParam(String rest) {
-        String[] knownSuffixes = {"_max_players", "_players", "_status", "_phase"};
+        String[] knownSuffixes = {"_max_players", "_min_players", "_players", "_spectators", "_status", "_phase", "_group", "_enabled"};
         for (String suffix : knownSuffixes) {
             if (rest.endsWith(suffix)) {
                 String arenaName = rest.substring(0, rest.length() - suffix.length());
@@ -136,6 +234,10 @@ public class NewBedwarsExpansion extends PlaceholderExpansion {
                     case "_status"      -> arena.status().name().toLowerCase();
                     case "_players"     -> String.valueOf(arena.getActivePlayerCount());
                     case "_max_players" -> String.valueOf(arena.getMaxPlayers());
+                    case "_min_players" -> String.valueOf(arena.getMinPlayers());
+                    case "_spectators"  -> String.valueOf(arena.getSpectators().size());
+                    case "_group"       -> GroupPlaceholders.groupOf(arena);
+                    case "_enabled"     -> String.valueOf(arena.isEnabled());
                     case "_phase"       -> arena.getCurrentGamePhase();
                     default             -> null;
                 };

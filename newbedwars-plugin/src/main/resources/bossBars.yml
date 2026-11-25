@@ -43,7 +43,7 @@ BossBars:
     Effects: ["NONE"]
     Action: "END_GAME"
 
-  # Shown to players in the lobby (not in an arena). /players/ and /max_players/ count all enabled arenas.
+  # Shown to players in the lobby (not in an arena). /players/ counts the lobby players and the players in arenas, /max_players/ the slots of all enabled arenas.
   MainLobby:
     Enabled: false
     Time: 5

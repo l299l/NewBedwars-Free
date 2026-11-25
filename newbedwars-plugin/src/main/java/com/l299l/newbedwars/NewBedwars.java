@@ -121,7 +121,7 @@ public final class NewBedwars extends JavaPlugin {
             com.l299l.newbedwars.arena.shops.customitems.GamePermissions.revokeAll();
             getServer().getServicesManager().unregisterAll(this);
             if (updateService != null) updateService.stop();
-            if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
+            if (bossBarManager != null) bossBarManager.stopAll();
             if (tablistManager != null) tablistManager.stop();
             if (addonBossBars != null) addonBossBars.stop();
         });
@@ -213,7 +213,7 @@ public final class NewBedwars extends JavaPlugin {
         arenaGroupManager.load();
         mapVoteManager.clear();
         partyManager = new PartyManager(this, messages);
-        if (bossBarManager != null) bossBarManager.stopLobbyBossBar();
+        if (bossBarManager != null) bossBarManager.stopAll();
         bossBarManager = new BossBarManager(updater.getBossBarsConf());
         bossBarManager.loadBossBars();
         bossBarManager.startLobbyBossBar();
@@ -329,7 +329,7 @@ public final class NewBedwars extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InitializationEvent(this), this);
         CombatTracker combat = new CombatTracker();
         CombatListener deaths = new CombatListener(combat);
-        for (org.bukkit.event.Listener listener : List.of(new ConnectionListener(this), new SpectatorListener(this),
+        for (org.bukkit.event.Listener listener : List.of(new ConnectionListener(this), new SpectatorListener(this), new com.l299l.newbedwars.events.gameplay.SetupListener(),
                 new InventoryListener(), deaths, new MobListener(),
                 new BlockListener(this), new MovementListener(combat, deaths), new CustomItemListener(this))) {
             getServer().getPluginManager().registerEvents(listener, this);

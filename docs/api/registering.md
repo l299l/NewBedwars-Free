@@ -98,4 +98,6 @@ api.registerCommand(this, new TrimCommand(), CommandContext.LOBBY, CommandContex
 
 `CONSOLE` makes `/bw <name>` work in the server console (and command blocks). It calls `performConsole(sender, args)` and `tabCompleteConsole(sender, args)` instead of the player methods. Both do nothing by default, so override them when you register for `CONSOLE`. Typing `bw` alone in the console lists the console commands.
 
+**Permission (2.8-beta).** A command registered in an admin or setup context (`LOBBY_ADMIN`, `GAME_ADMIN`, `SETUP_*`) is usable and visible by default only to admins (`newbedwars.bw.admin` or op) and, for setup contexts, to the player setting up the arena. Override `permission()` to require your own permission instead (admins can always use it): `@Override public String permission() { return "myaddon.trim"; }`.
+
 Names: two different commands may not share a name in the same place. Lobby and lobby admin count as one place, so do game and game admin, all setup modes together, and the console. The same name is allowed in places that never apply at the same time (e.g. one addon's `trim` in `LOBBY` and another's in `GAME`). A clash throws `IllegalArgumentException`.

@@ -50,7 +50,7 @@ public class SetupArenaCommand extends BwCommand {
             msg.send(player, "ArenaReady");
             return;
         }
-        Location loc = new Location(arena.getArenaWorld(), 0, 100, 0);
+        Location loc = arena.getSetupSpawn();
         if (args.length > 3) {
             if (args[3].equalsIgnoreCase("-l") && args.length >= 5) {
                 for (int i = 4; i < args.length; i++) {
@@ -105,8 +105,11 @@ public class SetupArenaCommand extends BwCommand {
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
         if(args.length == 3) {
-            Set<String> arenaNames = ArenaRegistry.names();
-            return new ArrayList<>(arenaNames);
+            List<String> arenaNames = new ArrayList<>();
+            for (IArena arena : ArenaRegistry.all()) {
+                if (arena.getSetupMode() != Setup.READY) arenaNames.add(arena.getArenaName());
+            }
+            return arenaNames;
         }else if(args.length == 4) {
             return Collections.singletonList("-l");
         }

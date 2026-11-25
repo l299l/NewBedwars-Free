@@ -118,6 +118,39 @@ class PartyManagerTest {
     }
 
     @Test
+    void leavePartySkipsOfflineMembersForAdmin() {
+        Player admin = mockPlayer("Alice");
+        Player offline = mockPlayer("Bob");
+        Player online = mockPlayer("Carl");
+        Party party = pm.createParty(admin);
+        pm.sendInvite(admin, offline, party);
+        pm.acceptInvite(offline);
+        pm.sendInvite(admin, online, party);
+        pm.acceptInvite(online);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(online.getUniqueId())).thenReturn(online);
+            pm.leaveParty(admin);
+        }
+        assertEquals(online.getUniqueId(), party.getAdmin());
+    }
+
+    @Test
+    void leavePartyFallsBackToFirstMemberWhenAllOffline() {
+        Player admin = mockPlayer("Alice");
+        Player first = mockPlayer("Bob");
+        Player second = mockPlayer("Carl");
+        Party party = pm.createParty(admin);
+        pm.sendInvite(admin, first, party);
+        pm.acceptInvite(first);
+        pm.sendInvite(admin, second, party);
+        pm.acceptInvite(second);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            pm.leaveParty(admin);
+        }
+        assertEquals(first.getUniqueId(), party.getAdmin());
+    }
+
+    @Test
     void disbandPartyRemovesAllMembers() {
         Player admin = mockPlayer("Alice");
         Player member = mockPlayer("Bob");

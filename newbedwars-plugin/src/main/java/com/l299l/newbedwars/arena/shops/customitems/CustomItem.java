@@ -201,7 +201,7 @@ public class CustomItem implements GUIEntry {
             return PurchaseResult.UNAVAILABLE;
         }
         Material priceMaterial = offer.priceMaterial();
-        if (priceMaterial != null && !player.getInventory().contains(priceMaterial, offer.price())) {
+        if (priceMaterial != null && !com.l299l.newbedwars.arena.shops.Payment.has(player, priceMaterial, offer.price())) {
             return PurchaseResult.NOT_ENOUGH;
         }
         int charged = offer.price();
@@ -213,12 +213,12 @@ public class CustomItem implements GUIEntry {
             };
             charged = ApiEvents.shopPurchase(arena, player, name, kind, offer.priceLabel(), offer.price(), team);
             if (charged < 0) return PurchaseResult.CANCELLED;
-            if (priceMaterial != null && charged > 0 && !player.getInventory().contains(priceMaterial, charged)) {
+            if (priceMaterial != null && charged > 0 && !com.l299l.newbedwars.arena.shops.Payment.has(player, priceMaterial, charged)) {
                 return PurchaseResult.NOT_ENOUGH;
             }
         }
         if (priceMaterial != null && charged > 0) {
-            player.getInventory().removeItem(new ItemStack(priceMaterial, charged));
+            com.l299l.newbedwars.arena.shops.Payment.take(player, priceMaterial, charged);
         }
         switch (onBuyEvent) {
             case GIVE_ITEM -> {

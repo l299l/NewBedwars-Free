@@ -153,7 +153,7 @@ public class ArmorContents {
 
     private ItemStack[] getInventoryContents() {
         ItemStack[] items = new ItemStack[36];
-        items[0] = sword.getItem(player);
+        if (sword != null) items[0] = sword.getItem(player);
         if (pickaxe != null) {
             items[1] = pickaxe.getItem(player);
         }
@@ -191,8 +191,15 @@ public class ArmorContents {
         }
     }
 
+    private static boolean warnedMissingSword;
+
     private CustomItem getBasicSword() {
-        return NewBedwars.plugin.getCustomItemManager().getCustomItem(Properties.BasicSword);
+        CustomItem basic = NewBedwars.plugin.getCustomItemManager().getCustomItem(Properties.BasicSword);
+        if (basic == null && !warnedMissingSword) {
+            warnedMissingSword = true;
+            NewBedwars.plugin.getLogger().warning("BasicSword '" + Properties.BasicSword + "' is not an existing custom item; players will start without a sword.");
+        }
+        return basic;
     }
 
     private ItemStack[] getTierArmor(ArmorTier tier, boolean all, int protectionLevel, ChatColor color) {

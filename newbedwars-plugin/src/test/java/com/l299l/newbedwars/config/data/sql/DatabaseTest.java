@@ -156,4 +156,32 @@ class DatabaseTest {
         assertTrue(closed.await(3, java.util.concurrent.TimeUnit.SECONDS));
         verify(connector).close();
     }
+
+    @Test
+    void givenUpWriteIsHandedToTheDroppedCallback() throws Exception {
+        JdbcConnector connector = mock(JdbcConnector.class);
+        when(connector.get()).thenThrow(new SQLException("down"));
+        Database db = new Database(logger(), "s", connector, 30_000L);
+        java.util.concurrent.atomic.AtomicInteger dropped = new java.util.concurrent.atomic.AtomicInteger();
+        db.submitRetrying("Saving the stats of Leo", c -> {
+        }, dropped::incrementAndGet);
+        await(() -> logContains("tried again"));
+        assertEquals(0, dropped.get());
+        db.close();
+        assertEquals(1, dropped.get());
+    }
+
+    @Test
+    void failureAfterConnectingIsNotHandedToTheDroppedCallback() throws Exception {
+        JdbcConnector connector = mock(JdbcConnector.class);
+        when(connector.get()).thenReturn(mock(Connection.class));
+        Database db = new Database(logger(), "s", connector, 30_000L);
+        java.util.concurrent.atomic.AtomicInteger dropped = new java.util.concurrent.atomic.AtomicInteger();
+        db.submitRetrying("Saving", c -> {
+            throw new SQLException("lost");
+        }, dropped::incrementAndGet);
+        await(() -> logContains("Saving failed and was dropped"));
+        db.close();
+        assertEquals(0, dropped.get());
+    }
 }

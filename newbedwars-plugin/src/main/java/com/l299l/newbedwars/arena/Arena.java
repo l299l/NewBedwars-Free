@@ -555,12 +555,13 @@ public class Arena implements IArena {
             doLeave(player, reason);
         } finally {
             leaving.remove(player.getUniqueId());
+            if (arenaBossBar != null) arenaBossBar.removePlayer(player);
         }
     }
 
     private void doLeave(Player player, LeaveReason reason) {
         MapVoteManager.playerLeft(this, player);
-        teamPicks.clear(player.getUniqueId());
+        if (teamPicks.clear(player.getUniqueId())) TeamSelectorManager.refresh(this);
         if (gameStatus == GameStatus.playing && players.containsKey(player.getUniqueId())) {
             com.l299l.newbedwars.arena.shops.customitems.GamePermissions.suspend(player);
         } else {
@@ -749,10 +750,10 @@ public class Arena implements IArena {
         Set<Player> audience = new LinkedHashSet<>();
         for (UUID uuid : players.keySet()) {
             Player player = Bukkit.getServer().getPlayer(uuid);
-            if (player != null) audience.add(player);
+            if (player != null && !leaving.contains(uuid)) audience.add(player);
         }
         for (Player spectator : spectatorsList) {
-            if (spectator != null && spectator.isOnline()) audience.add(spectator);
+            if (spectator != null && spectator.isOnline() && !leaving.contains(spectator.getUniqueId())) audience.add(spectator);
         }
         return new ArrayList<>(audience);
     }
@@ -782,7 +783,7 @@ public class Arena implements IArena {
         if (key == null) return "";
         String msg = NewBedwars.plugin.getMessages().getMsg(player, key);
         for (Map.Entry<String, String> entry : replace.entrySet()) {
-            msg = msg.replace(entry.getKey(), entry.getValue());
+            msg = com.l299l.newbedwars.text.Tokens.replaceKey(msg, entry.getKey(), entry.getValue());
         }
         return msg;
     }
@@ -1596,6 +1597,20 @@ public class Arena implements IArena {
                 teamList.get(i).addPlayer(player);
                 players.get(player.getUniqueId()).setTeam(teamList.get(i));
             }
+        }
+        notifyDroppedPicks();
+    }
+
+    private void notifyDroppedPicks() {
+        if (!teamSelectionEnabled()) return;
+        for (Map.Entry<UUID, String> pick : teamPicks.all().entrySet()) {
+            GamePlayer gp = players.get(pick.getKey());
+            Player picker = Bukkit.getPlayer(pick.getKey());
+            Team wanted = teams.get(pick.getValue());
+            if (gp == null || picker == null || wanted == null) continue;
+            if (wanted.equals(gp.getTeam())) continue;
+            NewBedwars.plugin.getMessages().send(picker, "TeamPickNotKept",
+                    Map.of("/team/", wanted.colored(wanted.getDisplayName())));
         }
     }
 

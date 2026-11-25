@@ -27,6 +27,9 @@ Arena files are saved atomically with rotating backups, every game starts from a
 ## Features
 
 - Several arenas at once, each in its own world, with configurable teams, generators, upgrades, traps and custom shop items (golems, silverfish, bridge eggs and more)
+- Game modes (Solo, Doubles, Squads, Rush and Duels, or your own) with tuned generators, phases and upgrade prices, set up with `/bw setMode`
+- A team selector for the waiting lobby (`/bw team`), with balanced teams and party leader picks
+- Custom tab lists per arena or mode, and leaderboard placeholders (`%newbedwars_top_wins_1_name%`)
 - Shop items that run commands, open other menus or give a permission for the game, prices in any item, and custom generators that drop any item
 - Rejoin after a disconnect, spectator mode with a player compass, quick void, build protection zones
 - Arena groups with map voting at the end of a game, and `/bw arena copy` to run one map in several games
@@ -37,14 +40,14 @@ Arena files are saved atomically with rotating backups, every game starts from a
 - Arena backup, restore, export, import and map reset commands
 - JSON storage by default, or MySQL/MariaDB shared between servers
 - Velocity network mode with lobby and game servers
-- A read-only addon API with events
+- An addon API with events, arena and mode editing, game control, shop and display registration (tab list, scoreboards, boss bars)
 - A web admin panel as an optional addon (from 2.7-beta)
 
 Optional integrations:
 
 | Plugin | Used for |
 |---|---|
-| PlaceholderAPI | 34 `%newbedwars_*%` placeholders for players, stats, arenas and groups, plus leaderboard placeholders (top 1 to 10 by wins, kills, final kills or beds) |
+| PlaceholderAPI | 35 `%newbedwars_*%` placeholders for players, stats, arenas and groups, plus leaderboard placeholders (top 1 to 10 by wins, kills, final kills or beds) |
 | WorldEdit / FastAsyncWorldEdit | Creating an arena from a `.schem` file |
 | Citizens | Lobby join NPCs with a live hologram (without it, `/bw npc create` spawns a simple NPC) |
 

@@ -63,6 +63,24 @@ class GamerulesTest {
     }
 
     @Test
+    void spectatingOtherTeamsDefaultsToTrueAndCanBeSwitchedOff() {
+        Gamerules g = new Gamerules();
+        assertTrue(g.AllowSpectatingOtherTeams);
+        g.setGamerule("AllowSpectatingOtherTeams", false);
+        assertFalse(g.AllowSpectatingOtherTeams);
+        assertTrue(g.toJson().contains("\"AllowSpectatingOtherTeams\":false"));
+    }
+
+    @Test
+    void teamChatByDefaultIsOffUntilSwitchedOn() {
+        Gamerules g = new Gamerules();
+        assertFalse(g.TeamChatByDefault);
+        g.setGamerule("TeamChatByDefault", true);
+        assertTrue(g.TeamChatByDefault);
+        assertTrue(g.toJson().contains("\"TeamChatByDefault\":true"));
+    }
+
+    @Test
     void toJsonContainsTeamSelectionRules() {
         Gamerules g = new Gamerules();
         g.setGamerule("TeamSelection", true);

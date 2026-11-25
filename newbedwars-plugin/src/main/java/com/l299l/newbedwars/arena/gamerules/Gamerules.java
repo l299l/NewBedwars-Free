@@ -24,6 +24,8 @@ public class Gamerules {
     public Boolean TeamSelection;
     public Boolean TeamSelectionBalanced;
     public Boolean TeamSelectionPartyLeader;
+    public Boolean AllowSpectatingOtherTeams;
+    public Boolean TeamChatByDefault;
 
     public Gamerules() {
         HashMap<String, Boolean> gamerules = Properties.DefaultGamerules;
@@ -42,6 +44,8 @@ public class Gamerules {
         TeamSelection = orDefault(gamerules.get("TeamSelection"), false);
         TeamSelectionBalanced = orDefault(gamerules.get("TeamSelectionBalanced"), true);
         TeamSelectionPartyLeader = orDefault(gamerules.get("TeamSelectionPartyLeader"), true);
+        AllowSpectatingOtherTeams = orDefault(gamerules.get("AllowSpectatingOtherTeams"), true);
+        TeamChatByDefault = orDefault(gamerules.get("TeamChatByDefault"), false);
     }
 
     private static Boolean orDefault(Boolean value, boolean fallback) {
@@ -65,6 +69,8 @@ public class Gamerules {
             case "TeamSelection" -> TeamSelection = value;
             case "TeamSelectionBalanced" -> TeamSelectionBalanced = value;
             case "TeamSelectionPartyLeader" -> TeamSelectionPartyLeader = value;
+            case "AllowSpectatingOtherTeams" -> AllowSpectatingOtherTeams = value;
+            case "TeamChatByDefault" -> TeamChatByDefault = value;
         }
     }
     public String toJson() {
@@ -84,6 +90,8 @@ public class Gamerules {
                 ", \"TeamSelection\":" + TeamSelection +
                 ", \"TeamSelectionBalanced\":" + TeamSelectionBalanced +
                 ", \"TeamSelectionPartyLeader\":" + TeamSelectionPartyLeader +
+                ", \"AllowSpectatingOtherTeams\":" + AllowSpectatingOtherTeams +
+                ", \"TeamChatByDefault\":" + TeamChatByDefault +
                 '}';
     }
 }

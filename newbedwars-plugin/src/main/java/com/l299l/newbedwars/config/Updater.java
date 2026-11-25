@@ -86,15 +86,15 @@ public class Updater extends PluginFiles {
     }
 
     public void reloadBossBars() {
-        bossBarsConf = refresh("bossBars.yml", bossBarsFile, bossBarsConf);
+        bossBarsConf = refresh("bossBars.yml", bossBarsFile, bossBarsConf, "BossBars");
     }
 
     public void reloadScoreboards() {
-        scoreboardsConf = refresh("scoreboards.yml", scoreboardFile, scoreboardsConf);
+        scoreboardsConf = refresh("scoreboards.yml", scoreboardFile, scoreboardsConf, "Scoreboards");
     }
 
     public void reloadTablists() {
-        tablistsConf = refresh("tablists.yml", tablistFile, tablistsConf);
+        tablistsConf = refresh("tablists.yml", tablistFile, tablistsConf, "Layouts");
     }
 
     public void reloadGeneratorsConfigurations() {
@@ -140,14 +140,68 @@ public class Updater extends PluginFiles {
         return generatorsConfigurations;
     }
 
-    private FileConfiguration refresh(String resource, File file, FileConfiguration current) {
+    private FileConfiguration refresh(String resource, File file, FileConfiguration current, String container) {
         if (!usable(file)) return current;
         FileConfiguration conf = loadOrDefault(file, resource);
         if (conf == null) conf = current;
         save(conf, file);
+        Map<String, Object> custom = customEntries(conf, resource, container);
         update(resource, file, Collections.emptyList());
+        restoreCustomEntries(file, container, custom);
         FileConfiguration updated = loadOrDefault(file, resource);
         return updated != null ? updated : conf;
+    }
+
+    private Map<String, Object> customEntries(FileConfiguration conf, String resource, String container) {
+        Map<String, Object> custom = new java.util.LinkedHashMap<>();
+        if (conf == null) return custom;
+        org.bukkit.configuration.ConfigurationSection user = conf.getConfigurationSection(container);
+        if (user == null) return custom;
+        InputStream stream = getFilesResource(resource, getMessagesClassLoader());
+        if (stream == null) return custom;
+        FileConfiguration defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        org.bukkit.configuration.ConfigurationSection builtIn = defaults.getConfigurationSection(container);
+        for (String key : user.getKeys(false)) {
+            if (builtIn != null && builtIn.contains(key)) continue;
+            custom.put(key, user.get(key));
+        }
+        return custom;
+    }
+
+    private void restoreCustomEntries(File file, String container, Map<String, Object> custom) {
+        if (custom.isEmpty()) return;
+        try {
+            FileConfiguration after = YamlConfiguration.loadConfiguration(file);
+            YamlConfiguration only = new YamlConfiguration();
+            for (Map.Entry<String, Object> e : custom.entrySet()) {
+                if (!after.contains(container + "." + e.getKey())) only.set(e.getKey(), e.getValue());
+            }
+            if (only.getKeys(false).isEmpty()) return;
+            String text = java.nio.file.Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            if (!lastTopLevelKeyIs(text, container)) {
+                NewBedwars.plugin.getLogger().warning("Could not keep your custom entries in " + file.getName()
+                        + ": the section '" + container + "' is not the last section of the file");
+                return;
+            }
+            StringBuilder out = new StringBuilder(text);
+            if (!text.endsWith("\n")) out.append('\n');
+            for (String line : only.saveToString().split("\n")) {
+                if (!line.isEmpty()) out.append("  ").append(line).append('\n');
+            }
+            java.nio.file.Files.writeString(file.toPath(), out.toString(), StandardCharsets.UTF_8);
+        } catch (IOException | RuntimeException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not keep your custom entries in " + file.getName(), e);
+        }
+    }
+
+    private static boolean lastTopLevelKeyIs(String text, String container) {
+        String last = null;
+        for (String line : text.split("\n")) {
+            if (line.isEmpty() || line.charAt(0) == '#' || line.charAt(0) == ' ' || line.charAt(0) == '\t') continue;
+            int colon = line.indexOf(':');
+            if (colon > 0) last = line.substring(0, colon).trim();
+        }
+        return container.equals(last);
     }
 
     private boolean usable(File file) {

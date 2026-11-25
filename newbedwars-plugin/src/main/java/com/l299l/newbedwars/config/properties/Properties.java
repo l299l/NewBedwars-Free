@@ -32,6 +32,9 @@ public class Properties{
     public static Boolean BedLeaveConfirmEnabled;
     public static Integer BedLeaveConfirmDelay;
     public static Integer AfterGameWatchTime;
+    public static com.l299l.newbedwars.arena.CountdownDisplay StartCountdownTitle;
+    public static com.l299l.newbedwars.arena.CountdownDisplay StartCountdownChat;
+    public static com.l299l.newbedwars.arena.CountdownDisplay StartCountdownSound;
     public static Boolean TntParticlesEnabled;
     public static Integer DragonSpawnHeight;
     public static com.l299l.newbedwars.arena.dragon.DragonSettings Dragon = com.l299l.newbedwars.arena.dragon.DragonSettings.DEFAULTS;
@@ -43,6 +46,7 @@ public class Properties{
     public static String DefaultLanguage;
     public static StorageType StorageType;
     public static Boolean ArenaChatEnabled;
+    public static Boolean LobbyJoinMessages = true;
     public static Boolean TablistIsolationEnabled;
     public static boolean TablistEnabled = true;
     public static String DefaultTablist = "Default";
@@ -102,6 +106,7 @@ public class Properties{
         MySQLAllowPublicKeyRetrieval = get("MySQL.AllowPublicKeyRetrieval") instanceof Boolean b && b;
         Object ace = get("ArenaChatEnabled");
         ArenaChatEnabled = ace instanceof Boolean b ? b : true;
+        LobbyJoinMessages = get("LobbyJoinMessages") instanceof Boolean b ? b : true;
         Object tie = get("TablistIsolationEnabled");
         TablistIsolationEnabled = tie instanceof Boolean b ? b : true;
         TablistEnabled = !(get("Tablist.Enabled") instanceof Boolean te) || te;
@@ -136,6 +141,10 @@ public class Properties{
         DefaultGamerules.put("TeamSelectionBalanced", dtsb instanceof Boolean b ? b : true);
         Object dtsp = get("DefaultGamerules.TeamSelectionPartyLeader");
         DefaultGamerules.put("TeamSelectionPartyLeader", dtsp instanceof Boolean b ? b : true);
+        Object dsot = get("DefaultGamerules.AllowSpectatingOtherTeams");
+        DefaultGamerules.put("AllowSpectatingOtherTeams", dsot instanceof Boolean b ? b : true);
+        Object dtcd = get("DefaultGamerules.TeamChatByDefault");
+        DefaultGamerules.put("TeamChatByDefault", dtcd instanceof Boolean b ? b : false);
         DefaultLanguage = text("DefaultLanguage");
 
         RejoinTimeEnabled = typed("RejoinTimeLimitEnabled", Boolean.class);
@@ -148,6 +157,9 @@ public class Properties{
         BedLeaveConfirmDelay = blcd instanceof Integer i ? i : 3;
         Object agwt = get("AfterGameWatchTime");
         AfterGameWatchTime = agwt instanceof Integer i ? i : 30;
+        StartCountdownTitle = countdownDisplay("Title");
+        StartCountdownChat = countdownDisplay("Chat");
+        StartCountdownSound = countdownDisplay("Sound");
         Object tpe = get("TntParticlesEnabled");
         TntParticlesEnabled = tpe instanceof Boolean b ? b : true;
         Object dsh = get("DragonSpawnHeight");
@@ -327,6 +339,13 @@ public class Properties{
 
     private static int positive(Object value, int fallback) {
         return value instanceof Integer i && i > 0 ? i : fallback;
+    }
+
+    private com.l299l.newbedwars.arena.CountdownDisplay countdownDisplay(String name) {
+        Object enabled = get("StartCountdown." + name + ".Enabled");
+        Object last = get("StartCountdown." + name + ".LastSeconds");
+        return new com.l299l.newbedwars.arena.CountdownDisplay(!Boolean.FALSE.equals(enabled),
+                last instanceof Integer i && i >= 0 ? i : 0);
     }
 
     private Object get(String text) {

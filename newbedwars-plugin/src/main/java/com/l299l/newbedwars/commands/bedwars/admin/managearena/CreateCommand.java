@@ -98,7 +98,7 @@ public class CreateCommand extends BwCommand {
                 IArena arena = ArenaRegistry.byName(arenaName);
                 arena.getArenaWorld().save();
                 player.setGameMode(GameMode.CREATIVE);
-                player.teleport(new Location(arena.getArenaWorld(), 0, 100, 0));
+                player.teleport(arena.getSetupSpawn());
                 player.setAllowFlight(true);
                 player.setFlying(true);
                 arena.getPlayersOnSetup().add(player.getUniqueId());

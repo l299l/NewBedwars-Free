@@ -128,6 +128,10 @@ public interface IArena {
         return java.util.Map.of();
     }
     ArrayList<UUID> getPlayersOnSetup();
+
+    default org.bukkit.Location getSetupSpawn() {
+        return new org.bukkit.Location(getArenaWorld(), 0, 100, 0);
+    }
     String getArenaName();
     void setMaxInTeam(int max);
     void setMinPlayers(int min);

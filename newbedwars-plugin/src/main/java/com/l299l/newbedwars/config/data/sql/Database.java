@@ -52,12 +52,14 @@ public final class Database {
         final String what;
         final Task task;
         final int retriesLeft;
+        final Runnable onDropped;
         ScheduledFuture<?> future;
 
-        Retry(String what, Task task, int retriesLeft) {
+        Retry(String what, Task task, int retriesLeft, Runnable onDropped) {
             this.what = what;
             this.task = task;
             this.retriesLeft = retriesLeft;
+            this.onDropped = onDropped;
         }
     }
 
@@ -110,12 +112,20 @@ public final class Database {
     }
 
     public void submitRetrying(String what, Task task) {
-        submit(what, task, RETRIES);
+        submit(what, task, RETRIES, null);
+    }
+
+    public void submitRetrying(String what, Task task, Runnable onDropped) {
+        submit(what, task, RETRIES, onDropped);
     }
 
     private void submit(String what, Task task, int retriesLeft) {
+        submit(what, task, retriesLeft, null);
+    }
+
+    private void submit(String what, Task task, int retriesLeft, Runnable onDropped) {
         try {
-            executor.execute(() -> run(what, task, retriesLeft));
+            executor.execute(() -> run(what, task, retriesLeft, onDropped));
         } catch (RejectedExecutionException e) {
             log.warning("[MySQL] " + what + " was not saved: the database connection is already closed");
         }
@@ -136,7 +146,7 @@ public final class Database {
         });
     }
 
-    private boolean run(String what, Task task, int retriesLeft) {
+    private boolean run(String what, Task task, int retriesLeft, Runnable onDropped) {
         boolean connected = false;
         try {
             synchronized (this) {
@@ -147,13 +157,20 @@ public final class Database {
             return true;
         } catch (Exception e) {
             boolean safeToRetry = !connected || rolledBack(e);
-            boolean retry = retriesLeft > 0 && safeToRetry && scheduleRetry(what, task, retriesLeft - 1);
+            boolean retry = retriesLeft > 0 && safeToRetry && scheduleRetry(what, task, retriesLeft - 1, onDropped);
             if (retry) {
                 report(what + " failed (tried again in " + retryMillis / 1000 + "s)", e, false);
             } else if (retriesLeft > 0 && !safeToRetry) {
                 report(what + " failed and was dropped (it may have been saved already, so it is not tried again to avoid counting it twice)", e, true);
             } else {
                 report(what + " failed and was dropped", e, true);
+            }
+            if (!retry && safeToRetry && onDropped != null) {
+                try {
+                    onDropped.run();
+                } catch (RuntimeException ex) {
+                    log.log(java.util.logging.Level.SEVERE, "[MySQL] " + what + " could not be kept for later", ex);
+                }
             }
             return false;
         }
@@ -167,16 +184,16 @@ public final class Database {
         return false;
     }
 
-    private boolean scheduleRetry(String what, Task task, int retriesLeft) {
+    private boolean scheduleRetry(String what, Task task, int retriesLeft, Runnable onDropped) {
         synchronized (pending) {
             if (closing) return false;
-            Retry retry = new Retry(what, task, retriesLeft);
+            Retry retry = new Retry(what, task, retriesLeft, onDropped);
             try {
                 retry.future = executor.schedule(() -> {
                     synchronized (pending) {
                         if (!pending.remove(retry)) return;
                     }
-                    run(retry.what, retry.task, retry.retriesLeft);
+                    run(retry.what, retry.task, retry.retriesLeft, retry.onDropped);
                 }, retryMillis, TimeUnit.MILLISECONDS);
             } catch (RejectedExecutionException e) {
                 return false;
@@ -219,7 +236,7 @@ public final class Database {
                 executor.execute(() -> {
                     if (failed.get()) {
                         skipped.incrementAndGet();
-                    } else if (!run(r.what, r.task, 0)) {
+                    } else if (!run(r.what, r.task, 0, r.onDropped)) {
                         failed.set(true);
                     }
                 });

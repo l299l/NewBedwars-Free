@@ -69,6 +69,8 @@ public final class ArenaInfo {
         map.put("TeamSelection", g.TeamSelection);
         map.put("TeamSelectionBalanced", g.TeamSelectionBalanced);
         map.put("TeamSelectionPartyLeader", g.TeamSelectionPartyLeader);
+        map.put("AllowSpectatingOtherTeams", g.AllowSpectatingOtherTeams);
+        map.put("TeamChatByDefault", g.TeamChatByDefault);
         return map;
     }
 

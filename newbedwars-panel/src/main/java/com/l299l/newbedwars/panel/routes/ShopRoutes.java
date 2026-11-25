@@ -67,7 +67,8 @@ public final class ShopRoutes {
 
     private Response items(Request r) throws Exception {
         JsonArray out = new JsonArray();
-        for (ShopItem item : await(shop.getItems())) out.add(item(item));
+        boolean may = mayCommands(r);
+        for (ShopItem item : await(shop.getItems())) out.add(item(item, may));
         JsonObject body = new JsonObject();
         body.add("items", out);
         return Response.ok(body);
@@ -79,7 +80,7 @@ public final class ShopRoutes {
         if (item.isEmpty()) throw new HttpError(404, "not_found");
         Optional<Map<String, ItemTexts>> texts = await(shop.getItemTexts(name));
         JsonObject body = new JsonObject();
-        body.add("item", item(item.get()));
+        body.add("item", item(item.get(), mayCommands(r)));
         JsonObject t = new JsonObject();
         texts.ifPresent(map -> map.forEach((lang, value) -> {
             JsonObject o = new JsonObject();
@@ -109,30 +110,14 @@ public final class ShopRoutes {
         Optional<ShopItem> old = await(shop.getItem(item.name()));
         String oldAction = normalizeAction(old.map(ShopItem::onBuy).orElse(""));
         String newAction = normalizeAction(item.onBuy());
-        List<String> oldCommands = "COMMANDS".equals(oldAction) ? normalizeCommands(old.map(ShopItem::commands).orElse(List.of())) : List.of();
-        String oldGrant = "GIVE_PERM".equals(oldAction) ? trim(old.map(ShopItem::givePermission).orElse("")) : "";
-        List<String> newCommands = "COMMANDS".equals(newAction) ? normalizeCommands(item.commands()) : List.of();
-        String newGrant = "GIVE_PERM".equals(newAction) ? trim(item.givePermission()) : "";
-        boolean actionChanged = !newAction.equals(oldAction)
-                && (isPowerAction(newAction) || isPowerAction(oldAction));
-        boolean powerChanged = actionChanged || !newCommands.equals(oldCommands) || !newGrant.equals(oldGrant);
-        if (powerChanged && (r.role() == null || !r.role().has(Permission.SHOP_COMMANDS))) {
+        if (!mayCommands(r) && (isPowerAction(oldAction) || isPowerAction(newAction))) {
             throw new HttpError(403, "commands_forbidden");
         }
         return result(r, "shop.item.save", r.param("name"), await(shop.saveItem(item)));
     }
 
-    private static List<String> normalizeCommands(List<String> commands) {
-        List<String> out = new ArrayList<>();
-        if (commands == null) return out;
-        for (String c : commands) {
-            if (c != null && !c.isBlank()) out.add(c.trim());
-        }
-        return out;
-    }
-
-    private static String trim(String s) {
-        return s == null ? "" : s.trim();
+    private static boolean mayCommands(Request r) {
+        return r.role() != null && r.role().has(Permission.SHOP_COMMANDS);
     }
 
     private static String normalizeAction(String onBuy) {
@@ -157,6 +142,10 @@ public final class ShopRoutes {
     }
 
     private Response deleteItem(Request r) throws Exception {
+        if (!mayCommands(r)) {
+            Optional<ShopItem> old = await(shop.getItem(r.param("name")));
+            if (old.isPresent() && isPowerAction(normalizeAction(old.get().onBuy()))) throw new HttpError(403, "commands_forbidden");
+        }
         return result(r, "shop.item.delete", r.param("name"), await(shop.deleteItem(r.param("name"))));
     }
 
@@ -178,12 +167,45 @@ public final class ShopRoutes {
 
     private Response createGui(Request r) throws Exception {
         ShopGui gui = parseGui(r.json(), str(r.json(), "id"));
+        requireNoNewPowerItems(r, gui, null);
         return result(r, "shop.gui.create", gui.id(), await(shop.createGui(gui)));
     }
 
     private Response saveGui(Request r) throws Exception {
         ShopGui gui = parseGui(r.json(), r.param("id"));
+        requireNoNewPowerItems(r, gui, r.param("id"));
         return result(r, "shop.gui.save", gui.id(), await(shop.saveGui(gui)));
+    }
+
+    private void requireNoNewPowerItems(Request r, ShopGui gui, String oldId) throws Exception {
+        if (mayCommands(r)) return;
+        Set<String> power = new java.util.HashSet<>();
+        for (ShopItem i : await(shop.getItems())) {
+            if (isPowerAction(normalizeAction(i.onBuy()))) power.add(i.name());
+        }
+        if (power.isEmpty()) return;
+        Set<String> existing = new java.util.HashSet<>();
+        Map<String, ItemPrice> oldPrices = Map.of();
+        if (oldId != null) {
+            Optional<ShopGui> old = await(shop.getGui(oldId));
+            if (old.isPresent()) {
+                existing.addAll(old.get().slots());
+                for (ShopCategory c : old.get().categories()) existing.addAll(c.items());
+                if (old.get().itemPrices() != null) oldPrices = old.get().itemPrices();
+            }
+        }
+        if (gui.itemPrices() != null) {
+            for (String name : power) {
+                if (!java.util.Objects.equals(gui.itemPrices().get(name), oldPrices.get(name))) {
+                    throw new HttpError(403, "commands_forbidden");
+                }
+            }
+        }
+        List<String> placed = new ArrayList<>(gui.slots());
+        for (ShopCategory c : gui.categories()) placed.addAll(c.items());
+        for (String name : placed) {
+            if (name != null && power.contains(name) && !existing.contains(name)) throw new HttpError(403, "commands_forbidden");
+        }
     }
 
     private Response deleteGui(Request r) throws Exception {
@@ -301,6 +323,11 @@ public final class ShopRoutes {
     }
 
     static JsonObject item(ShopItem i) {
+        return item(i, true);
+    }
+
+    static JsonObject item(ShopItem i, boolean showPower) {
+        boolean hide = !showPower && isPowerAction(normalizeAction(i.onBuy()));
         JsonObject o = new JsonObject();
         o.addProperty("name", i.name());
         o.addProperty("material", i.material());
@@ -316,9 +343,9 @@ public final class ShopRoutes {
         o.add("enchantments", ench);
         o.add("flags", array(i.flags()));
         o.add("usedBy", array(i.usedBy()));
-        o.add("commands", array(i.commands()));
+        o.add("commands", array(hide ? List.of() : i.commands()));
         o.addProperty("openGui", i.openGui());
-        o.addProperty("givePermission", i.givePermission());
+        o.addProperty("givePermission", hide ? "" : i.givePermission());
         o.addProperty("priceMaterial", i.priceMaterial());
         return o;
     }

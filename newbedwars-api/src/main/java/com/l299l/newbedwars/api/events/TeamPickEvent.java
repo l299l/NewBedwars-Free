@@ -13,6 +13,8 @@ import java.util.Optional;
 /**
  * Fired when a player picks a team in the waiting lobby of {@link #getArena()}, or clears the pick. Cancelling it
  * ignores the pick.
+ *
+ * @since 2.8-beta
  */
 public class TeamPickEvent extends CancellableArenaEvent {
     private static final HandlerList HANDLERS = new HandlerList();

@@ -181,6 +181,24 @@ public class TablistManager {
         apply(player, context, layoutId, section);
     }
 
+    public String[] preview(Player player) {
+        if (player == null) return null;
+        IArena arena = ArenaRegistry.byWorld(player.getWorld());
+        IArena member = membership(player);
+        TablistSection section = null;
+        if (member != null) {
+            TablistLayout layout = layoutFor(member, player);
+            if (layout != null) section = layout.resolve(stateOf(member, member.getSpectators().contains(player)));
+        } else if (arena == null && config.isLobbyEnabled()) {
+            section = config.lobby();
+        }
+        if (section == null) return null;
+        return new String[]{
+                TablistRenderer.join(section.header(), player, member, player),
+                TablistRenderer.join(section.footer(), player, member, player),
+                section.playerFormat() == null ? null : TablistRenderer.render(section.playerFormat(), player, member, player)};
+    }
+
     static TablistLayout.State stateOf(IArena arena, boolean spectator) {
         if (spectator) return TablistLayout.State.SPECTATOR;
         GameStatus status = arena.status();

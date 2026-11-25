@@ -105,6 +105,12 @@ public class PartyManager {
         }
         if (party.isAdmin(player.getUniqueId())) {
             UUID newAdmin = party.getMembers().get(0);
+            for (UUID member : party.getMembers()) {
+                if (Bukkit.getPlayer(member) != null) {
+                    newAdmin = member;
+                    break;
+                }
+            }
             party.setAdmin(newAdmin);
             Player newAdminPlayer = Bukkit.getPlayer(newAdmin);
             if (newAdminPlayer != null) {

@@ -20,6 +20,10 @@ public class MobListener implements Listener {
 
     @EventHandler
     public void onMobDamage(EntityDamageByEntityEvent e) {
+        if (spectatorHitsMob(e)) {
+            e.setCancelled(true);
+            return;
+        }
         if (golemHitsOwnTeam(e) || isOwnSilverfish(e) || isOwnGolem(e) || dragonHitsOwnTeam(e)) {
             e.setCancelled(true);
         }
@@ -30,6 +34,14 @@ public class MobListener implements Listener {
         String owner = DragonController.ownerOf(e.getEntity());
         if (owner == null) return;
         e.getAffectedEntities().removeIf(entity -> entity instanceof Player p && isOwnTeam(owner, p));
+    }
+
+    private boolean spectatorHitsMob(EntityDamageByEntityEvent e) {
+        if (!(e.getEntity() instanceof org.bukkit.entity.IronGolem) && !(e.getEntity() instanceof org.bukkit.entity.Silverfish)) return false;
+        Player attacker = playerDamager(e.getDamager());
+        if (attacker == null) return false;
+        IArena arena = com.l299l.newbedwars.arena.ArenaRegistry.byWorld(attacker.getWorld());
+        return arena != null && arena.getSpectators().contains(attacker);
     }
 
     private boolean dragonHitsOwnTeam(EntityDamageByEntityEvent e) {

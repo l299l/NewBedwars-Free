@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -83,35 +84,40 @@ public class ChatEvent implements Listener {
             return;
         }
 
-        boolean teamPrefix = message.startsWith("!");
+        boolean prefixed = message.startsWith("!");
+        boolean teamAllowed = Boolean.TRUE.equals(arena.getGamerules().AllowTeamChat);
+        Team team = arena.getTeam(sender);
+        boolean teamByDefault = Boolean.TRUE.equals(arena.getGamerules().TeamChatByDefault);
+        boolean toTeam = teamByDefault ? !prefixed && teamAllowed && team != null : prefixed && teamAllowed;
+        String body = prefixed ? message.substring(1).trim() : message;
+        if (prefixed && (teamByDefault || toTeam) && body.isEmpty()) return;
+        if (prefixed && !teamByDefault && !toTeam) body = message;
 
-        if (teamPrefix && Boolean.TRUE.equals(arena.getGamerules().AllowTeamChat)) {
-            String stripped = message.substring(1).trim();
-            if (stripped.isEmpty()) return;
-            Team team = arena.getTeam(sender);
+        if (toTeam) {
             if (team == null) return;
             String formatted = format(
                     plugin.getMessages().getMsg(sender, "TeamChatFormat")
                             .replace("/player/", team.colored(sender.getName()))
                             .replace("/team/", team.colored(team.getDisplayName())),
-                    stripped, sender.hasPermission(COLOR_PERMISSION));
+                    body, sender.hasPermission(COLOR_PERMISSION));
             for (Player member : team.getPlayers()) {
                 member.sendMessage(formatted);
             }
-            ApiEvents.arenaChat(arena, sender, plain(stripped), true, team);
+            ApiEvents.arenaChat(arena, sender, plain(body), true, team);
         } else if (Boolean.TRUE.equals(arena.getGamerules().AllowGlobalChat)) {
             String formatted = format(
                     plugin.getMessages().getMsg(sender, "ArenaChatFormat")
                             .replace("/player/", arena.coloredName(sender)),
-                    message, sender.hasPermission(COLOR_PERMISSION));
+                    body, sender.hasPermission(COLOR_PERMISSION));
+            Set<UUID> sent = new HashSet<>();
             for (UUID uuid : arena.getPlayers()) {
                 Player p = Bukkit.getPlayer(uuid);
-                if (p != null) p.sendMessage(formatted);
+                if (p != null && sent.add(uuid)) p.sendMessage(formatted);
             }
             for (Player spec : arena.getSpectators()) {
-                spec.sendMessage(formatted);
+                if (sent.add(spec.getUniqueId())) spec.sendMessage(formatted);
             }
-            ApiEvents.arenaChat(arena, sender, plain(message), false, arena.getTeam(sender));
+            ApiEvents.arenaChat(arena, sender, plain(body), false, team);
         } else {
             plugin.getMessages().send(sender, "ArenaChatDisabled");
         }
@@ -166,7 +172,7 @@ public class ChatEvent implements Listener {
         if (!showServerJoinMessages()) return;
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (ArenaRegistry.byWorld(p.getWorld()) == null) {
-                plugin.getMessages().send(p, "PlayerJoinedServer", Map.of("/player/", joined.getName()));
+                sendServerMessage(p, "PlayerJoinedServer", joined);
             }
         }
     }
@@ -178,12 +184,19 @@ public class ChatEvent implements Listener {
         if (!showServerJoinMessages()) return;
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (!p.equals(quitting) && ArenaRegistry.byWorld(p.getWorld()) == null) {
-                plugin.getMessages().send(p, "PlayerLeftServer", Map.of("/player/", quitting.getName()));
+                sendServerMessage(p, "PlayerLeftServer", quitting);
             }
         }
     }
 
+    private void sendServerMessage(Player viewer, String key, Player subject) {
+        String text = com.l299l.newbedwars.text.Tokens.apply(plugin.getMessages().getMsg(viewer, key),
+                Map.of("player", subject.getName()));
+        viewer.sendMessage(com.l299l.newbedwars.placeholder.PapiText.apply(subject, text));
+    }
+
     static boolean showServerJoinMessages() {
+        if (Boolean.FALSE.equals(Properties.LobbyJoinMessages)) return false;
         NetworkMode mode = NetworkManager.mode();
         if (mode == NetworkMode.GAME) return false;
         if (mode == NetworkMode.LOBBY) {

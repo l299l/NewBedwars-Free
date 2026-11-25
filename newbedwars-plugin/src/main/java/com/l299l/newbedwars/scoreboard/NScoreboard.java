@@ -81,7 +81,7 @@ public class NScoreboard {
         rendered = draft;
         ScoreboardUpdateEvent event = ApiEvents.scoreboardUpdate(player, arena, name, title, lines);
         if (event == null) return;
-        List<String> now = ScoreboardManager.makeUnique(event.getLines());
+        List<String> now = ScoreboardManager.prepare(event.getLines());
         scoreboardManager.applyLines(id, scoreboard, now, applied);
         applied.clear();
         applied.addAll(now);

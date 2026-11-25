@@ -617,15 +617,78 @@ class PanelRoutesTest {
         assertTrue(refused.body().contains("commands_forbidden"));
         assertEquals(403, send("POST", "/api/shop/items/Fresh", keeper, "{" + base + ",\"commands\":[\"op keeper\"]}").statusCode());
         assertEquals(403, send("POST", "/api/shop/items/Reward", keeper, "{" + base.replace("\"COMMANDS\"", "\"GIVE_PERM\"") + ",\"commands\":[\"say hi\"],\"givePermission\":\"minecraft.command.op\"}").statusCode());
-        assertEquals(200, send("POST", "/api/shop/items/Reward", keeper, "{" + base + ",\"commands\":[\"say hi\"]}").statusCode());
-        verify(shop, times(1)).saveItem(any());
+        assertEquals(403, send("POST", "/api/shop/items/Reward", keeper, "{" + base + ",\"commands\":[\"say hi\"],\"permission\":\"\",\"price\":0}").statusCode());
+        verify(shop, times(0)).saveItem(any());
 
         assertEquals(200, send("POST", "/api/shop/items/Reward", boss, "{" + base + ",\"commands\":[\"say bye\"],\"priceMaterial\":\"\"}").statusCode());
         var captor = org.mockito.ArgumentCaptor.forClass(com.l299l.newbedwars.api.shop.ShopItem.class);
-        verify(shop, times(2)).saveItem(captor.capture());
+        verify(shop, times(1)).saveItem(captor.capture());
         assertEquals(List.of("say bye"), captor.getValue().commands());
         JsonObject one = json(send("GET", "/api/shop/items/Reward", boss, null));
         assertEquals("say hi", one.getAsJsonObject("item").getAsJsonArray("commands").get(0).getAsString());
+    }
+
+    @Test
+    void powerItemsAreLockedForShopEditWithoutCommands() throws Exception {
+        Login boss = login("boss", "boss-password");
+        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"shopkeepers\",\"permissions\":[\"shop.edit\"]}").statusCode());
+        assertEquals(200, send("POST", "/api/roles", boss, "{\"name\":\"shopmasters\",\"permissions\":[\"shop.edit\",\"shop.commands\"]}").statusCode());
+        accounts.put(new Account("keeper", hasher.hash("keeper-password".toCharArray()), "shopkeepers", false, 0));
+        accounts.put(new Account("master", hasher.hash("master-password".toCharArray()), "shopmasters", false, 0));
+        Login keeper = login("keeper", "keeper-password");
+        Login master = login("master", "master-password");
+        var reward = new com.l299l.newbedwars.api.shop.ShopItem("Reward", "NETHER_STAR", 1, 2, "IRON", "COMMANDS", "NONE", false, "vip",
+                java.util.Map.of(), List.of(), List.of(), List.of("say hi"), "", "", "");
+        var perm = new com.l299l.newbedwars.api.shop.ShopItem("Perm", "NETHER_STAR", 1, 2, "IRON", "GIVE_PERM", "NONE", false, "",
+                java.util.Map.of(), List.of(), List.of(), List.of(), "", "some.node", "");
+        when(shop.getItems()).thenReturn(CompletableFuture.completedFuture(List.of(reward, perm)));
+        when(shop.getItem("Reward")).thenReturn(CompletableFuture.completedFuture(Optional.of(reward)));
+        when(shop.getItemTexts("Reward")).thenReturn(CompletableFuture.completedFuture(Optional.of(java.util.Map.of())));
+        var ok = new com.l299l.newbedwars.api.shop.ShopResult(com.l299l.newbedwars.api.shop.ShopResult.Code.OK, null);
+        when(shop.saveItem(any())).thenReturn(CompletableFuture.completedFuture(ok));
+        when(shop.deleteItem(any())).thenReturn(CompletableFuture.completedFuture(ok));
+        String body = "{\"material\":\"NETHER_STAR\",\"amount\":1,\"price\":0,\"priceType\":\"IRON\",\"onBuy\":\"COMMANDS\",\"logic\":\"NONE\",\"permission\":\"\",\"commands\":[\"say hi\"]}";
+
+        HttpResponse<String> refused = send("POST", "/api/shop/items/Reward", keeper, body);
+        assertEquals(403, refused.statusCode());
+        assertTrue(refused.body().contains("commands_forbidden"));
+        assertEquals(403, send("POST", "/api/shop/items/Reward/delete", keeper, "{}").statusCode());
+        verify(shop, times(0)).saveItem(any());
+        verify(shop, times(0)).deleteItem(any());
+        assertEquals(200, send("POST", "/api/shop/items/Reward", master, body).statusCode());
+        verify(shop, times(1)).saveItem(any());
+
+        JsonObject hidden = json(send("GET", "/api/shop/items", keeper, null));
+        for (var el : hidden.getAsJsonArray("items")) {
+            JsonObject o = el.getAsJsonObject();
+            assertEquals(0, o.getAsJsonArray("commands").size());
+            assertEquals("", o.get("givePermission").getAsString());
+        }
+        JsonObject one = json(send("GET", "/api/shop/items/Reward", keeper, null));
+        assertEquals(0, one.getAsJsonObject("item").getAsJsonArray("commands").size());
+        JsonObject full = json(send("GET", "/api/shop/items", master, null));
+        assertEquals("say hi", full.getAsJsonArray("items").get(0).getAsJsonObject().getAsJsonArray("commands").get(0).getAsString());
+        assertEquals("some.node", full.getAsJsonArray("items").get(1).getAsJsonObject().get("givePermission").getAsString());
+
+        when(shop.getGui("shop")).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+        when(shop.saveGui(any())).thenReturn(CompletableFuture.completedFuture(ok));
+        String gui = "{\"title\":\"t\",\"size\":54,\"categories\":[{\"id\":\"c\",\"name\":\"C\",\"icon\":\"STONE\",\"description\":\"\",\"items\":[\"Reward\"]}]}";
+        assertEquals(403, send("POST", "/api/shop/guis/shop", keeper, gui).statusCode());
+        assertEquals(200, send("POST", "/api/shop/guis/shop", master, gui).statusCode());
+
+        var existing = new com.l299l.newbedwars.api.shop.ShopGui("menu", "t", 54, 0, 0, false, null, null, List.of(),
+                List.of(new com.l299l.newbedwars.api.shop.ShopCategory("c", "C", "STONE", "", List.of("Reward"))),
+                List.of(), List.of(), null,
+                java.util.Map.of("Reward", new com.l299l.newbedwars.api.shop.ItemPrice(5, "IRON", 1)));
+        when(shop.getGui("menu")).thenReturn(CompletableFuture.completedFuture(Optional.of(existing)));
+        String cat = "\"categories\":[{\"id\":\"c\",\"name\":\"C\",\"icon\":\"STONE\",\"description\":\"\",\"items\":[\"Reward\"]}]";
+        String freePrice = "{\"title\":\"t\",\"size\":54," + cat + ",\"itemPrices\":{\"Reward\":{\"price\":0,\"currency\":\"IRON\",\"amount\":1}}}";
+        String samePrice = "{\"title\":\"renamed\",\"size\":54," + cat + ",\"itemPrices\":{\"Reward\":{\"price\":5,\"currency\":\"IRON\",\"amount\":1}}}";
+        String droppedPrice = "{\"title\":\"t\",\"size\":54," + cat + ",\"itemPrices\":{}}";
+        assertEquals(403, send("POST", "/api/shop/guis/menu", keeper, freePrice).statusCode());
+        assertEquals(403, send("POST", "/api/shop/guis/menu", keeper, droppedPrice).statusCode());
+        assertEquals(200, send("POST", "/api/shop/guis/menu", keeper, samePrice).statusCode());
+        assertEquals(200, send("POST", "/api/shop/guis/menu", master, freePrice).statusCode());
     }
 
     @Test
@@ -666,7 +729,7 @@ class PanelRoutesTest {
         assertEquals(403, send("POST", "/api/shop/items/Dormant", keeper, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
         assertEquals(403, send("POST", "/api/shop/items/Active", keeper, "{" + base + ",\"onBuy\":\"GIVE_ITEM\"}").statusCode());
         assertEquals(200, send("POST", "/api/shop/items/Dormant", keeper, "{" + base + ",\"onBuy\":\"GIVE_ITEM\"}").statusCode());
-        assertEquals(200, send("POST", "/api/shop/items/Active", keeper, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
+        assertEquals(403, send("POST", "/api/shop/items/Active", keeper, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
         assertEquals(200, send("POST", "/api/shop/items/Dormant", boss, "{" + base + ",\"onBuy\":\"COMMANDS\"}").statusCode());
     }
 

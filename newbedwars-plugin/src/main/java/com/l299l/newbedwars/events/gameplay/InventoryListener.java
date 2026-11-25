@@ -92,6 +92,7 @@ public class InventoryListener implements Listener {
         if (ArenaRegistry.byWorld(p.getWorld()) != null) {
             IArena arena = ArenaRegistry.byWorld(p.getWorld());
             if (arena.isPlayerInArena(p) && (arena.status() == GameStatus.playing)) {
+                if (arena.getSpectators().contains(p) || arena.getTeam(p) == null) return;
                 List<TeamShop> teamShops = arena.getTeamShops();
                 List<TeamUpgrades> teamUpgrades = arena.getTeamUpgrades();
                 Team team = arena.getTeam(p);

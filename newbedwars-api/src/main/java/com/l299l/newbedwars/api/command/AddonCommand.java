@@ -38,6 +38,18 @@ public interface AddonCommand {
     }
 
     /**
+     * Permission needed to use this command when it is registered in an admin or setup context
+     * ({@code LOBBY_ADMIN}, {@code GAME_ADMIN}, {@code SETUP_*}). Admins ({@code newbedwars.bw.admin} or
+     * operators) always can. With {@code null}, admin commands are for admins only and setup commands are
+     * open to every player who is setting up the arena. Ignored in public contexts.
+     *
+     * @since 2.8-beta
+     */
+    default String permission() {
+        return null;
+    }
+
+    /**
      * Runs the command from the console or a command block. Only called when the command is registered for
      * {@link CommandContext#CONSOLE}. Does nothing by default.
      *

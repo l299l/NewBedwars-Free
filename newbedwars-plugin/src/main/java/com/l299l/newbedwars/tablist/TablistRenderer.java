@@ -6,12 +6,15 @@ import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.placeholder.AddonPlaceholders;
 import com.l299l.newbedwars.placeholder.PapiText;
+import com.l299l.newbedwars.text.Tokens;
 import com.l299l.newbedwars.utils.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class TablistRenderer {
     private TablistRenderer() {
@@ -29,28 +32,29 @@ public final class TablistRenderer {
 
     public static String render(String template, Player viewer, IArena arena, Player target) {
         if (template == null) return "";
-        String text = template;
-        text = text.replace("{server}", Properties.ServerName == null ? "" : Properties.ServerName);
-        if (text.contains("{online}")) text = text.replace("{online}", String.valueOf(Bukkit.getOnlinePlayers().size()));
-        text = text.replace("{player}", target == null ? "" : target.getName());
+        Map<String, String> v = new HashMap<>();
+        v.put("server", Properties.ServerName == null ? "" : Properties.ServerName);
+        if (template.contains("online")) v.put("online", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        v.put("player", target == null ? "" : target.getName());
         Team team = arena != null && target != null ? arena.getTeam(target) : null;
         String teamName = team == null ? "" : team.getDisplayName();
-        text = text.replace("{teamColor}", team == null ? "" : team.getColor().toString());
-        text = text.replace("{teamName}", teamName);
-        text = text.replace("{teamShort}", teamName.isEmpty() ? "" : teamName.substring(0, 1).toUpperCase());
+        v.put("teamColor", team == null ? "" : team.getColor().toString());
+        v.put("teamName", teamName);
+        v.put("teamShort", teamName.isEmpty() ? "" : teamName.substring(0, 1).toUpperCase());
         if (arena != null) {
-            text = text.replace("{arena}", arena.getArenaName());
-            text = text.replace("{players}", String.valueOf(arena.getActivePlayerCount()));
-            text = text.replace("{maxPlayers}", String.valueOf(arena.getMaxPlayers()));
-            text = text.replace("{minPlayers}", String.valueOf(arena.getMinPlayers()));
-            text = text.replace("{phase}", String.valueOf(arena.getNextGamePhase()));
-            text = text.replace("{phaseTime}", TimeUtils.formatTime(arena.getPhaseTime()));
-            text = text.replace("{gameTime}", TimeUtils.formatTime(arena.getGameTime()));
+            v.put("arena", arena.getArenaName());
+            v.put("players", String.valueOf(arena.getActivePlayerCount()));
+            v.put("maxPlayers", String.valueOf(arena.getMaxPlayers()));
+            v.put("minPlayers", String.valueOf(arena.getMinPlayers()));
+            v.put("phase", String.valueOf(arena.getNextGamePhase()));
+            v.put("phaseTime", TimeUtils.formatTime(arena.getPhaseTime()));
+            v.put("gameTime", TimeUtils.formatTime(arena.getGameTime()));
             GamePlayer gp = target == null ? null : arena.getPlayer(target.getUniqueId());
-            text = text.replace("{kills}", String.valueOf(gp == null ? 0 : gp.getKills()));
-            text = text.replace("{finalKills}", String.valueOf(gp == null ? 0 : gp.getFinalKills()));
-            text = text.replace("{bedsBroken}", String.valueOf(gp == null ? 0 : gp.getBedsBroken()));
+            v.put("kills", String.valueOf(gp == null ? 0 : gp.getKills()));
+            v.put("finalKills", String.valueOf(gp == null ? 0 : gp.getFinalKills()));
+            v.put("bedsBroken", String.valueOf(gp == null ? 0 : gp.getBedsBroken()));
         }
+        String text = Tokens.apply(template, v);
         text = AddonPlaceholders.apply(text, '{', '}', target == null ? viewer : target, arena);
         text = ChatColor.translateAlternateColorCodes('&', text);
         return PapiText.apply(viewer, text);

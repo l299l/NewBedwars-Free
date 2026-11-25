@@ -61,7 +61,7 @@ public final class UpgradePurchase {
         int currentLevel = tu.getUpgradeLevel(upgrade);
         UpgradeTier tier = pricing.next(upgrade, currentLevel, gui);
         if (tier == null) return new Result(Outcome.MAXED, null);
-        if (!player.getInventory().contains(tier.material(), tier.price())) return new Result(Outcome.NOT_ENOUGH, tier);
+        if (!com.l299l.newbedwars.arena.shops.Payment.has(player, tier.material(), tier.price())) return new Result(Outcome.NOT_ENOUGH, tier);
         int price = ApiEvents.shopPurchase(arena, player, itemName, ShopPurchaseEvent.Kind.UPGRADE, tier.currency().name(),
                 tier.price(), team);
         if (price < 0 || !ApiEvents.teamUpgrade(arena, team, upgrade.name(), currentLevel + 1, player)) {
@@ -70,10 +70,10 @@ public final class UpgradePurchase {
         if (tu.getUpgradeLevel(upgrade) != currentLevel) {
             return new Result(Outcome.CANCELLED, tier);
         }
-        if (price > 0 && !player.getInventory().contains(tier.material(), price)) {
+        if (price > 0 && !com.l299l.newbedwars.arena.shops.Payment.has(player, tier.material(), price)) {
             return new Result(Outcome.NOT_ENOUGH, tier);
         }
-        if (price > 0) player.getInventory().removeItem(new ItemStack(tier.material(), price));
+        if (price > 0) com.l299l.newbedwars.arena.shops.Payment.take(player, tier.material(), price);
         tu.upgrade(upgrade);
         return new Result(Outcome.BOUGHT, tier);
     }

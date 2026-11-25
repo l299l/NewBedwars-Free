@@ -187,4 +187,75 @@ class ChatEventTest {
         assertFalse(chat.isTeamChat());
         assertSame(sender, chat.getPlayer());
     }
+
+    private void chat(String text, boolean teamByDefault, Player teammate, Player other) {
+        arenaSetup();
+        Properties.ArenaChatEnabled = true;
+        Gamerules rules = mock(Gamerules.class);
+        rules.AllowGlobalChat = true;
+        rules.AllowTeamChat = true;
+        rules.TeamChatByDefault = teamByDefault;
+        when(arena.getGamerules()).thenReturn(rules);
+        when(arena.coloredName(sender)).thenReturn("Name");
+        com.l299l.newbedwars.arena.team.Team team = mock(com.l299l.newbedwars.arena.team.Team.class);
+        when(team.colored(any())).thenAnswer(i -> i.getArgument(0));
+        when(team.getDisplayName()).thenReturn("Red");
+        when(team.getPlayers()).thenReturn(new ArrayList<>(List.of(sender, teammate)));
+        when(arena.getTeam(sender)).thenReturn(team);
+        when(arena.getSpectators()).thenReturn(new ArrayList<>(List.of(other)));
+        when(arena.getPlayers()).thenReturn(Set.of());
+        when(messages.getMsg(sender, "ArenaChatFormat")).thenReturn("G:/message/");
+        when(messages.getMsg(sender, "TeamChatFormat")).thenReturn("T:/message/");
+        when(sender.getName()).thenReturn("Steve");
+        when(sender.hasPermission("newbedwars.chat.color")).thenReturn(false);
+        AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, sender, text, new HashSet<>());
+        PluginManager pm = mock(PluginManager.class);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(true);
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pm);
+            new ChatEvent(plugin).onChat(event);
+        }
+    }
+
+    @Test
+    void teamDefaultSendsPlainMessagesToTheTeamOnly() {
+        Player teammate = mock(Player.class);
+        Player other = mock(Player.class);
+        chat("hi", true, teammate, other);
+        verify(teammate).sendMessage("T:hi");
+        verify(other, never()).sendMessage(anyString());
+    }
+
+    @Test
+    void teamDefaultSendsBangMessagesToEveryone() {
+        Player teammate = mock(Player.class);
+        Player other = mock(Player.class);
+        chat("!hi", true, teammate, other);
+        verify(other).sendMessage("G:hi");
+        verify(teammate, never()).sendMessage(anyString());
+    }
+
+    @Test
+    void globalDefaultStillSendsBangMessagesToTheTeam() {
+        Player teammate = mock(Player.class);
+        Player other = mock(Player.class);
+        chat("!hi", false, teammate, other);
+        verify(teammate).sendMessage("T:hi");
+        verify(other, never()).sendMessage(anyString());
+    }
+
+    @Test
+    void lobbyJoinMessagesCanBeSwitchedOff() {
+        Properties.LobbyJoinMessages = false;
+        try {
+            assertFalse(ChatEvent.showServerJoinMessages());
+        } finally {
+            Properties.LobbyJoinMessages = true;
+        }
+    }
+
+    @Test
+    void lobbyJoinMessagesAreOnByDefault() {
+        assertTrue(ChatEvent.showServerJoinMessages());
+    }
 }

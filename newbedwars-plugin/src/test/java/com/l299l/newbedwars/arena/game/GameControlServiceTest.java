@@ -109,8 +109,10 @@ class GameControlServiceTest {
         assertEquals("PhaseAdvancedTo", o.key());
         assertEquals("Diamond II", o.replacements().get("/phase/"));
         when(arena.getNextGamePhase()).thenReturn("");
-        assertEquals("PhaseAdvanced", run(GameStatus.playing, Action.NEXT_PHASE).key());
-        verify(arena, times(2)).advancePhase();
+        Outcome last = run(GameStatus.playing, Action.NEXT_PHASE);
+        assertEquals(Code.ALREADY_DONE, last.code());
+        assertEquals("AlreadyLastPhase", last.key());
+        verify(arena, times(1)).advancePhase();
     }
 
     @Test

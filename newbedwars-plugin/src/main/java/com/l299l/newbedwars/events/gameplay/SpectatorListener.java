@@ -34,6 +34,16 @@ public class SpectatorListener implements Listener {
         this.plugin = plugin;
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void blockSpectatorToolClicks(PlayerInteractEvent e) {
+        Player p = e.getPlayer();
+        IArena arena = ArenaRegistry.byWorld(p.getWorld());
+        if (arena == null || !arena.getSpectators().contains(p)) return;
+        if (arena.status() != GameStatus.playing && arena.status() != GameStatus.ending) return;
+        e.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+        e.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
+    }
+
     @EventHandler
     public void playerQuitRequest(PlayerInteractEvent e) {
         Player p = e.getPlayer();

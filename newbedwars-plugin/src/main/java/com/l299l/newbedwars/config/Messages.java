@@ -32,7 +32,7 @@ public class Messages {
         Language lang = playerLanguage(p);
         String message = langMessages.getMsg(lang, text);
         for (String key : replace.keySet()) {
-            message = message.replace(key, replace.get(key));
+            message = com.l299l.newbedwars.text.Tokens.replaceKey(message, key, replace.get(key));
         }
         p.sendMessage(message);
     }

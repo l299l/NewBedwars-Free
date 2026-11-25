@@ -21,6 +21,40 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_is_spectator%` | `true` / `false` |
 | `%newbedwars_phase%` | Current phase name, or `""` |
 | `%newbedwars_game_time%` | Seconds elapsed since game start, or `0` |
+| `%newbedwars_game_time_formatted%` | Time since game start as `m:ss`, or `""` |
+| `%newbedwars_map%` | Same as `%newbedwars_arena%` |
+| `%newbedwars_in_arena%` | `true` when the player is in an arena (as player or spectator) |
+| `%newbedwars_team_colored%` | Team name in the team colour, or `""` |
+| `%newbedwars_team_short%` | First letter of the team name, or `""` |
+| `%newbedwars_team_players%` | Players in the player's team |
+| `%newbedwars_team_alive%` | `true` while the player's team is not eliminated |
+| `%newbedwars_team_bed%` | `alive` / `destroyed` (bed of the player's team), or `""` |
+| `%newbedwars_teams_total%`, `%newbedwars_teams_alive%` | Teams in the arena / teams still in the game |
+| `%newbedwars_min_players%` | Players needed to start |
+| `%newbedwars_spectators%` | Spectators in the arena |
+| `%newbedwars_next_phase%` | Name of the next game phase, or `""` |
+| `%newbedwars_phase_time%`, `%newbedwars_phase_time_formatted%` | Time until the next phase (seconds, or `m:ss`) |
+
+## Tab list text (for TAB and other tab list plugins)
+
+The text the plugin's own tab list (`tablists.yml`) would show the player, with all its placeholders already filled in. It works even when `Tablist.Enabled` is `false`, so you can switch the plugin's tab list off and let TAB show the same text. They are empty when the layout has no such text (for example in the lobby while `Lobby.Enabled` is `false`).
+
+| Placeholder | Description |
+|---|---|
+| `%newbedwars_tablist_name%` | The `PlayerFormat` of the player's layout (team colour, short team name...) |
+| `%newbedwars_tablist_header%`, `%newbedwars_tablist_footer%` | Header and footer, lines joined with a new line |
+
+## Server
+
+Work without a player.
+
+| Placeholder | Description |
+|---|---|
+| `%newbedwars_server_name%` | `ServerName` from `config.yml` |
+| `%newbedwars_lobby_players%` | Players not in an arena |
+| `%newbedwars_total_players%` | Players in all enabled arenas |
+| `%newbedwars_total_arenas%` | Enabled arenas |
+| `%newbedwars_arenas_waiting%`, `%newbedwars_arenas_playing%` | Arenas in waiting/starting and in playing/ending |
 
 ## Lifetime stats (per player)
 
@@ -57,6 +91,10 @@ An empty place shows `-` as the name (`LeaderboardPlaceholderEmpty` in the langu
 | `%newbedwars_arena_<name>_players%` | Current player count |
 | `%newbedwars_arena_<name>_max_players%` | Max players |
 | `%newbedwars_arena_<name>_phase%` | Current phase name |
+| `%newbedwars_arena_<name>_min_players%` | Players needed to start |
+| `%newbedwars_arena_<name>_spectators%` | Spectators |
+| `%newbedwars_arena_<name>_group%` | Group of the arena, or `""` |
+| `%newbedwars_arena_<name>_enabled%` | `true` / `false` |
 
 ## Per group
 

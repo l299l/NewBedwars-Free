@@ -93,7 +93,7 @@ Available outside arenas to players with the permission shown.
 | `/bw game <start\|forcestart\|stop\|forcestop\|nextPhase>` | `newbedwars.bw.managegame` | Manage the running game you are in or spectating (start, stop, skip a phase) |
 | `/bw game broadcast <message>` | `newbedwars.bw.managegame` | Send a highlighted message (`&` colours allowed) to everyone in your arena. **Available from 2.7-beta** |
 
-`/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 2 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
+`/bw join <group>` joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (`MapVote.Item` in `config.yml`, slot 1 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When `AfterGameWatchTime` is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule `MapVote`.
 
 > [!NOTE]
 > `/bw update` or `/bw update check` checks now; `/bw update download` downloads the new jar into `plugins/update/` and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under `Updates` in `config.yml` (see [Configuration](configuration.md#updates)).
@@ -103,7 +103,7 @@ Join NPC actions: `GROUP <group>` joins the fullest free arena of a group, `AREN
 ## Web panel commands
 
 > [!NOTE]
->, only with the `NewBedwars-Panel` addon installed. See [panel.md](panel.md).
+> These commands exist only with the `NewBedwars-Panel` addon installed. See [panel.md](panel.md).
 
 | Command | Permission | Description |
 |---|---|---|

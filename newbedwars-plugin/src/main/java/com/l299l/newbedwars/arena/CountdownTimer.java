@@ -1,6 +1,7 @@
 package com.l299l.newbedwars.arena;
 
 import com.l299l.newbedwars.NewBedwars;
+import com.l299l.newbedwars.config.properties.Properties;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -38,15 +39,21 @@ public class CountdownTimer {
                     for (UUID uuid : players) {
                         Player p = Bukkit.getPlayer(uuid);
                         if (p != null) {
-                            p.sendTitle(ChatColor.RED + "" + i, "", 0, 20, 0);
-                            NewBedwars.plugin.getMessages().send(p, "GameStartingCountdown", Map.of("/time/", Integer.toString(i)));
-                            p.playSound(p.getLocation(), "block.note_block.pling", 1, 1);
+                            if (shows(Properties.StartCountdownTitle, i)) p.sendTitle(ChatColor.RED + "" + i, "", 0, 20, 0);
+                            if (shows(Properties.StartCountdownChat, i)) {
+                                NewBedwars.plugin.getMessages().send(p, "GameStartingCountdown", Map.of("/time/", Integer.toString(i)));
+                            }
+                            if (shows(Properties.StartCountdownSound, i)) p.playSound(p.getLocation(), "block.note_block.pling", 1, 1);
                         }
                     }
                     i--;
                 }
             }
         }.runTaskTimer(NewBedwars.plugin, 0, 20);
+    }
+
+    private static boolean shows(CountdownDisplay display, int secondsLeft) {
+        return (display == null ? CountdownDisplay.ALWAYS : display).shows(secondsLeft);
     }
 
     public void cancel() {

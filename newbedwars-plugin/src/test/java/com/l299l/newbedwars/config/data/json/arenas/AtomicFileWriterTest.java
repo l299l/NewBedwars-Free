@@ -56,4 +56,15 @@ class AtomicFileWriterTest {
             assertEquals(2, s.count());
         }
     }
+
+    @Test
+    void unusableBackupDirDoesNotAbortTheSave() throws IOException {
+        Path target = tmp.resolve("a.json");
+        Path backups = tmp.resolve("bk");
+        Files.writeString(backups, "i am a file");
+        AtomicFileWriter.write(target, "one", backups, 5);
+        AtomicFileWriter.write(target, "two", backups, 5);
+        assertEquals("two", Files.readString(target));
+        assertFalse(Files.exists(tmp.resolve("a.json.tmp")));
+    }
 }

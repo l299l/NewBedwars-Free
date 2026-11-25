@@ -37,7 +37,8 @@ public class ShopGUI extends BasicGUI {
     }
 
     private void init(GUISave guiSave) {
-        inv = Bukkit.createInventory(this, guiSave.getSize(), guiSave.getName());
+        if (inv == null) inv = Bukkit.createInventory(this, guiSave.getSize(), guiSave.getName());
+        else inv.clear();
         for (int i = 0; i < guiSave.getSize(); i++) {
             items.add(null);
         }
@@ -100,6 +101,12 @@ public class ShopGUI extends BasicGUI {
             }
             renderFromSlot(headerSize + contentSize);
         }
+    }
+
+    public void refresh() {
+        categories.clear();
+        items.clear();
+        init(guiSave);
     }
 
     private void renderFromSlot(int start) {

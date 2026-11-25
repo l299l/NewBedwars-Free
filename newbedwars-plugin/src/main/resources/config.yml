@@ -64,6 +64,12 @@ DefaultGamerules:
   TeamSelectionBalanced: true
   # With AllowParties: true = only the party leader picks and the whole party joins that team; false = every member picks on their own.
   TeamSelectionPartyLeader: true
+  # true: players waiting to respawn (bed still alive) can watch every team with the spectator compass; false: only their own team.
+  # Eliminated players and /bw spectate spectators can always watch everyone.
+  AllowSpectatingOtherTeams: true
+  # false: normal chat goes to the whole arena and a message starting with ! to your team only.
+  # true: the other way round (normal chat to your team, ! to the whole arena). Players without a team always chat with everyone.
+  TeamChatByDefault: false
 
 
 # ----- Gameplay -----------------------------------
@@ -87,6 +93,20 @@ BedLeaveConfirmDelay: 3
 # Seconds players can look around after the game ends before the arena resets.
 AfterGameWatchTime: 30
 
+# What players get every second before the game starts (waiting lobby countdown).
+# Enabled: false = turn that part off.
+# LastSeconds: 0 = every second; 3 = only during the last 3 seconds, and so on.
+StartCountdown:
+  Title:
+    Enabled: true
+    LastSeconds: 0
+  Chat:
+    Enabled: true
+    LastSeconds: 0
+  Sound:
+    Enabled: true
+    LastSeconds: 0
+
 # Red particles above players carrying TNT.
 TntParticlesEnabled: true
 
@@ -98,8 +118,15 @@ IronGolemLifetime: 120
 
 # false = players inside arenas can not send chat messages at all.
 # The arena gamerules AllowTeamChat and AllowGlobalChat are also respected.
-# Start a message with ! to send it to your team only (e.g. !hello team).
+# Start a message with ! to send it to your team only (e.g. !hello team); the gamerule TeamChatByDefault reverses this.
 ArenaChatEnabled: true
+
+# Players outside arenas (the lobby) see "<player> joined/left the game" when someone joins or leaves the server.
+# The vanilla join/leave messages are always hidden. false = no such message at all.
+# The texts are PlayerJoinedServer and PlayerLeftServer in the language files: /player/ and {player} are the
+# player's name, and PlaceholderAPI placeholders (e.g. %vault_prefix%) are filled in for that player.
+LobbyJoinMessages: true
+
 
 # true = every arena has its own tab list: players in an arena only see the players of that arena,
 # and lobby players don't see arena players either.

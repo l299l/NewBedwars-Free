@@ -66,9 +66,9 @@ public final class GameControlService {
             default -> {
                 if (status != GameStatus.playing) return outcome(Code.NOT_READY, "GameNotInProgress", name, Map.of());
                 String next = arena.getNextGamePhase();
-                if (next == null) next = "";
+                if (next == null || next.isEmpty()) return outcome(Code.ALREADY_DONE, "AlreadyLastPhase", name, Map.of());
                 arena.advancePhase();
-                return outcome(Code.OK, next.isEmpty() ? "PhaseAdvanced" : "PhaseAdvancedTo", name, Map.of("/phase/", next));
+                return outcome(Code.OK, "PhaseAdvancedTo", name, Map.of("/phase/", next));
             }
         }
     }
