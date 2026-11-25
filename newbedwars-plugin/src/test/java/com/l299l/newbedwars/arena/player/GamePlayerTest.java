@@ -30,6 +30,7 @@ class GamePlayerTest {
         GUIManager mockGm = mock(GUIManager.class);
         CustomItemManager mockCim = mock(CustomItemManager.class);
 
+        when(mockPlugin.getLogger()).thenReturn(java.util.logging.Logger.getLogger("GamePlayerTest"));
         when(mockPlugin.getPlayerManager()).thenReturn(mockPm);
         when(mockPlugin.getGuiManager()).thenReturn(mockGm);
         when(mockPlugin.getCustomItemManager()).thenReturn(mockCim);
