@@ -33,17 +33,25 @@ The panel runs inside your Paper server. You don't need a separate website, data
 - Works with both JSON and MySQL storage
 
 **Shop editor**
-- Edit every shop item: material, amount, price and currency, what buying does, item logic, enchantments, flags and permission
+- Edit every shop item: material, amount, price and currency, what buying does (give an item, run commands, open a menu or give a permission for the game), item logic, enchantments, flags and permission
 - Names, icon descriptions and lore in every language, with a live colour-code preview
 - Build shop and upgrade menus on a visual slot grid with drag and drop, categories and header and footer rows
 - Upgrade and trap prices per level, each with its own currency, plus cheaper or pricier prices per upgrade menu (for example for solo arenas)
+- Item prices per shop menu (for example cheaper items in solo arenas)
 - Pick the shop and upgrade menu of each arena
 - Changes apply at once, with no reload. Items still in use can't be deleted, and the previous version of every file is backed up automatically
 
+**Game modes**
+- A **Modes** tab with every mode, its settings and phase timeline
+- See each arena's mode, generator config, phases and team format, and apply a mode to a waiting arena
+- Create, edit and delete modes, phase lists and generator configs (built-in modes and anything still in use can't be deleted)
+- Group the dashboard arenas by team format
+
 **Accounts, roles and activity log**
 - One account per person, created from the console with a one-time password that must be changed at the first login
-- Built-in `admin` and `staff` (view only) roles, plus your own roles from 18 permissions
+- Built-in `admin` and `staff` (view only) roles, plus your own roles from 22 permissions, grouped with toggles in the roles editor
 - Nobody can grant more than they have, so a moderator can't make themselves an admin
+- Shop items that run commands or give permissions need their own permission (`shop.commands`) to edit
 - Accounts are locked after repeated wrong passwords, and every action is written to an activity log
 - English and Polish interface, phone-friendly
 
