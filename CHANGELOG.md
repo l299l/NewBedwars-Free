@@ -2,7 +2,7 @@
 
 All notable changes to NewBedwars are documented here.
 
-## [2.8-beta] - Unreleased
+## [2.8-beta] - 25.11.2026
 
 ### Added
 - **Five built-in game modes** - Solo (8x1), Doubles (8x2), Squads (4x4), Rush (about 15 minutes) and Duels (1v1, about 12 minutes), each with its own generator speeds, game phases and upgrade prices. New installs use Squads; existing arenas keep what they have. `/bw setMode <Mode>` copies a mode's generators, phases, upgrade menu and team size into an arena (and warns when the team count differs). Modes live in the new `modes.yml`, where you can add your own. See [docs/game-modes.md](docs/game-modes.md)
@@ -29,7 +29,7 @@ All notable changes to NewBedwars are documented here.
 - **Upgrade menu** - Buying an upgrade or trap now updates the menu you are in (the prices and levels change) instead of jumping back to the first upgrade page
 - **Shop menus** - Switching between shop categories no longer moves the mouse cursor back to the middle of the screen ([#5](https://github.com/l299l/NewBedwars-Free/issues/5))
 - **Arena setup** - A player who falls into the void or dies while setting up is returned to the setup spawn in creative with their items, until they leave setup. `/bw arena setup <name> -l` only adds players who may set up arenas, and its tab completion lists only arenas that can still be set up
-- **Death messages from the lobby** - A player dying outside an arena no longer shows the vanilla death message to players in arenas; only players outside arenas (and the console) get it
+- **Death messages from the lobby** - A player dying outside an arena no longer shows the vanilla death message to players in arenas; only players outside arenas (and the console) get it. The `showDeathMessages` gamerule is respected, and while nobody plays in an arena the message stays untouched for other plugins (e.g. Discord bridges)
 - **Chat** - A player waiting to respawn no longer sees every arena message twice ([#6](https://github.com/l299l/NewBedwars-Free/issues/6)). Under lag, arena chat no longer reaches the whole server (and shows twice in the arena), and lobby chat no longer reaches players in games
 - **End-game boss bar after leaving** - When the last opponent left with `/lobby` or disconnected and the game ended because of it, the player who left kept the "game ending" boss bar in the lobby; they no longer get it
 - **Spectators** - The spectator compass no longer triggers the WorldEdit navigation wand ("No block in sight"). Respawned or rejoined players no longer see spectators, arrows, fireballs and pearls pass through them, and they can't hit iron golems and silverfish or open the team shop and upgrades

@@ -4,8 +4,6 @@
 
 [![Download NewBedwars on Modrinth](https://img.shields.io/badge/Modrinth-Download-1BD96A?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/new-bedwars) [![NewBedwars source code on GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free) [![NewBedwars documentation](https://img.shields.io/badge/Docs-Website-D32F2F?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://l299l.github.io/NewBedwars-Free/) [![Download the NewBedwars web panel addon](https://img.shields.io/badge/Web_Panel-Download-0088ff?style=for-the-badge&logo=github&logoColor=white)](https://github.com/l299l/NewBedwars-Free/releases/latest)
 
-[![Build status](https://img.shields.io/github/actions/workflow/status/l299l/NewBedwars-Free/build.yml?branch=master&label=build%20and%20tests&style=flat-square)](https://github.com/l299l/NewBedwars-Free/actions/workflows/build.yml)
-
 </div>
 
 # NewBedwars
@@ -26,6 +24,8 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - Multi-arena support: run as many arenas as you want at once, each in its own world
 - Automatic map reset after every game, with backups, export, import and copying of arenas
 - Configurable team count, colors and player limits per arena
+- Game modes (Solo, Doubles, Squads, Rush and Duels, or your own) with tuned generators, phases and upgrade prices, set up with `/bw setMode`
+- A team selector for the waiting lobby (`/bw team`), with balanced teams and party leader picks
 - Quick Void: instant death below a configurable Y level
 - Per-team build protection zones
 - Rejoin system for players who get disconnected
@@ -50,6 +50,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 **Chat, display and HUD**
 - Arena chat isolation, team chat with `!message`, optional arena-wide chat, tab list isolation
 - YAML-templated boss bars and per-player scoreboards
+- Custom tab lists per arena or mode (header, footer and player names)
 - Spectator mode with flight and a compass teleporter
 - Six languages: English, Polish, German, Spanish, French and Russian (missing keys fall back to English)
 - Per-arena resource packs
@@ -62,7 +63,7 @@ A lot of free Bedwars plugins make you pick one: simple but bare-bones, or power
 - **Web admin panel:** the optional **NewBedwars Panel** addon adds a browser panel. It shows live arenas, game control, game logs, player stats and a visual shop editor, works across a whole network, and is published as a separate project on Modrinth
 
 **Integrations**
-- PlaceholderAPI: 34 placeholders under `%newbedwars_*%` plus leaderboard placeholders (optional)
+- PlaceholderAPI: 61 placeholders under `%newbedwars_*%` plus leaderboard placeholders (optional)
 - WorldEdit / FastAsyncWorldEdit: build an arena from a `.schem` file (optional)
 - Citizens: lobby join NPCs with a live hologram (optional; without Citizens, `/bw npc create` spawns a simple NPC)
 - Addon API with events and registration of your own shop items, upgrades, armor, commands and phase actions
@@ -119,6 +120,7 @@ To install it, put `NewBedwars-Panel-<version>.jar` next to this plugin (same ve
 |---|---|
 | `/bw join [arena\|group]` | Open the arena selector, join a specific arena, or join the fullest waiting arena of a group |
 | `/bw rejoin` | Rejoin the game you disconnected from |
+| `/bw team [team\|random]` | Pick a team in the waiting lobby (needs the gamerule `TeamSelection`) |
 | `/bw spectate <arena>` | Join a running arena as a spectator |
 | `/bw lobby` (or `/lobby`) | Leave the arena and return to the lobby |
 | `/bw lang <en\|pl\|de\|es\|fr\|ru>` (or `/lang`) | Change your language |
@@ -169,7 +171,7 @@ Used inside the arena world after `/bw arena setup <name>`. Pick a mode with `/b
 |---|---|
 | All | `/bw info [gui]`, `/bw setupMode`, `/bw setupHelp`, `/bw save`, `/bw remove`, `/bw leave` |
 | Normal | `/bw createTeam <color> <name>`, `setTeamSpawn`, `setTeamBed`, `setTeamShop`, `setTeamUpgrades`, `setGenerator <type> [team]`, `setMinPlayers`, `setMaxInTeam`, `setWaitingSpawn`, `setWaitingPos1/2`, `setWaitingTime`, `setQuickVoidY`, `setTeamBasePos1/2`, `setTeamBuildProtAreaPos1/2` |
-| Advanced | `/bw gamerule <name> <true\|false>`, `setGui`, `setGeneratorLeveling`, `setResourcePack` |
+| Advanced | `/bw gamerule <name> <true\|false>`, `setGui`, `setGeneratorLeveling`, `setGamePhases`, `setMode`, `setTablist`, `setResourcePack` |
 | Automatic | Everything from Normal, plus `/bw startAutomaticSetup [radius\|next\|skip\|cancel]` |
 
 The complete list with every argument is in the [command reference](https://l299l.github.io/NewBedwars-Free/commands/).
@@ -194,6 +196,7 @@ Parent permissions grant their children. Everything not marked `true` defaults t
 | `newbedwars.bw.join` / `lobby` / `rejoin` / `spectate` | true | Join arenas, go to the lobby, rejoin, spectate |
 | `newbedwars.bw.lang` / `help` / `stats` / `profile` / `leaderboard` | true | Language, help, stats, profile and leaderboard commands |
 | `newbedwars.party` | true | All `/party` commands |
+| `newbedwars.teamselect` | true | Team selector item and `/bw team` |
 
 All player permissions default to `true`, so everyone can use them until you deny one with a permissions plugin.
 
@@ -216,7 +219,7 @@ More guides: [storage (JSON and MySQL)](https://l299l.github.io/NewBedwars-Free/
 
 ## PlaceholderAPI
 
-If PlaceholderAPI is installed, NewBedwars registers 34 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. Leaderboard placeholders (`%newbedwars_top_wins_1_name%`, `%newbedwars_top_kills_1_value%` and so on, places 1 to 10) work for holograms and menus. See the [full list](https://l299l.github.io/NewBedwars-Free/placeholders/).
+If PlaceholderAPI is installed, NewBedwars registers 61 placeholders under `%newbedwars_<placeholder>%`, for example `%newbedwars_arena%`, `%newbedwars_team%`, `%newbedwars_kills%`, `%newbedwars_stat_wins%` and `%newbedwars_arena_<name>_players%`. Leaderboard placeholders (`%newbedwars_top_wins_1_name%`, `%newbedwars_top_kills_1_value%` and so on, places 1 to 10) work for holograms and menus. See the [full list](https://l299l.github.io/NewBedwars-Free/placeholders/).
 
 ## Addon developers
 

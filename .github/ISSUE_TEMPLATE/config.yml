@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ideas and feature requests
+    url: https://github.com/l299l/NewBedwars-Free/discussions/categories/ideas
+    about: Suggest a new feature or vote on existing ideas.
+  - name: Roadmap
+    url: https://github.com/l299l/NewBedwars-Free/issues/7
+    about: See what is planned and what is already done.

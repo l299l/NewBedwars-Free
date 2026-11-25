@@ -123,3 +123,7 @@ site/
 # Tools output and py configs
 tools/out/
 tools/__pycache__/
+
+# Python caches (tools/balance)
+__pycache__/
+*.pyc

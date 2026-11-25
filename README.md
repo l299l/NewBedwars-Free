@@ -332,6 +332,8 @@ What comes next:
 1. **Bug-fix releases** after 2.8-beta only if serious bugs are reported. They fix problems and don't add big features.
 2. **The first stable release, 3.0.0.** NewBedwars leaves beta when no major bugs are open and it has been tested on every supported server version (Paper 1.17 – 26.x), on a single server and on a network.
 
+The full list of planned and finished features is in the [roadmap issue](https://github.com/l299l/NewBedwars-Free/issues/7).
+
 Found a bug in a beta? Please [report it](https://github.com/l299l/NewBedwars-Free/issues). Every report brings the stable release closer.
 
 ---

@@ -109,5 +109,6 @@ NewBedwars is a free Bedwars plugin for **Paper 1.17 to 26.x**. Arenas are built
 
 - Bugs: [GitHub issues](https://github.com/l299l/NewBedwars-Free/issues)
 - Ideas and feature requests: [GitHub discussions](https://github.com/l299l/NewBedwars-Free/discussions)
+- Planned and finished features: [roadmap](https://github.com/l299l/NewBedwars-Free/issues/7)
 - Changes in every version: [changelog](https://github.com/l299l/NewBedwars-Free/blob/master/CHANGELOG.md)
 - License: GPLv3

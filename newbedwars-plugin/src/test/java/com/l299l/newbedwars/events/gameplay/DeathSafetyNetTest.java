@@ -192,6 +192,40 @@ class DeathSafetyNetTest {
     }
 
     @Test
+    void lobbyDeathMessageIsUntouchedWhenNobodyIsInAnArena() {
+        Player lobbyPlayer = mock(Player.class);
+        when(lobbyPlayer.getWorld()).thenReturn(mock(World.class));
+        PlayerDeathEvent e = mock(PlayerDeathEvent.class);
+        when(e.getDeathMessage()).thenReturn("Steve fell");
+        try (org.mockito.MockedStatic<org.bukkit.Bukkit> bukkit = org.mockito.Mockito.mockStatic(org.bukkit.Bukkit.class)) {
+            bukkit.when(org.bukkit.Bukkit::getOnlinePlayers).thenReturn(java.util.List.of(lobbyPlayer));
+            CombatListener.keepDeathMessageOutOfArenas(e);
+        }
+        verify(e, never()).setDeathMessage(any());
+        verify(lobbyPlayer, never()).sendMessage(anyString());
+    }
+
+    @Test
+    void lobbyDeathMessageRespectsTheShowDeathMessagesGamerule() {
+        World lobbyWorld = mock(World.class);
+        when(lobbyWorld.getGameRuleValue(org.bukkit.GameRule.SHOW_DEATH_MESSAGES)).thenReturn(false);
+        Player dead = mock(Player.class);
+        when(dead.getWorld()).thenReturn(lobbyWorld);
+        Player inArena = mock(Player.class);
+        World arenaWorld = player.getWorld();
+        when(inArena.getWorld()).thenReturn(arenaWorld);
+        PlayerDeathEvent e = mock(PlayerDeathEvent.class);
+        when(e.getEntity()).thenReturn(dead);
+        when(e.getDeathMessage()).thenReturn("Steve fell");
+        try (org.mockito.MockedStatic<org.bukkit.Bukkit> bukkit = org.mockito.Mockito.mockStatic(org.bukkit.Bukkit.class)) {
+            bukkit.when(org.bukkit.Bukkit::getOnlinePlayers).thenReturn(java.util.List.of(dead, inArena));
+            CombatListener.keepDeathMessageOutOfArenas(e);
+        }
+        verify(e, never()).setDeathMessage(any());
+        verify(dead, never()).sendMessage(anyString());
+    }
+
+    @Test
     void safetyTaskKillsAPlayerBelowTheVoidLine() {
         when(arena.status()).thenReturn(GameStatus.playing);
         doNothing().when(listener).voidDeath(any(), any());

@@ -79,6 +79,17 @@ public class CombatListener implements Listener {
     static void keepDeathMessageOutOfArenas(PlayerDeathEvent e) {
         String message = e.getDeathMessage();
         if (message == null || message.isEmpty()) return;
+        Player dead = e.getEntity();
+        if (dead != null && dead.getWorld() != null
+                && Boolean.FALSE.equals(dead.getWorld().getGameRuleValue(org.bukkit.GameRule.SHOW_DEATH_MESSAGES))) return;
+        boolean anyInArena = false;
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (ArenaRegistry.byWorld(online.getWorld()) != null) {
+                anyInArena = true;
+                break;
+            }
+        }
+        if (!anyInArena) return;
         e.setDeathMessage(null);
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (ArenaRegistry.byWorld(online.getWorld()) == null) online.sendMessage(message);
