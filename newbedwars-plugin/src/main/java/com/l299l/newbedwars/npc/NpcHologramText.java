@@ -49,9 +49,12 @@ public final class NpcHologramText {
     }
 
     private static String statusName(IArena arena) {
-        if (!arena.isEnabled()) return "Disabled";
-        String s = arena.status().name();
-        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+        if (!arena.isEnabled()) return statusText("Disabled");
+        return statusText(arena.status().name());
+    }
+
+    private static String statusText(String state) {
+        return com.l299l.newbedwars.text.LangTokens.lookup(null, "GuiStatus" + Character.toUpperCase(state.charAt(0)) + state.substring(1).toLowerCase());
     }
 
     public static HashMap<String, String> remoteReplacements(JoinNpcAction action,
@@ -78,8 +81,7 @@ public final class NpcHologramText {
         r.put("/arenas_free/", String.valueOf(totals.get("free")));
         r.put("/players/", shown != null ? String.valueOf(shown.getPlayerCount()) : "0");
         r.put("/max/", shown != null ? String.valueOf(shown.getMaxPlayers()) : "0");
-        r.put("/status/", shown == null ? "-" : shown.info().state == null ? "Disabled"
-                : Character.toUpperCase(shown.info().state.name().charAt(0)) + shown.info().state.name().substring(1).toLowerCase());
+        r.put("/status/", shown == null ? "-" : statusText(shown.info().state == null ? "Disabled" : shown.info().state.name()));
         return r;
     }
 }

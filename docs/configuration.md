@@ -12,12 +12,19 @@ Other files are explained elsewhere: game modes and phases (`modes.yml`) in [Gam
 |---|---|---|
 | `ServerName` | `"&6&lExample&f&lServer.com"` | Shown on scoreboards and boss bars (placeholders `/servername/` and `/server_name/`) |
 | `DefaultLanguage` | `en` | Language for new players and the console: `en`, `pl`, `de`, `es`, `fr` or `ru`. You can add your own language file to the `language` folder |
+| `TimeFormat` | `DEFAULT` | How times are shown on scoreboards, tab lists and in placeholders: `DEFAULT` = `5m 0s` / `45s`, `CLOCK` = `05:00` / `00:45` |
 
 Players change their own language with `/bw lang`.
 
+When a new version adds texts, they are added to your language files on start: translated if NewBedwars ships a translation, otherwise in English so you can translate them. Texts you changed are kept.
+
+`scoreboards.yml`, `bossBars.yml` and `tablists.yml` are not language files, but their texts can show a language text with `{lang:Key}` (or `/lang:Key/`): `{lang:ScoreboardLineMap}` shows `ScoreboardLineMap` in the language of the player looking at it (boss bars with a language text are shown per player). The defaults of new installs use this. Servers that already have these files keep their own texts.
+
 ## Placeholders and colors in messages
 
-Colors in the language files (`plugins/NewBedwars/language/`) can be written as `&a`, `&x&F&F&A&A&0&0` or `&#FFAA00`. `&#RRGGBB` also works in PlaceholderAPI results, scoreboard lines, boss bars and the tab list. `#FFAA00` without `&` is not a color. Hex colors need Minecraft 1.16 or newer, so every version NewBedwars supports can show them.
+Colors in the language files (`plugins/NewBedwars/language/`) can be written as `&a`, `&x&F&F&A&A&0&0` or `&#FFAA00`. `&#RRGGBB` also works in PlaceholderAPI results, scoreboard lines and titles, boss bars and the tab list. `#FFAA00` without `&` is not a color. Hex colors need Minecraft 1.16 or newer, so every version NewBedwars supports can show them.
+
+The names above shop and upgrade NPCs (`ShopNpcName`, `UpgradesNpcName`) are shared by everyone: they use `DefaultLanguage`, and only server-wide PlaceholderAPI placeholders work in them, updated every second.
 
 With PlaceholderAPI installed, chat messages, announcements and menu texts in the language files can use its placeholders. Which player a placeholder such as `%luckperms_prefix%` describes depends on the message:
 
@@ -49,6 +56,8 @@ ArenaChatFormat: "&7[&fARENA&7] %luckperms_prefix%/player/ &8» &f/message/"
 TeamChatFormat: "&7[&fTEAM&7] %luckperms_prefix%/player/ &8» &f/message/"
 PlayerDeath: "%victim:luckperms_prefix%&a/player/ &fhas been killed by %killer:luckperms_prefix%&a/killer/&f!"
 ```
+
+`/team/` in `ArenaChatFormat` is the sender's coloured team name, empty without a team (in the waiting lobby or as a spectator). `WaitingChatFormat` is used instead of `ArenaChatFormat` while the arena is waiting or counting down; it is empty by default, which means `ArenaChatFormat` is used. It takes the same placeholders.
 
 Placeholders are filled in before names and chat messages are inserted, so a player who types a placeholder in chat only sends that text. Chat is written in the sender's language file. Lobby chat is not formatted by NewBedwars; your chat plugin controls it.
 
@@ -127,7 +136,7 @@ The tab list (header, footer and how player names look) is customised per arena 
 | `Tablist.Enabled` | `true` | `false` = the plugin never touches the tab list header, footer or player names (vanilla look). Independent of `TablistIsolationEnabled` |
 | `DefaultTablist` | `Default` | Layout used by arenas that have none of their own |
 
-`tablists.yml` has a `Lobby` section for players outside arenas (**off** by default, `Enabled: false`, like the `MainLobby` boss bar) and a `Layouts` section. A layout has up to three parts: `Waiting` (lobby and countdown), `Playing` and `Spectator` (the spectator's own entry). Each part can set `Header` and `Footer` (lists of lines) and `PlayerFormat`; keys that are missing fall back to the other parts (`Spectator` to `Playing`, `Playing` and `Waiting` to each other). The shipped `Default` layout shows team-coloured names: `{teamColor}{player}` while waiting and `{teamColor}[{teamShort}] {player}` during the game.
+`tablists.yml` has a `Lobby` section for players outside arenas (**off** by default, `Enabled: false`, like the `MainLobby` boss bar) and a `Layouts` section. A layout has up to three parts: `Waiting` (lobby and countdown), `Playing` and `Spectator` (the spectator's own entry). Each part can set `Header` and `Footer` (lists of lines) and `PlayerFormat`; keys that are missing fall back to the other parts (`Spectator` to `Playing`, `Playing` and `Waiting` to each other). The shipped `Default` layout shows team-coloured names: `{teamColor}{player}` while waiting and `{teamColor}[{teamShort}] {player}` during the game. With the [team selector](#team-selector) on, `{teamColor}`, `{teamName}` and `{teamShort}` show the picked team while the arena is waiting or counting down (empty without a pick); the `%newbedwars_team_...%` placeholders keep showing only the team a player is in.
 
 Use `&` colour codes. Placeholders: `{player}`, `{teamColor}`, `{teamName}`, `{teamShort}`, `{arena}`, `{players}`, `{maxPlayers}`, `{minPlayers}`, `{phase}`, `{phaseTime}`, `{gameTime}`, `{kills}`, `{finalKills}`, `{bedsBroken}`, `{server}` and `{online}`. PlaceholderAPI placeholders (`%...%`) work too when PlaceholderAPI is installed.
 
@@ -143,6 +152,8 @@ An arena uses, in this order: the layout set with `/bw setTablist <layout>`, the
 | `GameInProgress` | Players and spectators of a running game | On |
 | `GameEnding` | Everyone in the arena when the game ends | On |
 | `MainLobby` | Players in the server lobby (not in an arena). `/players/` and `/max_players/` count all enabled arenas | **Off** (`Enabled: false`) |
+
+With PlaceholderAPI installed, boss bar texts can use its placeholders (`%...%`), filled in for each player.
 
 ### Scoreboard placeholders
 
@@ -162,7 +173,17 @@ An arena uses, in this order: the layout set with `/bw setTablist <layout>`, the
 | `/teams/` | Repeats the line once per team, together with `/bed/` (bed status icon) and `/yourteam/` (marks the viewer's own team) |
 | `/player.stats.kills/`, `/player.stats.final_kills/`, `/player.stats.beds_broken/` | The player's kills, final kills and beds broken in this game |
 
-The sidebar shows at most 15 lines; with many teams, blank lines are dropped first. Placeholders of addons (`registerPlaceholder`) work here too; PlaceholderAPI placeholders (`%...%`) work in the lines too (not in the title).
+The sidebar shows at most 15 lines; with many teams, blank lines are dropped first. Placeholders of addons (`registerPlaceholder`) work here too; PlaceholderAPI placeholders (`%...%`) and `&#RRGGBB` colours work in the lines and in the title. `TitleEffect: RAINBOW` (the default) recolours the title, so use `TitleEffect: NONE` to keep your own title colours. Below Minecraft 1.20.3 lines longer than 40 characters are no longer cut off.
+
+The team lines (`/teams/`) are built from these texts in the language files, so you can change the symbols and layout:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `ScoreboardTeamFormat` | `/color//initial/ &f/name/` | The start of a team line: team colour, first letter and name |
+| `ScoreboardBedAlive` | `&a✔` | The team's bed still stands |
+| `ScoreboardBedGone` | `&e/count/` | The bed is gone; `/count/` = players left |
+| `ScoreboardTeamOut` | `&c✗` | The team is out |
+| `ScoreboardYouFormat` | `&7/you/` | Marks your own team; `/you/` is the `ScoreboardYou` text |
 
 ### Boss bar placeholders
 

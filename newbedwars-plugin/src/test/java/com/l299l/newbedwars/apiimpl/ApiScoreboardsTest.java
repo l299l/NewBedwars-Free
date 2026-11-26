@@ -54,6 +54,17 @@ class ApiScoreboardsTest {
                 Title: "&cPlay"
                 Lines:
                   - "Go"
+              Hex:
+                Enabled: true
+                Title: "&#0ED6AAHex"
+                Lines:
+                  - "&#0ED6AAEvent"
+                  - "Map /map/"
+              Teams:
+                Enabled: true
+                Title: "T"
+                Lines:
+                  - "/teams/: /bed/ /yourteam/"
               Disabled:
                 Enabled: false
                 Title: "x"
@@ -147,7 +158,7 @@ class ApiScoreboardsTest {
 
     @Test
     void serviceListsAndReportsEnabled() {
-        assertEquals(List.of("Disabled", "Playing", "Waiting"), api.getScoreboards());
+        assertEquals(List.of("Disabled", "Hex", "Playing", "Teams", "Waiting"), api.getScoreboards());
         assertTrue(api.isEnabled("Waiting"));
         assertFalse(api.isEnabled("Disabled"));
         assertFalse(api.isEnabled("Nope"));
@@ -298,5 +309,61 @@ class ApiScoreboardsTest {
         ScoreboardUpdateEvent copy = new ScoreboardUpdateEvent(player, null, "x", "t", source);
         source.add("b");
         assertEquals(List.of("a"), copy.getLines());
+    }
+
+    @Test
+    void hexLineUsesATeamAndPlainLineStaysAnEntry() {
+        org.bukkit.scoreboard.Team team = mock(org.bukkit.scoreboard.Team.class);
+        when(board.registerNewTeam(anyString())).thenReturn(team);
+        List<ScoreboardUpdateEvent> seen = new ArrayList<>();
+        listeners.add(seen::add);
+        NScoreboard sb = create("Hex");
+        verify(board).registerNewTeam("nbw_l0");
+        verify(team).setPrefix("§x§0§E§D§6§A§AEvent");
+        verify(objective).getScore("Map castle");
+        verify(objective, never()).getScore("§x§0§E§D§6§A§AEvent");
+        assertEquals("§x§0§E§D§6§A§AHex", seen.get(0).getTitle());
+        sb.kill();
+        verify(team).unregister();
+    }
+
+    @Test
+    void defaultTeamSymbolsAndLayoutAreUnchanged() {
+        Messages messages = NewBedwars.plugin.getMessages();
+        when(messages.getMsg(any(Player.class), anyString())).thenAnswer(inv -> switch ((String) inv.getArgument(1)) {
+            case "ScoreboardTeamFormat" -> "/color//initial/ &f/name/";
+            case "ScoreboardBedAlive" -> "&a✔".replace('&', '§');
+            case "ScoreboardTeamOut" -> "&c✗".replace('&', '§');
+            case "ScoreboardBedGone" -> "&e/count/".replace('&', '§');
+            case "ScoreboardYouFormat" -> "&7/you/".replace('&', '§');
+            case "ScoreboardYou" -> "YOU";
+            default -> "m";
+        });
+        com.l299l.newbedwars.arena.team.Team alive = mock(com.l299l.newbedwars.arena.team.Team.class);
+        com.l299l.newbedwars.arena.team.Team gone = mock(com.l299l.newbedwars.arena.team.Team.class);
+        when(alive.getDisplayName()).thenReturn("Red");
+        when(alive.getColor()).thenReturn(org.bukkit.ChatColor.RED);
+        when(alive.isBedDestroyed()).thenReturn(false);
+        when(gone.getDisplayName()).thenReturn("Blue");
+        when(gone.getColor()).thenReturn(org.bukkit.ChatColor.BLUE);
+        when(gone.isBedDestroyed()).thenReturn(true);
+        when(gone.getPlayers()).thenReturn(new ArrayList<>(List.of(mock(Player.class), mock(Player.class))));
+        java.util.LinkedHashMap<String, com.l299l.newbedwars.arena.team.Team> teams = new java.util.LinkedHashMap<>();
+        teams.put("red", alive);
+        teams.put("blue", gone);
+        when(arena.getTeams()).thenReturn(teams);
+        when(arena.getTeam("red")).thenReturn(alive);
+        when(arena.getTeam("blue")).thenReturn(gone);
+        when(arena.getTeam(player)).thenReturn(alive);
+        List<String> lines = manager.render("Teams", arena, player);
+        assertEquals(List.of("§cR §fRed: §a✔ §7YOU", "§9B §fBlue: §e2 "), lines);
+    }
+
+    @Test
+    void titleChangeIsResolvedEachUpdate() {
+        when(board.registerNewTeam(anyString())).thenReturn(mock(org.bukkit.scoreboard.Team.class));
+        NScoreboard sb = create("Hex");
+        sb.update();
+        verify(objective, atLeastOnce()).setDisplayName("§x§0§E§D§6§A§AHex");
     }
 }

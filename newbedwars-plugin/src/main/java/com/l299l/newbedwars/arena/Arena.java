@@ -109,7 +109,7 @@ public class Arena implements IArena {
     private Location waitingPos1;
     private Location waitingPos2;
     private Location waitingSpawn;
-    private BossBar arenaBossBar;
+    private com.l299l.newbedwars.bossbar.ManagedBossBar arenaBossBar;
     private CountdownTimer countdownTimer;
     private BukkitTask endingTimer;
     private final ScoreboardManager scoreboardManager;
@@ -562,7 +562,10 @@ public class Arena implements IArena {
 
     private void doLeave(Player player, LeaveReason reason) {
         MapVoteManager.playerLeft(this, player);
-        if (teamPicks.clear(player.getUniqueId())) TeamSelectorManager.refresh(this);
+        if (teamPicks.clear(player.getUniqueId())) {
+            TeamSelectorManager.refresh(this);
+            TeamSelectorManager.refreshTablists(this);
+        }
         if (gameStatus == GameStatus.playing && players.containsKey(player.getUniqueId())) {
             com.l299l.newbedwars.arena.shops.customitems.GamePermissions.suspend(player);
         } else {
@@ -643,7 +646,10 @@ public class Arena implements IArena {
                 ? leavingPlayer.getTeam().colored(player.getName()) : player.getName();
         if (leavingPlayer.getTeam() != null) leavingPlayer.getTeam().removePlayer(player);
         players.remove(player.getUniqueId());
-        if (!teamPicks.isEmpty()) TeamSelectorManager.refresh(this);
+        if (!teamPicks.isEmpty()) {
+            TeamSelectorManager.refresh(this);
+            TeamSelectorManager.refreshTablists(this);
+        }
         if (gameStatus != GameStatus.restarting) broadcast("PlayerLeftArena", Map.of(
                 "/player/", playerName,
                 "/players/", Integer.toString(players.size()),

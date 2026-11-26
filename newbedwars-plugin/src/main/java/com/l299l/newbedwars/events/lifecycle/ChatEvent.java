@@ -106,6 +106,7 @@ public class ChatEvent implements Listener {
             ApiEvents.arenaChat(arena, sender, plain(body), true, team);
         } else if (Boolean.TRUE.equals(arena.getGamerules().AllowGlobalChat)) {
             boolean allowColor = sender.hasPermission(COLOR_PERMISSION);
+            String teamName = team == null ? "" : team.colored(team.getDisplayName());
             Set<Player> recipients = new LinkedHashSet<>();
             for (UUID uuid : arena.getPlayers()) {
                 Player p = Bukkit.getPlayer(uuid);
@@ -113,8 +114,9 @@ public class ChatEvent implements Listener {
             }
             recipients.addAll(arena.getSpectators());
             for (Player recipient : recipients) {
-                String template = chatTemplate(recipient, sender, "ArenaChatFormat")
-                        .replace("/player/", arena.coloredName(sender));
+                String template = arenaFormat(recipient, sender, arena)
+                        .replace("/player/", arena.coloredName(sender))
+                        .replace("/team/", teamName);
                 recipient.sendMessage(format(template, body, allowColor));
             }
             ApiEvents.arenaChat(arena, sender, plain(body), false, team);
@@ -125,6 +127,15 @@ public class ChatEvent implements Listener {
 
     private String chatTemplate(Player viewer, Player sender, String key) {
         return plugin.getMessages().getMsg(viewer, sender, key, MessageContext.about(sender));
+    }
+
+    private String arenaFormat(Player viewer, Player sender, IArena arena) {
+        GameStatus status = arena.status();
+        if (status == GameStatus.waiting || status == GameStatus.starting) {
+            String waiting = chatTemplate(viewer, sender, "WaitingChatFormat");
+            if (waiting != null && !waiting.isEmpty()) return waiting;
+        }
+        return chatTemplate(viewer, sender, "ArenaChatFormat");
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

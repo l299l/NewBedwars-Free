@@ -28,8 +28,10 @@ public class NScoreboard {
     private final ScoreboardManager scoreboardManager;
     private final TextEffect textEffect;
     private final String rawTitle;
-    private final List<String> applied = new ArrayList<>();
+    private final SidebarLines sidebar;
     private List<String> rendered;
+    private String resolvedTitle;
+    private String shownTitle;
     private String titleOverride;
     private boolean killed;
 
@@ -42,6 +44,7 @@ public class NScoreboard {
         this.player = player;
         this.textEffect = textEffect;
         this.rawTitle = rawTitle;
+        this.sidebar = new SidebarLines(id, scoreboard);
         task = new BukkitRunnable() {
             @Override
             public void run() {
@@ -53,14 +56,15 @@ public class NScoreboard {
 
     private BukkitTask createEffectTask() {
         if (textEffect == null || textEffect == TextEffect.NONE) return null;
-        TextAnimator animator = new TextAnimator(textEffect, rawTitle, ChatColor.WHITE);
+        TextAnimator animator = new TextAnimator(textEffect, com.l299l.newbedwars.text.LangTokens.apply(rawTitle, player), ChatColor.WHITE);
         return new BukkitRunnable() {
             @Override
             public void run() {
                 if (titleOverride != null) return;
                 Objective obj = scoreboard.getObjective(id);
                 if (obj != null) {
-                    obj.setDisplayName(animator.next(rawTitle));
+                    shownTitle = null;
+                    obj.setDisplayName(animator.next(resolvedTitle != null ? resolvedTitle : rawTitle));
                 }
             }
         }.runTaskTimer(NewBedwars.plugin, 0, animator.period(2));
@@ -73,7 +77,8 @@ public class NScoreboard {
             kill();
             return;
         }
-        String title = scoreboardManager.titleOf(name);
+        String title = scoreboardManager.titleOf(name, player);
+        resolvedTitle = title;
         List<String> draft = new ArrayList<>(lines.size() + 1);
         draft.add(title);
         draft.addAll(lines);
@@ -81,19 +86,23 @@ public class NScoreboard {
         rendered = draft;
         ScoreboardUpdateEvent event = ApiEvents.scoreboardUpdate(player, arena, name, title, lines);
         if (event == null) return;
-        List<String> now = ScoreboardManager.prepare(event.getLines());
-        scoreboardManager.applyLines(id, scoreboard, now, applied);
-        applied.clear();
-        applied.addAll(now);
+        sidebar.apply(ScoreboardManager.prepare(event.getLines()));
         Objective obj = scoreboard.getObjective(id);
         if (obj == null) return;
         if (!event.getTitle().equals(title)) {
             titleOverride = event.getTitle();
-            obj.setDisplayName(titleOverride);
-        } else if (titleOverride != null) {
+            show(obj, titleOverride);
+        } else {
+            boolean wasOverridden = titleOverride != null;
             titleOverride = null;
-            obj.setDisplayName(title);
+            if (effectTask == null || wasOverridden) show(obj, title);
         }
+    }
+
+    private void show(Objective obj, String text) {
+        if (text.equals(shownTitle)) return;
+        shownTitle = text;
+        obj.setDisplayName(text);
     }
 
     public void refresh() {
@@ -105,6 +114,7 @@ public class NScoreboard {
         killed = true;
         task.cancel();
         if (effectTask != null) effectTask.cancel();
+        sidebar.clear();
         Objective obj = scoreboard.getObjective(id);
         if (obj != null) {
             obj.unregister();

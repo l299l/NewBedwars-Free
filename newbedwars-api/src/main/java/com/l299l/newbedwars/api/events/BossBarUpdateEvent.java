@@ -15,6 +15,10 @@ import java.util.Optional;
  * every-second refresh of the same text. Change the display with the setters. A text you change stays as it is
  * (it is no longer refreshed) until the next step. Cancelling it keeps the previous display for this step; the
  * first display of a bar (it has no previous one) is shown as configured.
+ * <p>
+ * The event is fired once per step, never once per viewer. When PlaceholderAPI is installed and a text of the bar
+ * contains {@code %}, each player gets an own bar: {@link #getText()} then still contains the {@code %...%}
+ * placeholders unresolved and PlaceholderAPI is applied for each viewer after the event, also to a text you set.
  *
  * @since 2.8-beta
  */
@@ -45,7 +49,7 @@ public class BossBarUpdateEvent extends Event implements Cancellable {
         return bossBar;
     }
 
-    /** The text with placeholders resolved and colors translated. */
+    /** The text with the {@code bossBars.yml} placeholders resolved and colors translated; PlaceholderAPI placeholders may be unresolved (see the class description). */
     public String getText() {
         return text;
     }

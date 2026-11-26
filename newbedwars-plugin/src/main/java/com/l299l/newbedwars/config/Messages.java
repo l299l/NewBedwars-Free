@@ -61,6 +61,17 @@ public class Messages {
         return langMessages.getMsg(language, text);
     }
 
+    public String getRaw(Player viewer, String key) {
+        Language lang;
+        if (viewer == null) {
+            lang = Language.fromCode(Properties.DefaultLanguage);
+            if (lang == null) lang = Language.English;
+        } else {
+            lang = playerLanguage(viewer);
+        }
+        return langMessages.getMsg(lang, key);
+    }
+
     public String getMsgToConsole(String text) {
         Language lang = Language.fromCode(Properties.DefaultLanguage);
         if (lang == null) lang = Language.English;

@@ -82,7 +82,7 @@ public class ScoreboardManager {
         String id = OBJECTIVE_ID;
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         scoreboard.registerNewObjective(id, "dummy");
-        scoreboard.getObjective(id).setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreboardSave.title()));
+        scoreboard.getObjective(id).setDisplayName(titleOf(name, player));
         scoreboard.getObjective(id).setDisplaySlot(DisplaySlot.SIDEBAR);
         NScoreboard board = new NScoreboard(id, name, scoreboard, this, arena, player, scoreboardSave.textEffect(), scoreboardSave.title());
         board.update();
@@ -91,8 +91,13 @@ public class ScoreboardManager {
     }
 
     public String titleOf(String name) {
+        return titleOf(name, null);
+    }
+
+    public String titleOf(String name, Player player) {
         ScoreboardSave save = scoreboards.get(name);
-        return save == null ? "" : ChatColor.translateAlternateColorCodes('&', save.title());
+        if (save == null || save.title() == null) return "";
+        return com.l299l.newbedwars.placeholder.PapiText.apply(player, ChatColor.translateAlternateColorCodes('&', com.l299l.newbedwars.text.LangTokens.apply(save.title(), player)));
     }
 
     public List<String> render(String name, IArena arena, Player player) {
@@ -102,18 +107,19 @@ public class ScoreboardManager {
         }
         List<String> lines = new ArrayList<>();
         int sep = 1;
-        for (String line : scoreboardSave.lines()) {
+        for (String rawLine : scoreboardSave.lines()) {
+            String line = com.l299l.newbedwars.text.LangTokens.apply(rawLine, player);
             if (line.contains("/teams/") || line.contains("{teams}")) {
                 if (arena.getTeams() != null) {
                     for (String team : arena.getTeams().keySet()) {
                         Team t = arena.getTeam(team);
                         String yourTeam = "";
                         if (arena.getTeam(player) != null) {
-                            yourTeam = arena.getTeam(player).equals(t) ? ChatColor.GRAY + text(player, "ScoreboardYou") : "";
+                            yourTeam = arena.getTeam(player).equals(t) ? yourTeamText(player) : "";
                         }
                         lines.add(setInfo(com.l299l.newbedwars.text.Tokens.apply(line, java.util.Map.of(
-                                        "teams", getTeamID(t),
-                                        "bed", getTeamBedInfo(t),
+                                        "teams", getTeamID(player, t),
+                                        "bed", getTeamBedInfo(player, t),
                                         "yourteam", yourTeam)),
                                 arena, player));
                     }
@@ -168,30 +174,7 @@ public class ScoreboardManager {
     }
 
     public static List<String> prepare(List<String> lines) {
-        List<String> fitted = fitLines(lines);
-        boolean tooLong = false;
-        for (String line : fitted) {
-            if (line.length() > LEGACY_ENTRY_LIMIT) {
-                tooLong = true;
-                break;
-            }
-        }
-        if (tooLong && !com.l299l.newbedwars.version.VersionCompat.isAtLeast(1, 20, 3)) {
-            return makeUnique(fitted, LEGACY_ENTRY_LIMIT);
-        }
-        return makeUnique(fitted);
-    }
-
-    public void applyLines(String id, Scoreboard scoreboard, List<String> lines, List<String> old) {
-        if (old != null) {
-            java.util.Set<String> keep = new java.util.HashSet<>(lines);
-            for (String line : old) {
-                if (!keep.contains(line)) scoreboard.resetScores(line);
-            }
-        }
-        for (int i = 0; i < lines.size(); i++) {
-            scoreboard.getObjective(id).getScore(lines.get(i)).setScore(lines.size() - i);
-        }
+        return SidebarLines.prepare(lines);
     }
 
     public static List<String> makeUnique(List<String> lines) {
@@ -257,24 +240,29 @@ public class ScoreboardManager {
         return NewBedwars.plugin.getMessages().getMsg(player, key);
     }
 
-    private String getTeamID(Team team) {
-        String name = team.getDisplayName();
-        String initial = name.isEmpty() ? "" : name.substring(0, 1).toUpperCase();
-        return team.getColor().toString() + initial + " " + ChatColor.WHITE + name;
+    private String yourTeamText(Player player) {
+        return com.l299l.newbedwars.text.Tokens.apply(text(player, "ScoreboardYouFormat"), java.util.Map.of("you", text(player, "ScoreboardYou")));
     }
 
-    private String getTeamBedInfo(Team team) {
+    private String getTeamID(Player player, Team team) {
+        String name = team.getDisplayName();
+        String initial = name.isEmpty() ? "" : name.substring(0, 1).toUpperCase();
+        return com.l299l.newbedwars.text.Tokens.apply(text(player, "ScoreboardTeamFormat"), java.util.Map.of(
+                "color", team.getColor().toString(),
+                "initial", initial,
+                "name", name));
+    }
+
+    private String getTeamBedInfo(Player player, Team team) {
         if (team == null) {
-            return ChatColor.RED + "✗";
+            return text(player, "ScoreboardTeamOut");
         }
         if (team.isBedDestroyed()) {
             if (team.getPlayers().isEmpty()) {
-                return ChatColor.RED + "✗";
-            }else {
-                return ChatColor.YELLOW + String.valueOf(team.getPlayers().size());
+                return text(player, "ScoreboardTeamOut");
             }
-        }else {
-            return ChatColor.GREEN + "✔";
+            return com.l299l.newbedwars.text.Tokens.apply(text(player, "ScoreboardBedGone"), java.util.Map.of("count", String.valueOf(team.getPlayers().size())));
         }
+        return text(player, "ScoreboardBedAlive");
     }
 }

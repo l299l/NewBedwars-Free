@@ -17,6 +17,7 @@ import java.util.Set;
 
 public class Properties{
     public static String ServerName;
+    public static Boolean ClockTimeFormat = false;
     public static Integer DefaultMinPlayers;
     public static Integer DefaultMaxInTeam;
     public static Integer DefaultWaitingTime;
@@ -93,6 +94,7 @@ public class Properties{
     public Properties() {
         NewBedwars.plugin.reloadConfig();
         ServerName = text("ServerName");
+        ClockTimeFormat = get("TimeFormat") instanceof String tf && tf.trim().equalsIgnoreCase("CLOCK");
         StorageType = com.l299l.newbedwars.config.StorageType.JSON;
         if (get("Storage.Type") instanceof String st && st.trim().equalsIgnoreCase("MYSQL")) {
             StorageType = com.l299l.newbedwars.config.StorageType.MYSQL;

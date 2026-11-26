@@ -7,6 +7,7 @@ import com.l299l.newbedwars.common.update.Product;
 import com.l299l.newbedwars.common.update.ReleaseInfo;
 import com.l299l.newbedwars.common.update.UpdateChecker;
 import com.l299l.newbedwars.config.properties.Properties;
+import com.l299l.newbedwars.version.GameVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -157,9 +158,18 @@ public final class UpdateService {
     }
 
     static PluginVersion serverVersion() {
-        String bukkit = Bukkit.getBukkitVersion();
-        int dash = bukkit.indexOf('-');
-        return PluginVersion.parse(dash < 0 ? bukkit : bukkit.substring(0, dash));
+        return serverVersion(Bukkit.getBukkitVersion());
+    }
+
+    static PluginVersion serverVersion(String bukkitVersion) {
+        int[] numbers = GameVersion.parse(bukkitVersion);
+        if (numbers.length == 0) return null;
+        StringBuilder out = new StringBuilder();
+        for (int number : numbers) {
+            if (out.length() > 0) out.append('.');
+            out.append(number);
+        }
+        return PluginVersion.parse(out.toString());
     }
 
     public static final class IncompatibleException extends IOException {

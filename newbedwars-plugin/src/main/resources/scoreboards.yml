@@ -19,6 +19,10 @@
 #    /player.stats.final_kills/ — player final kill count
 #    /player.stats.beds_broken/ — player beds broken count
 #
+#  {lang:Key} (or /lang:Key/) in a line or the title is replaced by that message key (en.yml, pl.yml, ...)
+#  in the viewer's language, before the other placeholders and colours. The shipped lines use keys
+#  (ScoreboardLine*). Existing files keep their own texts.
+#
 #  TitleEffect: NONE | RAINBOW
 # =====================================================
 
@@ -30,9 +34,9 @@ Scoreboards:
     Lines:
       - '&7/datetime/'
       - ''
-      - '&6&lMap: &e/map/'
-      - '&6&lServer: &e/server/'
-      - '&6&lPlayers: &e/players///maxplayers/'
+      - '{lang:ScoreboardLineMap}'
+      - '{lang:ScoreboardLineServer}'
+      - '{lang:ScoreboardLinePlayers}'
       - ''
       - '&6&l/status/'
       - ''
@@ -45,13 +49,13 @@ Scoreboards:
     Lines:
       - '&7/datetime/'
       - ''
-      - '/phase/ in &e/phaseTime/'
+      - '{lang:ScoreboardLinePhase}'
       - ''
       - '/teams/: /bed/ /yourteam/'
       - ''
-      - 'Kills: &e/player.stats.kills/'
-      - 'Final Kills: &e/player.stats.final_kills/'
-      - 'Beds Broken: &e/player.stats.beds_broken/'
+      - '{lang:ScoreboardLineKills}'
+      - '{lang:ScoreboardLineFinalKills}'
+      - '{lang:ScoreboardLineBedsBroken}'
       - ''
       - '&6/servername/'
 
@@ -62,10 +66,10 @@ Scoreboards:
     Lines:
       - '&7/datetime/'
       - ''
-      - '&6&lMap: &e/map/'
+      - '{lang:ScoreboardLineMap}'
       - ''
-      - 'Kills: &e/player.stats.kills/'
-      - 'Final Kills: &e/player.stats.final_kills/'
-      - 'Beds Broken: &e/player.stats.beds_broken/'
+      - '{lang:ScoreboardLineKills}'
+      - '{lang:ScoreboardLineFinalKills}'
+      - '{lang:ScoreboardLineBedsBroken}'
       - ''
       - '&6/servername/'

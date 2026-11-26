@@ -70,18 +70,7 @@ public final class VersionCompat {
     private VersionCompat() {}
 
     public static boolean isAtLeast(int major, int minor, int patch) {
-        String ver = Bukkit.getBukkitVersion().split("-")[0];
-        String[] p = ver.split("\\.");
-        try {
-            int maj = Integer.parseInt(p[0]);
-            int min = p.length > 1 ? Integer.parseInt(p[1]) : 0;
-            int pat = p.length > 2 ? Integer.parseInt(p[2]) : 0;
-            if (maj != major) return maj > major;
-            if (min != minor) return min > minor;
-            return pat >= patch;
-        } catch (NumberFormatException e) {
-            return false;
-        }
+        return GameVersion.isAtLeast(Bukkit.getBukkitVersion(), major, minor, patch);
     }
 
     private static final Map<String, String> ENTITY_ALIASES = Map.of(

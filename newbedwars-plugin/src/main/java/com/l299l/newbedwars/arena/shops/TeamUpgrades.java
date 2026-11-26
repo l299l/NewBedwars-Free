@@ -63,6 +63,7 @@ public class TeamUpgrades {
                 if (npc == null || !npc.isValid()) {
                     spawnNpc();
                 } else {
+                    NpcNames.refresh(npc, "UpgradesNpcName", team);
                     if (TeamShop.drifted(npc.getLocation(), location)) npc.teleport(location);
                     if (npc.getFireTicks() > 0) {
                         npc.setFireTicks(0);
@@ -80,7 +81,7 @@ public class TeamUpgrades {
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
         com.l299l.newbedwars.arena.setup.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
-        npc.setCustomName(NewBedwars.plugin.getMessages().getMsgToConsole("UpgradesNpcName").replace("/team/", team.getColor() + team.getDisplayName()));
+        NpcNames.apply(npc, "UpgradesNpcName", team);
         npc.setCustomNameVisible(true);
         npc.setSilent(true);
         npc.setGravity(false);

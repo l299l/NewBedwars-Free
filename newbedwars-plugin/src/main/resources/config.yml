@@ -19,6 +19,10 @@ ServerName: "&6&lExample&f&lServer.com"
 # You can add your own language file to the language folder.
 DefaultLanguage: en
 
+# How times are shown on scoreboards, tab lists and placeholders:
+# DEFAULT = 5m 0s / 45s, CLOCK = 05:00 / 00:45.
+TimeFormat: DEFAULT
+
 
 # ----- Arena defaults -----------------------------
 # Used for new arenas. Every arena can change them in setup mode.

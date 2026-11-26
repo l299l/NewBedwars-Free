@@ -6,7 +6,24 @@ All notable changes to NewBedwars are documented here.
 
 ### Added
 - **PlaceholderAPI in the language files** - Chat messages, announcements and menu texts can use any PlaceholderAPI placeholder, so rank prefixes now work in arena and team chat (for example `%luckperms_prefix%` in `ArenaChatFormat`). In messages about a player (chat, joining, leaving, deaths, parties and so on) placeholders show that player's values; `%viewer:...%` picks the player reading, and death messages also accept `%killer:...%` and `%victim:...%`. See [docs/configuration.md](docs/configuration.md#placeholders-and-colors-in-messages) ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
-- **`&#RRGGBB` colors** - Work in the language files, in PlaceholderAPI results, and in scoreboard lines, boss bars and the tab list ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **`&#RRGGBB` colors** - Work in the language files, in PlaceholderAPI results, and in scoreboard lines and titles, boss bars and the tab list ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Scoreboard title with PlaceholderAPI** - The scoreboard title accepts PlaceholderAPI placeholders and `&#RRGGBB` colors, per player. Use `TitleEffect: NONE` to keep your own title colors, since `RAINBOW` recolors it ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Picked team color in the tab list** - With the team selector on, the waiting tab list shows the color of the team a player picked; `%newbedwars_tablist_name%` shows it too ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **`WaitingChatFormat`** - Its own arena chat format while the arena is waiting or counting down. Empty by default, which keeps using `ArenaChatFormat` ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Scoreboard team symbols and time format** - The bed and team symbols of the scoreboard team lines and their layout can be changed in the language files (`ScoreboardBedAlive`, `ScoreboardBedGone`, `ScoreboardTeamOut`, `ScoreboardTeamFormat`, `ScoreboardYouFormat`). `TimeFormat: CLOCK` in `config.yml` shows times as `05:00` instead of `5m 0s` on scoreboards, tab lists and in placeholders ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+
+- **PlaceholderAPI in shop NPC names** - `ShopNpcName` and `UpgradesNpcName` accept server-wide PlaceholderAPI placeholders and update every second. Everyone sees the same name, so placeholders that describe a player don't work there ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Language keys in scoreboards, boss bars and tab lists** - `{lang:Key}` in `scoreboards.yml`, `bossBars.yml` and `tablists.yml` shows a text from the language files in each player's language, so these displays can be translated. The default texts of new installs use it ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+
+### Fixed
+- **Untranslated texts in German, Spanish, French and Russian** - Scoreboard statuses (such as "Waiting..."), team selector texts and other newer texts were shown in English; they are now translated. Texts still missing from your language file are added to it on start so you can translate them ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Own translations removed on start** - A text you added to the German, Spanish, French or Russian language file was deleted on start and on `/bw reload` when that file didn't ship it yet; it is now kept ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Join NPC hologram status** - `/status/` on join NPC holograms was always English; it now uses the server's default language
+- **Hex colors in scoreboard lines** - Lines with `&#RRGGBB` colors showed the wrong color ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Long scoreboard lines below 1.20.3** - Lines longer than 40 characters were cut off on servers older than Minecraft 1.20.3 ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **PlaceholderAPI in boss bars** - PlaceholderAPI placeholders in `bossBars.yml` were not filled in; they are now shown with each player's values ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **Version detection on Minecraft 26.x** - Server versions like `26.3.build.237-stable` were not recognised, so newer-version code (shop potion types, the longer scoreboard lines of 1.20.3+) was skipped and the update check could not compare Minecraft versions
+- **`/team/` in arena chat** - `/team/` in `ArenaChatFormat` stayed as text; it now shows the sender's team, or nothing without a team ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
 
 ## [2.8-beta] - 25.11.2026
 

@@ -50,6 +50,12 @@ public final class TeamSelectorManager implements Listener {
         if (instance != null) instance.refreshMenus(arena);
     }
 
+    public static void refreshTablists(IArena arena) {
+        NewBedwars plugin = NewBedwars.plugin;
+        if (plugin == null || !plugin.isEnabled() || plugin.getTablistManager() == null) return;
+        plugin.getTablistManager().refresh(arena);
+    }
+
     public boolean enabled(IArena arena) {
         return arena != null && arena.getGamerules() != null && Boolean.TRUE.equals(arena.getGamerules().TeamSelection);
     }
@@ -201,6 +207,7 @@ public final class TeamSelectorManager implements Listener {
 
     private void changed(IArena arena) {
         refreshMenus(arena);
+        refreshTablists(arena);
         arena.onTeamPicksChanged();
     }
 

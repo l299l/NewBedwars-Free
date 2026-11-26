@@ -1,13 +1,10 @@
 package com.l299l.newbedwars.bossbar;
 
-import com.l299l.newbedwars.text.TextAnimator;
 import com.l299l.newbedwars.text.TextEffect;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.properties.Properties;
-import com.l299l.newbedwars.api.events.BossBarUpdateEvent;
-import com.l299l.newbedwars.apiimpl.ApiEvents;
 import com.l299l.newbedwars.placeholder.AddonPlaceholders;
 import com.l299l.newbedwars.text.Tokens;
 import com.l299l.newbedwars.placeholder.PapiText;
@@ -15,25 +12,27 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import com.l299l.newbedwars.extensions.PluginDetector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class BossBarManager {
     public static final String LOBBY_BOSS_BAR = "MainLobby";
     private final HashMap<String, BossBarSave> bossBars;
-    private final Map<BossBar, List<BukkitTask>> tasks = new HashMap<>();
+    private final Set<ManagedBossBar> active = new LinkedHashSet<>();
     private final FileConfiguration bossBarsConf;
     private final BarActionManager barActionManager;
-    private BossBar lobbyBossBar;
+    private ManagedBossBar lobbyBossBar;
     private BukkitTask lobbySync;
 
     public BossBarManager(FileConfiguration bossBarsConf) {
@@ -79,60 +78,24 @@ public class BossBarManager {
         }
     }
 
-    public BossBar createBossBar(String name, IArena arena) {
+    public ManagedBossBar createBossBar(String name, IArena arena) {
         BossBarSave bossBarSave = bossBars.get(name);
         if (bossBarSave == null || !bossBarSave.isEnabled()) {
             return null;
         }
-        BossBar bossBar = Bukkit.createBossBar(addInfo(bossBarSave.getTexts()[0], arena),
-                bossBarSave.getColor()[0], bossBarSave.getStyle()[0]);
-        bossBar.setVisible(bossBarSave.isEnabled());
-        List<BukkitTask> bossBarTasks = new ArrayList<>();
-        tasks.put(bossBar, bossBarTasks);
-        BukkitTask[] effect = {null};
-        showStep(name, bossBar, bossBarSave, 0, arena, bossBarTasks, effect, true);
-        if (bossBarSave.isAnimated()) {
-            bossBarTasks.add(new BukkitRunnable() {
-                int i = 1;
-                @Override
-                public void run() {
-                    showStep(name, bossBar, bossBarSave, i, arena, bossBarTasks, effect, false);
-                    i++;
-                    if (i == bossBarSave.getTexts().length) {
-                        i = 0;
-                    }
-                }
-            }.runTaskTimer(NewBedwars.plugin, 0, 20L * bossBarSave.getTime()));
-        }
+        ManagedBossBar bossBar = new ManagedBossBar(name, bossBarSave, arena, needsPerPlayer(bossBarSave));
+        active.add(bossBar);
+        bossBar.start();
         return bossBar;
     }
 
-    private void showStep(String id, BossBar bossBar, BossBarSave save, int i, IArena arena,
-                          List<BukkitTask> bossBarTasks, BukkitTask[] effect, boolean first) {
-        String resolved = addInfo(save.getTexts()[i], arena);
-        BarColor color = save.getColor()[i];
-        BarStyle style = save.getStyle()[i];
-        String text = resolved;
-        BossBarUpdateEvent event = ApiEvents.bossBarUpdate(arena, id, resolved, color, style);
-        if (event == null) {
-            if (!first) return;
-        } else {
-            text = event.getText();
-            color = event.getColor();
-            style = event.getStyle();
+    private static boolean needsPerPlayer(BossBarSave save) {
+        boolean percent = false;
+        for (String text : save.getTexts()) {
+            if (com.l299l.newbedwars.text.LangTokens.contains(text)) return true;
+            if (text.indexOf('%') >= 0) percent = true;
         }
-        bossBar.setTitle(text);
-        bossBar.setColor(color);
-        bossBar.setStyle(style);
-        if (effect[0] != null) {
-            effect[0].cancel();
-            bossBarTasks.remove(effect[0]);
-            effect[0] = null;
-        }
-        if (text.equals(resolved)) {
-            effect[0] = setEffect(bossBar, save.getTexts()[i], save.getEffects()[i], arena);
-            bossBarTasks.add(effect[0]);
-        }
+        return percent && PluginDetector.isPlaceholderAPIPresent();
     }
 
     public List<String> getIds() {
@@ -146,32 +109,17 @@ public class BossBarManager {
         return save != null && save.isEnabled();
     }
 
-    public void removeBossBar(BossBar bossBar) {
-        List<BukkitTask> bossBarTasks = tasks.remove(bossBar);
-        if (bossBarTasks != null) {
-            bossBarTasks.forEach(BukkitTask::cancel);
-        }
-        bossBar.removeAll();
-        bossBar.setVisible(false);
+    public void removeBossBar(ManagedBossBar bossBar) {
+        active.remove(bossBar);
+        bossBar.remove();
     }
 
     public void stopAll() {
         stopLobbyBossBar();
-        for (BossBar bossBar : new ArrayList<>(tasks.keySet())) {
+        for (ManagedBossBar bossBar : new ArrayList<>(active)) {
             removeBossBar(bossBar);
         }
-        tasks.clear();
-    }
-
-    private BukkitTask setEffect(BossBar bossBar, String template, TextEffect effect, IArena arena) {
-        TextAnimator animator = new TextAnimator(effect, addInfo(template, arena), null);
-        long period = animator.period(1);
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                bossBar.setTitle(animator.next(addInfo(template, arena)));
-            }
-        }.runTaskTimer(NewBedwars.plugin, animator.getEffect() == TextEffect.NONE ? 20 : 0, period);
+        active.clear();
     }
 
     public void startLobbyBossBar() {
@@ -216,11 +164,8 @@ public class BossBarManager {
                 "phase", ""));
     }
 
-    private String addInfo(String text, IArena arena) {
-        return render(text, arena, null);
-    }
-
     static String render(String text, IArena arena, Player viewer) {
+        text = com.l299l.newbedwars.text.LangTokens.apply(text, viewer);
         String out;
         if (arena == null) {
             int players = 0;

@@ -4,12 +4,17 @@
 #  Header / Footer are lists of lines (joined with a new line), PlayerFormat is how a player's
 #  name is shown in the tab list. Use & colour codes. PlaceholderAPI placeholders (%...%) work too
 #  when PlaceholderAPI is installed.
+#  {lang:Key} (or /lang:Key/) is replaced by that message key (en.yml, pl.yml, ...) in the viewer's
+#  language, before the other placeholders and colours. The shipped texts use keys (Tablist*).
+#  Existing files keep their own texts.
 #
 #  Placeholders:
 #    {player}       - the player's name
 #    {teamColor}    - the colour code of the player's team (empty without a team)
 #    {teamName}     - the team's display name (empty without a team)
 #    {teamShort}    - the first letter of the team's name (empty without a team)
+#                     While the arena is waiting or starting and team selection is on (TeamSelection
+#                     gamerule), a player without a team gets these three from the team they picked.
 #    {arena}        - arena name
 #    {players}      - players in the arena
 #    {maxPlayers}   - arena capacity
@@ -33,7 +38,7 @@ Lobby:
   Header:
     - ""
     - "&6&lBedWars"
-    - "&7{online} players online"
+    - "{lang:TablistLobbyOnline}"
   Footer:
     - ""
   PlayerFormat: "&7{player}"
@@ -45,20 +50,20 @@ Layouts:
       Header:
         - ""
         - "&6&lBedWars &7- &e{arena}"
-        - "&7Players: &f{players}&7/&f{maxPlayers}"
+        - "{lang:TablistWaitingPlayers}"
       Footer:
         - ""
-        - "&7Waiting for the game to start"
+        - "{lang:TablistWaitingFooter}"
       PlayerFormat: "{teamColor}{player}"
     # Running game. Missing keys fall back to Waiting.
     Playing:
       Header:
         - ""
         - "&6&lBedWars &7- &e{arena}"
-        - "&7Next: &f{phase} &7in &f{phaseTime}"
+        - "{lang:TablistPlayingNext}"
       Footer:
         - ""
-        - "&7Kills: &f{kills} &8| &7Final kills: &f{finalKills} &8| &7Beds: &f{bedsBroken}"
+        - "{lang:TablistPlayingStats}"
       PlayerFormat: "{teamColor}[{teamShort}] {player}"
     # Used for spectators (their own list name and header/footer). Missing keys fall back to Playing.
     Spectator:

@@ -58,6 +58,20 @@ class TextAnimatorTest {
         assertEquals(5, new TextAnimator(TextEffect.RAINBOW_PULSING, "", null).period(1));
     }
 
+    private static final String HEX = "§x§f§f§0§0§f§f";
+
+    @Test
+    void hexSequencesSurviveEveryEffect() {
+        for (TextEffect effect : TextEffect.values()) {
+            TextAnimator animator = new TextAnimator(effect, HEX + "Bed", ChatColor.WHITE);
+            for (int frame = 0; frame < 8; frame++) {
+                String out = animator.next(HEX + "Bed");
+                assertTrue(out.contains(HEX), effect + ": " + out);
+                assertEquals("Bed", ChatColor.stripColor(out.replace(HEX, "")), effect.name());
+            }
+        }
+    }
+
     @Test
     void randomColorIsNeverAFormat() {
         for (int i = 0; i < 200; i++) {

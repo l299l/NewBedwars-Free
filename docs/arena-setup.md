@@ -63,7 +63,7 @@ With the arena gamerule `TeamSelection` (off by default; in advanced setup `/bw 
 - `TeamSelectionBalanced` (default `true`): a team can only be picked while it is one of the least picked teams, so the teams stay even.
 - `TeamSelectionPartyLeader` (default `true`): only the party leader picks, and the whole party goes to that team.
 
-The game keeps waiting while fewer than two teams have players. The selector item (`TeamSelector.Item` in `config.yml`) and all options are described in [Configuration](configuration.md#team-selector).
+While the arena is waiting, the tab list shows the picked team's colour (`{teamColor}` in `tablists.yml`). The game keeps waiting while fewer than two teams have players. The selector item (`TeamSelector.Item` in `config.yml`) and all options are described in [Configuration](configuration.md#team-selector).
 
 ## Automatic setup
 

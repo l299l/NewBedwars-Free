@@ -1,8 +1,10 @@
 package com.l299l.newbedwars.tablist;
 
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.player.GamePlayer;
 import com.l299l.newbedwars.arena.team.Team;
+import com.l299l.newbedwars.arena.team.TeamSelectorManager;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.placeholder.AddonPlaceholders;
 import com.l299l.newbedwars.placeholder.PapiText;
@@ -30,13 +32,24 @@ public final class TablistRenderer {
         return out.toString();
     }
 
+    private static Team pickedTeam(IArena arena, Player target) {
+        TeamSelectorManager selector = TeamSelectorManager.get();
+        if (selector == null || !selector.enabled(arena)) return null;
+        GameStatus status = arena.status();
+        if (status != GameStatus.waiting && status != GameStatus.starting) return null;
+        String picked = selector.pickedTeam(target, arena);
+        return picked == null || arena.getTeams() == null ? null : arena.getTeams().get(picked);
+    }
+
     public static String render(String template, Player viewer, IArena arena, Player target) {
         if (template == null) return "";
+        template = com.l299l.newbedwars.text.LangTokens.apply(template, viewer);
         Map<String, String> v = new HashMap<>();
         v.put("server", Properties.ServerName == null ? "" : Properties.ServerName);
         if (template.contains("online")) v.put("online", String.valueOf(Bukkit.getOnlinePlayers().size()));
         v.put("player", target == null ? "" : target.getName());
         Team team = arena != null && target != null ? arena.getTeam(target) : null;
+        if (team == null && arena != null && target != null) team = pickedTeam(arena, target);
         String teamName = team == null ? "" : team.getDisplayName();
         v.put("teamColor", team == null ? "" : team.getColor().toString());
         v.put("teamName", teamName);

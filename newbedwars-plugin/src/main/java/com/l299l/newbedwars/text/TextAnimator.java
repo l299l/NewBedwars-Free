@@ -50,35 +50,48 @@ public final class TextAnimator {
 
     private String rainbow(String text) {
         StringBuilder out = new StringBuilder();
-        ChatColor color = ChatColor.WHITE;
-        for (int j = 0; j < text.length(); j++) {
-            char c = text.charAt(j);
-            if (c == ChatColor.COLOR_CHAR && j + 1 < text.length()) {
-                ChatColor code = ChatColor.getByChar(text.charAt(j + 1));
-                if (code != null) color = code;
-                out.append(c).append(text.charAt(j + 1));
-                j++;
-                continue;
+        String color = ChatColor.WHITE.toString();
+        int j = 0;
+        while (j < text.length()) {
+            int len = ColorCodes.tokenLength(text, j);
+            String token = text.substring(j, j + len);
+            if (ColorCodes.isCode(text, j)) {
+                if (len == 14) {
+                    color = token;
+                } else if (len == 2 && ChatColor.getByChar(token.charAt(1)) != null) {
+                    color = token;
+                }
+                out.append(token);
+            } else {
+                out.append(j == position ? randomColor().toString() : color).append(token);
             }
-            out.append(j == position ? randomColor() : color).append(c);
+            j += len;
         }
         advance(text);
         return out.toString();
     }
 
     private String goingChanging(String text) {
-        ChatColor leading = leadingColor(text);
-        ChatColor color = leading != null ? leading : ChatColor.WHITE;
+        String leading = ColorCodes.leadingColor(text);
+        String color = leading != null ? leading : ChatColor.WHITE.toString();
         StringBuilder out = new StringBuilder().append(secondColor);
-        for (int j = leading != null ? 2 : 0; j < text.length(); j++) {
-            out.append(j <= position ? secondColor : color).append(text.charAt(j));
+        int j = leading != null ? leading.length() : 0;
+        while (j < text.length()) {
+            int len = ColorCodes.tokenLength(text, j);
+            String token = text.substring(j, j + len);
+            if (ColorCodes.isCode(text, j)) {
+                out.append(token);
+            } else {
+                out.append(j <= position ? secondColor.toString() : color).append(token);
+            }
+            j += len;
         }
         advance(text);
         return out.toString();
     }
 
     private String pulsing(String text) {
-        String frame = up ? secondColorOf(pulseColor) + text.replace(pulseColor.toString(), "") : text;
+        String frame = up ? secondColorOf(pulseColor) + ColorCodes.stripCode(text, pulseColor.toString()) : text;
         up = !up;
         return frame;
     }

@@ -1,9 +1,19 @@
 package com.l299l.newbedwars.utils;
 
+import com.l299l.newbedwars.config.properties.Properties;
+
 import java.time.LocalDateTime;
 
 public class TimeUtils {
     public static String formatTime(int time) {
+        return formatTime(time, Boolean.TRUE.equals(Properties.ClockTimeFormat));
+    }
+
+    public static String formatTime(int time, boolean clock) {
+        if (clock) {
+            int total = Math.max(0, time);
+            return format(total / 60) + ":" + format(total % 60);
+        }
         if (time < 0) {
             return "0m 0s";
         }else if (time < 60) {

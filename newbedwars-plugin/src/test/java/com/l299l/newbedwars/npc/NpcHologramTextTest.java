@@ -12,6 +12,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 class NpcHologramTextTest {
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        com.l299l.newbedwars.NewBedwars plugin = org.mockito.Mockito.mock(com.l299l.newbedwars.NewBedwars.class);
+        com.l299l.newbedwars.config.Messages messages = org.mockito.Mockito.mock(com.l299l.newbedwars.config.Messages.class);
+        when(messages.getRaw(org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.anyString()))
+                .thenAnswer(inv -> "T:" + inv.getArgument(1));
+        when(plugin.getMessages()).thenReturn(messages);
+        com.l299l.newbedwars.NewBedwars.plugin = plugin;
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        com.l299l.newbedwars.NewBedwars.plugin = null;
+    }
 
     @Test
     void groupCountsOnlyMatchingEnabledArenas() {
@@ -40,10 +54,10 @@ class NpcHologramTextTest {
         assertEquals("castle", r.get("/arena/"));
         assertEquals("6", r.get("/players/"));
         assertEquals("8", r.get("/max/"));
-        assertEquals("Playing", r.get("/status/"));
+        assertEquals("T:GuiStatusPlaying", r.get("/status/"));
 
         when(a.isEnabled()).thenReturn(false);
-        assertEquals("Disabled", NpcHologramText.replacements(JoinNpcAction.parse("ARENA", "castle"), List.of(a)).get("/status/"));
+        assertEquals("T:GuiStatusDisabled", NpcHologramText.replacements(JoinNpcAction.parse("ARENA", "castle"), List.of(a)).get("/status/"));
     }
 
     @Test

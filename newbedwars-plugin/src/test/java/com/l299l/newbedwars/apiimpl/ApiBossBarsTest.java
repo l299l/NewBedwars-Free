@@ -263,7 +263,7 @@ class ApiBossBarsTest {
         inArena();
         List<BossBarUpdateEvent> seen = new ArrayList<>();
         listeners.add(seen::add);
-        BossBar bar = manager.createBossBar("Cycle", arena);
+        BossBar bar = manager.createBossBar("Cycle", arena).getSharedBar();
         assertEquals(1, events);
         BossBarUpdateEvent first = seen.get(0);
         assertEquals("Cycle", first.getBossBar());
@@ -297,7 +297,7 @@ class ApiBossBarsTest {
             e.setStyle(BarStyle.SEGMENTED_20);
             e.setColor(null);
         });
-        BossBar bar = manager.createBossBar("Cycle", arena);
+        BossBar bar = manager.createBossBar("Cycle", arena).getSharedBar();
         verify(bar).setTitle("custom Cycle");
         verify(bar).setColor(BarColor.PURPLE);
         verify(bar).setStyle(BarStyle.SEGMENTED_20);
@@ -308,7 +308,7 @@ class ApiBossBarsTest {
     @Test
     void cancelledStepKeepsPreviousDisplay() {
         inArena();
-        BossBar bar = manager.createBossBar("Cycle", arena);
+        BossBar bar = manager.createBossBar("Cycle", arena).getSharedBar();
         verify(bar).setColor(BarColor.RED);
         listeners.add(e -> e.setCancelled(true));
         cycleStep().run();
@@ -320,7 +320,7 @@ class ApiBossBarsTest {
     void cancelledFirstDisplayIsShownAsConfigured() {
         inArena();
         listeners.add(e -> e.setCancelled(true));
-        BossBar bar = manager.createBossBar("Cycle", arena);
+        BossBar bar = manager.createBossBar("Cycle", arena).getSharedBar();
         verify(bar).setTitle("One 3");
         verify(bar).setColor(BarColor.RED);
     }

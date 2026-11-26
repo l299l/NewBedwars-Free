@@ -76,13 +76,44 @@ public class Updater extends PluginFiles {
             String resource = lang.getCode() + ".yml";
             FileConfiguration conf = loadOrDefault(file, resource);
             if (conf != null) langConfs.put(lang, conf);
+            Map<String, String> previous = conf == null ? Map.of() : topLevelTexts(conf);
             save(conf, file);
             List<String> ignored = conf != null && conf.contains("CustomItemsNames")
                     ? Collections.singletonList("CustomItemsNames") : Collections.emptyList();
             update(resource, file, ignored);
+            if (lang != Language.English) fillMissingTexts(lang, file, previous);
             conf = loadOrDefault(file, resource);
             if (conf != null) langConfs.put(lang, conf);
         }
+    }
+
+    private void fillMissingTexts(Language lang, File file, Map<String, String> previous) {
+        try {
+            Map<String, String> english = topLevelTexts(bundledConf("en.yml"));
+            if (english.isEmpty()) return;
+            Map<String, String> changes = LanguageFill.plan(english,
+                    topLevelTexts(bundledConf(lang.getCode() + ".yml")),
+                    topLevelTexts(YamlConfiguration.loadConfiguration(file)), previous);
+            if (changes.isEmpty()) return;
+            String text = java.nio.file.Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            java.nio.file.Files.writeString(file.toPath(), LanguageFill.write(text, changes), StandardCharsets.UTF_8);
+        } catch (IOException | RuntimeException e) {
+            NewBedwars.plugin.getLogger().log(Level.WARNING, "Could not fill missing texts in " + file.getPath(), e);
+        }
+    }
+
+    private FileConfiguration bundledConf(String resource) {
+        InputStream stream = getFilesResource(resource, getMessagesClassLoader());
+        if (stream == null) return new YamlConfiguration();
+        return YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+    }
+
+    private static Map<String, String> topLevelTexts(FileConfiguration conf) {
+        Map<String, String> texts = new java.util.LinkedHashMap<>();
+        for (String key : conf.getKeys(false)) {
+            if (conf.isString(key)) texts.put(key, conf.getString(key));
+        }
+        return texts;
     }
 
     public void reloadBossBars() {

@@ -2,6 +2,7 @@ package com.l299l.newbedwars.events.lifecycle;
 
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.ArenaRegistry;
+import com.l299l.newbedwars.arena.GameStatus;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.arena.gamerules.Gamerules;
@@ -257,5 +258,68 @@ class ChatEventTest {
     @Test
     void lobbyJoinMessagesAreOnByDefault() {
         assertTrue(ChatEvent.showServerJoinMessages());
+    }
+
+    private void globalChat(GameStatus status, boolean withTeam, String arenaFormat, String waitingFormat, Player spectator) {
+        arenaSetup();
+        Properties.ArenaChatEnabled = true;
+        Gamerules rules = mock(Gamerules.class);
+        rules.AllowGlobalChat = true;
+        rules.AllowTeamChat = true;
+        when(arena.getGamerules()).thenReturn(rules);
+        when(arena.status()).thenReturn(status);
+        when(arena.coloredName(sender)).thenReturn("Name");
+        if (withTeam) {
+            com.l299l.newbedwars.arena.team.Team team = mock(com.l299l.newbedwars.arena.team.Team.class);
+            when(team.colored(any())).thenAnswer(i -> "<" + i.getArgument(0) + ">");
+            when(team.getDisplayName()).thenReturn("Red");
+            when(arena.getTeam(sender)).thenReturn(team);
+        }
+        when(arena.getSpectators()).thenReturn(new ArrayList<>(List.of(spectator)));
+        when(arena.getPlayers()).thenReturn(Set.of());
+        when(messages.getMsg(any(Player.class), eq(sender), eq("ArenaChatFormat"), any())).thenReturn(arenaFormat);
+        when(messages.getMsg(any(Player.class), eq(sender), eq("WaitingChatFormat"), any())).thenReturn(waitingFormat);
+        when(sender.hasPermission("newbedwars.chat.color")).thenReturn(false);
+        AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, sender, "hi", new HashSet<>());
+        PluginManager pm = mock(PluginManager.class);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(true);
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pm);
+            new ChatEvent(plugin).onChat(event);
+        }
+    }
+
+    @Test
+    void teamPlaceholderInTheArenaFormatIsTheColoredTeamName() {
+        Player spectator = mock(Player.class);
+        globalChat(GameStatus.playing, true, "/team/ /player/: /message/", "", spectator);
+        verify(spectator).sendMessage("<Red> Name: hi");
+    }
+
+    @Test
+    void teamPlaceholderIsEmptyWithoutATeam() {
+        Player spectator = mock(Player.class);
+        globalChat(GameStatus.waiting, false, "[/team/]/player/: /message/", "", spectator);
+        verify(spectator).sendMessage("[]Name: hi");
+    }
+
+    @Test
+    void emptyWaitingFormatFallsBackToTheArenaFormat() {
+        Player spectator = mock(Player.class);
+        globalChat(GameStatus.waiting, false, "A:/message/", "", spectator);
+        verify(spectator).sendMessage("A:hi");
+    }
+
+    @Test
+    void waitingFormatIsUsedWhileWaitingAndStartingOnly() {
+        Player waiting = mock(Player.class);
+        globalChat(GameStatus.waiting, false, "A:/message/", "W:/player/ /message/", waiting);
+        verify(waiting).sendMessage("W:Name hi");
+        Player starting = mock(Player.class);
+        globalChat(GameStatus.starting, true, "A:/message/", "W:/team/ /message/", starting);
+        verify(starting).sendMessage("W:<Red> hi");
+        Player playing = mock(Player.class);
+        globalChat(GameStatus.playing, false, "A:/message/", "W:/message/", playing);
+        verify(playing).sendMessage("A:hi");
     }
 }

@@ -21,7 +21,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_is_spectator%` | `true` / `false` |
 | `%newbedwars_phase%` | Current phase name, or `""` |
 | `%newbedwars_game_time%` | Seconds elapsed since game start, or `0` |
-| `%newbedwars_game_time_formatted%` | Time since game start as `m:ss`, or `""` |
+| `%newbedwars_game_time_formatted%` | Time since game start (format set by `TimeFormat` in `config.yml`), or `""` |
 | `%newbedwars_map%` | Same as `%newbedwars_arena%` |
 | `%newbedwars_in_arena%` | `true` when the player is in an arena (as player or spectator) |
 | `%newbedwars_team_colored%` | Team name in the team colour, or `""` |
@@ -33,7 +33,7 @@ If PlaceholderAPI is installed, all of the placeholders below become available u
 | `%newbedwars_min_players%` | Players needed to start |
 | `%newbedwars_spectators%` | Spectators in the arena |
 | `%newbedwars_next_phase%` | Name of the next game phase, or `""` |
-| `%newbedwars_phase_time%`, `%newbedwars_phase_time_formatted%` | Time until the next phase (seconds, or `m:ss`) |
+| `%newbedwars_phase_time%`, `%newbedwars_phase_time_formatted%` | Time until the next phase (seconds, or formatted as set by `TimeFormat`) |
 
 ## Tab list text (for TAB and other tab list plugins)
 

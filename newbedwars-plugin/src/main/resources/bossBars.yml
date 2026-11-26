@@ -8,6 +8,10 @@
 #  Styles:  SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
 #  Effects: NONE, RAINBOW, PULSING, RAINBOW_PULSING
 #  Actions: NONE, END_GAME
+#
+#  Texts: {lang:Key} (or /lang:Key/) is replaced by that message key (en.yml, pl.yml, ...) in each
+#  viewer's language, before the other placeholders and colours. A text with it is shown per player.
+#  The shipped texts use keys (BossBar*). Existing files keep their own texts.
 # =====================================================
 
 BossBars:
@@ -15,8 +19,8 @@ BossBars:
     Enabled: true
     Time: 5
     Texts:
-      - "&aPlaying Bedwars on &e/server_name/&7!"
-      - "&aWaiting for players..."
+      - "{lang:BossBarWaitingServer}"
+      - "{lang:BossBarWaitingPlayers}"
     Colors:  ["GREEN", "YELLOW"]
     Styles:  ["SOLID", "SEGMENTED_6"]
     Effects: ["NONE", "NONE"]
@@ -26,8 +30,8 @@ BossBars:
     Enabled: true
     Time: 5
     Texts:
-      - "&aPhase: &f/phase/ &8| &7Arena: &e/arena_name/"
-      - "&ePlayers: &f/players/&7/&f/max_players/ &8| &7Phase: &f/phase/"
+      - "{lang:BossBarGamePhase}"
+      - "{lang:BossBarGamePlayers}"
     Colors:  ["GREEN", "YELLOW"]
     Styles:  ["SOLID", "SOLID"]
     Effects: ["NONE", "NONE"]
@@ -37,7 +41,7 @@ BossBars:
     Enabled: true
     Time: 0
     Texts:
-      - "&cEND GAME"
+      - "{lang:BossBarEndGame}"
     Colors:  ["PURPLE"]
     Styles:  ["SOLID"]
     Effects: ["NONE"]
@@ -48,9 +52,9 @@ BossBars:
     Enabled: false
     Time: 5
     Texts:
-      - "&aPlaying on &e/server_name/&7!"
-      - "Join &e/server_name/&7!"
-      - "Players: &e/players/&7/&e/max_players/&7!"
+      - "{lang:BossBarLobbyPlaying}"
+      - "{lang:BossBarLobbyJoin}"
+      - "{lang:BossBarLobbyPlayers}"
     Colors:  ["GREEN", "YELLOW", "RED"]
     Styles:  ["SOLID", "SEGMENTED_6", "SEGMENTED_10"]
     Effects: ["RAINBOW", "PULSING", "RAINBOW_PULSING"]

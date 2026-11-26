@@ -51,6 +51,7 @@ public class TeamShop {
                 if (npc == null || !npc.isValid()) {
                     spawnNpc();
                 } else {
+                    NpcNames.refresh(npc, "ShopNpcName", team);
                     if (TeamShop.drifted(npc.getLocation(), location)) npc.teleport(location);
                     if (npc.getFireTicks() > 0) {
                         npc.setFireTicks(0);
@@ -72,7 +73,7 @@ public class TeamShop {
         npc = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
         com.l299l.newbedwars.arena.setup.DecoUtils.makeAdult(npc);
         npc.setInvulnerable(true);
-        npc.setCustomName(NewBedwars.plugin.getMessages().getMsgToConsole("ShopNpcName").replace("/team/", team.getColor() + team.getDisplayName()));
+        NpcNames.apply(npc, "ShopNpcName", team);
         npc.setCustomNameVisible(true);
         npc.setSilent(true);
         npc.setGravity(false);
