@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.team;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.config.Messages;
@@ -54,9 +55,9 @@ public final class TeamSelectorGUI implements InventoryHolder {
             List<String> lore = new ArrayList<>(List.of(msg.getMsg(viewer, "TeamSelectorEntryLore")
                     .replace("/players/", String.valueOf(count))
                     .replace("/max/", String.valueOf(arena.getMaxInTeam())).split("\n")));
-            String line = msg.getMsg(viewer, "TeamSelectorMemberLine");
             for (Player member : manager.pickedPlayers(arena, name)) {
-                lore.add(line.replace("/player/", member.getName()));
+                lore.add(msg.getMsg(viewer, "TeamSelectorMemberLine", MessageContext.about(member))
+                        .replace("/player/", member.getName()));
             }
             lore.add("");
             String status;

@@ -43,7 +43,8 @@ public class StatsCommand extends BwCommand {
     public static void sendStatsChat(Player receiver, String targetName, PlayerStats stats, String language) {
         Messages msg = NewBedwars.plugin.getMessages();
         msg.send(receiver, "StatsDivider");
-        msg.send(receiver, "StatsHeader", Map.of("/player/", targetName));
+        msg.send(receiver, "StatsHeader", Map.of("/player/", targetName),
+                com.l299l.newbedwars.placeholder.MessageContext.named(targetName));
         if (language != null) {
             msg.send(receiver, "StatsLanguage", Map.of("/language/", language));
         }

@@ -105,7 +105,8 @@ final class BuiltInUpgrades {
                 for (Player ally : team.getPlayers()) {
                     ally.sendTitle(
                             NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapTitle"),
-                            NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapSubtitle").replace("/player/", enemyName),
+                            NewBedwars.plugin.getMessages().getMsg(ally, "AlarmTrapSubtitle",
+                                    com.l299l.newbedwars.placeholder.MessageContext.about(enemy)).replace("/player/", enemyName),
                             10, 60, 20
                     );
                 }

@@ -81,13 +81,17 @@ public class LangMessages {
         HashMap<String, String> map = messages.get(lang);
         if (map == null) return;
         if (value == null || value.isEmpty()) map.remove(key);
-        else map.put(key, ChatColor.translateAlternateColorCodes('&', value));
+        else map.put(key, color(value));
     }
 
     private String getString(String text, FileConfiguration configuration) {
         String value = configuration.getString(text);
         if (value == null) return "";
-        return ChatColor.translateAlternateColorCodes('&', value);
+        return color(value);
+    }
+
+    private static String color(String value) {
+        return ChatColor.translateAlternateColorCodes('&', com.l299l.newbedwars.text.HexColors.translate(value));
     }
 
     private void setFromCustomItemsNames() {
@@ -98,8 +102,7 @@ public class LangMessages {
             if (section == null) continue;
             HashMap<String, String> langMap = messages.get(lang);
             section.getValues(false).forEach((key, value) ->
-                    langMap.put(key, ChatColor.translateAlternateColorCodes('&',
-                            Objects.requireNonNull(section.getString(key)))));
+                    langMap.put(key, color(Objects.requireNonNull(section.getString(key)))));
         }
     }
 }

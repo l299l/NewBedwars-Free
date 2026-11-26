@@ -167,7 +167,7 @@ class ChatEventTest {
         Player spectator = mock(Player.class);
         when(arena.getSpectators()).thenReturn(new ArrayList<>(List.of(spectator)));
         when(arena.getPlayers()).thenReturn(Set.of());
-        when(messages.getMsg(sender, "ArenaChatFormat")).thenReturn("&7/player/: &f/message/");
+        when(messages.getMsg(any(Player.class), eq(sender), eq("ArenaChatFormat"), any())).thenReturn("&7/player/: &f/message/");
         when(sender.hasPermission("newbedwars.chat.color")).thenReturn(false);
 
         AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, sender, "&cloud", new HashSet<>());
@@ -204,8 +204,8 @@ class ChatEventTest {
         when(arena.getTeam(sender)).thenReturn(team);
         when(arena.getSpectators()).thenReturn(new ArrayList<>(List.of(other)));
         when(arena.getPlayers()).thenReturn(Set.of());
-        when(messages.getMsg(sender, "ArenaChatFormat")).thenReturn("G:/message/");
-        when(messages.getMsg(sender, "TeamChatFormat")).thenReturn("T:/message/");
+        when(messages.getMsg(any(Player.class), eq(sender), eq("ArenaChatFormat"), any())).thenReturn("G:/message/");
+        when(messages.getMsg(any(Player.class), eq(sender), eq("TeamChatFormat"), any())).thenReturn("T:/message/");
         when(sender.getName()).thenReturn("Steve");
         when(sender.hasPermission("newbedwars.chat.color")).thenReturn(false);
         AsyncPlayerChatEvent event = new AsyncPlayerChatEvent(false, sender, text, new HashSet<>());

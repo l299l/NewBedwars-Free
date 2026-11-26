@@ -46,7 +46,8 @@ public final class ArenaJoinService {
 
             String adminName = admin != null ? admin.getName()
                     : java.util.Objects.requireNonNullElse(NewBedwars.plugin.getPartyManager().nameOf(party.getAdmin()), "?");
-            msg.send(p, "PartyOnlyAdminCanJoin", Map.of("/player/", adminName));
+            msg.send(p, "PartyOnlyAdminCanJoin", Map.of("/player/", adminName),
+                    com.l299l.newbedwars.placeholder.MessageContext.named(adminName));
             return JoinResult.NOT_PARTY_LEADER;
         }
         IArena current = pendingArena(p);

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.commands.party;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.config.Messages;
 import com.l299l.newbedwars.parties.Party;
@@ -75,11 +76,11 @@ public class PartyCommand implements TabExecutor {
         }
         Player target = Bukkit.getPlayer(targetName);
         if (target == null) {
-            msg.send(p, "PartyPlayerNotFound", Map.of("/player/", targetName));
+            msg.send(p, "PartyPlayerNotFound", Map.of("/player/", targetName), MessageContext.named(targetName));
             return;
         }
         if (pm.isPlayerInParty(target)) {
-            msg.send(p, "PartyPlayerAlreadyInParty", Map.of("/player/", target.getName()));
+            msg.send(p, "PartyPlayerAlreadyInParty", Map.of("/player/", target.getName()), MessageContext.named(target.getName()));
             return;
         }
 
@@ -98,9 +99,9 @@ public class PartyCommand implements TabExecutor {
 
         final Party finalParty = party;
         pm.sendInvite(p, target, finalParty);
-        msg.send(p, "PartyInviteSent", Map.of("/player/", target.getName()));
+        msg.send(p, "PartyInviteSent", Map.of("/player/", target.getName()), MessageContext.named(target.getName()));
         final String inviterName = p.getName();
-        msg.send(target, "PartyInviteReceived", Map.of("/player/", inviterName));
+        msg.send(target, "PartyInviteReceived", Map.of("/player/", inviterName), MessageContext.named(inviterName));
         sendInviteButtons(target);
     }
 
@@ -125,14 +126,14 @@ public class PartyCommand implements TabExecutor {
             msg.send(p, "PartyNoPendingInvite");
             return;
         }
-        msg.send(p, "PartyAccepted", Map.of("/player/", finalAdminName));
+        msg.send(p, "PartyAccepted", Map.of("/player/", finalAdminName), MessageContext.named(finalAdminName));
         if (party != null) {
             final String joinName = p.getName();
             for (UUID memberId : party.getMembers()) {
                 if (memberId.equals(p.getUniqueId())) continue;
                 Player member = Bukkit.getPlayer(memberId);
                 if (member != null) {
-                    msg.send(member, "PartyMemberJoined", Map.of("/player/", joinName));
+                    msg.send(member, "PartyMemberJoined", Map.of("/player/", joinName), MessageContext.named(joinName));
                 }
             }
         }
@@ -151,12 +152,12 @@ public class PartyCommand implements TabExecutor {
         }
         final String finalAdminName = adminName;
         pm.declineInvite(p);
-        msg.send(p, "PartyDenied", Map.of("/player/", finalAdminName));
+        msg.send(p, "PartyDenied", Map.of("/player/", finalAdminName), MessageContext.named(finalAdminName));
         if (party != null) {
             Player admin = Bukkit.getPlayer(party.getAdmin());
             if (admin != null) {
                 final String denierName = p.getName();
-                msg.send(admin, "PartyMemberDenied", Map.of("/player/", denierName));
+                msg.send(admin, "PartyMemberDenied", Map.of("/player/", denierName), MessageContext.named(denierName));
             }
         }
     }
@@ -180,7 +181,7 @@ public class PartyCommand implements TabExecutor {
             if (memberId.equals(p.getUniqueId())) continue;
             Player member = Bukkit.getPlayer(memberId);
             if (member != null) {
-                msg.send(member, "PartyMemberLeft", Map.of("/player/", leaverName));
+                msg.send(member, "PartyMemberLeft", Map.of("/player/", leaverName), MessageContext.named(leaverName));
             }
         }
 
@@ -206,7 +207,7 @@ public class PartyCommand implements TabExecutor {
             boolean isAdmin = party.isAdmin(memberId);
             msg.send(p, "PartyListMember", Map.of(
                     "/player/", name,
-                    "/admin/", isAdmin ? msg.getMsg(p, "PartyListAdminTag") : ""));
+                    "/admin/", isAdmin ? msg.getMsg(p, "PartyListAdminTag") : ""), MessageContext.about(member));
         }
     }
 
@@ -238,14 +239,14 @@ public class PartyCommand implements TabExecutor {
             }
         }
         if (targetId == null) {
-            msg.send(p, "PartyNotFound", Map.of("/player/", targetName));
+            msg.send(p, "PartyNotFound", Map.of("/player/", targetName), MessageContext.named(targetName));
             return;
         }
         final UUID finalTargetId = targetId;
         final String finalTargetName = targetName;
         Player targetPlayer = Bukkit.getPlayer(targetId);
         pm.kickFromParty(party, targetId);
-        msg.send(p, "PartyKicked", Map.of("/player/", finalTargetName));
+        msg.send(p, "PartyKicked", Map.of("/player/", finalTargetName), MessageContext.named(finalTargetName));
         if (targetPlayer != null) {
             msg.send(targetPlayer, "PartyYouWereKicked");
         }
@@ -253,7 +254,7 @@ public class PartyCommand implements TabExecutor {
             if (memberId.equals(p.getUniqueId())) continue;
             Player member = Bukkit.getPlayer(memberId);
             if (member != null) {
-                msg.send(member, "PartyKicked", Map.of("/player/", finalTargetName));
+                msg.send(member, "PartyKicked", Map.of("/player/", finalTargetName), MessageContext.named(finalTargetName));
             }
         }
     }
@@ -282,13 +283,13 @@ public class PartyCommand implements TabExecutor {
             }
         }
         if (targetId == null) {
-            msg.send(p, "PartyNotFound", Map.of("/player/", targetName));
+            msg.send(p, "PartyNotFound", Map.of("/player/", targetName), MessageContext.named(targetName));
             return;
         }
         final UUID finalTargetId = targetId;
         final String finalTargetName = targetName;
         pm.transferAdmin(party, targetId);
-        msg.send(p, "PartyAdminTransferred", Map.of("/player/", finalTargetName));
+        msg.send(p, "PartyAdminTransferred", Map.of("/player/", finalTargetName), MessageContext.named(finalTargetName));
         Player newAdmin = Bukkit.getPlayer(targetId);
         if (newAdmin != null) {
             msg.send(newAdmin, "PartyYouAreAdmin");
@@ -297,7 +298,7 @@ public class PartyCommand implements TabExecutor {
             if (memberId.equals(p.getUniqueId()) || memberId.equals(finalTargetId)) continue;
             Player member = Bukkit.getPlayer(memberId);
             if (member != null) {
-                msg.send(member, "PartyAdminTransferred", Map.of("/player/", finalTargetName));
+                msg.send(member, "PartyAdminTransferred", Map.of("/player/", finalTargetName), MessageContext.named(finalTargetName));
             }
         }
     }

@@ -2,6 +2,12 @@
 
 All notable changes to NewBedwars are documented here.
 
+## [Unreleased]
+
+### Added
+- **PlaceholderAPI in the language files** - Chat messages, announcements and menu texts can use any PlaceholderAPI placeholder, so rank prefixes now work in arena and team chat (for example `%luckperms_prefix%` in `ArenaChatFormat`). In messages about a player (chat, joining, leaving, deaths, parties and so on) placeholders show that player's values; `%viewer:...%` picks the player reading, and death messages also accept `%killer:...%` and `%victim:...%`. See [docs/configuration.md](docs/configuration.md#placeholders-and-colors-in-messages) ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+- **`&#RRGGBB` colors** - Work in the language files, in PlaceholderAPI results, and in scoreboard lines, boss bars and the tab list ([#6](https://github.com/l299l/NewBedwars-Free/issues/6))
+
 ## [2.8-beta] - 25.11.2026
 
 ### Added

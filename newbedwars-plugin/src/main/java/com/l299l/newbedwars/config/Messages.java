@@ -4,6 +4,8 @@ import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.setup.Setup;
 import com.l299l.newbedwars.config.properties.LangMessages;
 import com.l299l.newbedwars.config.properties.Properties;
+import com.l299l.newbedwars.placeholder.MessageContext;
+import com.l299l.newbedwars.placeholder.MessagePlaceholders;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -24,13 +26,15 @@ public class Messages {
     }
 
     public void send(Player p, String text) {
-        Language lang = playerLanguage(p);
-        p.sendMessage(langMessages.getMsg(lang, text));
+        p.sendMessage(getMsg(p, text));
     }
 
     public void send(Player p, String text, Map<String, String> replace) {
-        Language lang = playerLanguage(p);
-        String message = langMessages.getMsg(lang, text);
+        send(p, text, replace, MessageContext.viewer());
+    }
+
+    public void send(Player p, String text, Map<String, String> replace, MessageContext context) {
+        String message = getMsg(p, text, context);
         for (String key : replace.keySet()) {
             message = com.l299l.newbedwars.text.Tokens.replaceKey(message, key, replace.get(key));
         }
@@ -42,7 +46,15 @@ public class Messages {
     }
 
     public String getMsg(Player p, String text) {
-        return langMessages.getMsg(playerLanguage(p), text);
+        return getMsg(p, text, MessageContext.viewer());
+    }
+
+    public String getMsg(Player p, String text, MessageContext context) {
+        return getMsg(p, p, text, context);
+    }
+
+    public String getMsg(Player viewer, Player languageOwner, String text, MessageContext context) {
+        return MessagePlaceholders.apply(viewer, context, langMessages.getMsg(playerLanguage(languageOwner), text));
     }
 
     public String getMsg(Language language, String text) {

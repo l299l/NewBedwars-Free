@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.arena.dragon.DragonController;
 import com.l299l.newbedwars.api.events.LeaveReason;
 import com.l299l.newbedwars.api.events.PlayerSendToLobbyEvent;
@@ -442,7 +443,7 @@ public class Arena implements IArena {
         broadcast("PlayerJoinedArena", Map.of(
                 "/player/", coloredName(player),
                 "/players/", Integer.toString(players.size()),
-                "/maxplayers/", Integer.toString(getMaxPlayers())));
+                "/maxplayers/", Integer.toString(getMaxPlayers())), MessageContext.about(player));
         checkIfCanStart();
         return true;
     }
@@ -510,7 +511,7 @@ public class Arena implements IArena {
             broadcast("PlayerJoinedArena", Map.of(
                     "/player/", name,
                     "/players/", Integer.toString(currentSize),
-                    "/maxplayers/", Integer.toString(maxSize)));
+                    "/maxplayers/", Integer.toString(maxSize)), MessageContext.about(member));
         }
         checkIfCanStart();
         return !joined.isEmpty();
@@ -617,7 +618,7 @@ public class Arena implements IArena {
             broadcast("PlayerLeftArenaGame", Map.of(
                     "/player/", playerName,
                     "/players/", Integer.toString(players.size() - 1),
-                    "/maxplayers/", Integer.toString(getMaxPlayers())));
+                    "/maxplayers/", Integer.toString(getMaxPlayers())), MessageContext.about(player));
             rejoin.schedule(player.getUniqueId(), 20L * 60 * Properties.RejoinTime, () -> {
                 retire(player.getUniqueId());
                 NewBedwars.plugin.getMessages().send(player, "RejoinTimeOver");
@@ -627,7 +628,7 @@ public class Arena implements IArena {
             broadcast("PlayerLeftArenaGame", Map.of(
                     "/player/", playerName,
                     "/players/", Integer.toString(players.size()),
-                    "/maxplayers/", Integer.toString(getMaxPlayers())));
+                    "/maxplayers/", Integer.toString(getMaxPlayers())), MessageContext.about(player));
         }
     }
 
@@ -646,7 +647,7 @@ public class Arena implements IArena {
         if (gameStatus != GameStatus.restarting) broadcast("PlayerLeftArena", Map.of(
                 "/player/", playerName,
                 "/players/", Integer.toString(players.size()),
-                "/maxplayers/", Integer.toString(getMaxPlayers())));
+                "/maxplayers/", Integer.toString(getMaxPlayers())), MessageContext.about(player));
         if (gameStatus == GameStatus.starting && (players.size() < minPlayers || !hasEnoughTeams())) {
             cancelStart();
         }
@@ -767,21 +768,31 @@ public class Arena implements IArena {
 
     @Override
     public void broadcast(String message, Map<String, String> replace) {
+        broadcast(message, replace, MessageContext.viewer());
+    }
+
+    @Override
+    public void broadcast(String message, Map<String, String> replace, MessageContext context) {
         for (Player player : audience()) {
-            player.sendMessage(text(player, message, replace));
+            player.sendMessage(text(player, message, replace, context));
         }
     }
 
     @Override
-    public void broadcastEach(String message, java.util.function.Function<Player, Map<String, String>> replace) {
+    public void broadcastEach(String message, java.util.function.Function<Player, Map<String, String>> replace,
+                              MessageContext context) {
         for (Player player : audience()) {
-            player.sendMessage(text(player, message, replace.apply(player)));
+            player.sendMessage(text(player, message, replace.apply(player), context));
         }
     }
 
     private String text(Player player, String key, Map<String, String> replace) {
+        return text(player, key, replace, MessageContext.viewer());
+    }
+
+    private String text(Player player, String key, Map<String, String> replace, MessageContext context) {
         if (key == null) return "";
-        String msg = NewBedwars.plugin.getMessages().getMsg(player, key);
+        String msg = NewBedwars.plugin.getMessages().getMsg(player, key, context);
         for (Map.Entry<String, String> entry : replace.entrySet()) {
             msg = com.l299l.newbedwars.text.Tokens.replaceKey(msg, entry.getKey(), entry.getValue());
         }

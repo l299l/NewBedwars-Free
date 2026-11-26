@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.commands.bedwars.admin.managearena;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
@@ -79,15 +80,15 @@ public class SetupArenaCommand extends BwCommand {
     private void addAdmin(Player player, IArena arena, String name, Location loc) {
         Player p = Bukkit.getPlayer(name);
         if (p == null) {
-            player.sendMessage(msg.getMsg(player, "PlayerNotOnline").replace("/player/", name));
+            player.sendMessage(msg.getMsg(player, "PlayerNotOnline", MessageContext.named(name)).replace("/player/", name));
             return;
         }
         if (p.hasPermission("newbedwars.bw.bypass")) {
-            player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", p.getName()));
+            player.sendMessage(msg.getMsg(player, "AdminHaveBypass", MessageContext.about(p)).replace("/admin/", p.getName()));
             return;
         }
         if (!(p.hasPermission("newbedwars.bw.admin") || p.isOp() || ArenaCommand.canUse(p, "setup"))) {
-            player.sendMessage(msg.getMsg(player, "SetupPlayerNotAllowed").replace("/player/", p.getName()));
+            player.sendMessage(msg.getMsg(player, "SetupPlayerNotAllowed", MessageContext.about(p)).replace("/player/", p.getName()));
             return;
         }
         p.teleport(loc);

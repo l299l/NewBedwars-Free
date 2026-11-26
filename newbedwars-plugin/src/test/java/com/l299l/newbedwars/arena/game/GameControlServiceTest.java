@@ -53,7 +53,7 @@ class GameControlServiceTest {
     void startOnlyWhileWaiting() {
         Outcome ok = run(GameStatus.waiting, Action.START);
         assertTrue(ok.success());
-        verify(arena).broadcast("AdminForcedStart", Map.of("/admin/", "Panel: Alex"));
+        verify(arena).broadcast(eq("AdminForcedStart"), eq(Map.of("/admin/", "Panel: Alex")), any());
         verify(arena).setArenaStarting();
         for (GameStatus s : List.of(GameStatus.starting, GameStatus.playing, GameStatus.ending, GameStatus.restarting)) {
             assertEquals("GameNotWaiting", run(s, Action.START).key());
@@ -84,7 +84,7 @@ class GameControlServiceTest {
         for (GameStatus s : List.of(GameStatus.waiting, GameStatus.starting, GameStatus.playing, GameStatus.ending)) {
             assertTrue(run(s, Action.FORCE_STOP).success());
         }
-        verify(arena, times(4)).broadcast(eq("AdminStoppedGame"), any());
+        verify(arena, times(4)).broadcast(eq("AdminStoppedGame"), any(), any());
         verify(arena, times(4)).stop();
     }
 
@@ -98,7 +98,7 @@ class GameControlServiceTest {
         when(arena.isEnabled()).thenReturn(false);
         assertEquals(Code.BUSY, run(GameStatus.waiting, Action.FORCE_STOP).code());
         verify(arena, never()).stop();
-        verify(arena, never()).broadcast(eq("AdminStoppedGame"), any());
+        verify(arena, never()).broadcast(eq("AdminStoppedGame"), any(), any());
     }
 
     @Test
@@ -121,13 +121,13 @@ class GameControlServiceTest {
         Outcome o = GameControlService.broadcast("Castle", "Alex", "  &eRestart soon  ");
         assertTrue(o.success());
         ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
-        verify(arena).broadcast(eq("AdminBroadcast"), captor.capture());
+        verify(arena).broadcast(eq("AdminBroadcast"), captor.capture(), any());
         assertEquals("§eRestart soon", captor.getValue().get("/message/"));
         assertEquals(List.of("/admin/", "/message/"), List.copyOf(captor.getValue().keySet()));
 
         assertEquals(Code.INVALID_NAME, GameControlService.broadcast("Castle", "Alex", "   ").code());
         assertEquals(Code.INVALID_NAME, GameControlService.broadcast("Castle", "Alex", "x".repeat(257)).code());
-        verify(arena, times(1)).broadcast(eq("AdminBroadcast"), any());
+        verify(arena, times(1)).broadcast(eq("AdminBroadcast"), any(), any());
     }
 
     private com.l299l.newbedwars.arena.team.Team team(String name) {

@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.arena.game;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.api.maintenance.MaintenanceResult.Code;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.arena.GameStatus;
@@ -42,13 +43,13 @@ public final class GameControlService {
         switch (action) {
             case FORCE_START -> {
                 if (status != GameStatus.starting && status != GameStatus.waiting) return outcome(Code.NOT_READY, "GameNotWaiting", name, Map.of());
-                arena.broadcast("AdminForcedStart", admin);
+                arena.broadcast("AdminForcedStart", admin, MessageContext.named(actor));
                 arena.start();
                 return outcome(Code.OK, "AdminForcedStart", name, admin);
             }
             case START -> {
                 if (status != GameStatus.waiting) return outcome(Code.NOT_READY, "GameNotWaiting", name, Map.of());
-                arena.broadcast("AdminForcedStart", admin);
+                arena.broadcast("AdminForcedStart", admin, MessageContext.named(actor));
                 arena.setArenaStarting();
                 return outcome(Code.OK, "AdminForcedStart", name, admin);
             }
@@ -59,7 +60,7 @@ public final class GameControlService {
             }
             case FORCE_STOP -> {
                 if (!canForceStop(arena, status)) return outcome(Code.BUSY, "ArenaBusy", name, Map.of("/arenaname/", name));
-                arena.broadcast("AdminStoppedGame", admin);
+                arena.broadcast("AdminStoppedGame", admin, MessageContext.named(actor));
                 arena.stop();
                 return outcome(Code.OK, "AdminStoppedGame", name, admin);
             }
@@ -157,7 +158,7 @@ public final class GameControlService {
         Map<String, String> replacements = new LinkedHashMap<>();
         replacements.put("/admin/", actor == null ? "" : actor);
         replacements.put("/message/", ChatColor.translateAlternateColorCodes('&', text));
-        arena.broadcast("AdminBroadcast", replacements);
+        arena.broadcast("AdminBroadcast", replacements, MessageContext.named(actor));
         return outcome(Code.OK, "AdminBroadcast", arena.getArenaName(), replacements);
     }
 }

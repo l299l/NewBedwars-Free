@@ -26,7 +26,8 @@ public class ProfileGUI extends BasicGUI {
         super(guiManager, viewer);
         this.target = target;
         inv = Bukkit.createInventory(this, 27,
-                ChatColor.GOLD + "" + ChatColor.BOLD + text("GuiProfileTitle").replace("/player/", target.getName()));
+                ChatColor.GOLD + "" + ChatColor.BOLD + getMsg().getMsg(getPlayer(), "GuiProfileTitle",
+                        com.l299l.newbedwars.placeholder.MessageContext.named(target.getName())).replace("/player/", target.getName()));
         init();
     }
 

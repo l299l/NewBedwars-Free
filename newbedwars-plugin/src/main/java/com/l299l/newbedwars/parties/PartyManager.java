@@ -73,7 +73,8 @@ public class PartyManager {
                     pendingInvites.remove(invitee.getUniqueId());
                     if (invitee.isOnline()) {
                         messages.send(invitee, "PartyInviteExpired",
-                                Map.of("/player/", inviter.getName()));
+                                Map.of("/player/", inviter.getName()),
+                                com.l299l.newbedwars.placeholder.MessageContext.about(inviter));
                     }
                 }
             }

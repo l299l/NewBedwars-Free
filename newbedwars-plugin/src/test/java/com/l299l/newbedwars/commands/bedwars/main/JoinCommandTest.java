@@ -107,7 +107,7 @@ class JoinCommandTest {
             bukkit.when(() -> Bukkit.getPlayer(adminId)).thenReturn(null);
             cmd.perform(player, new String[]{"join", "arena1"}, null);
         }
-        verify(mockMessages).send(eq(player), eq("PartyOnlyAdminCanJoin"), any());
+        verify(mockMessages).send(eq(player), eq("PartyOnlyAdminCanJoin"), any(), any());
     }
 
     @Test

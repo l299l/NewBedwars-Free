@@ -38,7 +38,8 @@ public class ProfileCommand extends BwCommand {
             PlayerStats stats = NewBedwars.plugin.getPlayerManager().getStats(targetName);
             PlayerProfile ins = NewBedwars.plugin.getPlayerManager().getPlayer(targetName);
             String language = ins != null ? ins.language().name() : null;
-            msg.send(player, "StatsOffline", Map.of("/player/", targetName));
+            msg.send(player, "StatsOffline", Map.of("/player/", targetName),
+                com.l299l.newbedwars.placeholder.MessageContext.named(targetName));
             StatsCommand.sendStatsChat(player, targetName, stats, language);
         }
     }

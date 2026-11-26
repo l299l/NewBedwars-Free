@@ -115,3 +115,7 @@ An unknown group returns `""`.
 ## In shop items
 
 **(2.8-beta)** Placeholders also work the other way round: the shop names and descriptions of shop items, upgrades and traps, and the names and descriptions of menu categories can use any PlaceholderAPI placeholder, and the player who opens the menu sees their own values. The item a player receives when buying keeps its normal text on purpose, so bought blocks still stack. See [Shop items](shop-and-upgrades.md#shop-items-itemsyml).
+
+## In messages
+
+PlaceholderAPI placeholders also work in the language files, including the arena and team chat formats. See [Placeholders and colors in messages](configuration.md#placeholders-and-colors-in-messages).

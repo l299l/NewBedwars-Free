@@ -81,7 +81,7 @@ class PartyCommandTest {
             bukkit.when(() -> Bukkit.getPlayer("Nobody")).thenReturn(null);
             cmd.onCommand(p1, null, "party", new String[]{"invite", "Nobody"});
         }
-        verify(mockMessages).send(eq(p1), eq("PartyPlayerNotFound"), any());
+        verify(mockMessages).send(eq(p1), eq("PartyPlayerNotFound"), any(), any());
     }
 
     @Test
@@ -90,8 +90,8 @@ class PartyCommandTest {
             bukkit.when(() -> Bukkit.getPlayer("Bob")).thenReturn(p2);
             cmd.onCommand(p1, null, "party", new String[]{"invite", "Bob"});
         }
-        verify(mockMessages).send(eq(p1), eq("PartyInviteSent"), any());
-        verify(mockMessages).send(eq(p2), eq("PartyInviteReceived"), any());
+        verify(mockMessages).send(eq(p1), eq("PartyInviteSent"), any(), any());
+        verify(mockMessages).send(eq(p2), eq("PartyInviteReceived"), any(), any());
         assertTrue(pm.hasPendingInvite(p2));
         assertTrue(pm.isPlayerInParty(p1));
     }
@@ -112,8 +112,8 @@ class PartyCommandTest {
             cmd.onCommand(p2, null, "party", new String[]{"accept"});
         }
 
-        verify(mockMessages).send(eq(p2), eq("PartyAccepted"), any());
-        verify(mockMessages).send(eq(p1), eq("PartyMemberJoined"), any());
+        verify(mockMessages).send(eq(p2), eq("PartyAccepted"), any(), any());
+        verify(mockMessages).send(eq(p1), eq("PartyMemberJoined"), any(), any());
         assertTrue(pm.isPlayerInParty(p2));
     }
 
@@ -135,8 +135,8 @@ class PartyCommandTest {
 
         assertFalse(pm.hasPendingInvite(p2));
         assertFalse(pm.isPlayerInParty(p2));
-        verify(mockMessages).send(eq(p2), eq("PartyDenied"), any());
-        verify(mockMessages).send(eq(p1), eq("PartyMemberDenied"), any());
+        verify(mockMessages).send(eq(p2), eq("PartyDenied"), any(), any());
+        verify(mockMessages).send(eq(p1), eq("PartyMemberDenied"), any(), any());
     }
 
     @Test
@@ -174,7 +174,7 @@ class PartyCommandTest {
         cmd.onCommand(p2, null, "party", new String[]{"accept"});
 
         verify(mockMessages).send(p2, "PartyAlreadyInParty");
-        verify(mockMessages, never()).send(eq(p2), eq("PartyAccepted"), any());
+        verify(mockMessages, never()).send(eq(p2), eq("PartyAccepted"), any(), any());
         assertEquals(mine, pm.getParty(p2));
         assertEquals(1, theirs.size());
     }
@@ -190,7 +190,7 @@ class PartyCommandTest {
         }
 
         verify(mockMessages).send(p2, "PartyNoPendingInvite");
-        verify(mockMessages, never()).send(eq(p2), eq("PartyAccepted"), any());
+        verify(mockMessages, never()).send(eq(p2), eq("PartyAccepted"), any(), any());
         assertFalse(pm.isPlayerInParty(p2));
     }
 

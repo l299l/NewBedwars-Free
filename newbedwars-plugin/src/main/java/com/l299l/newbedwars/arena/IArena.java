@@ -52,7 +52,9 @@ public interface IArena {
     boolean forfeitRejoin(Player player);
     void broadcast(String message);
     void broadcast(String message, java.util.Map<String, String> replace);
-    void broadcastEach(String message, java.util.function.Function<org.bukkit.entity.Player, java.util.Map<String, String>> replace);
+    void broadcast(String message, java.util.Map<String, String> replace, com.l299l.newbedwars.placeholder.MessageContext context);
+    void broadcastEach(String message, java.util.function.Function<org.bukkit.entity.Player, java.util.Map<String, String>> replace,
+                       com.l299l.newbedwars.placeholder.MessageContext context);
     void broadcastTitle(String title, String subtitle, Integer fadeIn, Integer stay, Integer fadeOut);
     World getArenaWorld();
     void enable();

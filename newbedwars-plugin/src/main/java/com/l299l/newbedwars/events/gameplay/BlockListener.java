@@ -129,7 +129,7 @@ public class BlockListener implements Listener {
                                 }
                                 arena.broadcast("BedDestroyed", Map.of(
                                         "/team/", team.colored(team.getDisplayName()),
-                                        "/destroyer/", arena.coloredName(p)));
+                                        "/destroyer/", arena.coloredName(p)), com.l299l.newbedwars.placeholder.MessageContext.about(p));
                                 for (Player member : team.getPlayers()) {
                                     String titleMsg = ChatColor.translateAlternateColorCodes('&',
                                             plugin.getMessages().getMsg(member, "BedDestroyedTitle"));

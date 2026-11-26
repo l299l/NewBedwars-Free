@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.commands.bedwars.main;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.commands.bedwars.BwCommand;
@@ -63,7 +64,7 @@ public class LeaderboardCommand extends BwCommand {
             msg.send(player, "LeaderboardEntry", Map.of(
                     "/rank/", String.valueOf(rankIndex + 1),
                     "/player/", entry.getKey(),
-                    "/value/", String.valueOf(valueFunc.applyAsInt(entry.getValue()))));
+                    "/value/", String.valueOf(valueFunc.applyAsInt(entry.getValue()))), MessageContext.named(entry.getKey()));
         }
     }
 

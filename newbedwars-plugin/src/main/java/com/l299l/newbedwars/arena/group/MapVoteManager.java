@@ -256,7 +256,7 @@ public final class MapVoteManager implements Listener {
         ended.broadcast("MapVoted", Map.of(
                 "/player/", player.getName(),
                 "/arena/", current.arenaName(),
-                "/votes/", String.valueOf(count)));
+                "/votes/", String.valueOf(count)), com.l299l.newbedwars.placeholder.MessageContext.about(player));
         refreshMenus(ended);
     }
 

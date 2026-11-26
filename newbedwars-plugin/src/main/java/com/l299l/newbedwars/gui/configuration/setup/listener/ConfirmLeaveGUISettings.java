@@ -51,7 +51,7 @@ public class ConfirmLeaveGUISettings implements Listener {
                     leave(arena, allPlayer);
                     msg.send(allPlayer, "KickedByOtherAdmin");
                 } else {
-                    player.sendMessage(msg.getMsg(player, "AdminHaveBypass").replace("/admin/", allPlayer.getName()));
+                    player.sendMessage(msg.getMsg(player, "AdminHaveBypass", com.l299l.newbedwars.placeholder.MessageContext.about(allPlayer)).replace("/admin/", allPlayer.getName()));
                 }
             }
         }

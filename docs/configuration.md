@@ -15,6 +15,43 @@ Other files are explained elsewhere: game modes and phases (`modes.yml`) in [Gam
 
 Players change their own language with `/bw lang`.
 
+## Placeholders and colors in messages
+
+Colors in the language files (`plugins/NewBedwars/language/`) can be written as `&a`, `&x&F&F&A&A&0&0` or `&#FFAA00`. `&#RRGGBB` also works in PlaceholderAPI results, scoreboard lines, boss bars and the tab list. `#FFAA00` without `&` is not a color. Hex colors need Minecraft 1.16 or newer, so every version NewBedwars supports can show them.
+
+With PlaceholderAPI installed, chat messages, announcements and menu texts in the language files can use its placeholders. Which player a placeholder such as `%luckperms_prefix%` describes depends on the message:
+
+| Message | Player |
+|---|---|
+| Arena and team chat | The sender |
+| A player joining or leaving the server or an arena | That player |
+| Death messages | The victim |
+| Other messages about one player (breaking a bed, map votes, parties, admin actions, stats, trap alarm and so on) | That player |
+| Everything else, including menus | The player reading it |
+| Console messages and texts above NPCs and mobs | Nobody; the placeholder stays as text |
+
+If the player a message is about is not online, or an admin action comes from the console or the web panel, their placeholders are left empty.
+
+To choose the player yourself, put a target in front of the placeholder name. This only works in the language files:
+
+| Target | Player | Works in |
+|---|---|---|
+| `%viewer:luckperms_prefix%` | The player reading the message | Any message shown to a player |
+| `%victim:luckperms_prefix%` | The player who died | Death messages (`PlayerDeath`, `PlayerDeathByVoid`, `PlayerDeathByDragon`) |
+| `%killer:luckperms_prefix%` | The killer; empty when no player killed the victim | Death messages |
+
+Elsewhere `%victim:...%` and `%killer:...%` stay as text.
+
+Rank prefixes in chat and death messages:
+
+```yaml
+ArenaChatFormat: "&7[&fARENA&7] %luckperms_prefix%/player/ &8» &f/message/"
+TeamChatFormat: "&7[&fTEAM&7] %luckperms_prefix%/player/ &8» &f/message/"
+PlayerDeath: "%victim:luckperms_prefix%&a/player/ &fhas been killed by %killer:luckperms_prefix%&a/killer/&f!"
+```
+
+Placeholders are filled in before names and chat messages are inserted, so a player who types a placeholder in chat only sends that text. Chat is written in the sender's language file. Lobby chat is not formatted by NewBedwars; your chat plugin controls it.
+
 ## Arena defaults
 
 Used for **new** arenas. Every arena can change them in setup mode.

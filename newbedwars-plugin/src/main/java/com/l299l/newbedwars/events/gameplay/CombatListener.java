@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.events.gameplay;
 
+import com.l299l.newbedwars.placeholder.MessageContext;
 import com.l299l.newbedwars.NewBedwars;
 import com.l299l.newbedwars.arena.ArenaRegistry;
 import com.l299l.newbedwars.apiimpl.ApiEvents;
@@ -184,27 +185,29 @@ public class CombatListener implements Listener {
                 dyingTeam != null && dyingTeam.isBedDestroyed(), cause, dragonTeam);
         final String victimName = arena.coloredName(p);
         arena.killPlayer(p);
+        MessageContext about = MessageContext.kill(p,
+                killer != null && arena.isPlayerInArena(killer) ? killer : null);
         if (killer != null && arena.isPlayerInArena(killer)) {
             final String killerName = arena.coloredName(killer);
             arena.broadcast("PlayerDeath", Map.of(
                     "/player/", victimName,
-                    "/killer/", killerName));
+                    "/killer/", killerName), about);
         } else if (isVoid) {
             if (lastGround != null && !resources.isEmpty() && lastGround.getWorld() != null) {
                 for (ItemStack stack : resources) {
                     lastGround.getWorld().dropItemNaturally(lastGround, stack);
                 }
             }
-            arena.broadcast("PlayerDeathByVoid", Map.of("/player/", victimName));
+            arena.broadcast("PlayerDeathByVoid", Map.of("/player/", victimName), about);
         } else if (dragonTeam != null) {
             arena.broadcast("PlayerDeathByDragon", Map.of(
                     "/player/", victimName,
-                    "/team/", dragonTeam.getColor() + dragonTeam.getDisplayName()));
+                    "/team/", dragonTeam.getColor() + dragonTeam.getDisplayName()), about);
         } else {
             String causeKey = "DeathCause-" + cause.name();
             arena.broadcastEach("PlayerDeath", viewer -> Map.of(
                     "/player/", victimName,
-                    "/killer/", causeText(viewer, causeKey)));
+                    "/killer/", causeText(viewer, causeKey)), about);
         }
     }
 

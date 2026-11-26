@@ -2,6 +2,8 @@
 #  NewBedwars — Language File (English)
 #  Use & for color codes. Use ; for line breaks in lore.
 #  Placeholders: /arenaname/, /player/, /team/, /admin/, etc.
+#  With PlaceholderAPI: %placeholder%, %viewer:placeholder%, and in death messages %killer:...% / %victim:...%
+#  Hex colors: &#RRGGBB
 # =====================================================
 #Use /arenaname/ to get Name of Arena
 ArenaCreated: "&b[NewBedwars] &8&l> &fThe &e/arenaname/ &farena has been &asuccessfully &fcreated!"

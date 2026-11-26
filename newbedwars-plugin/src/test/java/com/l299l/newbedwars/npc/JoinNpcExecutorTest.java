@@ -116,7 +116,7 @@ class JoinNpcExecutorTest {
             JoinNpcExecutor.perform(player, JoinNpcAction.parse("ARENA", "solo_1"));
         }
 
-        verify(messages, times(2)).send(eq(player), eq("PartyOnlyAdminCanJoin"), any());
+        verify(messages, times(2)).send(eq(player), eq("PartyOnlyAdminCanJoin"), any(), any());
         verify(a, never()).join(any());
     }
 

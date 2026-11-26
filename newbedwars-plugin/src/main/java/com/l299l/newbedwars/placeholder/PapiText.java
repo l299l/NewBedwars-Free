@@ -1,5 +1,6 @@
 package com.l299l.newbedwars.placeholder;
 
+import com.l299l.newbedwars.text.HexColors;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -23,12 +24,17 @@ public final class PapiText {
         resolver = custom;
     }
 
-    public static String apply(Player player, String text) {
+    public static boolean isEnabled() {
+        return resolver != null;
+    }
+
+    public static String apply(Player player, String raw) {
+        String text = HexColors.translate(raw);
         BiFunction<Player, String, String> current = resolver;
         if (current == null || player == null || text == null || text.indexOf('%') < 0) return text;
         try {
             String out = current.apply(player, text);
-            return out == null ? text : ChatColor.translateAlternateColorCodes('&', out);
+            return out == null ? text : ChatColor.translateAlternateColorCodes('&', HexColors.translate(out));
         } catch (RuntimeException | LinkageError e) {
             return text;
         }

@@ -10,6 +10,7 @@ import com.l299l.newbedwars.arena.IArena;
 import com.l299l.newbedwars.arena.team.Team;
 import com.l299l.newbedwars.config.properties.Properties;
 import com.l299l.newbedwars.network.NetworkManager;
+import com.l299l.newbedwars.placeholder.MessageContext;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -21,7 +22,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -95,32 +96,35 @@ public class ChatEvent implements Listener {
 
         if (toTeam) {
             if (team == null) return;
-            String formatted = format(
-                    plugin.getMessages().getMsg(sender, "TeamChatFormat")
-                            .replace("/player/", team.colored(sender.getName()))
-                            .replace("/team/", team.colored(team.getDisplayName())),
-                    body, sender.hasPermission(COLOR_PERMISSION));
+            boolean allowColor = sender.hasPermission(COLOR_PERMISSION);
             for (Player member : team.getPlayers()) {
-                member.sendMessage(formatted);
+                String template = chatTemplate(member, sender, "TeamChatFormat")
+                        .replace("/player/", team.colored(sender.getName()))
+                        .replace("/team/", team.colored(team.getDisplayName()));
+                member.sendMessage(format(template, body, allowColor));
             }
             ApiEvents.arenaChat(arena, sender, plain(body), true, team);
         } else if (Boolean.TRUE.equals(arena.getGamerules().AllowGlobalChat)) {
-            String formatted = format(
-                    plugin.getMessages().getMsg(sender, "ArenaChatFormat")
-                            .replace("/player/", arena.coloredName(sender)),
-                    body, sender.hasPermission(COLOR_PERMISSION));
-            Set<UUID> sent = new HashSet<>();
+            boolean allowColor = sender.hasPermission(COLOR_PERMISSION);
+            Set<Player> recipients = new LinkedHashSet<>();
             for (UUID uuid : arena.getPlayers()) {
                 Player p = Bukkit.getPlayer(uuid);
-                if (p != null && sent.add(uuid)) p.sendMessage(formatted);
+                if (p != null) recipients.add(p);
             }
-            for (Player spec : arena.getSpectators()) {
-                if (sent.add(spec.getUniqueId())) spec.sendMessage(formatted);
+            recipients.addAll(arena.getSpectators());
+            for (Player recipient : recipients) {
+                String template = chatTemplate(recipient, sender, "ArenaChatFormat")
+                        .replace("/player/", arena.coloredName(sender));
+                recipient.sendMessage(format(template, body, allowColor));
             }
             ApiEvents.arenaChat(arena, sender, plain(body), false, team);
         } else {
             plugin.getMessages().send(sender, "ArenaChatDisabled");
         }
+    }
+
+    private String chatTemplate(Player viewer, Player sender, String key) {
+        return plugin.getMessages().getMsg(viewer, sender, key, MessageContext.about(sender));
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -190,9 +194,9 @@ public class ChatEvent implements Listener {
     }
 
     private void sendServerMessage(Player viewer, String key, Player subject) {
-        String text = com.l299l.newbedwars.text.Tokens.apply(plugin.getMessages().getMsg(viewer, key),
-                Map.of("player", subject.getName()));
-        viewer.sendMessage(com.l299l.newbedwars.placeholder.PapiText.apply(subject, text));
+        viewer.sendMessage(com.l299l.newbedwars.text.Tokens.apply(
+                plugin.getMessages().getMsg(viewer, key, MessageContext.about(subject)),
+                Map.of("player", subject.getName())));
     }
 
     static boolean showServerJoinMessages() {
