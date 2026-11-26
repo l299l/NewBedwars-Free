@@ -3,7 +3,7 @@ site_description: Bedwars plugin for Paper 1.17 to 26.x, with an optional web ad
 site_url: https://l299l.github.io/NewBedwars-Free/
 repo_url: https://github.com/l299l/NewBedwars-Free
 repo_name: l299l/NewBedwars-Free
-edit_uri: edit/master/docs/
+edit_uri: edit/dev/docs/
 docs_dir: docs
 
 exclude_docs: |
