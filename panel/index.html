@@ -1,0 +1,2050 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Bedwars plugin for Paper 1.17 to 26.x, with an optional web admin panel.">
+      
+      
+      
+        <link rel="canonical" href="https://l299l.github.io/NewBedwars-Free/panel/">
+      
+      
+        <link rel="prev" href="../network/">
+      
+      
+        <link rel="next" href="../api/">
+      
+      
+      <link rel="icon" href="../assets/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.39">
+    
+    
+      
+        <title>Web panel - NewBedwars</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#web-panel-newbedwars-panel" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="NewBedwars" class="md-header__button md-logo" aria-label="NewBedwars" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 7h-8v7H3V5H1v15h2v-3h18v3h2v-9a4 4 0 0 0-4-4M7 13a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NewBedwars
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Web panel
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/l299l/NewBedwars-Free" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    l299l/NewBedwars-Free
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="NewBedwars" class="md-nav__button md-logo" aria-label="NewBedwars" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 7h-8v7H3V5H1v15h2v-3h18v3h2v-9a4 4 0 0 0-4-4M7 13a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3"/></svg>
+
+    </a>
+    NewBedwars
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/l299l/NewBedwars-Free" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    l299l/NewBedwars-Free
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../arena-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Arena setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shop-and-upgrades/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shop and upgrades
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game-modes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game modes and phases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Commands and permissions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../placeholders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Placeholders
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Storage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../balance-simulator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Balance simulator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Network and panel
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Network and panel
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Network mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Web panel
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Web panel
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-first-admin-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      The first admin account
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging-in-and-the-certificate-warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging in and the certificate warning
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accounts-and-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accounts and roles
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game modes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-control-and-game-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game control and game log
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shop-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shop editor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-your-own-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using your own certificate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behind-a-reverse-proxy-nginx-caddy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Behind a reverse proxy (nginx, Caddy)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-it-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting it up
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-servers-trust-each-other" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the servers trust each other
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Status values
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-and-backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Files and backups
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security notes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Developers
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Addon API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            Addon API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/data-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reading data and events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/registering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Registering content
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/arenas/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Arenas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/players/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Players
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/shop-and-modes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shop editor and game modes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/example/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Full example
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-first-admin-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      The first admin account
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging-in-and-the-certificate-warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging in and the certificate warning
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accounts-and-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accounts and roles
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game modes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-control-and-game-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game control and game log
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shop-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shop editor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-your-own-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using your own certificate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behind-a-reverse-proxy-nginx-caddy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Behind a reverse proxy (nginx, Caddy)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-it-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting it up
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-servers-trust-each-other" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the servers trust each other
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Status values
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-and-backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Files and backups
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security notes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/l299l/NewBedwars-Free/edit/dev/docs/panel.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="web-panel-newbedwars-panel">Web panel (NewBedwars-Panel)<a class="headerlink" href="#web-panel-newbedwars-panel" title="Permanent link">&para;</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The panel needs NewBedwars 2.8-beta or newer on the same server.</p>
+</div>
+<p><code>NewBedwars-Panel</code> is a separate addon jar that adds a browser admin panel to your server. With it you can:</p>
+<ul>
+<li>watch every arena live: its state, players, phase (with the time left and the next phase), game time, and each team's bed;</li>
+<li>see every game mode and apply one to a waiting arena (<a href="#game-modes">game modes</a>);</li>
+<li>control running games: start the countdown, start now, end as a draw, stop and reset, skip to the next phase, and send a message to everyone in the arena;</li>
+<li>read each arena's game log: joins and leaves, chat and team chat, kills and final kills, beds, phases, generator upgrades, eliminated teams and admin actions, updated live;</li>
+<li>look up any player's stats and the leaderboards (top 10, 25 or 100 by wins, kills, final kills, beds, deaths, losses or games);</li>
+<li>see online players, TPS and memory;</li>
+<li>enable, disable, back up, restore, reset, copy, export (download) and delete arenas;</li>
+<li>import arena zips you upload;</li>
+<li>on a network, manage the arenas, shops and stats of every game server from the lobby's panel with one login (<a href="#network-mode">network mode</a>).</li>
+</ul>
+<p>Each person logs in with their own account. What they may do depends on their role, and every action is written to an activity log.</p>
+<p>The panel runs inside the Paper server (no extra program, no database). It speaks HTTPS by default.</p>
+<ul>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#the-first-admin-account">The first admin account</a></li>
+<li><a href="#logging-in-and-the-certificate-warning">Logging in and the certificate warning</a></li>
+<li><a href="#accounts-and-roles">Accounts and roles</a></li>
+<li><a href="#game-modes">Game modes</a></li>
+<li><a href="#commands">Commands</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#using-your-own-certificate">Using your own certificate</a></li>
+<li><a href="#behind-a-reverse-proxy-nginx-caddy">Behind a reverse proxy (nginx, Caddy)</a></li>
+<li><a href="#network-mode">Network mode</a></li>
+<li><a href="#files-and-backups">Files and backups</a></li>
+<li><a href="#security-notes">Security notes</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Put <code>NewBedwars-Panel-&lt;version&gt;.jar</code> next to <code>NewBedwars-&lt;version&gt;.jar</code> in <code>plugins/</code>. Use the same version for both.</li>
+<li>Start the server. The console shows something like:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[NewBedwars-Panel] Panel running at https://localhost:8150/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>[NewBedwars-Panel] No panel accounts yet. Create the first admin with: nbwpanel user create &lt;name&gt; admin
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>[NewBedwars-Panel] Created a self-signed certificate, SHA-256 fingerprint: 83:3E:87:...
+</code></pre></div></li>
+<li>Open port <strong>8150</strong> (TCP) in your firewall or hosting panel if you want to reach the panel from another computer.</li>
+</ol>
+<p>Requirements:</p>
+<ul>
+<li>Paper 1.17 to 26.x with NewBedwars 2.8-beta or newer.</li>
+<li>A Java runtime with the built-in web server (module <code>jdk.httpserver</code>). Standard JDK/JRE builds (e.g. Eclipse Temurin) have it. Only stripped-down custom runtimes made with <code>jlink</code> may lack it. In that case the console says so and the panel stays off.</li>
+</ul>
+<p>Changes to <code>plugins/NewBedwars-Panel/config.yml</code> take effect after a server restart.</p>
+<h2 id="the-first-admin-account">The first admin account<a class="headerlink" href="#the-first-admin-account" title="Permanent link">&para;</a></h2>
+<p>Accounts are created from the server console, or in game by an op with <code>newbedwars.panel.manage</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nbwpanel user create Alex admin
+</code></pre></div>
+<p>The answer contains a <strong>one-time password</strong>, shown only this once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[NBW Panel] Account Alex created with role admin.
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>[NBW Panel] One-time password: xB7VZkhaJktRwFpt
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>[NBW Panel] It works once: the panel asks for a new password at the first login. It is not shown again.
+</code></pre></div>
+<p>Log in with it. The panel then asks you to choose your own password (10 to 128 characters) before anything else can be used. After that, create further accounts in the panel under <strong>Accounts</strong>, or with the same command.</p>
+<p>If somebody forgets their password, run <code>nbwpanel user reset &lt;name&gt;</code>, or click <strong>New password</strong> in the panel. They get a new one-time password and are logged out everywhere.</p>
+<h2 id="logging-in-and-the-certificate-warning">Logging in and the certificate warning<a class="headerlink" href="#logging-in-and-the-certificate-warning" title="Permanent link">&para;</a></h2>
+<p>Open <code>https://&lt;your-server-address&gt;:8150/</code>. By default the panel uses a <strong>self-signed certificate</strong>, so the browser warns once ("Your connection is not private" / "Potential security risk").</p>
+<ul>
+<li>To make sure you are talking to your own server, compare the SHA-256 fingerprint in the browser's certificate details with the one in the console or in <code>nbwpanel status</code>. If they match, accept the warning.</li>
+<li>If you reach the panel through a domain name or a public IP, add it to <code>Https.Hostnames</code> so the certificate lists it.</li>
+<li>To get rid of the warning completely, use <a href="#using-your-own-certificate">your own certificate</a> or a <a href="#behind-a-reverse-proxy-nginx-caddy">reverse proxy</a>.</li>
+</ul>
+<p>The self-signed certificate is valid for 397 days. It is renewed automatically 30 days before it expires, and whenever <code>Https.Hostnames</code> or <code>Bind</code> changes. The fingerprint changes then, so the browser warns again.</p>
+<p>The panel is in English and Polish. It follows the browser language, and you can switch it with the language selector in the top bar. <code>DefaultLanguage</code> is used when the browser asks for neither.</p>
+<h2 id="accounts-and-roles">Accounts and roles<a class="headerlink" href="#accounts-and-roles" title="Permanent link">&para;</a></h2>
+<p>Every account has one role. Two roles are built in and can not be changed:</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Can</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>admin</code></td>
+<td>everything</td>
+</tr>
+<tr>
+<td><code>staff</code></td>
+<td>view the arenas and players and the player stats, also on the other servers of the network (<code>dashboard.view</code>, <code>stats.view</code>, <code>network.servers</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Under <strong>Roles</strong>, admins (or anyone with <code>roles.manage</code>) can create their own roles from these permissions:</p>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>Allows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dashboard.view</code></td>
+<td>the arena list, arena details, online players, TPS and memory</td>
+</tr>
+<tr>
+<td><code>arena.enable</code> / <code>arena.disable</code></td>
+<td>enabling / disabling arenas (disabling sends waiting players out)</td>
+</tr>
+<tr>
+<td><code>arena.backup</code></td>
+<td>making backups and seeing the backup list</td>
+</tr>
+<tr>
+<td><code>arena.restore</code></td>
+<td>restoring a backup</td>
+</tr>
+<tr>
+<td><code>arena.resetmap</code></td>
+<td>putting the map back to its saved state</td>
+</tr>
+<tr>
+<td><code>arena.export</code></td>
+<td>exporting arenas and downloading the zip files</td>
+</tr>
+<tr>
+<td><code>arena.import</code></td>
+<td>uploading and importing arena zips</td>
+</tr>
+<tr>
+<td><code>arena.copy</code></td>
+<td>copying an arena</td>
+</tr>
+<tr>
+<td><code>arena.delete</code></td>
+<td>deleting an arena (file, world and saved map; backups are kept)</td>
+</tr>
+<tr>
+<td><code>users.manage</code></td>
+<td>creating accounts, new passwords, changing roles, deleting accounts</td>
+</tr>
+<tr>
+<td><code>roles.manage</code></td>
+<td>creating, changing and deleting roles</td>
+</tr>
+<tr>
+<td><code>audit.view</code></td>
+<td>the activity log</td>
+</tr>
+<tr>
+<td><code>stats.view</code></td>
+<td>player stats and leaderboards</td>
+</tr>
+<tr>
+<td><code>game.manage</code></td>
+<td>start, stop, skip phases of games and broadcast to an arena (like <code>/bw game</code>)</td>
+</tr>
+<tr>
+<td><code>modes.view</code></td>
+<td>the <strong>Modes</strong> tab of the shop editor and the <strong>Mode</strong> column on Shop &gt; Arenas. The built-in <code>admin</code> role has it, <code>staff</code> does not</td>
+</tr>
+<tr>
+<td><code>modes.apply</code></td>
+<td>applying a game mode to an arena (the picker and <strong>Apply</strong> button on Shop &gt; Arenas; only while the arena is waiting for players). Needs <code>modes.view</code> to be usable. The built-in <code>admin</code> role has it, <code>staff</code> does not</td>
+</tr>
+<tr>
+<td><code>modes.edit</code></td>
+<td>creating, editing and deleting game modes, phase lists and generator configs on the Modes tab (see <a href="#game-modes">game modes</a>). Needs <code>modes.view</code> to be usable. The built-in <code>admin</code> role has it, <code>staff</code> does not. Not local-only: on a network it works on every game server through the gateway</td>
+</tr>
+<tr>
+<td><code>shop.edit</code></td>
+<td>the shop editor: items, their texts, shop GUIs and which GUIs the arenas use</td>
+</tr>
+<tr>
+<td><code>shop.commands</code></td>
+<td>changing the commands of shop items (<strong>Run commands</strong>, <code>onBuyEvent: COMMANDS</code>) and the permission an item gives (<strong>Give a permission for the game</strong>, <code>GIVE_PERM</code>), and switching an item's action to or from those two. Commands run as the server console and a given permission can be any permission, so this gives full control of the server: give it only to people you would give console access. Without it, both fields are shown read-only and the action can not be switched</td>
+</tr>
+<tr>
+<td><code>network.servers</code></td>
+<td>on a gateway panel: the server list and everything on the other servers of the network (what you may do there still depends on your other permissions). Never forwarded to other servers</td>
+</tr>
+<tr>
+<td><code>game.log</code></td>
+<td>the game log of each arena. <strong>It includes team chat</strong>, so give it only to people who may read that</td>
+</tr>
+</tbody>
+</table>
+<p>Rules that always apply:</p>
+<ul>
+<li>Every permission is checked by the server, not just hidden in the page.</li>
+<li>Nobody can give an account or a role a permission they don't have themselves. They also can't change accounts or roles that have more permissions than they do. Someone with only <code>users.manage</code> therefore can't make themselves an admin.</li>
+<li>The last <code>admin</code> account can't be deleted or given another role.</li>
+<li>A role that is still assigned to an account can't be deleted.</li>
+<li>Arena actions follow the same rules as <code>/bw arena</code>. For example, an arena with players in it can't be disabled. A refused action shows the plugin's own message.</li>
+</ul>
+<h2 id="game-modes">Game modes<a class="headerlink" href="#game-modes" title="Permanent link">&para;</a></h2>
+<p>The <strong>Modes</strong> tab (Shop &gt; Modes, <code>#/shop/modes</code>, permission <code>modes.view</code>) lists every game mode with its settings (generator preset, game phases, shop and upgrade menu, players per team, team count), a tag for the built-in ones and the timeline of its game phases. Without the permission <code>modes.edit</code> they are read-only here: change them in <code>modes.yml</code> (see <a href="../game-modes/">Game modes and phases</a>) or ask an admin. The shop editor itself still needs <code>shop.edit</code> to open.</p>
+<p>With the permission <code>modes.edit</code> the Modes tab becomes an editor and the changes are written to the server's files and reloaded at once:</p>
+<ul>
+<li><strong>Modes</strong>: <strong>New mode</strong>, and <strong>Edit</strong> / <strong>Delete</strong> on each mode. A mode picks a generator config, a phase list, a shop and an upgrade menu (each can stay "unchanged") and the players per team and team count (0 = unchanged). Built-in modes can be edited but not deleted. Arenas that already got a mode keep their copy.</li>
+<li><strong>Phase lists</strong>: each phase has a name, a duration typed as <code>mm:ss</code> and a list of actions chosen from the known ones (generator upgrades with a level, bed destruction, Ender Dragons, game end, ...). Phases can be added, removed and moved up and down. The built-in lists cannot be deleted.</li>
+<li><strong>Generator configs</strong>: the YAML of a generator preset in a text box. <strong>New generator config</strong> asks for a name and which config to copy from; the <code>ConfigurationId</code> line is set to the new name for you. The <code>ConfigurationId</code> must equal the name. The text is limited to 48 KB. The built-in configs can be edited but not deleted.</li>
+</ul>
+<p>A phase list or generator config that a mode or an arena still uses cannot be deleted; the panel lists who uses it. If the server rejects a change as invalid, the reasons are shown under the form. Every change is written to the activity log (<code>modes.save</code>, <code>modes.delete</code>, <code>phases.save</code>, <code>phases.delete</code>, <code>generators.save</code>, <code>generators.delete</code>).</p>
+<p>Shop &gt; Arenas (<code>#/shop/arenas</code>) has a <strong>Mode</strong> column with each arena's mode and, under it, its generator config, phase list and team count x players per team. The mode is worked out from the arena's current settings: it is the mode whose settings all match, otherwise the arena shows <strong>Custom</strong>.</p>
+<p>With the permission <code>modes.apply</code> each row also has a mode picker and an <strong>Apply</strong> button. It copies the mode into the arena once, like <code>/bw setMode</code>, and works only while the arena is waiting for players; the shop and upgrade menu pickers of the row then show the new menus. The panel warns when the arena's team count differs from the mode's. If the mode names something that doesn't exist (a generator file, phase list or menu), nothing is changed and the missing names are shown.</p>
+<p>The dashboard lines the team columns up for arenas with different team counts. The <strong>Group arenas</strong> selector groups the list by team format (teams x players per team, e.g. "4 x 4 · 16 players"); the browser remembers your choice.</p>
+<h2 id="game-control-and-game-log">Game control and game log<a class="headerlink" href="#game-control-and-game-log" title="Permanent link">&para;</a></h2>
+<p>On an arena's page, <strong>Game</strong> shows only the actions that fit the arena's state (waiting: start countdown, start now; starting: start now, stop; playing: skip phase, end as a draw, stop and reset; ending: stop). Ending as a draw saves the stats; "stop and reset" sends everyone out at once. Messages players see name the panel user (<code>Panel: Alex</code>). A broadcast may use <code>&amp;</code> colour codes (up to 256 characters); in game, <code>/bw game broadcast &lt;message&gt;</code> does the same.</p>
+<p>The <strong>game log</strong> is kept in memory only: a finished game stays readable until the next game in that arena starts, and it is lost when the server restarts. Filter it by chat, kills and beds, game events, joins and leaves, and admin actions.</p>
+<p>Commands typed by anyone in an arena's world (players, spectators, admins in setup or just visiting) are shown under <strong>Admin and commands</strong>, e.g. <code>/bw game forcestart</code> or <code>/gamemode creative</code>, also when the command was refused (marked "no permission" when the player lacks the command's permission, "cancelled" when another plugin stopped it). Player commands from <code>GameLog.IgnoredCommands</code> (leaving, language, party, private messages, ...) are left out, and login and password commands (<code>/login</code>, <code>/register</code>, <code>/changepassword</code>, ...) are never logged.</p>
+<h2 id="shop-editor">Shop editor<a class="headerlink" href="#shop-editor" title="Permanent link">&para;</a></h2>
+<p><strong>Shop</strong> (permission <code>shop.edit</code>) has four tabs:</p>
+<ul>
+<li><strong>Items</strong>: every item of <code>plugins/NewBedwars/data/items.yml</code>. An item has a material, amount, price and currency, what buying it does (give the item, armor or a tool, buy a team upgrade, or nothing for decoration), its item logic (TNT, fireball, bridge egg, ... and addon logic), enchantments, item flags, an optional permission and "permanent". Under <strong>Texts</strong> you set the display name, the shop icon description and the lore of the bought item for each language, with <code>&amp;</code> colour codes and a preview. The texts are stored in the language files (<code>CustomItemsNames</code>). A new item's name can't be changed later.</li>
+<li><strong>GUIs</strong>: the shop and upgrade menus in <code>data/guis/</code>. The grid shows every slot of the inventory; header and footer rows (darker) are shown on every page, the rows between them show the home page or the open category. Drag an entry from the palette onto a slot, drag slots to swap them, or select a slot and choose what it shows on the right (arrow keys move, Delete empties). Categories are buttons that open a page with their items in the order you set; the category <code>home</code> is the start page. <strong>Price overrides</strong> give an upgrade GUI its own prices for some upgrades: arenas whose upgrade shop opens this GUI use them instead of the prices from the <strong>Upgrades</strong> tab (for example cheaper upgrades for solo arenas). <strong>Item prices</strong> do the same for shop items: arenas whose shop opens this GUI (or a menu opened from it) use the price, currency and amount listed there instead of the item's own; leave the currency or amount empty to keep the item's value.</li>
+<li><strong>Upgrades</strong>: the prices of every team upgrade and trap (<code>data/upgrades.yml</code>). Each row is one level the team can buy, in order, with its own price and currency (iron, gold, diamond or emerald). Fewer rows mean fewer levels, no rows means the upgrade can't be bought; each upgrade shows how many levels it supports at most. Upgrade icons in the <strong>Items</strong> tab have no price of their own: buying them always uses these prices.</li>
+<li><strong>Arenas</strong>: which GUI the item shop and the upgrade shop of each arena open. Only arenas that are waiting can be changed.</li>
+</ul>
+<p>Changes apply at once: players see them the next time they open a shop, no <code>/bw reload</code>. Items and GUIs that are still used (by a GUI, an arena or <code>config.yml</code>) can't be deleted; the page says where they are used. Every save keeps the previous file in <code>plugins/NewBedwars/data/backups/shop/</code> (<code>items/</code>, <code>guis/&lt;id&gt;/</code>, <code>upgrades/</code>, <code>language/&lt;code&gt;/</code>, as many as <code>Backups.Keep</code>).</p>
+<p>References a GUI file already had but that can't be resolved on this server (for example an item that failed to load) are listed at the top and kept unchanged when you save; new references must be valid. Saving a GUI from the panel rewrites its file without the comments it had.</p>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
+<p>Permission <code>newbedwars.panel.manage</code> (default: op). The console can always use them. In game, <code>user create</code>, <code>user reset</code>, <code>user delete</code> and <code>network forget</code> also need op, even when a permissions plugin gives <code>newbedwars.panel.manage</code> to someone else. Command blocks and other senders that are neither the console nor a player can not use them.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/nbwpanel status</code></td>
+<td>panel address, certificate (self-signed fingerprint, own keystore or plain HTTP), number of accounts, logged-in sessions</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user create &lt;name&gt; &lt;role&gt;</code></td>
+<td>creates an account and prints its one-time password</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user reset &lt;name&gt;</code></td>
+<td>new one-time password; the account is logged out</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user delete &lt;name&gt;</code></td>
+<td>deletes the account and logs it out (not the last admin)</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user list</code></td>
+<td>all accounts with their role; marks passwords that were not changed yet</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network status</code></td>
+<td>the panel's network role and, on a gateway, every server with its status and how its certificate is trusted</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network secret</code></td>
+<td>prints a new random <code>Network.Secret</code> (it is not saved anywhere)</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network forget &lt;server&gt;</code></td>
+<td>gateway: forgets the remembered certificate of a server, so the next connection trusts the certificate it sees (console or op only)</td>
+</tr>
+</tbody>
+</table>
+<p>Account names have 3 to 32 characters: letters, digits, <code>_</code>, <code>.</code> and <code>-</code>. They are not case-sensitive.</p>
+<p>The chat and console messages are in <code>plugins/NewBedwars-Panel/lang/en.yml</code> and <code>pl.yml</code>. You can edit them. Players get their game language and the console gets <code>DefaultLanguage</code>.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p><code>plugins/NewBedwars-Panel/config.yml</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Bind</code></td>
+<td><code>0.0.0.0</code></td>
+<td>Network address to listen on. <code>0.0.0.0</code> = all; <code>127.0.0.1</code> = only this machine (use it behind a reverse proxy on the same machine)</td>
+</tr>
+<tr>
+<td><code>Port</code></td>
+<td><code>8150</code></td>
+<td>TCP port</td>
+</tr>
+<tr>
+<td><code>Https.Enabled</code></td>
+<td><code>true</code></td>
+<td><code>false</code> = plain HTTP. Only use it behind a reverse proxy that adds HTTPS, or on a trusted network. The console warns about it</td>
+</tr>
+<tr>
+<td><code>Https.Keystore</code></td>
+<td><code>""</code></td>
+<td>Your own PKCS12 (<code>.p12</code>/<code>.pfx</code>) or JKS keystore, relative to the panel folder. Empty = self-signed certificate</td>
+</tr>
+<tr>
+<td><code>Https.KeystorePassword</code></td>
+<td><code>""</code></td>
+<td>Its password</td>
+</tr>
+<tr>
+<td><code>Https.Hostnames</code></td>
+<td><code>[]</code></td>
+<td>Extra domain names / IPs for the self-signed certificate (<code>localhost</code> and the <code>Bind</code> address are always included)</td>
+</tr>
+<tr>
+<td><code>TrustProxyHeaders</code></td>
+<td><code>false</code></td>
+<td><code>true</code> only behind your own reverse proxy: the client IP is taken from <code>X-Forwarded-For</code>, HTTPS from <code>X-Forwarded-Proto</code> and the host from <code>X-Forwarded-Host</code></td>
+</tr>
+<tr>
+<td><code>Session.IdleMinutes</code></td>
+<td><code>30</code></td>
+<td>Logged out after this long without activity</td>
+</tr>
+<tr>
+<td><code>Session.MaxHours</code></td>
+<td><code>12</code></td>
+<td>Logged out after this long in any case</td>
+</tr>
+<tr>
+<td><code>Login.MaxAttempts</code></td>
+<td><code>5</code></td>
+<td>Wrong passwords before the account <strong>and</strong> the address are locked</td>
+</tr>
+<tr>
+<td><code>Login.LockMinutes</code></td>
+<td><code>10</code></td>
+<td>How long the lock lasts</td>
+</tr>
+<tr>
+<td><code>Upload.MaxMegabytes</code></td>
+<td><code>512</code></td>
+<td>Largest arena zip that can be uploaded</td>
+</tr>
+<tr>
+<td><code>DefaultLanguage</code></td>
+<td><code>en</code></td>
+<td><code>en</code> or <code>pl</code>, used when the browser or the console has no other choice</td>
+</tr>
+<tr>
+<td><code>Network.Role</code></td>
+<td><code>STANDALONE</code></td>
+<td><code>STANDALONE</code>, <code>GATEWAY</code> or <code>NODE</code>, see <a href="#network-mode">Network mode</a></td>
+</tr>
+<tr>
+<td><code>Network.Id</code></td>
+<td><code>""</code></td>
+<td>Name of this server in the network (letters, digits, <code>_ -</code>). Empty = the NewBedwars server id. On a node it must match the node's key under <code>Network.Peers</code> on the gateway. Shown as <code>user@&lt;id&gt;</code> in the activity logs of the other servers</td>
+</tr>
+<tr>
+<td><code>Network.Secret</code></td>
+<td><code>""</code></td>
+<td>Shared secret, at least 32 characters, the same on the gateway and every node</td>
+</tr>
+<tr>
+<td><code>Network.NodeLogin</code></td>
+<td><code>false</code></td>
+<td><code>NODE</code> only: <code>true</code> also allows logging in to this node directly with its own accounts</td>
+</tr>
+<tr>
+<td><code>Network.Peers</code></td>
+<td><code>{}</code></td>
+<td><code>GATEWAY</code> only: the other panels (<code>&lt;server id&gt;: {Url, Fingerprint}</code>)</td>
+</tr>
+<tr>
+<td><code>GameLog.IgnoredCommands</code></td>
+<td>player commands (<code>lobby</code>, <code>lang</code>, <code>party</code>, <code>msg</code>, <code>bw lobby</code>, ...)</td>
+<td>Commands typed in an arena world that are <strong>not</strong> shown in the game log. A two-word entry like <code>bw lobby</code> leaves out only that subcommand</td>
+</tr>
+</tbody>
+</table>
+<h2 id="using-your-own-certificate">Using your own certificate<a class="headerlink" href="#using-your-own-certificate" title="Permanent link">&para;</a></h2>
+<p>If you already have a certificate for a domain that points to your server (for example from Let's Encrypt), turn it into a PKCS12 file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>openssl<span class="w"> </span>pkcs12<span class="w"> </span>-export<span class="w"> </span>-in<span class="w"> </span>fullchain.pem<span class="w"> </span>-inkey<span class="w"> </span>privkey.pem<span class="w"> </span>-out<span class="w"> </span>panel.p12<span class="w"> </span>-name<span class="w"> </span>panel<span class="w"> </span>-passout<span class="w"> </span>pass:CHANGE_ME
+</code></pre></div>
+<p>Put <code>panel.p12</code> into <code>plugins/NewBedwars-Panel/</code> and set:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">Https</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">Enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">Keystore</span><span class="p">:</span><span class="w"> </span><span class="s">"panel.p12"</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">KeystorePassword</span><span class="p">:</span><span class="w"> </span><span class="s">"CHANGE_ME"</span>
+</code></pre></div>
+<p>Restart the server and open <code>https://your.domain:8150/</code>. Let's Encrypt certificates last 90 days: create the <code>.p12</code> again after each renewal and restart. If that is too much work, use a reverse proxy instead. With a real certificate the panel also sends <code>Strict-Transport-Security</code>.</p>
+<h2 id="behind-a-reverse-proxy-nginx-caddy">Behind a reverse proxy (nginx, Caddy)<a class="headerlink" href="#behind-a-reverse-proxy-nginx-caddy" title="Permanent link">&para;</a></h2>
+<p>A reverse proxy on the same machine can give the panel a normal <code>https://panel.example.com</code> address with an automatically renewed certificate. Let the panel listen only locally, over plain HTTP:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">Bind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">Port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8150</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">Https</span><span class="p">:</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">Enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">TrustProxyHeaders</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>nginx:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">server</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="kn">listen</span><span class="w"> </span><span class="mi">443</span><span class="w"> </span><span class="s">ssl</span><span class="p">;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="kn">server_name</span><span class="w"> </span><span class="s">panel.example.com</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="c1"># ssl_certificate / ssl_certificate_key as usual</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="kn">client_max_body_size</span><span class="w"> </span><span class="mi">512m</span><span class="p">;</span><span class="w">   </span><span class="c1"># at least Upload.MaxMegabytes</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="kn">location</span><span class="w"> </span><span class="s">/</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">        </span><span class="kn">proxy_pass</span><span class="w"> </span><span class="s">http://127.0.0.1:8150</span><span class="p">;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">        </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">Host</span><span class="w"> </span><span class="nv">$host</span><span class="p">;</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">        </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">X-Forwarded-For</span><span class="w"> </span><span class="nv">$remote_addr</span><span class="p">;</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">        </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">X-Forwarded-Proto</span><span class="w"> </span><span class="s">https</span><span class="p">;</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">X-Forwarded-Host</span><span class="w"> </span><span class="nv">$host</span><span class="p">;</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">        </span><span class="kn">proxy_read_timeout</span><span class="w"> </span><span class="s">600s</span><span class="p">;</span><span class="w">   </span><span class="c1"># exports and imports of big maps can take a while</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="p">}</span>
+</code></pre></div>
+<p>Caddy:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>panel.example.com {
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    reverse_proxy 127.0.0.1:8150
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>}
+</code></pre></div>
+<p>Caddy sets the forwarding headers itself.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Turn on <code>TrustProxyHeaders</code> only when the panel port can't be reached directly (<code>Bind: 127.0.0.1</code>, or a firewall). Otherwise anyone can fake their IP address and get around the login lock.</p>
+</div>
+<p>Set <code>X-Forwarded-For</code> to the client address (<code>$remote_addr</code>), not by appending to an incoming header. The panel uses the last address in the header.</p>
+<p>The panel closes connections that send a request more slowly than 10 seconds (30 seconds without data during an upload). A reverse proxy also protects it from many slow connections at once, because it receives the whole request before passing it on.</p>
+<h2 id="network-mode">Network mode<a class="headerlink" href="#network-mode" title="Permanent link">&para;</a></h2>
+<p>By default a panel only controls the server it is installed on. On a network (see <a href="../network/">network.md</a>) you can instead log in <strong>once</strong>, on the lobby server's panel, and work with every game server from there.</p>
+<ul>
+<li><strong>Lobby server (the gateway)</strong>: <code>Network.Role: GATEWAY</code>. Its dashboard shows every server (status, players, TPS, arenas) and one arena list for all of them. Arena pages, the game log, the shop editor, stats and arena import/export work for any server, picked by the server tag, the arena link or the <strong>Server</strong> selector.</li>
+<li><strong>Game servers (the nodes)</strong>: <code>Network.Role: NODE</code>. A node answers only its gateway. It has no login of its own unless you set <code>Network.NodeLogin: true</code>.</li>
+<li>In the shop editor, the <strong>Sync items</strong>, <strong>Sync GUIs</strong> and <strong>Sync upgrade prices</strong> buttons (Items, GUIs and Upgrades tabs) copy the items, GUIs or upgrade prices of the selected server to every other online server. They only run when pressed; same-named entries are overwritten and entries that exist only on the other servers are kept. Sync the items before the GUIs.</li>
+<li>Servers that do not answer are shown as offline on the dashboard (their arenas get an offline badge and the player count shows <code>–</code>).</li>
+<li>Everything else (accounts, roles, the activity log) stays on the gateway. People can't use it to change the accounts of a node.</li>
+<li>On a lobby server (<code>Network.Mode: LOBBY</code>) the dashboard also lists arenas of servers without a panel link, read-only, as "Not connected".</li>
+</ul>
+<p>Without a <code>Network.Role</code> (or with <code>STANDALONE</code>) nothing changes: one panel per server with its own accounts, as before.</p>
+<h3 id="setting-it-up">Setting it up<a class="headerlink" href="#setting-it-up" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Install <code>NewBedwars-Panel</code> on the lobby server and on every game server. The panel is a Paper plugin only: nothing is installed on the Velocity proxy, and the panels talk to each other directly over HTTPS, not through the proxy. Each panel needs its own <code>Port</code> if they share a machine (for example 8150, 8151, 8152), and the gateway must be able to reach the nodes' ports. Keep node ports closed to everyone else (firewall, private network).</li>
+<li>Make a secret: run <code>/nbwpanel network secret</code> on any server and copy the result.</li>
+<li>On every game server, in <code>plugins/NewBedwars-Panel/config.yml</code>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">Network</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">Role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NODE</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">Secret</span><span class="p">:</span><span class="w"> </span><span class="s">"&lt;the</span><span class="nv"> </span><span class="s">secret&gt;"</span>
+</code></pre></div>
+<ol>
+<li>On the lobby server:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">Network</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">Role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GATEWAY</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">Secret</span><span class="p">:</span><span class="w"> </span><span class="s">"&lt;the</span><span class="nv"> </span><span class="s">same</span><span class="nv"> </span><span class="s">secret&gt;"</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">Peers</span><span class="p">:</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nt">game1</span><span class="p">:</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">      </span><span class="nt">Url</span><span class="p">:</span><span class="w"> </span><span class="s">"https://10.0.0.5:8151"</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">      </span><span class="nt">Fingerprint</span><span class="p">:</span><span class="w"> </span><span class="s">""</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nt">game2</span><span class="p">:</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">      </span><span class="nt">Url</span><span class="p">:</span><span class="w"> </span><span class="s">"https://10.0.0.6:8151"</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">      </span><span class="nt">Fingerprint</span><span class="p">:</span><span class="w"> </span><span class="s">""</span>
+</code></pre></div>
+<p>The keys under <code>Peers</code> are the server ids the proxy uses (the same names shown in <code>/bw join</code> on the lobby), and must be the same as each node's own id (its <code>Network.Id</code>, or its NewBedwars server id when <code>Network.Id</code> is empty). A node refuses requests meant for another server and says so in its console. The dashboard marks servers in the network list that have no <code>Peers</code> entry as "Not connected".</p>
+<ol>
+<li>Restart the servers (panel changes need a restart), create the accounts on the <strong>gateway</strong> (<code>/nbwpanel user create &lt;name&gt; &lt;role&gt;</code>), and give roles that should reach other servers the <code>network.servers</code> permission. Check with <code>/nbwpanel network status</code>.</li>
+</ol>
+<h3 id="how-the-servers-trust-each-other">How the servers trust each other<a class="headerlink" href="#how-the-servers-trust-each-other" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>The secret.</strong> Every request from the gateway to a node is signed with the secret (HMAC-SHA256) over the request, the time, a one-time number, the user, the user's permissions, the user's IP address, the target server and the body. A node refuses anything unsigned, changed, older or newer than a minute, or seen before. Without the secret nobody can talk to a node's panel, even if its port is open. Keep it as private as a database password, and use a different one per network.</li>
+<li><strong>Permissions.</strong> The gateway checks what the user may do, and sends the permissions along; the node checks them again. <code>users.manage</code>, <code>roles.manage</code>, <code>audit.view</code> and <code>network.servers</code> are never accepted by a node.</li>
+<li><strong>Activity log.</strong> The node records every action as <code>name@&lt;gateway id&gt;</code> with the user's IP address, in its own <code>audit.log</code>.</li>
+<li><strong>Certificates.</strong> Panels use self-signed certificates by default, so the gateway does not use the normal certificate check for nodes. Instead it remembers the certificate it sees the <strong>first time</strong> (<code>peers.json</code>, shown by <code>/nbwpanel network status</code>) and refuses the server if the certificate ever changes (the server then shows "Certificate changed"). After a change you made on purpose run <code>/nbwpanel network forget &lt;server&gt;</code>. To skip trust-on-first-use, put the node's SHA-256 fingerprint (shown in its console at start, or by <code>/nbwpanel status</code>) in <code>Fingerprint</code>. A node with a normal CA-signed certificate (for example Let's Encrypt behind a reverse proxy) can use <code>Fingerprint: system</code>.</li>
+<li><strong>Plain HTTP.</strong> <code>http://</code> URLs work but anything on the way can read the traffic (the secret itself is never sent), and uploaded arena files are not covered by the signature. The gateway warns about it at start. Use them only when both panels are on the same machine or a trusted private network.</li>
+<li><strong>Uploads.</strong> Arena zips uploaded to another server are streamed straight through the gateway; their content is not covered by the signature (the user, the target and the time are).</li>
+<li><strong>Clocks.</strong> The two servers' clocks must be within one minute of each other, or the node answers "rejected".</li>
+</ul>
+<h3 id="status-values">Status values<a class="headerlink" href="#status-values" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Online</td>
+<td>answers</td>
+</tr>
+<tr>
+<td>Offline</td>
+<td>not reachable or no answer in time (the page shows the last known state in grey)</td>
+</tr>
+<tr>
+<td>Rejected</td>
+<td>the node refused the gateway: wrong <code>Network.Secret</code>, clocks too far apart, its <code>Peers</code> key differs from the node's id, or the node's panel is not a <code>NODE</code></td>
+</tr>
+<tr>
+<td>Certificate changed</td>
+<td>the certificate differs from the remembered one, see above</td>
+</tr>
+<tr>
+<td>Not connected</td>
+<td>the server is in the network list but has no <code>Peers</code> entry</td>
+</tr>
+</tbody>
+</table>
+<h2 id="files-and-backups">Files and backups<a class="headerlink" href="#files-and-backups" title="Permanent link">&para;</a></h2>
+<p>Everything is in <code>plugins/NewBedwars-Panel/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config.yml</code></td>
+<td>settings</td>
+</tr>
+<tr>
+<td><code>accounts.dat</code></td>
+<td>accounts and roles, encrypted (AES-GCM). Passwords are stored only as PBKDF2 hashes</td>
+</tr>
+<tr>
+<td><code>panel.key</code></td>
+<td>the 32-byte key for <code>accounts.dat</code> (owner read/write only, where the system supports it)</td>
+</tr>
+<tr>
+<td><code>selfsigned.p12</code></td>
+<td>the self-signed certificate and its private key</td>
+</tr>
+<tr>
+<td><code>audit.log</code></td>
+<td>the activity log, one JSON line per action (moved to <code>audit.log.1</code> at server start once it is over 5 MB)</td>
+</tr>
+<tr>
+<td><code>lang/en.yml</code>, <code>lang/pl.yml</code></td>
+<td>command messages</td>
+</tr>
+</tbody>
+</table>
+<p>Back up <code>accounts.dat</code> and <code>panel.key</code> together. One without the other is useless. A lost <code>panel.key</code> means the accounts can't be read: delete <code>accounts.dat</code> and create the admin again with <code>nbwpanel user create</code>.</p>
+<p>Instead of the file, the key can come from the environment variable <code>NBW_PANEL_KEY</code> (32 bytes, Base64, e.g. <code>openssl rand -base64 32</code>). The key then never lies next to the data. <code>panel.key</code> is not created or used while the variable is set.</p>
+<p>Shop editor saves keep the previous version of <code>items.yml</code>, <code>upgrades.yml</code>, the GUI files and the language files in <code>plugins/NewBedwars/data/backups/shop/</code>.</p>
+<p>Exports and uploaded imports are kept in <code>plugins/NewBedwars/data/exports/</code>, the same folder as <code>/bw arena export</code> and <code>/bw arena import</code>. Arena backups are in <code>plugins/NewBedwars/data/backups/</code>.</p>
+<h2 id="security-notes">Security notes<a class="headerlink" href="#security-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep HTTPS on, or put a reverse proxy with HTTPS in front. Over plain HTTP, passwords and session cookies can be read on the network.</li>
+<li>If only you need the panel, bind it to <code>127.0.0.1</code> and reach it through an SSH tunnel: <code>ssh -L 8150:127.0.0.1:8150 you@server</code>, then open <code>https://localhost:8150/</code>.</li>
+<li>Give people the smallest role that does the job. <code>staff</code> can only look (it may look at every server of the network).</li>
+<li>Sessions use an <code>HttpOnly</code>, <code>SameSite=Strict</code> cookie (<code>__Host-nbw</code> over HTTPS). Every change needs a CSRF token, and requests from other websites are refused.</li>
+<li>The page itself loads nothing from other sites (no CDN, no fonts, no tracking) and forbids being embedded in frames.</li>
+<li>On a network, the secret is the key to every game server's panel. Keep <code>config.yml</code> private and don't expose node ports.</li>
+<li>Check <strong>Activity</strong> (or <code>audit.log</code>) now and then. Failed and locked logins are recorded with the IP address.</li>
+<li><code>Bind: 0.0.0.0</code> makes the panel reachable from every network the server is on. If it doesn't have to be public, allow port 8150 only from your own IP in the firewall. The built-in web server has no protection against clients that keep many slow connections open, so a reverse proxy (nginx, Caddy) in front is the better choice for a panel that is open to the internet. The game itself is never slowed down by the panel.</li>
+<li>Enable <code>TrustProxyHeaders</code> only behind your own reverse proxy. Otherwise anyone can fake their IP address, and with it the login lock.</li>
+<li>Arena imports (upload and unzip) are limited to <code>Upload.MaxMegabytes</code>, 2 GB unpacked and 200 000 files, and files can only be written inside the server's export and map folders.</li>
+<li><strong>Network mode uses one shared secret.</strong> Anyone who has it (for example from a game server whose files leaked) can send signed requests to every other server's panel with any permission except the local-only ones. Treat every server that has the secret as trusted, keep node panels reachable only from the gateway, and change the secret (<code>/nbwpanel network secret</code> on one server, then on all) if one server is compromised.</li>
+<li>Between the gateway and the game servers, use HTTPS (the default). The contents of an arena zip sent to another server are not covered by the request signature, only by the encrypted connection.</li>
+<li>The login lock counts failed attempts per IP address and per account. Someone who knows an account name can lock it for 10 minutes by guessing wrong 5 times. Behind a reverse proxy without <code>TrustProxyHeaders</code>, every visitor shares one IP address, so failed logins of anyone count for everyone.</li>
+<li>Commands typed in an arena world are shown in the game log. <code>/login</code>, <code>/register</code> and similar are never logged, but other plugins may have their own secret commands (for example 2FA codes): add them to <code>GameLog.IgnoredCommands</code>.</li>
+<li>The <code>shop.commands</code> permission lets a role make shop items that run console commands or give any permission (this includes switching an item's action to or from those two). Give it only to people you would give console access.</li>
+<li>The <code>arena.import</code> permission is trusted like console access. An imported map is not scanned or stripped: it can contain command blocks (they run when <code>enable-command-block=true</code> in <code>server.properties</code>) and datapacks. Give it only to people you would give console access. The same goes for <code>/bw arena import</code> (<code>newbedwars.bw.arena.import</code>).</li>
+<li>If the pinned certificate file of the network peers (<code>peers.json</code>) is damaged, the panel moves it aside as <code>peers.json.corrupt-&lt;time&gt;</code>, logs a SEVERE message and refuses contact with the peers it can no longer verify. Check the peers' certificate fingerprints, then run <code>/nbwpanel network forget &lt;peer&gt;</code> to trust a peer again. The pins that could still be read are written back to a fresh <code>peers.json</code>, and a marker file <code>peers.json.locked</code> keeps this protection active after a restart: peers without a pin are refused until you release each one with <code>forget</code>. The lock stays until you delete <code>peers.json.locked</code> yourself (only do that after you checked every peer's fingerprint).</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>port 8150 on 0.0.0.0 is already in use</code></td>
+<td>Another program (or a second server) uses the port: change <code>Port</code></td>
+</tr>
+<tr>
+<td><code>This Java runtime has no built-in web server</code></td>
+<td>Run the server with a full JDK/JRE (e.g. Temurin)</td>
+</tr>
+<tr>
+<td><code>accounts.dat can not be read with this key</code></td>
+<td><code>panel.key</code> / <code>NBW_PANEL_KEY</code> is not the key the file was written with. Restore the matching key, or delete <code>accounts.dat</code> and create the accounts again</td>
+</tr>
+<tr>
+<td>The browser can't connect</td>
+<td>Open the port in the firewall / hosting panel; check <code>Bind</code>; use <code>https://</code>, not <code>http://</code></td>
+</tr>
+<tr>
+<td>"Too many wrong tries"</td>
+<td>Wait <code>Login.LockMinutes</code>, or reset the password from the console</td>
+</tr>
+<tr>
+<td>Upload fails with "larger than the upload limit"</td>
+<td>Raise <code>Upload.MaxMegabytes</code> (and <code>client_max_body_size</code> in nginx)</td>
+</tr>
+<tr>
+<td>A server is "Rejected"</td>
+<td>Different <code>Network.Secret</code>, clocks more than a minute apart, the <code>Peers</code> key on the gateway is not the node's id (the node's console names both), or <code>Network.Role</code> on that server is not <code>NODE</code> (check its console at start)</td>
+</tr>
+<tr>
+<td>A server is "Certificate changed"</td>
+<td>Its certificate was recreated (deleted <code>selfsigned.p12</code>, new IP in <code>Https.Hostnames</code>, ...). If that was you, run <code>/nbwpanel network forget &lt;server&gt;</code> on the gateway</td>
+</tr>
+<tr>
+<td>A server is "Offline"</td>
+<td>Wrong <code>Url</code>/port, the node's panel is not running, or a firewall blocks the gateway</td>
+</tr>
+<tr>
+<td><code>Network.Role is GATEWAY but Network.Secret is missing</code></td>
+<td>Set a <code>Network.Secret</code> of 32+ characters on every server; until then the panel runs as a standalone panel</td>
+</tr>
+<tr>
+<td>Uploads fail behind a reverse proxy but work directly</td>
+<td>The proxy's body size limit or timeout is too low (see the nginx example)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../network/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Network mode">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Network mode
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../api/" class="md-footer__link md-footer__link--next" aria-label="Next: Getting started">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Getting started
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2123 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Bedwars plugin for Paper 1.17 to 26.x, with an optional web admin panel.">
+      
+      
+      
+        <link rel="canonical" href="https://l299l.github.io/NewBedwars-Free/commands/">
+      
+      
+        <link rel="prev" href="../configuration/">
+      
+      
+        <link rel="next" href="../placeholders/">
+      
+      
+      <link rel="icon" href="../assets/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.39">
+    
+    
+      
+        <title>Commands and permissions - NewBedwars</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#commands-and-permissions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="NewBedwars" class="md-header__button md-logo" aria-label="NewBedwars" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 7h-8v7H3V5H1v15h2v-3h18v3h2v-9a4 4 0 0 0-4-4M7 13a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NewBedwars
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Commands and permissions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/l299l/NewBedwars-Free" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    l299l/NewBedwars-Free
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="NewBedwars" class="md-nav__button md-logo" aria-label="NewBedwars" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 7h-8v7H3V5H1v15h2v-3h18v3h2v-9a4 4 0 0 0-4-4M7 13a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3"/></svg>
+
+    </a>
+    NewBedwars
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/l299l/NewBedwars-Free" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    l299l/NewBedwars-Free
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../arena-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Arena setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shop-and-upgrades/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shop and upgrades
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game-modes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game modes and phases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Commands and permissions
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Commands and permissions
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#player-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#party-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#admin-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Admin commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#web-panel-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Web panel commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#all-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      All modes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normal-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normal setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permissions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Admin
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../placeholders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Placeholders
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Storage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../balance-simulator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Balance simulator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Network and panel
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Network and panel
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Network mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../panel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web panel
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Developers
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Addon API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            Addon API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/data-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reading data and events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/registering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Registering content
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/arenas/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Arenas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/players/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Players
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/shop-and-modes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shop editor and game modes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/example/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Full example
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#player-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#party-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Party commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Network commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#admin-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Admin commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#web-panel-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Web panel commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup commands
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#all-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      All modes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normal-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normal setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic setup
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Permissions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Admin
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player" class="md-nav__link">
+    <span class="md-ellipsis">
+      Player
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/l299l/NewBedwars-Free/edit/dev/docs/commands.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="commands-and-permissions">Commands and permissions<a class="headerlink" href="#commands-and-permissions" title="Permanent link">&para;</a></h1>
+<p>Commands depend on where you are: outside any arena (lobby), inside a game or spectating, or in arena setup mode. <code>/bw help</code> shows what you can use right now, and <code>/bw setupHelp [page] [command]</code> shows the setup commands of your current setup mode.</p>
+<ul>
+<li><a href="#player-commands">Player commands</a></li>
+<li><a href="#party-commands">Party commands</a></li>
+<li><a href="#network-commands">Network commands</a></li>
+<li><a href="#admin-commands">Admin commands</a></li>
+<li><a href="#web-panel-commands">Web panel commands</a></li>
+<li><a href="#setup-commands">Setup commands</a></li>
+<li><a href="#permissions">Permissions</a></li>
+</ul>
+<h2 id="player-commands">Player commands<a class="headerlink" href="#player-commands" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Where</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/bw join [arena\|group]</code></td>
+<td>lobby</td>
+<td>Open the arena selector, join a specific arena, or join the fullest waiting arena of a group. On a network lobby server <code>&lt;server&gt;:&lt;arena&gt;</code> joins that server's arena</td>
+</tr>
+<tr>
+<td><code>/bw rejoin</code></td>
+<td>lobby</td>
+<td>Rejoin the game you disconnected from</td>
+</tr>
+<tr>
+<td><code>/bw spectate &lt;arena&gt;</code></td>
+<td>lobby</td>
+<td>Join a running arena as a spectator</td>
+</tr>
+<tr>
+<td><code>/bw team [team\|random]</code></td>
+<td>game (waiting)</td>
+<td>Open the team menu, pick a team (name, any case) or clear your pick with <code>random</code>. Needs the gamerule <code>TeamSelection</code>; only while the arena is waiting or starting, not for spectators</td>
+</tr>
+<tr>
+<td><code>/bw lobby</code></td>
+<td>lobby, game</td>
+<td>Leave the arena and return to the lobby</td>
+</tr>
+<tr>
+<td><code>/bw lang &lt;en\|pl\|de\|es\|fr\|ru&gt;</code></td>
+<td>lobby, game</td>
+<td>Change your language</td>
+</tr>
+<tr>
+<td><code>/bw help [page]</code></td>
+<td>lobby, game</td>
+<td>Show the commands you can use</td>
+</tr>
+<tr>
+<td><code>/bw stats [player]</code></td>
+<td>lobby</td>
+<td>Show a player's stats</td>
+</tr>
+<tr>
+<td><code>/bw profile [player]</code></td>
+<td>lobby</td>
+<td>Open a player's profile GUI (also fast-buy customization)</td>
+</tr>
+<tr>
+<td><code>/bw leaderboard [wins\|kills\|beds\|fk]</code></td>
+<td>lobby</td>
+<td>Top 10 players by a stat</td>
+</tr>
+<tr>
+<td><code>/lobby</code></td>
+<td>anywhere</td>
+<td>Shortcut for <code>/bw lobby</code></td>
+</tr>
+<tr>
+<td><code>/lang &lt;en\|pl\|de\|es\|fr\|ru&gt;</code></td>
+<td>anywhere</td>
+<td>Shortcut for <code>/bw lang</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="party-commands">Party commands<a class="headerlink" href="#party-commands" title="Permanent link">&para;</a></h2>
+<p><code>/party</code> (alias <code>/p</code>). All of them need <code>newbedwars.party</code>. In network mode (see <a href="../network/">network.md</a>) the same commands are handled by the NewBedwars-Proxy plugin on Velocity.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/party invite &lt;player&gt;</code></td>
+<td>Invite a player to your party</td>
+</tr>
+<tr>
+<td><code>/party accept</code> / <code>/party deny</code></td>
+<td>Accept or deny a pending invite (clickable in chat)</td>
+</tr>
+<tr>
+<td><code>/party leave</code></td>
+<td>Leave your party</td>
+</tr>
+<tr>
+<td><code>/party list</code></td>
+<td>List the party members</td>
+</tr>
+<tr>
+<td><code>/party kick &lt;player&gt;</code></td>
+<td>Kick a member (party admin only)</td>
+</tr>
+<tr>
+<td><code>/party admin &lt;player&gt;</code></td>
+<td>Give the party admin role to another member (party admin only)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="network-commands">Network commands<a class="headerlink" href="#network-commands" title="Permanent link">&para;</a></h2>
+<p>Only used in <a href="../network/">network mode</a>. In network mode <code>/party</code> is also handled by the proxy (see <a href="#party-commands">Party commands</a>).</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Where</th>
+<th>Permission</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/nbwproxy</code></td>
+<td>Velocity proxy</td>
+<td><code>newbedwars.proxy.admin</code></td>
+<td>List the game servers and arenas the proxy knows, and whether a newer proxy version exists</td>
+</tr>
+<tr>
+<td><code>/bw join &lt;server&gt;:&lt;arena&gt;</code></td>
+<td>lobby server</td>
+<td><code>newbedwars.bw.join</code></td>
+<td>Join that arena on that game server</td>
+</tr>
+<tr>
+<td><code>/bw arena list</code></td>
+<td>lobby server</td>
+<td><code>newbedwars.bw.arena.list</code></td>
+<td>The arenas of every game server (server, group, state, players)</td>
+</tr>
+<tr>
+<td><code>/bw arena info</code></td>
+<td>lobby server</td>
+<td><code>newbedwars.bw.arena</code></td>
+<td>How to set arenas up on a network. All other <code>/bw arena</code> commands are refused on a lobby server; run them on the game server that has the arena</td>
+</tr>
+<tr>
+<td><code>/bw group ...</code></td>
+<td>lobby server</td>
+<td><code>newbedwars.bw.group</code></td>
+<td>Arena groups for the whole network; <code>&lt;server&gt;:&lt;arena&gt;</code> adds only that server's arena. Game servers can only list groups</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network status</code> / <code>secret</code> / <code>forget &lt;server&gt;</code></td>
+<td>any server with the panel</td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Panel network mode, see <a href="#web-panel-commands">Web panel commands</a></td>
+</tr>
+</tbody>
+</table>
+<p><code>newbedwars.network.bypass</code> lets staff stay on a game server without a join request (setup, testing).</p>
+<h2 id="admin-commands">Admin commands<a class="headerlink" href="#admin-commands" title="Permanent link">&para;</a></h2>
+<p>Available outside arenas to players with the permission shown.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Permission</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/bw arena create &lt;name&gt; [-sche &lt;schematic&gt;] [-n]</code></td>
+<td><code>newbedwars.bw.arena.create</code></td>
+<td>Create an arena, optionally from a WorldEdit schematic (<code>-n</code>: do not teleport to it)</td>
+</tr>
+<tr>
+<td><code>/bw arena list</code></td>
+<td><code>newbedwars.bw.arena.list</code></td>
+<td>List arenas and their status (with problems of disabled arenas)</td>
+</tr>
+<tr>
+<td><code>/bw arena delete &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.delete</code></td>
+<td>Permanently delete an arena, its world and saved data</td>
+</tr>
+<tr>
+<td><code>/bw arena enable &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.enable</code></td>
+<td>Enable a fully configured arena</td>
+</tr>
+<tr>
+<td><code>/bw arena disable &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.disable</code></td>
+<td>Disable an arena</td>
+</tr>
+<tr>
+<td><code>/bw arena setup &lt;name&gt; [-l &lt;players&gt;]</code></td>
+<td><code>newbedwars.bw.arena.setup</code></td>
+<td>Enter setup mode for an arena</td>
+</tr>
+<tr>
+<td><code>/bw arena backup &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.backup</code></td>
+<td>Back up the arena file and map now</td>
+</tr>
+<tr>
+<td><code>/bw arena backups &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.backups</code></td>
+<td>List the backups of an arena</td>
+</tr>
+<tr>
+<td><code>/bw arena restore &lt;name&gt; [backupId]</code></td>
+<td><code>newbedwars.bw.arena.restore</code></td>
+<td>Restore the arena file and map from a backup</td>
+</tr>
+<tr>
+<td><code>/bw arena export &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.export</code></td>
+<td>Export the arena (file and map) to a zip in <code>data/exports</code></td>
+</tr>
+<tr>
+<td><code>/bw arena import &lt;file&gt;</code></td>
+<td><code>newbedwars.bw.arena.import</code></td>
+<td>Import an arena from a zip in <code>data/exports</code> (loaded disabled)</td>
+</tr>
+<tr>
+<td><code>/bw arena copy &lt;name&gt; &lt;newName&gt;</code></td>
+<td><code>newbedwars.bw.arena.copy</code></td>
+<td>Copy an arena (settings and map) to a new arena with the same state; it joins the same group</td>
+</tr>
+<tr>
+<td><code>/bw arena resetmap &lt;name&gt;</code></td>
+<td><code>newbedwars.bw.arena.resetmap</code></td>
+<td>Put the arena map back to its saved state now</td>
+</tr>
+<tr>
+<td><code>/bw setlobby</code></td>
+<td><code>newbedwars.bw.setlobby</code></td>
+<td>Set the lobby spawn</td>
+</tr>
+<tr>
+<td><code>/bw group create &lt;name&gt; [item]</code></td>
+<td><code>newbedwars.bw.group.create</code></td>
+<td>Create an arena group (players vote between its maps); <code>item</code> is the vote menu icon</td>
+</tr>
+<tr>
+<td><code>/bw group delete &lt;group&gt;</code></td>
+<td><code>newbedwars.bw.group.delete</code></td>
+<td>Delete a group</td>
+</tr>
+<tr>
+<td><code>/bw group add &lt;group&gt; &lt;arena&gt;</code></td>
+<td><code>newbedwars.bw.group.add</code></td>
+<td>Add an arena (all arenas of a group need the same team count and team size; one group per arena). On a network lobby server: <code>&lt;arena&gt;</code> = that arena on every game server, <code>&lt;server&gt;:&lt;arena&gt;</code> = only that one; game servers can only list groups</td>
+</tr>
+<tr>
+<td><code>/bw group remove &lt;group&gt; &lt;arena&gt;</code></td>
+<td><code>newbedwars.bw.group.remove</code></td>
+<td>Remove an arena from a group</td>
+</tr>
+<tr>
+<td><code>/bw group list</code> / <code>info &lt;group&gt;</code></td>
+<td><code>newbedwars.bw.group.list</code> / <code>.info</code></td>
+<td>List groups / show a group and its problems</td>
+</tr>
+<tr>
+<td><code>/bw group setitem &lt;group&gt; &lt;item&gt;</code></td>
+<td><code>newbedwars.bw.group.setitem</code></td>
+<td>Change the vote menu icon</td>
+</tr>
+<tr>
+<td><code>/bw arena info</code></td>
+<td><code>newbedwars.bw.arena</code></td>
+<td>Lobby server of a network only: how to set arenas up on the game servers (<code>/bw arena list</code> shows all servers' arenas there)</td>
+</tr>
+<tr>
+<td><code>/bw npc set &lt;action&gt; [target]</code></td>
+<td><code>newbedwars.bw.npc</code></td>
+<td>Turn the Citizens NPC you selected (<code>/npc select</code>) into a join NPC</td>
+</tr>
+<tr>
+<td><code>/bw npc clear</code></td>
+<td><code>newbedwars.bw.npc</code></td>
+<td>Make the selected Citizens NPC a normal NPC again</td>
+</tr>
+<tr>
+<td><code>/bw npc info [id]</code></td>
+<td><code>newbedwars.bw.npc</code></td>
+<td>Show the action of the selected Citizens NPC, or of a simple NPC by id</td>
+</tr>
+<tr>
+<td><code>/bw npc list</code></td>
+<td><code>newbedwars.bw.npc</code></td>
+<td>List all join NPCs with their action and location</td>
+</tr>
+<tr>
+<td><code>/bw npc create &lt;entityType&gt; &lt;action&gt; [target]</code></td>
+<td><code>newbedwars.bw.npc</code></td>
+<td>Without Citizens: spawn a simple join NPC (e.g. a villager) where you stand</td>
+</tr>
+<tr>
+<td><code>/bw npc remove &lt;id&gt;</code></td>
+<td><code>newbedwars.bw.npc</code></td>
+<td>Remove a simple join NPC</td>
+</tr>
+<tr>
+<td><code>/bw reload</code></td>
+<td><code>newbedwars.bw.admin</code></td>
+<td>Save arenas, send everyone to the lobby and reload the configuration. Parties are disbanded. Refused while an arena map is being reset</td>
+</tr>
+<tr>
+<td><code>/bw update [check\|download]</code> <strong>(2.7-beta)</strong></td>
+<td><code>newbedwars.bw.update</code></td>
+<td>Look for a new NewBedwars version on Modrinth/GitHub; <code>download</code> saves it (checksum verified) to <code>plugins/update/</code>, installed on the next restart</td>
+</tr>
+<tr>
+<td><code>/bw game &lt;start\|forcestart\|stop\|forcestop\|nextPhase&gt;</code></td>
+<td><code>newbedwars.bw.managegame</code></td>
+<td>Manage the running game you are in or spectating (start, stop, skip a phase)</td>
+</tr>
+<tr>
+<td><code>/bw game broadcast &lt;message&gt;</code></td>
+<td><code>newbedwars.bw.managegame</code></td>
+<td>Send a highlighted message (<code>&amp;</code> colours allowed) to everyone in your arena. <strong>Available from 2.7-beta</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>/bw join &lt;group&gt;</code> joins the fullest waiting arena of a group, so players gather in one lobby. When a game in a grouped arena ends, everyone still there gets a vote item (<code>MapVote.Item</code> in <code>config.yml</code>, slot 1 by default) and votes for the next map among the group's other waiting arenas with room for everyone. When <code>AfterGameWatchTime</code> is up, everyone joins the waiting lobby of the map with the most votes (ties and no votes pick randomly; parties stay together). If no map is free, everyone goes to the lobby. Turn voting off for one arena with the gamerule <code>MapVote</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>/bw update</code> or <code>/bw update check</code> checks now; <code>/bw update download</code> downloads the new jar into <code>plugins/update/</code> and the server installs it on the next restart. It only works in-game; the console gets an automatic line when a new version is found. Settings are under <code>Updates</code> in <code>config.yml</code> (see <a href="../configuration/#updates">Configuration</a>).</p>
+</div>
+<p>Join NPC actions: <code>GROUP &lt;group&gt;</code> joins the fullest free arena of a group, <code>ARENA &lt;arena&gt;</code> joins that arena, and <code>SELECTOR [group]</code> opens the arena selector. On a network lobby server all three send players to the game servers. A group is a <code>/bw group</code> name; otherwise it is an arena name pattern (<code>solo_*</code>) or a team size (<code>4x1</code> = 4 teams of 1). Hologram lines and update speed are set under <code>JoinNpc</code> in <code>config.yml</code>.</p>
+<h2 id="web-panel-commands">Web panel commands<a class="headerlink" href="#web-panel-commands" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These commands exist only with the <code>NewBedwars-Panel</code> addon installed. See <a href="../panel/">panel.md</a>.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Permission</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/nbwpanel status</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Panel address, certificate fingerprint, accounts and logged-in sessions</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user create &lt;name&gt; &lt;role&gt;</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Create a panel account; prints a one-time password</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user reset &lt;name&gt;</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>New one-time password; the account is logged out</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user delete &lt;name&gt;</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Delete a panel account (not the last admin)</td>
+</tr>
+<tr>
+<td><code>/nbwpanel user list</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>List panel accounts and roles</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network status</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Network role of the panel and, on a gateway, the state of every server</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network secret</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Print a new random network secret (not saved)</td>
+</tr>
+<tr>
+<td><code>/nbwpanel network forget &lt;server&gt;</code></td>
+<td><code>newbedwars.panel.manage</code></td>
+<td>Gateway: forget the remembered certificate of a server</td>
+</tr>
+</tbody>
+</table>
+<h2 id="setup-commands">Setup commands<a class="headerlink" href="#setup-commands" title="Permanent link">&para;</a></h2>
+<p>Used inside the arena world after <code>/bw arena setup &lt;name&gt;</code>. Choose the mode with <code>/bw setupMode</code>; each mode includes the commands of the ones before it. Arguments in <code>( )</code> are optional; many position commands use your location when you give no coordinates.</p>
+<h3 id="all-modes">All modes<a class="headerlink" href="#all-modes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/bw info [gui]</code></td>
+<td>Show the setup status of the arena</td>
+</tr>
+<tr>
+<td><code>/bw setupMode</code></td>
+<td>Open the setup mode selection GUI</td>
+</tr>
+<tr>
+<td><code>/bw setupHelp [page] [command]</code></td>
+<td>Show the setup commands of your mode, or the details of one</td>
+</tr>
+<tr>
+<td><code>/bw save</code></td>
+<td>Save the arena (also updates the map copy used for resets)</td>
+</tr>
+<tr>
+<td><code>/bw remove &lt;team\|generator&gt; &lt;teamName\|index&gt; [bed\|spawn\|shop\|upgrades\|buildprotpos1\|buildprotpos2\|pos1\|pos2]</code></td>
+<td>Remove a team, a generator, or one property of a team</td>
+</tr>
+<tr>
+<td><code>/bw leave [-all]</code></td>
+<td>Leave setup mode and go back to the lobby</td>
+</tr>
+</tbody>
+</table>
+<h3 id="normal-setup">Normal setup<a class="headerlink" href="#normal-setup" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/bw createTeam &lt;color&gt; &lt;name&gt;</code></td>
+<td>Create a team</td>
+</tr>
+<tr>
+<td><code>/bw setTeamSpawn &lt;team&gt; [x y z]</code></td>
+<td>Team spawn</td>
+</tr>
+<tr>
+<td><code>/bw setTeamBed &lt;team&gt; [x y z]</code></td>
+<td>Team bed</td>
+</tr>
+<tr>
+<td><code>/bw setTeamShop &lt;team&gt; &lt;entityType&gt; [x y z]</code></td>
+<td>Team shop NPC</td>
+</tr>
+<tr>
+<td><code>/bw setTeamUpgrades &lt;team&gt; &lt;entityType&gt; [x y z]</code></td>
+<td>Team upgrades NPC</td>
+</tr>
+<tr>
+<td><code>/bw setGenerator &lt;type&gt; [team\|id] [x y z]</code></td>
+<td>Diamond, emerald or team generator; in advanced setup also <code>OTHER &lt;id&gt;</code>, a <a href="../shop-and-upgrades/#custom-generators">custom generator</a></td>
+</tr>
+<tr>
+<td><code>/bw setMinPlayers &lt;n&gt;</code></td>
+<td>Minimum players to start</td>
+</tr>
+<tr>
+<td><code>/bw setMaxInTeam &lt;n&gt;</code></td>
+<td>Players per team</td>
+</tr>
+<tr>
+<td><code>/bw setWaitingSpawn [x y z]</code></td>
+<td>Waiting lobby spawn</td>
+</tr>
+<tr>
+<td><code>/bw setWaitingPos1</code> / <code>setWaitingPos2</code></td>
+<td>Corners of the waiting region</td>
+</tr>
+<tr>
+<td><code>/bw setWaitingTime &lt;seconds&gt;</code></td>
+<td>Countdown before the start</td>
+</tr>
+<tr>
+<td><code>/bw setQuickVoidY [y]</code></td>
+<td>Y level where players die instantly</td>
+</tr>
+<tr>
+<td><code>/bw setTeamBasePos1 &lt;team&gt;</code> / <code>setTeamBasePos2 &lt;team&gt;</code></td>
+<td>Corners of the team base (traps, heal pool)</td>
+</tr>
+<tr>
+<td><code>/bw setTeamBuildProtAreaPos1 &lt;team&gt;</code> / <code>...Pos2 &lt;team&gt;</code></td>
+<td>Corners of the zone where blocks cannot be placed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="advanced-setup">Advanced setup<a class="headerlink" href="#advanced-setup" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/bw gamerule &lt;name&gt; &lt;true\|false&gt;</code></td>
+<td>Gamerule of this arena</td>
+</tr>
+<tr>
+<td><code>/bw setGui &lt;shop\|upgrade&gt; &lt;guiId&gt;</code></td>
+<td>Shop or upgrade GUI used on this arena</td>
+</tr>
+<tr>
+<td><code>/bw setGeneratorLeveling &lt;configId&gt;</code></td>
+<td>Generator leveling configuration</td>
+</tr>
+<tr>
+<td><code>/bw setGamePhases &lt;id&gt;</code></td>
+<td>Game phase list of this arena (an ID from <code>GamePhases</code> in <code>modes.yml</code>, tab-completed)</td>
+</tr>
+<tr>
+<td><code>/bw setTablist &lt;layout&gt;</code></td>
+<td>Tab list layout of this arena (a layout from <code>tablists.yml</code>, tab-completed)</td>
+</tr>
+<tr>
+<td><code>/bw setMode &lt;mode&gt;</code></td>
+<td>Copies a mode from <code>Modes</code> in <code>modes.yml</code> (generators, game phases, shop and upgrade menu, team size) into this arena once; nothing is changed if a part of the mode is missing (tab-completed)</td>
+</tr>
+<tr>
+<td><code>/bw setResourcePack &lt;url\|clear&gt; [sha1]</code></td>
+<td>Per-arena resource pack</td>
+</tr>
+</tbody>
+</table>
+<h3 id="automatic-setup">Automatic setup<a class="headerlink" href="#automatic-setup" title="Permanent link">&para;</a></h3>
+<p>Pick <strong>Automatic</strong> in the setup menu (or <code>/bw arena create</code>), build the arena, stand in the middle of it and run:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/bw startAutomaticSetup [radius]</code></td>
+<td>Scans the blocks around you (default <code>AutomaticSetup.DefaultRadius</code>, at most <code>AutomaticSetup.MaxRadius</code>) and sets up what it finds, then asks for the rest</td>
+</tr>
+<tr>
+<td><code>/bw startAutomaticSetup next</code></td>
+<td>Shows the current step again (after you changed something by hand)</td>
+</tr>
+<tr>
+<td><code>/bw startAutomaticSetup skip</code></td>
+<td>Skips the current step</td>
+</tr>
+<tr>
+<td><code>/bw startAutomaticSetup cancel</code></td>
+<td>Stops the scan or the step-by-step help; what was already set stays</td>
+</tr>
+</tbody>
+</table>
+<p>What the scan finds:</p>
+<ul>
+<li><strong>Beds</strong> (the head half): every bed color becomes a team (<code>Red</code>, <code>Blue</code>, <code>LightBlue</code>, ...) with its bed set.</li>
+<li><strong>Generator blocks</strong>: diamond and emerald blocks become arena generators (touching blocks make one). The nearest iron or gold block within <code>AutomaticSetup.GeneratorSearchRadius</code> blocks of a bed becomes that team's generator.</li>
+<li><strong>Marker signs</strong> place the rest. Line 1 is the type, line 2 the team color (left empty = the team of the nearest bed), line 3 an optional mob type for shops (default <code>VILLAGER</code>):</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Line 1</th>
+<th>Sets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[spawn]</code></td>
+<td>Team spawn (faces the middle of the map)</td>
+</tr>
+<tr>
+<td><code>[shop]</code></td>
+<td>Item shop</td>
+</tr>
+<tr>
+<td><code>[upgrades]</code></td>
+<td>Upgrades shop</td>
+</tr>
+<tr>
+<td><code>[gen]</code></td>
+<td>Team generator (wins over a found iron or gold block). With <code>DIAMOND</code> or <code>EMERALD</code> on line 2 it adds an arena generator instead</td>
+</tr>
+</tbody>
+</table>
+<p>Used signs are removed. The lowest block of the scanned area minus 10 becomes the quick void Y, and the base area and block protection area of every team are guessed from its points (padding in <code>AutomaticSetup</code>). Guessed areas follow the team's points until you set them yourself.</p>
+<p>Steps still missing are shown in chat with clickable <strong>[Set here]</strong> and <strong>[Skip]</strong> buttons that run the normal setup commands. Things that are already set are never overwritten by a new scan. When no step is left, the plugin says whether the arena can be enabled; save with <code>/bw save</code>.</p>
+<h2 id="permissions">Permissions<a class="headerlink" href="#permissions" title="Permanent link">&para;</a></h2>
+<p>Parent permissions grant their children. Everything not marked <code>true</code> defaults to <code>op</code>.</p>
+<h3 id="admin">Admin<a class="headerlink" href="#admin" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>newbedwars.bw.admin</code></td>
+<td>op</td>
+<td>All admin commands (grants <code>arena</code>, <code>setlobby</code>, <code>managegame</code>, <code>npc</code>, <code>group</code>, <code>update</code>, <code>update.notify</code>)</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.arena</code></td>
+<td>op</td>
+<td>All <code>/bw arena ...</code> commands (grants the <code>arena.*</code> permissions)</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.arena.create</code> / <code>.delete</code> / <code>.enable</code> / <code>.disable</code> / <code>.setup</code> / <code>.list</code></td>
+<td>op</td>
+<td>The matching <code>/bw arena &lt;action&gt;</code>. Holding only one of these is enough: the player can use that action (and sees only the actions they may use in <code>/bw help</code> and tab completion). <code>.setup</code> also allows the setup-mode commands</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.arena.backup</code> / <code>.backups</code> / <code>.restore</code> / <code>.export</code> / <code>.import</code> / <code>.copy</code> / <code>.resetmap</code></td>
+<td>op</td>
+<td>The matching <code>/bw arena &lt;action&gt;</code>. <code>.import</code> is trusted like console access: an imported map can contain command blocks (they run when <code>enable-command-block=true</code> in <code>server.properties</code>) and datapacks. Grant it only to people you would give console access</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.setlobby</code></td>
+<td>op</td>
+<td><code>/bw setlobby</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.managegame</code></td>
+<td>op</td>
+<td><code>/bw game ...</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.npc</code></td>
+<td>op</td>
+<td><code>/bw npc ...</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.update</code></td>
+<td>op</td>
+<td><code>/bw update</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.update.notify</code></td>
+<td>op</td>
+<td>One chat line on join when a new NewBedwars version is available</td>
+</tr>
+<tr>
+<td><code>newbedwars.network.bypass</code></td>
+<td>op</td>
+<td>Network GAME mode: stay on a game server without a join request (staff, setup)</td>
+</tr>
+<tr>
+<td><code>newbedwars.proxy.admin</code></td>
+<td>-</td>
+<td>Velocity: <code>/nbwproxy</code> (list the game servers and arenas the proxy knows, and whether a newer proxy version exists)</td>
+</tr>
+<tr>
+<td><code>newbedwars.panel.manage</code></td>
+<td>op</td>
+<td><code>/nbwpanel</code> (web panel addon: status and panel accounts)</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.group</code></td>
+<td>op</td>
+<td>All <code>/bw group ...</code> commands (grants <code>group.create</code> / <code>.delete</code> / <code>.add</code> / <code>.remove</code> / <code>.list</code> / <code>.info</code> / <code>.setitem</code>; each one alone allows only that <code>/bw group &lt;sub&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.bypass</code></td>
+<td>op</td>
+<td>Bypass setup-mode restrictions (for example entering setup worlds)</td>
+</tr>
+<tr>
+<td><code>newbedwars.chat.color</code></td>
+<td>op</td>
+<td>Use <code>&amp;</code> colour codes in arena and team chat messages (others have them stripped)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="player">Player<a class="headerlink" href="#player" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>newbedwars.bw.player</code></td>
+<td>true</td>
+<td>Bundle that grants all player permissions below</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.join</code></td>
+<td>true</td>
+<td>Join arenas</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.lobby</code></td>
+<td>true</td>
+<td>Go to the lobby</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.rejoin</code></td>
+<td>true</td>
+<td>Rejoin after a disconnect</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.spectate</code></td>
+<td>true</td>
+<td>Spectate arenas</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.lang</code></td>
+<td>true</td>
+<td>Change language</td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.help</code></td>
+<td>true</td>
+<td><code>/bw help</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.stats</code></td>
+<td>true</td>
+<td><code>/bw stats</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.profile</code></td>
+<td>true</td>
+<td><code>/bw profile</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.bw.leaderboard</code></td>
+<td>true</td>
+<td><code>/bw leaderboard</code></td>
+</tr>
+<tr>
+<td><code>newbedwars.party</code></td>
+<td>true</td>
+<td>All <code>/party</code> commands</td>
+</tr>
+<tr>
+<td><code>newbedwars.teamselect</code></td>
+<td>true</td>
+<td>Team selector item and <code>/bw team</code> (also part of <code>newbedwars.bw.player</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>All player permissions default to <code>true</code>, so everyone can use these commands until you deny a permission with a permissions plugin. Ops always bypass the checks. <code>/lobby</code> and <code>/lang</code> need the same permissions as <code>/bw lobby</code> and <code>/bw lang</code>.</p>
+<p>To stop a group from picking teams, take <code>newbedwars.teamselect</code> away with a permissions plugin, for example with LuckPerms: <code>lp group default permission set newbedwars.teamselect false</code>. Those players get no selector item, <code>/bw team</code> is refused and they are always placed automatically. Operators always keep it.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../configuration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Configuration">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Configuration
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../placeholders/" class="md-footer__link md-footer__link--next" aria-label="Next: Placeholders">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Placeholders
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>
